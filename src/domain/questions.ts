@@ -42,6 +42,17 @@ export function filterCountries(countries: readonly Country[], filter?: RegionFi
 }
 
 /**
+ * Narrow a pool to the countries that can be the *answer* in `mode`. Map modes need
+ * map geometry — a country the bundled TopoJSON has no shape for (e.g. Tuvalu) can be
+ * neither highlighted nor clicked, making the question impossible — so those are
+ * dropped. Flag modes accept every country. Distractors are intentionally *not*
+ * filtered: a geometry-less country is still a perfectly valid name option.
+ */
+export function eligibleAnswers(mode: GameMode, pool: readonly Country[]): Country[] {
+  return isMapMode(mode) ? pool.filter((c) => c.hasGeometry) : pool.slice();
+}
+
+/**
  * Pick `count` distractors for `answer`, preferring the closest geography: same
  * sub-region first, then the rest of the region, then the rest of the world. The
  * three tiers are disjoint and exclude the answer, so results never duplicate and
@@ -137,7 +148,7 @@ export interface GenerateOptions {
 export function generateQuestions(opts: GenerateOptions): Question[] {
   const rng = opts.rng ?? defaultRng;
   const choices = opts.choices ?? DEFAULT_CHOICES;
-  const answers = filterCountries(opts.countries, opts.filter);
+  const answers = eligibleAnswers(opts.mode, filterCountries(opts.countries, opts.filter));
   const sequence = drawAnswerSequence(answers, opts.count, rng);
   return sequence.map((answer) => buildQuestion(opts.mode, answer, opts.countries, choices, rng));
 }

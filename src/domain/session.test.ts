@@ -69,6 +69,25 @@ describe('QuizSession — construction & defaults', () => {
     expect(() => new QuizSession(base({ filter: { region: 'nope' } }))).toThrow();
   });
 
+  it('excludes geometry-less countries from map-mode answers but not flag-mode answers', () => {
+    // XX has no map geometry (like Tuvalu); it can't be highlighted or clicked.
+    const withGap: Country[] = [...UNIVERSE, { ...mk('XX', 'R1', 'S1'), hasGeometry: false }];
+    const answersFor = (mode: SessionConfig['mode']): Set<string> => {
+      const s = new QuizSession(base({ mode, countries: withGap, fixedLength: 200 }));
+      const seen = new Set<string>();
+      let q = s.next();
+      while (q) {
+        seen.add(q.answer.iso2);
+        s.submit(q.answer);
+        q = s.next();
+      }
+      return seen;
+    };
+    expect(answersFor('map-locate').has('XX')).toBe(false);
+    expect(answersFor('map-highlight').has('XX')).toBe(false);
+    expect(answersFor('flag-to-country').has('XX')).toBe(true);
+  });
+
   it('createSession returns an equivalent instance', () => {
     expect(createSession(base())).toBeInstanceOf(QuizSession);
   });

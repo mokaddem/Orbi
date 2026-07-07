@@ -23,11 +23,32 @@ function isLocale(value: unknown): value is Locale {
   return value === 'en' || value === 'fr';
 }
 
-function detectInitialLocale(): Locale {
-  if (typeof localStorage !== 'undefined') {
+/**
+ * Read the saved locale, tolerating a `localStorage` that is absent *or* throws on
+ * access — private-browsing and storage-blocked browsers expose the global but raise
+ * a SecurityError when it's touched. Any failure just means "no saved locale".
+ */
+function readStoredLocale(): Locale | null {
+  try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (isLocale(saved)) return saved;
+    return isLocale(saved) ? saved : null;
+  } catch {
+    return null;
   }
+}
+
+/** Persist the locale, silently tolerating a blocked/full `localStorage`. */
+function persistLocale(value: Locale): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, value);
+  } catch {
+    // Storage disabled or full — language just won't survive a reload.
+  }
+}
+
+function detectInitialLocale(): Locale {
+  const saved = readStoredLocale();
+  if (saved) return saved;
   if (typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('fr')) {
     return 'fr';
   }
@@ -38,9 +59,7 @@ function detectInitialLocale(): Locale {
 export const locale = writable<Locale>(detectInitialLocale());
 
 locale.subscribe((value) => {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, value);
-  }
+  persistLocale(value);
   if (typeof document !== 'undefined') {
     document.documentElement.lang = value;
   }

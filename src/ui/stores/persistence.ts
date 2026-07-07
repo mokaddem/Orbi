@@ -104,7 +104,7 @@ export async function initPersistence(): Promise<void> {
       if (current.language === lang) return;
       const next = { ...current, language: lang };
       prefs.set(next);
-      void store?.savePrefs(next);
+      void store?.savePrefs(next).catch(() => {});
     });
   }
 
@@ -115,13 +115,22 @@ export async function initPersistence(): Promise<void> {
 export function updatePrefs(patch: Partial<Omit<Prefs, 'language'>>): void {
   const next = clampPrefs({ ...get(prefs), ...patch });
   prefs.set(next);
-  void store?.savePrefs(next);
+  // Best-effort persist: keep the in-session change even if the write is refused.
+  void store?.savePrefs(next).catch(() => {});
 }
 
-/** Persist a finished session. No-op before {@link initPersistence} resolves. */
+/**
+ * Persist a finished session. Best-effort: a write that fails after the store opened
+ * (e.g. quota exceeded mid-session) is swallowed so it can't surface as an unhandled
+ * rejection or interrupt the run to the summary. No-op before {@link initPersistence}.
+ */
 export async function saveSession(summary: SessionSummary): Promise<void> {
   if (!store) return;
-  await store.addSession(summaryToRecord(summary));
+  try {
+    await store.addSession(summaryToRecord(summary));
+  } catch {
+    // Storage became unwritable (quota/private mode) — history just won't include this run.
+  }
 }
 
 // SR writes are serialized through this chain so two answers on the same item in quick

@@ -7,6 +7,7 @@ import {
   buildQuestion,
   checkAnswer,
   drawAnswerSequence,
+  eligibleAnswers,
   filterCountries,
   generateQuestions,
   hasOptions,
@@ -84,6 +85,46 @@ describe('filterCountries', () => {
     ]);
     expect(iso(filterCountries(UNIVERSE, { subregion: 'S2' }))).toEqual(['BA', 'BB']);
     expect(iso(filterCountries(UNIVERSE, { region: 'R1', subregion: 'S3' }))).toEqual([]);
+  });
+});
+
+describe('eligibleAnswers', () => {
+  // A pool where one member (XX) has no map geometry, like Tuvalu in the real dataset.
+  const geoMixed: Country[] = [
+    mk('AA', 'R1', 'S1'),
+    mk('AB', 'R1', 'S1'),
+    { ...mk('XX', 'R1', 'S1'), hasGeometry: false },
+  ];
+
+  it('keeps every country for option-based flag modes', () => {
+    for (const mode of ['flag-to-country', 'country-to-flag'] as GameMode[]) {
+      expect(iso(eligibleAnswers(mode, geoMixed))).toEqual(['AA', 'AB', 'XX']);
+    }
+  });
+
+  it('drops geometry-less countries for both map modes', () => {
+    for (const mode of ['map-highlight', 'map-locate'] as GameMode[]) {
+      expect(iso(eligibleAnswers(mode, geoMixed))).toEqual(['AA', 'AB']);
+    }
+  });
+
+  it('returns a fresh array (never the input)', () => {
+    expect(eligibleAnswers('flag-to-country', geoMixed)).not.toBe(geoMixed);
+  });
+
+  it('never asks about a geometry-less country in map modes via generateQuestions', () => {
+    for (const mode of ['map-highlight', 'map-locate'] as GameMode[]) {
+      const qs = generateQuestions({ mode, countries: geoMixed, count: 30, rng: mulberry32(7) });
+      expect(qs.map((q) => q.answer.iso2)).not.toContain('XX');
+    }
+    // …but flag modes still can (geometry is irrelevant there).
+    const flagQs = generateQuestions({
+      mode: 'flag-to-country',
+      countries: geoMixed,
+      count: 30,
+      rng: mulberry32(7),
+    });
+    expect(flagQs.map((q) => q.answer.iso2)).toContain('XX');
   });
 });
 
@@ -273,5 +314,26 @@ describe('generateQuestions (real dataset)', () => {
       expect(q.options).toBeUndefined();
       expect(q.answer.region).toBe('Africa');
     }
+  });
+
+  it('never poses a geometry-less country (Tuvalu) as a map answer, yet keeps it in flag modes', () => {
+    const noGeometry = countries.filter((c) => !c.hasGeometry).map((c) => c.iso2);
+    expect(noGeometry.length).toBeGreaterThan(0); // guards the test if the dataset changes
+
+    // Across many draws over the whole world, no map question should ask about one.
+    for (const mode of ['map-highlight', 'map-locate'] as GameMode[]) {
+      const qs = generateQuestions({ mode, countries, count: 600, rng: mulberry32(42) });
+      for (const q of qs) expect(noGeometry).not.toContain(q.answer.iso2);
+    }
+    // Flag modes are unaffected — every country, geometry or not, can be asked.
+    const flagAnswers = new Set(
+      generateQuestions({
+        mode: 'flag-to-country',
+        countries,
+        count: 4000,
+        rng: mulberry32(42),
+      }).map((q) => q.answer.iso2),
+    );
+    for (const iso of noGeometry) expect(flagAnswers).toContain(iso);
   });
 });

@@ -25,6 +25,7 @@ export {
   hasOptions,
   isMapMode,
   filterCountries,
+  eligibleAnswers,
   selectDistractors,
   buildQuestion,
   drawAnswerSequence,

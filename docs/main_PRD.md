@@ -49,9 +49,11 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⛔ Blocked
 | 7 | Spaced repetition & training | [phase-07-spaced-repetition.md](phases/phase-07-spaced-repetition.md) | 2, 6 | ✅ Done | 100% |
 | 8 | i18n polish (EN/FR) | [phase-08-i18n.md](phases/phase-08-i18n.md) | 0, 3, 4, 5, 6 | ✅ Done | 100% |
 | 9 | PWA & deployment | [phase-09-pwa-deployment.md](phases/phase-09-pwa-deployment.md) | 3–8 | ✅ Done | 100% |
-| 10 | Polish & QA | [phase-10-polish-qa.md](phases/phase-10-polish-qa.md) | all | ⬜ Not started | 0% |
+| 10 | Polish & QA | [phase-10-polish-qa.md](phases/phase-10-polish-qa.md) | all | ✅ Done | 100% |
 
-**Overall progress: ~91% (10 / 11 phases done).** Recommended next step: **Phase 10 — Polish & QA**.
+**Overall progress: 100% (11 / 11 phases done).** All phases complete — the app meets the
+success criteria below. Remaining follow-up: a manual physical multi-device sanity check
+before public release (see Phase 10 progress log).
 
 ---
 

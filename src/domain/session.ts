@@ -16,7 +16,13 @@ import type {
   SessionType,
 } from './types';
 import { type Rng, defaultRng, shuffle } from './rng';
-import { DEFAULT_CHOICES, buildQuestion, checkAnswer, filterCountries } from './questions';
+import {
+  DEFAULT_CHOICES,
+  buildQuestion,
+  checkAnswer,
+  eligibleAnswers,
+  filterCountries,
+} from './questions';
 
 /** Default number of questions in a `fixed` session. */
 export const DEFAULT_FIXED_LENGTH = 10;
@@ -85,9 +91,12 @@ export class QuizSession {
     this.universe = config.countries;
     // An explicit answer pool (training) wins over the region filter; otherwise the
     // filter narrows the universe. Either way distractors still tier against `universe`.
-    this.answers = config.answerPool
+    // Map modes then drop geometry-less countries (they can't be highlighted/clicked);
+    // flag modes keep everything.
+    const rawAnswers = config.answerPool
       ? config.answerPool.slice()
       : filterCountries(config.countries, config.filter);
+    this.answers = eligibleAnswers(this.mode, rawAnswers);
     if (this.answers.length === 0) {
       throw new Error(
         config.answerPool
