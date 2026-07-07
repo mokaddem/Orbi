@@ -1,0 +1,17 @@
+{
+  "topoResolution": "50m",
+  "sources": {
+    "world-countries": "5.1.0",
+    "flag-icons": "7.5.0",
+    "world-atlas": "2.0.2"
+  },
+  "counts": {
+    "countries": 195,
+    "withFlag": 195,
+    "withGeometry": 194
+  },
+  "geometryExceptions": [
+    "TV"
+  ],
+  "flagExceptions": []
+}

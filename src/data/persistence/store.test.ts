@@ -1,0 +1,131 @@
+import 'fake-indexeddb/auto';
+import { IDBFactory } from 'fake-indexeddb';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  IdbQuizStore,
+  MemoryQuizStore,
+  openStore,
+  type Prefs,
+  type QuizStore,
+  type SessionRecord,
+  type SRItem,
+} from './index';
+
+function record(over: Partial<SessionRecord> = {}): SessionRecord {
+  return {
+    id: 'a',
+    startedAt: 1000,
+    finishedAt: 2000,
+    durationMs: 1000,
+    mode: 'flag-to-country',
+    type: 'fixed',
+    total: 1,
+    correct: 1,
+    questions: [{ itemKey: 'flag-to-country:BG', countryIso2: 'BG', correct: true, answerMs: 500 }],
+    ...over,
+  };
+}
+
+const prefs: Prefs = { language: 'fr', survivalLives: 5, fixedLength: 20, choicesPerQuestion: 6 };
+
+const srItem: SRItem = {
+  itemKey: 'flag-to-country:BG',
+  repetitions: 2,
+  easeFactor: 2.6,
+  intervalDays: 6,
+  dueAt: 123456,
+  lapses: 1,
+};
+
+/** The behavioural contract every `QuizStore` implementation must satisfy. */
+function contractTests(name: string, makeStore: () => Promise<QuizStore>): void {
+  describe(name, () => {
+    let store: QuizStore;
+    beforeEach(async () => {
+      store = await makeStore();
+    });
+
+    it('round-trips a session', async () => {
+      await store.addSession(record({ id: 's1' }));
+      const all = await store.getAllSessions();
+      expect(all).toHaveLength(1);
+      expect(all[0].id).toBe('s1');
+      expect(all[0].questions[0].countryIso2).toBe('BG');
+    });
+
+    it('returns sessions ordered by startedAt', async () => {
+      await store.addSession(record({ id: 'late', startedAt: 3000 }));
+      await store.addSession(record({ id: 'early', startedAt: 1000 }));
+      await store.addSession(record({ id: 'mid', startedAt: 2000 }));
+      const ids = (await store.getAllSessions()).map((s) => s.id);
+      expect(ids).toEqual(['early', 'mid', 'late']);
+    });
+
+    it('clears sessions', async () => {
+      await store.addSession(record({ id: 's1' }));
+      await store.clearSessions();
+      expect(await store.getAllSessions()).toEqual([]);
+    });
+
+    it('round-trips prefs (last write wins)', async () => {
+      expect(await store.getPrefs()).toBeUndefined();
+      await store.savePrefs(prefs);
+      expect(await store.getPrefs()).toEqual(prefs);
+      await store.savePrefs({ ...prefs, fixedLength: 15 });
+      expect((await store.getPrefs())?.fixedLength).toBe(15);
+    });
+
+    it('round-trips SR items keyed by itemKey', async () => {
+      expect(await store.getSRItem(srItem.itemKey)).toBeUndefined();
+      await store.putSRItem(srItem);
+      expect(await store.getSRItem(srItem.itemKey)).toEqual(srItem);
+      await store.putSRItem({ ...srItem, lapses: 2 });
+      expect(await store.getAllSRItems()).toHaveLength(1);
+      expect((await store.getSRItem(srItem.itemKey))?.lapses).toBe(2);
+    });
+  });
+}
+
+// A fresh in-memory IndexedDB per test keeps IDB-backed cases isolated.
+beforeEach(() => {
+  globalThis.indexedDB = new IDBFactory();
+});
+
+contractTests('MemoryQuizStore', async () => new MemoryQuizStore());
+contractTests('IdbQuizStore', async () => IdbQuizStore.open());
+
+describe('IdbQuizStore persistence', () => {
+  it('survives reopening the database (simulated restart)', async () => {
+    const first = await IdbQuizStore.open();
+    await first.addSession(record({ id: 'kept' }));
+    await first.savePrefs(prefs);
+
+    // A new instance over the same DB name sees the previously written data.
+    const second = await IdbQuizStore.open();
+    expect((await second.getAllSessions()).map((s) => s.id)).toEqual(['kept']);
+    expect(await second.getPrefs()).toEqual(prefs);
+  });
+});
+
+describe('openStore', () => {
+  const original = globalThis.indexedDB;
+  afterEach(() => {
+    globalThis.indexedDB = original;
+  });
+
+  it('returns a persistent store when IndexedDB is available', async () => {
+    globalThis.indexedDB = new IDBFactory();
+    const store = await openStore();
+    expect(store.persistent).toBe(true);
+  });
+
+  it('falls back to a non-persistent in-memory store when IndexedDB is absent', async () => {
+    // @ts-expect-error — simulate an environment without IndexedDB.
+    globalThis.indexedDB = undefined;
+    const store = await openStore();
+    expect(store.persistent).toBe(false);
+    // Still fully usable, just not durable.
+    await store.addSession(record({ id: 's1' }));
+    expect(await store.getAllSessions()).toHaveLength(1);
+  });
+});

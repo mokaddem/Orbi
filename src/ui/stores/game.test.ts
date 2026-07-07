@@ -1,0 +1,197 @@
+import { afterEach, describe, it, expect } from 'vitest';
+import { get } from 'svelte/store';
+import { mulberry32 } from '../../domain';
+import { play, lastSummary, pendingConfig, type RunConfig } from './game';
+
+// A deterministic clock: each read advances by 1s so durations are monotonic/positive.
+function makeClock(): () => number {
+  let ms = 0;
+  return () => (ms += 1000);
+}
+
+function baseConfig(over: Partial<RunConfig> = {}): RunConfig {
+  return { mode: 'flag-to-country', type: 'fixed', rng: mulberry32(42), now: makeClock(), ...over };
+}
+
+/** Answer the current question correctly and return whether the session finished. */
+function answerCorrect(): void {
+  const q = get(play).question!;
+  play.answer(q.answer.iso2);
+}
+
+function currentWrongIso(): string {
+  const q = get(play).question!;
+  return q.options!.find((o) => o.iso2 !== q.answer.iso2)!.iso2;
+}
+
+afterEach(() => {
+  play.reset();
+  lastSummary.set(null);
+  pendingConfig.set(null);
+});
+
+describe('play store', () => {
+  it('starts idle', () => {
+    expect(get(play).status).toBe('idle');
+  });
+
+  it('presents the first question on start', () => {
+    play.start(baseConfig());
+    const view = get(play);
+    expect(view.status).toBe('playing');
+    expect(view.question).not.toBeNull();
+    expect(view.question!.options?.length).toBe(4);
+    expect(view.state!.index).toBe(0);
+    expect(view.feedback).toBeNull();
+  });
+
+  it('grades a correct answer and captures feedback (which survives submit clearing current)', () => {
+    play.start(baseConfig());
+    answerCorrect();
+    const view = get(play);
+    expect(view.status).toBe('answered');
+    expect(view.feedback).not.toBeNull();
+    expect(view.feedback!.correct).toBe(true);
+    // The session itself clears `current` on submit; the store retains the question.
+    expect(view.question).not.toBeNull();
+    expect(view.state!.correct).toBe(1);
+  });
+
+  it('grades a wrong answer, records the miss, and reveals via feedback', () => {
+    play.start(baseConfig());
+    const answerIso = get(play).question!.answer.iso2;
+    play.answer(currentWrongIso());
+    const view = get(play);
+    expect(view.status).toBe('answered');
+    expect(view.feedback!.correct).toBe(false);
+    expect(view.feedback!.question.answer.iso2).toBe(answerIso);
+    expect(view.state!.correct).toBe(0);
+  });
+
+  it('advances to the next question without finishing mid-session', () => {
+    play.start(baseConfig({ fixedLength: 3 }));
+    answerCorrect();
+    const finished = play.advance();
+    expect(finished).toBe(false);
+    const view = get(play);
+    expect(view.status).toBe('playing');
+    expect(view.state!.index).toBe(1);
+    expect(view.feedback).toBeNull();
+  });
+
+  it('plays a fixed session to completion and produces a correct summary', () => {
+    play.start(baseConfig({ fixedLength: 3 }));
+    let finished = false;
+    for (let i = 0; i < 3; i++) {
+      answerCorrect();
+      finished = play.advance();
+    }
+    expect(finished).toBe(true);
+    expect(get(play).status).toBe('finished');
+
+    const summary = play.summary()!;
+    expect(summary.total).toBe(3);
+    expect(summary.correct).toBe(3);
+    expect(summary.accuracy).toBe(1);
+    expect(summary.missed).toHaveLength(0);
+    expect(summary.durationMs).toBeGreaterThan(0);
+  });
+
+  it('surfaces missed countries in the summary', () => {
+    play.start(baseConfig({ fixedLength: 2 }));
+    const firstAnswer = get(play).question!.answer.iso2;
+    play.answer(currentWrongIso());
+    play.advance();
+    answerCorrect();
+    play.advance();
+
+    const summary = play.summary()!;
+    expect(summary.total).toBe(2);
+    expect(summary.correct).toBe(1);
+    expect(summary.missed.map((c) => c.iso2)).toContain(firstAnswer);
+  });
+
+  it('ends a survival session when lives run out', () => {
+    play.start(baseConfig({ type: 'survival', lives: 1 }));
+    play.answer(currentWrongIso());
+    expect(get(play).state!.livesRemaining).toBe(0);
+    const finished = play.advance();
+    expect(finished).toBe(true);
+    expect(get(play).status).toBe('finished');
+    expect(play.summary()!.correct).toBe(0);
+  });
+
+  it('restricts questions and distractors to the selected region', () => {
+    play.start(baseConfig({ filter: { region: 'Europe' } }));
+    // Sample several questions; every answer and every option stays inside Europe.
+    for (let i = 0; i < 8; i++) {
+      const q = get(play).question!;
+      expect(q.answer.region).toBe('Europe');
+      expect(q.options).toHaveLength(4);
+      for (const opt of q.options!) expect(opt.region).toBe('Europe');
+      answerCorrect();
+      play.advance();
+    }
+  });
+
+  it('gracefully reduces options for a sub-region smaller than the default choice count', () => {
+    // Australia and New Zealand has only 2 countries — fewer than the 4 default options.
+    play.start(
+      baseConfig({
+        filter: { region: 'Oceania', subregion: 'Australia and New Zealand' },
+      }),
+    );
+    const q = get(play).question!;
+    expect(q.options).toHaveLength(2); // answer + the one available distractor, no error
+    for (const opt of q.options!) expect(opt.subregion).toBe('Australia and New Zealand');
+    // The session still plays through without throwing.
+    answerCorrect();
+    expect(get(play).status).toBe('answered');
+  });
+
+  it('records the region filter in the summary', () => {
+    play.start(baseConfig({ fixedLength: 2, filter: { region: 'Africa' } }));
+    for (let i = 0; i < 2; i++) {
+      answerCorrect();
+      play.advance();
+    }
+    expect(play.summary()!.regionFilter).toEqual({ region: 'Africa' });
+  });
+
+  it('answer() returns the graded QuestionResult for SR recording', () => {
+    play.start(baseConfig());
+    const q = get(play).question!;
+    const result = play.answer(q.answer.iso2);
+    expect(result).not.toBeNull();
+    expect(result!.itemKey).toBe(q.itemKey);
+    expect(result!.correct).toBe(true);
+    // No active question → null (idempotent second answer).
+    expect(play.answer(q.answer.iso2)).toBeNull();
+  });
+
+  it('runs a training session over an explicit answer pool with world-wide distractors', () => {
+    // Two specific countries to drill; distractors may come from anywhere.
+    play.start(
+      baseConfig({ type: 'training', answerPoolIso: ['BG', 'RO'], fixedLength: 6, choices: 4 }),
+    );
+    const askedAbout = new Set<string>();
+    for (let i = 0; i < 6; i++) {
+      const q = get(play).question!;
+      askedAbout.add(q.answer.iso2);
+      expect(q.options).toHaveLength(4);
+      answerCorrect();
+      play.advance();
+    }
+    expect([...askedAbout].sort()).toEqual(['BG', 'RO']);
+    expect(play.summary()!.type).toBe('training');
+  });
+
+  it('reset returns the store to idle and drops the session', () => {
+    play.start(baseConfig());
+    play.reset();
+    const view = get(play);
+    expect(view.status).toBe('idle');
+    expect(view.question).toBeNull();
+    expect(play.summary()).toBeNull();
+  });
+});

@@ -1,0 +1,52 @@
+# Builds the static site and deploys it to GitHub Pages.
+#
+# The Vite `base` is pinned to `/geography-quiz/` (see vite.config.ts), which matches a
+# GitHub Pages *project* site at https://<user>.github.io/geography-quiz/. If you fork this
+# under a different repo name, update `base` to `/<repo-name>/`.
+#
+# One-time setup: repo Settings -> Pages -> "Build and deployment" -> Source: "GitHub Actions".
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least-privilege token that can publish to Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a newer deploy finish rather than cancelling an in-flight one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # `prebuild` regenerates the bundled dataset (scripts/build-data.mjs) from the source
+      # packages, then Vite emits the static site (incl. service worker) to dist/.
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

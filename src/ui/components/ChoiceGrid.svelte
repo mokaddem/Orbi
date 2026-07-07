@@ -1,0 +1,129 @@
+<script lang="ts">
+  import { localizedName } from '../../i18n';
+  import Flag from './Flag.svelte';
+  import type { Country } from '../../data';
+
+  // Multiple-choice answer surface, shared by both flag modes (and reusable by any
+  // option-based mode). Options render either as country names or as flags. Once
+  // `answered` is set the grid locks and reveals: the correct option is highlighted,
+  // and the picked-but-wrong option is marked. Purely presentational — grading and
+  // state live in the caller (the Play shell / play store).
+  let {
+    options,
+    variant,
+    answered = false,
+    correctIso = null,
+    pickedIso = null,
+    onpick,
+  }: {
+    options: Country[];
+    /** 'name' → labelled buttons; 'flag' → flag buttons (names revealed once answered). */
+    variant: 'name' | 'flag';
+    answered?: boolean;
+    /** ISO2 of the correct option; highlighted green once `answered`. */
+    correctIso?: string | null;
+    /** ISO2 of the option the player chose; marked red if wrong. */
+    pickedIso?: string | null;
+    onpick: (country: Country) => void;
+  } = $props();
+
+  type OptionState = '' | 'correct' | 'wrong' | 'muted';
+
+  function stateFor(c: Country): OptionState {
+    if (!answered) return '';
+    if (c.iso2 === correctIso) return 'correct';
+    if (c.iso2 === pickedIso) return 'wrong';
+    return 'muted';
+  }
+</script>
+
+<div class="grid" class:flags={variant === 'flag'} role="group">
+  {#each options as option (option.iso2)}
+    {@const st = stateFor(option)}
+    <button
+      type="button"
+      class="choice {st}"
+      class:answered
+      data-iso={option.iso2}
+      data-state={st}
+      disabled={answered}
+      aria-pressed={option.iso2 === pickedIso}
+      onclick={() => !answered && onpick(option)}
+    >
+      {#if variant === 'flag'}
+        <span class="opt-flag"><Flag country={option} /></span>
+        {#if answered}<span class="opt-name">{$localizedName(option)}</span>{/if}
+      {:else}
+        <span class="opt-name">{$localizedName(option)}</span>
+      {/if}
+    </button>
+  {/each}
+</div>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font-weight: 600;
+    text-align: center;
+    transition:
+      background 0.12s ease,
+      border-color 0.12s ease;
+  }
+
+  .choice:not(.answered):hover {
+    border-color: var(--color-accent);
+    background: var(--color-bg);
+  }
+
+  .choice.answered {
+    cursor: default;
+  }
+
+  .choice.correct {
+    border-color: var(--color-correct);
+    background: var(--color-correct-bg);
+    color: var(--color-correct);
+  }
+
+  .choice.wrong {
+    border-color: var(--color-wrong);
+    background: var(--color-wrong-bg);
+    color: var(--color-wrong);
+  }
+
+  .choice.muted {
+    opacity: 0.55;
+  }
+
+  .opt-flag {
+    display: block;
+    width: 100%;
+    max-width: 140px;
+  }
+
+  .opt-name {
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 480px) {
+    .grid.flags {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,136 @@
+import '@testing-library/jest-dom/vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { render, fireEvent } from '@testing-library/svelte';
+import type { Feature, Geometry, GeoJsonProperties } from 'geojson';
+import WorldMap from './WorldMap.svelte';
+
+type CountryFeature = Feature<Geometry, GeoJsonProperties>;
+
+/**
+ * A square polygon centred on [lon, lat] with the given half-size in degrees. The
+ * ring is wound clockwise so d3-geo's spherical winding treats the small square as
+ * the interior rather than its (whole-globe) complement.
+ */
+function square(lon: number, lat: number, half: number): CountryFeature {
+  return {
+    type: 'Feature',
+    id: `${lon}:${lat}`,
+    properties: {},
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [lon - half, lat - half],
+          [lon - half, lat + half],
+          [lon + half, lat + half],
+          [lon + half, lat - half],
+          [lon - half, lat - half],
+        ],
+      ],
+    },
+  };
+}
+
+// AA is large, BB moderate, CC a microstate (tiny projected area → gets a hit dot).
+const features = new Map<string, CountryFeature>([
+  ['AA', square(0, 0, 40)],
+  ['BB', square(100, 20, 12)],
+  ['CC', square(-100, -20, 0.1)],
+]);
+
+const path = (c: HTMLElement, iso2: string) =>
+  c.querySelector(`path[data-iso="${iso2}"]`) as SVGPathElement;
+
+describe('WorldMap', () => {
+  it('renders one path per country with a resolvable ISO code', () => {
+    const { container } = render(WorldMap, { features });
+    const paths = container.querySelectorAll('path.country');
+    expect(paths.length).toBe(3);
+    for (const iso2 of ['AA', 'BB', 'CC']) {
+      expect(path(container, iso2)).toBeInTheDocument();
+    }
+  });
+
+  it('does not report clicks when non-interactive (highlight mode display)', async () => {
+    const onpick = vi.fn();
+    const { container } = render(WorldMap, { features, onpick });
+    await fireEvent.click(path(container, 'AA'));
+    expect(onpick).not.toHaveBeenCalled();
+  });
+
+  it('reports the clicked ISO when interactive (locate mode)', async () => {
+    const onpick = vi.fn();
+    const { container } = render(WorldMap, { features, interactive: true, onpick });
+    await fireEvent.click(path(container, 'BB'));
+    expect(onpick).toHaveBeenCalledTimes(1);
+    expect(onpick).toHaveBeenCalledWith('BB');
+  });
+
+  it('locks once disabled, even when interactive', async () => {
+    const onpick = vi.fn();
+    const { container } = render(WorldMap, {
+      features,
+      interactive: true,
+      disabled: true,
+      onpick,
+    });
+    await fireEvent.click(path(container, 'AA'));
+    expect(onpick).not.toHaveBeenCalled();
+  });
+
+  it('marks the highlighted country and draws a pointer marker', () => {
+    const { container } = render(WorldMap, { features, highlightIso: 'AA' });
+    expect(path(container, 'AA')).toHaveAttribute('data-state', 'highlight');
+    expect(path(container, 'BB')).toHaveAttribute('data-state', '');
+    expect(container.querySelector('circle.marker')).toBeInTheDocument();
+  });
+
+  it('reveals correct (green) and picked-wrong (red) after a miss', () => {
+    const { container } = render(WorldMap, {
+      features,
+      interactive: true,
+      disabled: true,
+      revealIso: 'AA',
+      pickedIso: 'BB',
+    });
+    expect(path(container, 'AA')).toHaveAttribute('data-state', 'reveal');
+    expect(path(container, 'BB')).toHaveAttribute('data-state', 'picked-wrong');
+  });
+
+  it('fits the projection to the focused subset (region zoom)', () => {
+    const base = render(WorldMap, { features });
+    const dAll = path(base.container, 'BB').getAttribute('d');
+    base.unmount();
+
+    const focused = render(WorldMap, { features, focusIsos: ['BB'] });
+    // Framing on BB alone reprojects it differently than fitting the whole world.
+    expect(path(focused.container, 'BB').getAttribute('d')).not.toBe(dAll);
+    // Every country is still drawn, just reframed.
+    expect(focused.container.querySelectorAll('path.country').length).toBe(3);
+  });
+
+  it('falls back to the whole world when focusIsos match no features', () => {
+    const base = render(WorldMap, { features });
+    const dAll = path(base.container, 'AA').getAttribute('d');
+    base.unmount();
+
+    const focused = render(WorldMap, { features, focusIsos: ['ZZ'] });
+    expect(path(focused.container, 'AA').getAttribute('d')).toBe(dAll);
+  });
+
+  it('adds a tappable fallback dot for microstates in locate mode only', async () => {
+    const onpick = vi.fn();
+    const { container, rerender } = render(WorldMap, { features, interactive: true, onpick });
+
+    const dots = container.querySelectorAll('circle[data-hit="dot"]');
+    expect(dots.length).toBe(1);
+    expect(dots[0]).toHaveAttribute('data-iso', 'CC');
+
+    await fireEvent.click(dots[0]);
+    expect(onpick).toHaveBeenCalledWith('CC');
+
+    // No boost targets when the map is a non-interactive display.
+    await rerender({ features, interactive: false });
+    expect(container.querySelectorAll('circle[data-hit="dot"]').length).toBe(0);
+  });
+});

@@ -1,0 +1,265 @@
+# Geography Quiz — Main PRD
+
+**Status:** Draft v1 · **Last updated:** 2026-07-07 · **Owner:** Sami
+
+Geography Quiz is a lightweight, bilingual (EN / FR), offline-first web game for learning
+world geography from multiple perspectives — **maps** and **flags** — with adaptive,
+spaced-repetition training on the countries you get wrong. It is a fully client-side SPA
+with **no backend**: gameplay data is bundled statically and personal progress lives in the
+browser (IndexedDB). See the detailed spec in [§Description](#description) below.
+
+---
+
+## How to work on this project
+
+This PRD is split into a **main PRD** (this file) and one **phase PRD** per phase (in
+`phases/`). To pick up work in a new session, follow this loop:
+
+1. **Read the [Status Table](#status-table) below.**
+2. **Find the next open item** — the top-most row that is not ✅ Done (⬜ Not started or
+   🟡 In progress), whose dependencies (see the phase PRD) are already ✅ Done.
+3. **Open that phase's PRD** via the link in the table and read it in full: goal, scope,
+   deliverables checklist, technical notes, and acceptance criteria.
+4. **Do the work** described there, checking off deliverables as you complete them.
+5. **Update status** when finished (or when pausing):
+   - In the phase PRD: update its **Status**/**Progress** header, tick deliverables, and
+     add a dated note to its **Progress log**.
+   - In this file: update the phase's **Status** and **Progress** cells in the Status Table.
+6. Only mark a phase ✅ Done when its **acceptance criteria** are met.
+
+> Phases are ordered by dependency; prefer completing them in order. If a later phase is
+> genuinely unblocked and more valuable, it may be started early — note the deviation in
+> its Progress log.
+
+---
+
+## Status Table
+
+Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⛔ Blocked
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 0 | Project scaffolding | [phase-00-scaffolding.md](phases/phase-00-scaffolding.md) | — | ✅ Done | 100% |
+| 1 | Data layer | [phase-01-data-layer.md](phases/phase-01-data-layer.md) | 0 | ✅ Done | 100% |
+| 2 | Core quiz engine | [phase-02-quiz-engine.md](phases/phase-02-quiz-engine.md) | 1 | ✅ Done | 100% |
+| 3 | Flag modes UI | [phase-03-flag-modes.md](phases/phase-03-flag-modes.md) | 2 | ✅ Done | 100% |
+| 4 | Map modes UI | [phase-04-map-modes.md](phases/phase-04-map-modes.md) | 2, 3 | ✅ Done | 100% |
+| 5 | Region / sub-region filter | [phase-05-region-filter.md](phases/phase-05-region-filter.md) | 2, 3, 4 | ✅ Done | 100% |
+| 6 | Persistence & history | [phase-06-persistence-history.md](phases/phase-06-persistence-history.md) | 2, 3 | ✅ Done | 100% |
+| 7 | Spaced repetition & training | [phase-07-spaced-repetition.md](phases/phase-07-spaced-repetition.md) | 2, 6 | ✅ Done | 100% |
+| 8 | i18n polish (EN/FR) | [phase-08-i18n.md](phases/phase-08-i18n.md) | 0, 3, 4, 5, 6 | ✅ Done | 100% |
+| 9 | PWA & deployment | [phase-09-pwa-deployment.md](phases/phase-09-pwa-deployment.md) | 3–8 | ✅ Done | 100% |
+| 10 | Polish & QA | [phase-10-polish-qa.md](phases/phase-10-polish-qa.md) | all | ⬜ Not started | 0% |
+
+**Overall progress: ~91% (10 / 11 phases done).** Recommended next step: **Phase 10 — Polish & QA**.
+
+---
+
+## Description
+
+### Product pillars
+1. **Learn from multiple perspectives** — the same knowledge (a country's identity, shape,
+   location, and flag) is exercised through several complementary game modes.
+2. **Adaptive by default** — the app notices what you get wrong and helps you fix it, rather
+   than testing you at random forever.
+3. **Lean and self-contained** — minimal dependencies, no server to run, works offline, easy
+   to host anywhere as static files.
+
+### Goals
+- Teach and test country recognition via **map** and **flag** game modes.
+- Let the player **filter by region and sub-region** (UN M49 geoscheme).
+- **Track mistakes per item** and surface a **"train my mistakes"** mode powered by spaced
+  repetition (SM-2).
+- **Record play history**: sessions, scores, and completion time, so progress is visible.
+- Full **EN / FR** support (UI strings and country names), switchable at runtime.
+- Ship as an **offline-capable static PWA** with **no backend**.
+
+### Non-Goals (for now)
+- No multi-user accounts, login, or cross-device sync (single user, single browser).
+- No online leaderboards or social features.
+- No capital cities, population, or other trivia modes in the MVP (possible later).
+- No dependent territories / disputed regions in the MVP (UN members + observers only).
+- Full accessibility (a11y) and light/dark theming are **deferred** (see [Future](#deferred--future-enhancements)).
+
+### Target user
+A single, self-motivated learner (initially the owner) who wants to steadily improve their
+world geography. Technically comfortable, plays on desktop and mobile browsers, sometimes
+offline, in EN or FR interchangeably.
+
+---
+
+## Tech Stack & Architecture
+
+| Concern | Decision | Rationale |
+|---|---|---|
+| App type | SPA, fully client-side | No backend required; simplest to host and run offline. |
+| Framework | **Svelte + Vite** | Minimal boilerplate, small bundle, fast — fits "keep requirements low". |
+| Language | **TypeScript** | Type safety over a rich data model (countries, regions, SR state, history). |
+| Map rendering | **TopoJSON + D3-geo** (SVG) | Full control over highlighting, click hit-detection, region filtering; free offline geometry. |
+| Flags | **Bundled SVG flag images** | Consistent rendering everywhere incl. Linux (emoji flags unreliable); crisp and scalable. |
+| Country/region data | **Bundled static dataset** | Offline, no runtime API dependency or rate limits. |
+| Local persistence | **IndexedDB** (thin wrapper) | Stores history + SR state; larger and more structured than localStorage. |
+| Offline / install | **PWA** (service worker + manifest) | Installable, works with no connection. |
+| Testing | **Vitest** (core logic only) | Cover the tricky parts: question generator, SR scheduler, scoring. |
+| Tooling | **ESLint + Prettier** | Consistency. |
+| Hosting | Static files (GitHub Pages / Netlify / local) | No server; deploy anywhere. |
+
+### High-level architecture
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Svelte SPA (browser)                   │
+│                                                           │
+│  UI layer (routes/components)                             │
+│   ├─ Home / mode select / region filter                   │
+│   ├─ Flag modes    ├─ Map modes (D3)    ├─ Training       │
+│   └─ History / stats                                      │
+│                                                           │
+│  Domain layer (TS, pure & testable)                       │
+│   ├─ Question generator     ├─ Scoring / session engine   │
+│   ├─ SR scheduler (SM-2)    └─ Stats aggregation          │
+│                                                           │
+│  Data layer                                               │
+│   ├─ Static dataset (JSON: countries, regions)            │
+│   ├─ Assets (SVG flags, TopoJSON geometry)                │
+│   └─ Persistence (IndexedDB: history, SR state, prefs)    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Candidate open-source data sources (bundled at build time)
+- **Country names (EN/FR) + ISO codes:** `i18n-iso-countries`.
+- **Regions / sub-regions:** UN M49 geoscheme (region → sub-region → country).
+- **Flags:** `flag-icons` (MIT) SVGs, keyed by ISO 3166-1 alpha-2.
+- **Map geometry:** `world-atlas` TopoJSON (Natural Earth), joined by ISO code.
+
+A build/prep step assembles these into a single normalized dataset keyed by ISO code.
+
+---
+
+## Data Model (draft — shared reference for all phases)
+
+```ts
+// Static (bundled)
+interface Country {
+  iso2: string;            // "BG"
+  iso3: string;            // "BGR"
+  name: { en: string; fr: string };
+  region: string;          // M49 region, e.g. "Europe"
+  subregion: string;       // e.g. "Eastern Europe"
+  flagAsset: string;       // path to bundled SVG
+  // map geometry joined from TopoJSON by iso code
+}
+
+type GameMode =
+  | 'flag-to-country'      // see flag → pick country name
+  | 'country-to-flag'      // see country name → pick flag
+  | 'map-highlight'        // country highlighted → pick name
+  | 'map-locate';          // given name → click it on the map
+
+type SessionType = 'fixed' | 'survival' | 'training';
+
+// Persisted (IndexedDB)
+interface SessionRecord {
+  id: string;
+  startedAt: number;
+  finishedAt: number;
+  durationMs: number;
+  mode: GameMode;
+  type: SessionType;
+  regionFilter?: { region?: string; subregion?: string };
+  total: number;
+  correct: number;
+  questions: QuestionResult[];
+}
+
+interface QuestionResult {
+  itemKey: string;         // `${mode}:${iso2}`
+  countryIso2: string;
+  correct: boolean;
+  answerMs: number;
+}
+
+// Spaced repetition state per item (SM-2)
+interface SRItem {
+  itemKey: string;         // `${mode}:${iso2}`
+  repetitions: number;
+  easeFactor: number;      // starts 2.5
+  intervalDays: number;
+  dueAt: number;           // timestamp
+  lapses: number;          // times missed
+  lastReviewedAt?: number;
+}
+
+interface Prefs {
+  language: 'en' | 'fr';
+  survivalLives: number;      // default 3
+  fixedLength: number;        // default 10
+  choicesPerQuestion: number; // default 4
+}
+```
+
+---
+
+## Testing & Verification Strategy
+
+Testing runs at **two cadences** — a fast loop on every change, and heavier browser-driven
+checks only when they add signal (typically at phase boundaries):
+
+**Fast loop — on every code change:**
+- **Unit tests (Vitest)** are the primary safety net for the pure domain logic — question
+  generator, distractor selection, SM-2 scheduler, scoring, and the session state machine.
+  They need no browser and are fast.
+- **Component tests (Vitest + `@testing-library/svelte`, jsdom)** cover tricky UI behaviour
+  (feedback states, option locking) where a unit test isn't enough.
+- **Manual browser check** against the running dev server for any change with visible runtime
+  behaviour, to confirm it actually does what's intended.
+
+**Heavy checks — only when warranted, not per change:**
+- **End-to-end smoke tests (Playwright)** cover the critical flows — play a fixed and a
+  survival session, answer on the map, and confirm history/SR state survive a reload. Run
+  them **at the end of a phase, before marking it ✅ Done**, and when a change touches a
+  cross-cutting flow (session lifecycle, map hit-detection, persistence). They are **not**
+  part of the per-change loop.
+
+**Long-running servers, pinned to fixed ports.** To avoid the churn of starting and stopping
+servers per test run, the dev and preview servers are launched **once as background processes
+on fixed ports and kept running for the whole session**, then reused:
+
+- Vite **dev** server → fixed port **5180** (`vite --port 5180 --strictPort`).
+- Vite **preview** (production build, for PWA / offline checks) → fixed port **5181**.
+- Playwright is configured with `webServer.url` pointing at port 5180 and
+  **`reuseExistingServer: true`**, so `playwright test` attaches to the already-running dev
+  server instead of spawning and killing its own each run.
+
+`--strictPort` makes a port clash fail loudly instead of silently drifting to another port.
+Before using the app, a run checks the pinned port is up and only starts the server if it
+isn't — so the server is opened at most once and left running.
+
+---
+
+## Success Criteria
+- All four game modes playable with region filtering.
+- Missed items measurably resurface via training (verified by SR unit tests + manual play).
+- History and timing recorded and viewable across sessions and browser restarts.
+- Installable PWA that launches and plays offline.
+- Core logic (generator, SM-2 scheduler, scoring) covered by passing Vitest tests.
+
+---
+
+## Deferred / Future Enhancements
+- Accessibility (keyboard nav, ARIA on map/buttons, contrast, focus states).
+- Light / dark theme respecting system preference.
+- Timed and endless session formats.
+- Additional modes (capitals, country shapes/outlines, borders/neighbors).
+- Dependent territories & configurable scope toggle.
+- Cross-device sync (would introduce a lightweight backend + DB).
+- Export/import of progress (JSON) as a manual backup, given no server sync.
+
+---
+
+## Open Questions (agreed defaults in parentheses)
+- Multiple-choice options per question (**4**).
+- Survival lives (**3**).
+- Fixed quiz length (**10**).
+- Hosting target for the static build — **resolved (Phase 9): GitHub Pages** project site at
+  `/geography-quiz/`, deployed by `.github/workflows/deploy.yml`. To host elsewhere (Netlify,
+  a subdirectory, or the domain root), change `base` in `vite.config.ts` accordingly.
