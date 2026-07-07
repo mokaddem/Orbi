@@ -22,6 +22,12 @@
   import { prefs, saveSession, recordAnswer } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
+  import SegmentedControl from '../components/SegmentedControl.svelte';
+
+  // Auto-advance timings (ms): a brief dwell on a correct answer, a longer one on a
+  // wrong answer so the revealed country can be read. Fixed by design (not a setting).
+  const CORRECT_MS = 1500;
+  const WRONG_MS = 3000;
 
   // Setup selections.
   let mode = $state<GameMode>('flag-to-country');
@@ -37,6 +43,24 @@
     selectedRegion ? (regionTree.find((r) => r.region === selectedRegion) ?? null) : null,
   );
   const subregions = $derived(regionNode?.subregions ?? []);
+
+  // Option lists for the region / sub-region selectors, localized reactively.
+  // SegmentedControl renders them as buttons when short, else falls back to a dropdown.
+  const regionOptions = $derived([
+    { value: '', label: $t('play.setup.regionWorld') },
+    ...regionTree.map((r) => ({ value: r.region, label: $localizedRegion(r.region) })),
+  ]);
+  const subregionOptions = $derived(
+    selectedRegion
+      ? [
+          {
+            value: '',
+            label: $t('play.setup.subregionAll', { region: $localizedRegion(selectedRegion) }),
+          },
+          ...subregions.map((s) => ({ value: s.subregion, label: $localizedRegion(s.subregion) })),
+        ]
+      : [],
+  );
 
   // How many countries the current selection actually asks about — drives the pool
   // hint and the small-region guard below. Read from the pre-counted region tree.
@@ -126,6 +150,17 @@
   function quit(): void {
     play.reset();
   }
+
+  // Auto-advance: once a question is answered, show feedback briefly, then move on with
+  // no manual "Continue" — a longer dwell on a wrong answer so the reveal can be read.
+  // The timer is cancelled whenever the view leaves the answered state (next question,
+  // quit, or unmount), so it can never double-advance.
+  $effect(() => {
+    if ($play.status !== 'answered') return;
+    const delay = $play.feedback?.correct ? CORRECT_MS : WRONG_MS;
+    const id = setTimeout(onContinue, delay);
+    return () => clearTimeout(id);
+  });
 
   // ISO codes to frame the map on, for a filtered map session. Memoized by config
   // identity so it returns a *stable* array within a session — the config object is
@@ -218,32 +253,20 @@
     <div class="field">
       <span class="legend" id="region-legend">{$t('play.setup.chooseRegion')}</span>
       <div class="region-selects">
-        <select
-          class="region-select"
-          aria-labelledby="region-legend"
+        <SegmentedControl
+          options={regionOptions}
           value={selectedRegion}
-          onchange={(e) => selectRegion(e.currentTarget.value)}
-        >
-          <option value="">{$t('play.setup.regionWorld')}</option>
-          {#each regionTree as r (r.region)}
-            <option value={r.region}>{$localizedRegion(r.region)}</option>
-          {/each}
-        </select>
+          onchange={selectRegion}
+          ariaLabel={$t('play.setup.chooseRegion')}
+        />
 
         {#if subregions.length}
-          <select
-            class="region-select"
-            aria-label={$localizedRegion(selectedRegion)}
+          <SegmentedControl
+            options={subregionOptions}
             value={selectedSubregion}
-            onchange={(e) => (selectedSubregion = e.currentTarget.value)}
-          >
-            <option value="">
-              {$t('play.setup.subregionAll', { region: $localizedRegion(selectedRegion) })}
-            </option>
-            {#each subregions as s (s.subregion)}
-              <option value={s.subregion}>{$localizedRegion(s.subregion)}</option>
-            {/each}
-          </select>
+            onchange={(v) => (selectedSubregion = v)}
+            ariaLabel={$localizedRegion(selectedRegion)}
+          />
         {/if}
       </div>
       <small class="pool-hint" role="status">
@@ -266,8 +289,6 @@
     {@const total = cfg.fixedLength ?? $prefs.fixedLength}
     {@const lives = cfg.lives ?? $prefs.survivalLives}
     {@const answered = view.status === 'answered'}
-    {@const willFinish =
-      cfg.type === 'survival' ? s.livesRemaining <= 0 : s.results.length >= total}
 
     <section class="game">
       <header class="hud">
@@ -356,9 +377,13 @@
               {$t('play.feedback.reveal', { country: $localizedName(fb.question.answer) })}
             </p>
           {/if}
-          <button type="button" class="continue" onclick={onContinue}>
-            {willFinish ? $t('play.feedback.seeResults') : $t('play.feedback.continue')}
-          </button>
+          <div
+            class="countdown"
+            style="--countdown-ms: {fb.correct ? CORRECT_MS : WRONG_MS}ms"
+            aria-hidden="true"
+          >
+            <div class="countdown-fill"></div>
+          </div>
         </div>
       {/if}
     </section>
@@ -410,25 +435,8 @@
 
   .region-selects {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 0.75rem;
-  }
-
-  .region-select {
-    flex: 1 1 12rem;
-    min-width: 0;
-    padding: 0.7rem 0.9rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    color: var(--color-text);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .region-select:hover {
-    border-color: var(--color-accent);
   }
 
   .pool-hint {
@@ -614,17 +622,37 @@
     color: var(--color-text);
   }
 
-  .continue {
-    padding: 0.55rem 1.4rem;
-    background: var(--color-accent);
-    color: var(--color-accent-contrast);
-    border: 0;
-    border-radius: var(--radius);
-    font-weight: 700;
+  .countdown {
+    width: 100%;
+    max-width: 240px;
+    height: 4px;
+    margin-top: 0.2rem;
+    background: var(--color-border);
+    border-radius: 999px;
+    overflow: hidden;
   }
 
-  .continue:hover {
-    filter: brightness(1.05);
+  .countdown-fill {
+    height: 100%;
+    width: 100%;
+    transform-origin: left center;
+    background: var(--color-accent);
+    animation: countdown var(--countdown-ms, 1500ms) linear forwards;
+  }
+
+  @keyframes countdown {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .countdown-fill {
+      animation: none;
+    }
   }
 
   @media (max-width: 480px) {

@@ -1,6 +1,6 @@
 # Phase 11 — Input & answer-flow UX
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.1 enhancements (post-launch)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -22,22 +22,21 @@ Functional app (Phases 2–10). Recommended to land **before** the visual makeov
 [Phase 12](phase-12-visual-map-overhaul.md) so the makeover styles the final interaction model.
 
 ## Scope / Deliverables
-- [ ] **Segmented/button selectors for small option sets.** On the Play setup screen the
-      **region** and **sub-region** pickers are `<select>` dropdowns
-      (`src/ui/routes/Play.svelte` ~L220–247). Replace them with a button/segmented group when
-      the option count is small, and fall back to the dropdown when the list is long (regions
-      are 5; sub-regions vary). Mode/type are already `.opt` buttons — keep consistent styling.
-- [ ] **Auto-advance after answering.** Replace the feedback **Continue / See results** button
-      (`Play.svelte` ~L348–362, `onContinue`) with: show feedback → wait a short delay →
-      advance automatically (and route to the summary after the last question). Applies to
-      **all modes**, including the map modes.
-- [ ] **Timer robustness.** Cancel the pending timer on quit, unmount, and manual advance;
-      never double-advance; handle the final-question → summary transition cleanly.
-- [ ] **Accessibility preserved** — `aria-pressed` on the new buttons, keyboard operability,
-      and a non-visual cue for the auto-advance (e.g. `role="status"` already on feedback).
-- [ ] **Tests** — component tests for the new selectors and the auto-advance flow (Vitest fake
-      timers), plus the existing Play flows kept green.
-- [ ] **i18n** — any new/removed strings mirrored in `en` + `fr`.
+- [x] **Segmented/button selectors for small option sets.** New `SegmentedControl.svelte`
+      renders a pill-button group when options ≤ `threshold` (8), else falls back to a
+      `<select>`. Wired into the Play setup's **region** and **sub-region** pickers
+      (`src/ui/routes/Play.svelte`); in practice both are always buttons (≤ ~7 entries).
+- [x] **Auto-advance after answering.** The feedback **Continue / See results** button is gone;
+      an `$effect` shows feedback then auto-advances (route to the summary after the last
+      question). Applies to **all modes**, including map modes and the survival death → summary.
+- [x] **Timer robustness.** The effect's cleanup cancels the pending timer whenever the view
+      leaves the answered state (next question, quit, unmount), so it can't double-advance.
+- [x] **Accessibility preserved** — `aria-pressed` on the selector buttons, `role="group"` +
+      `aria-label`; feedback keeps `role="status"`; the countdown bar is `aria-hidden`.
+- [x] **Tests** — `SegmentedControl.test.ts` (buttons vs dropdown, threshold, change events) and
+      updated `Play.test.ts` (button selectors + fake-timer auto-advance incl. the correct-vs-
+      wrong dwell). Full suite 211 pass.
+- [x] **i18n** — removed the now-unused `play.feedback.continue` / `seeResults` from `en` + `fr`.
 
 ## Technical notes
 - The feedback → next transition is driven by `onContinue()` calling `play.advance()`; the
@@ -74,4 +73,24 @@ not a limit:
 - New game modes or session types.
 
 ## Progress log
-- _(none yet)_
+- **2026-07-07 — Clarifying round done; decisions locked (owner).**
+  1. **Buttons-vs-dropdown:** threshold-based — button group when ≤ 8 options, `<select>` above.
+     Applies to both region and sub-region selectors.
+  2. **Auto-advance delay:** ~1.5s on a correct answer.
+  3. **Wrong answers:** hands-free, longer ~3s delay so the reveal can be read (no tap required).
+  4. **Advance cue:** a subtle countdown bar; **no** manual Next/Skip button.
+  5. **Final question:** auto-advance straight into the summary (consistent with all questions).
+  6. **Survival fatal wrong answer:** same ~3s auto-advance to the summary.
+  7. **Configurability:** timings are fixed/hard-coded (not a Settings option) for now.
+  - Constants to use: `CORRECT_MS = 1500`, `WRONG_MS = 3000`, `BUTTONS_MAX = 8`.
+  - Reduced motion: the countdown bar animation is disabled under `prefers-reduced-motion`
+    (the JS auto-advance timer still fires).
+- **2026-07-07 — Implemented & done.** Added `src/ui/components/SegmentedControl.svelte`
+  (button group ≤ 8 options, else `<select>`) and wired it into the region/sub-region pickers;
+  replaced the feedback Continue button with a cancel-safe auto-advance `$effect`
+  (`CORRECT_MS`/`WRONG_MS`) plus a subtle `.countdown` bar (animation disabled under
+  `prefers-reduced-motion`); removed the dead `willFinish` label and the unused
+  `feedback.continue`/`seeResults` strings. Verified: fast loop green — **211 tests pass**
+  (+6: 5 SegmentedControl, net +1 Play), **`check` 0 errors**, **`lint` clean**; headless-Chrome
+  smoke confirms the region selector renders as buttons (no dropdown) in the running app.
+  All owner decisions from the clarifying round are reflected.

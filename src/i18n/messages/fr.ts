@@ -68,8 +68,6 @@ const fr: typeof en = {
       correct: 'Correct !',
       wrong: 'Pas tout à fait',
       reveal: 'C’est {country}',
-      continue: 'Continuer',
-      seeResults: 'Voir les résultats',
     },
     quit: 'Quitter',
   },

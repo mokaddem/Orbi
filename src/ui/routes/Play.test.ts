@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { afterEach, beforeEach, describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Play from './Play.svelte';
@@ -11,6 +11,10 @@ function makeClock(): () => number {
   let ms = 0;
   return () => (ms += 1000);
 }
+
+/** Feedback auto-advances after these delays (mirrors Play.svelte's constants). */
+const CORRECT_MS = 1500;
+const WRONG_MS = 3000;
 
 beforeEach(() => {
   setLocale('en');
@@ -47,16 +51,14 @@ describe('Play route', () => {
     expect(screen.getByText('Locate on the map')).toBeInTheDocument();
   });
 
-  it('defaults the region filter to World and starts a region-filtered session', async () => {
+  it('offers the region filter as buttons (few options) and starts a region-filtered session', async () => {
     render(Play);
-    const regionSelect = screen.getByRole('combobox', {
-      name: 'Choose a region',
-    }) as HTMLSelectElement;
-    expect(regionSelect.value).toBe(''); // World (all countries)
-    expect(screen.getByRole('option', { name: 'World (all countries)' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Europe' })).toBeInTheDocument();
+    // World is the default selection, rendered as a pressed button (not a dropdown).
+    const worldBtn = screen.getByRole('button', { name: 'World (all countries)' });
+    expect(worldBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Europe' })).toBeInTheDocument();
 
-    await fireEvent.change(regionSelect, { target: { value: 'Europe' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Europe' }));
     await fireEvent.click(screen.getByText('Start'));
 
     expect(get(play).status).toBe('playing');
@@ -64,74 +66,117 @@ describe('Play route', () => {
     expect(get(play).question!.answer.region).toBe('Europe');
   });
 
-  it('reveals sub-regions once a region is chosen', async () => {
+  it('reveals sub-region buttons once a region is chosen', async () => {
     render(Play);
-    const regionSelect = screen.getByRole('combobox', {
-      name: 'Choose a region',
-    }) as HTMLSelectElement;
-    // No sub-region options until a region is picked.
-    expect(screen.queryByRole('option', { name: 'Eastern Europe' })).not.toBeInTheDocument();
+    // No sub-region buttons until a region is picked.
+    expect(screen.queryByRole('button', { name: 'Eastern Europe' })).not.toBeInTheDocument();
 
-    await fireEvent.change(regionSelect, { target: { value: 'Europe' } });
-    expect(screen.getByRole('option', { name: 'Eastern Europe' })).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole('button', { name: 'Europe' }));
+    expect(screen.getByRole('button', { name: 'Eastern Europe' })).toBeInTheDocument();
 
     // Narrowing to a sub-region carries through to the started session.
-    const subSelect = screen.getByRole('combobox', { name: 'Europe' }) as HTMLSelectElement;
-    await fireEvent.change(subSelect, { target: { value: 'Eastern Europe' } });
+    await fireEvent.click(screen.getByRole('button', { name: 'Eastern Europe' }));
     await fireEvent.click(screen.getByText('Start'));
     expect(get(play).config!.filter).toEqual({ region: 'Europe', subregion: 'Eastern Europe' });
   });
 
-  it('plays a map-highlight fixed session via the choice grid', async () => {
-    pendingConfig.set({
-      mode: 'map-highlight',
-      type: 'fixed',
-      fixedLength: 2,
-      rng: mulberry32(3),
-      now: makeClock(),
-    });
-    const { container } = render(Play);
+  it('plays a map-highlight fixed session, auto-advancing between questions', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      pendingConfig.set({
+        mode: 'map-highlight',
+        type: 'fixed',
+        fixedLength: 2,
+        rng: mulberry32(3),
+        now: makeClock(),
+      });
+      const { container } = render(Play);
 
-    expect(get(play).status).toBe('playing');
-    // map-highlight asks for the name and still offers multiple-choice options.
-    expect(screen.getByText('Which country is highlighted?')).toBeInTheDocument();
+      expect(get(play).status).toBe('playing');
+      expect(screen.getByText('Which country is highlighted?')).toBeInTheDocument();
 
-    for (let i = 0; i < 2; i++) {
-      const answerIso = get(play).question!.answer.iso2;
-      await fireEvent.click(container.querySelector(`button[data-iso="${answerIso}"]`)!);
-      expect(get(play).status).toBe('answered');
-      await fireEvent.click(container.querySelector('button.continue')!);
+      for (let i = 0; i < 2; i++) {
+        const answerIso = get(play).question!.answer.iso2;
+        await fireEvent.click(container.querySelector(`button[data-iso="${answerIso}"]`)!);
+        expect(get(play).status).toBe('answered');
+        // No manual Continue button; a countdown drives the auto-advance.
+        expect(container.querySelector('button.continue')).toBeNull();
+        expect(container.querySelector('.countdown')).not.toBeNull();
+        await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
+      }
+
+      const summary = get(lastSummary);
+      expect(summary).not.toBeNull();
+      expect(summary!.mode).toBe('map-highlight');
+      expect(summary!.total).toBe(2);
+    } finally {
+      vi.useRealTimers();
     }
-
-    const summary = get(lastSummary);
-    expect(summary).not.toBeNull();
-    expect(summary!.mode).toBe('map-highlight');
-    expect(summary!.total).toBe(2);
   });
 
-  it('auto-starts a staged config and plays a fixed session end-to-end', async () => {
-    pendingConfig.set({
-      mode: 'flag-to-country',
-      type: 'fixed',
-      fixedLength: 2,
-      rng: mulberry32(7),
-      now: makeClock(),
-    });
-    const { container } = render(Play);
+  it('auto-starts a staged config and plays a fixed session end-to-end via the timer', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      pendingConfig.set({
+        mode: 'flag-to-country',
+        type: 'fixed',
+        fixedLength: 2,
+        rng: mulberry32(7),
+        now: makeClock(),
+      });
+      const { container } = render(Play);
 
-    expect(get(play).status).toBe('playing');
+      expect(get(play).status).toBe('playing');
 
-    for (let i = 0; i < 2; i++) {
-      const answerIso = get(play).question!.answer.iso2;
-      await fireEvent.click(container.querySelector(`button[data-iso="${answerIso}"]`)!);
-      expect(get(play).status).toBe('answered');
-      await fireEvent.click(container.querySelector('button.continue')!);
+      for (let i = 0; i < 2; i++) {
+        const answerIso = get(play).question!.answer.iso2;
+        await fireEvent.click(container.querySelector(`button[data-iso="${answerIso}"]`)!);
+        expect(get(play).status).toBe('answered');
+        await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
+      }
+
+      // The final question auto-advances straight to the summary — no click needed.
+      const summary = get(lastSummary);
+      expect(summary).not.toBeNull();
+      expect(summary!.total).toBe(2);
+      expect(summary!.correct).toBe(2);
+    } finally {
+      vi.useRealTimers();
     }
+  });
 
-    // The session finished and handed a summary to the Summary route.
-    const summary = get(lastSummary);
-    expect(summary).not.toBeNull();
-    expect(summary!.total).toBe(2);
-    expect(summary!.correct).toBe(2);
+  it('dwells longer on a wrong answer than a correct one before advancing', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      pendingConfig.set({
+        mode: 'flag-to-country',
+        type: 'fixed',
+        fixedLength: 5,
+        rng: mulberry32(11),
+        now: makeClock(),
+      });
+      const { container } = render(Play);
+
+      // Q1 — correct: advances at ~CORRECT_MS.
+      let q = get(play).question!;
+      await fireEvent.click(container.querySelector(`button[data-iso="${q.answer.iso2}"]`)!);
+      expect(get(play).status).toBe('answered');
+      await vi.advanceTimersByTimeAsync(CORRECT_MS - 100);
+      expect(get(play).status).toBe('answered'); // not yet
+      await vi.advanceTimersByTimeAsync(200);
+      expect(get(play).status).toBe('playing'); // advanced
+
+      // Q2 — wrong: still waiting at CORRECT_MS, only advances near WRONG_MS.
+      q = get(play).question!;
+      const wrong = q.options!.find((o) => o.iso2 !== q.answer.iso2)!;
+      await fireEvent.click(container.querySelector(`button[data-iso="${wrong.iso2}"]`)!);
+      expect(get(play).status).toBe('answered');
+      await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
+      expect(get(play).status).toBe('answered'); // wrong dwells longer than a correct answer
+      await vi.advanceTimersByTimeAsync(WRONG_MS - CORRECT_MS);
+      expect(get(play).status).toBe('playing'); // advanced after ~WRONG_MS
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

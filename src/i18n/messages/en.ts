@@ -65,8 +65,6 @@ const en = {
       correct: 'Correct!',
       wrong: 'Not quite',
       reveal: 'It’s {country}',
-      continue: 'Continue',
-      seeResults: 'See results',
     },
     quit: 'Quit',
   },

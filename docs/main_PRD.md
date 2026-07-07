@@ -60,7 +60,7 @@ round with the owner before implementation** (see the callout at the top of each
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 11 | Input & answer-flow UX | [phase-11-input-answer-ux.md](phases/phase-11-input-answer-ux.md) | 10 | ⬜ Not started | 0% |
+| 11 | Input & answer-flow UX | [phase-11-input-answer-ux.md](phases/phase-11-input-answer-ux.md) | 10 | ✅ Done | 100% |
 | 12 | Visual polish, option imagery & map readability | [phase-12-visual-map-overhaul.md](phases/phase-12-visual-map-overhaul.md) | 10 (11 recommended first) | ⬜ Not started | 0% |
 | 13 | Reset progress in Settings | [phase-13-reset-progress.md](phases/phase-13-reset-progress.md) | 6, 7 | ⬜ Not started | 0% |
 
