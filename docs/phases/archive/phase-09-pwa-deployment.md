@@ -1,6 +1,6 @@
 # Phase 9 — PWA & deployment
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Make the app installable and fully offline-capable, and produce a static production build that

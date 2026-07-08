@@ -1,6 +1,6 @@
 # Phase 10 — Polish & QA
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Final hardening: cross-device testing, edge cases, solid coverage of core logic, and bug

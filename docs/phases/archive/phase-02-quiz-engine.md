@@ -1,6 +1,6 @@
 # Phase 2 — Core quiz engine
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Implement the pure, framework-agnostic domain logic that generates questions, checks answers,

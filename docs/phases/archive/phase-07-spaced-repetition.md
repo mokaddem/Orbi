@@ -1,6 +1,6 @@
 # Phase 7 — Spaced repetition & training
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Make the app adaptive: update per-item spaced-repetition state (SM-2) as the player answers,

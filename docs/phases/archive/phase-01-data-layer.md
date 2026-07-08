@@ -1,6 +1,6 @@
 # Phase 1 — Data layer
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Assemble the bundled static dataset and provide typed loaders/accessors the rest of the app

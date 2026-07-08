@@ -1,6 +1,6 @@
 # Phase 5 — Region / sub-region filter
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Let the player restrict any mode and session type to a region and optionally a sub-region,

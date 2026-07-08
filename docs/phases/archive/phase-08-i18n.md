@@ -1,6 +1,6 @@
 # Phase 8 — i18n polish (EN/FR)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Complete full English/French coverage across the whole UI and confirm country names follow

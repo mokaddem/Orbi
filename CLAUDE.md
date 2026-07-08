@@ -7,6 +7,11 @@ lives in the browser (IndexedDB).
 
 ## Start here (every new session, even with cleared context)
 
+> **⚠️ NEVER start implementing a phase without the owner's (Sami's) explicit approval first.**
+> Reading a phase and answering its clarifying questions is planning — **not** a green light to
+> code. Resolve open questions, present the plan, and wait for an explicit "go" before writing any
+> implementation. (Phase 12 was built twice without a clear go-ahead and reverted both times.)
+
 The project is built **phase by phase** against a PRD. Before doing any work:
 
 1. **Read [`docs/main_PRD.md`](docs/main_PRD.md)** — the source of truth. Its
@@ -14,7 +19,8 @@ The project is built **phase by phase** against a PRD. Before doing any work:
 2. From the Status Table, pick the **next open phase**: the top-most row not ✅ Done whose
    dependencies are already ✅ Done.
 3. **Read that phase's PRD** in [`docs/phases/`](docs/phases/) in full (goal, deliverables
-   checklist, technical notes, acceptance criteria) and implement it.
+   checklist, technical notes, acceptance criteria), resolve its open questions with the owner,
+   and **get explicit approval before implementing** (see the callout above).
 4. **Update status** when you finish or pause — in both places:
    - the phase PRD (header Status/Progress, deliverable checkboxes, dated Progress-log entry), and
    - the Status Table in `docs/main_PRD.md`.

@@ -1,6 +1,6 @@
 # Phase 0 — Project scaffolding
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Stand up the project skeleton so all later phases have a working build, test, lint, routing,

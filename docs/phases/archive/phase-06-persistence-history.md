@@ -1,6 +1,6 @@
 # Phase 6 — Persistence & history
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Persist play history, preferences, and (structurally) SR state in IndexedDB, and surface

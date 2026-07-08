@@ -1,6 +1,6 @@
 # Phase 4 — Map modes UI
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Deliver the two map-based modes using a D3-geo rendered SVG world map, reusing the shared

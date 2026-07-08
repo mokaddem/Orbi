@@ -1,6 +1,6 @@
 # Phase 13 — Reset progress in Settings
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Decisions locked — NOT built (awaiting build approval) · **Progress:** 5%
 · **Track:** v1.1 enhancements (post-launch)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -79,4 +79,24 @@ Ask these (and more as needed) before implementing:
   it stays in Deferred).
 
 ## Progress log
-- _(none yet)_
+- **2026-07-08 — Clarifying round done; decisions locked (owner). NOT built — awaiting explicit
+  build approval.** Answers to the Open Questions above:
+  1. **Scope:** a reset clears **history (`sessions`) + training (`srItems`)**. Gameplay prefs and
+     language are **not** cleared.
+  2. **Granularity:** **separate scoped controls**, not one combined "reset everything" button.
+  3. **Placement:** **both** controls live in **Settings** — "Clear history" (clears `sessions`) and
+     "Reset training" (clears `srItems`). History's existing "Clear history" button **stays** as a
+     second entry point to the identical sessions-clear action.
+  4. **Confirmation:** an **in-app modal** with button confirm/cancel — not native `confirm()`, not a
+     typed confirm.
+  5. **Backup:** **none** — export/import stays in the main PRD's Deferred list.
+  6. **Feedback:** **no explicit success message**; rely on visibly-cleared state — the reset buttons
+     **disable** once their store is empty (immediate on-screen signal), plus the emptied History view
+     and the disabled Home "Train my mistakes" button on next visit.
+  - **Derived design (to build once approved):** add `clearSRItems()` to the `QuizStore` interface
+    (`src/data/persistence/types.ts`) and both adapters (`idb-store.ts` → `db.clear('srItems')`,
+    `memory-store.ts` → `srItems.clear()`); a `clearTraining()` UI wrapper + a `hasTrainingData()`
+    availability helper in `src/ui/stores/persistence.ts`; a new reusable `ConfirmDialog` component
+    (none exists today); Settings "Data" section wiring; and matched EN/FR strings (parity enforced by
+    `src/i18n/messages.test.ts`). Live refresh needs no new reactive store — `svelte-spa-router`
+    remounts routes on navigation and History/Home fetch imperatively on mount.

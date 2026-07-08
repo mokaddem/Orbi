@@ -1,6 +1,6 @@
 # Phase 3 — Flag modes UI
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 
 ## Goal
 Deliver the first playable experience: the two flag-based modes wired end-to-end to the quiz

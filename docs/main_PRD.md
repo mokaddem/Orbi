@@ -12,6 +12,13 @@ browser (IndexedDB). See the detailed spec in [§Description](#description) belo
 
 ## How to work on this project
 
+> ## ⚠️ Never start implementing a phase without the owner's explicit approval
+> Reading a phase PRD and answering its clarifying questions is **planning, not a green light to
+> code.** For every phase: understand it, resolve open questions with the owner, present the plan,
+> and **wait for the owner to explicitly say to proceed before writing any implementation.** When in
+> doubt, ask. (Phase 12 was implemented twice without a clear go-ahead and reverted both times —
+> hence this rule.)
+
 This PRD is split into a **main PRD** (this file) and one **phase PRD** per phase (in
 `phases/`). To pick up work in a new session, follow this loop:
 
@@ -20,12 +27,14 @@ This PRD is split into a **main PRD** (this file) and one **phase PRD** per phas
    🟡 In progress), whose dependencies (see the phase PRD) are already ✅ Done.
 3. **Open that phase's PRD** via the link in the table and read it in full: goal, scope,
    deliverables checklist, technical notes, and acceptance criteria.
-4. **Do the work** described there, checking off deliverables as you complete them.
-5. **Update status** when finished (or when pausing):
+4. **Resolve open questions with the owner, then get explicit approval to implement** — do not
+   begin writing code until the owner says to proceed (see the callout above).
+5. **Do the work** described there, checking off deliverables as you complete them.
+6. **Update status** when finished (or when pausing):
    - In the phase PRD: update its **Status**/**Progress** header, tick deliverables, and
      add a dated note to its **Progress log**.
    - In this file: update the phase's **Status** and **Progress** cells in the Status Table.
-6. Only mark a phase ✅ Done when its **acceptance criteria** are met.
+7. Only mark a phase ✅ Done when its **acceptance criteria** are met.
 
 > Phases are ordered by dependency; prefer completing them in order. If a later phase is
 > genuinely unblocked and more valuable, it may be started early — note the deviation in
@@ -39,17 +48,17 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⛔ Blocked
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 0 | Project scaffolding | [phase-00-scaffolding.md](phases/phase-00-scaffolding.md) | — | ✅ Done | 100% |
-| 1 | Data layer | [phase-01-data-layer.md](phases/phase-01-data-layer.md) | 0 | ✅ Done | 100% |
-| 2 | Core quiz engine | [phase-02-quiz-engine.md](phases/phase-02-quiz-engine.md) | 1 | ✅ Done | 100% |
-| 3 | Flag modes UI | [phase-03-flag-modes.md](phases/phase-03-flag-modes.md) | 2 | ✅ Done | 100% |
-| 4 | Map modes UI | [phase-04-map-modes.md](phases/phase-04-map-modes.md) | 2, 3 | ✅ Done | 100% |
-| 5 | Region / sub-region filter | [phase-05-region-filter.md](phases/phase-05-region-filter.md) | 2, 3, 4 | ✅ Done | 100% |
-| 6 | Persistence & history | [phase-06-persistence-history.md](phases/phase-06-persistence-history.md) | 2, 3 | ✅ Done | 100% |
-| 7 | Spaced repetition & training | [phase-07-spaced-repetition.md](phases/phase-07-spaced-repetition.md) | 2, 6 | ✅ Done | 100% |
-| 8 | i18n polish (EN/FR) | [phase-08-i18n.md](phases/phase-08-i18n.md) | 0, 3, 4, 5, 6 | ✅ Done | 100% |
-| 9 | PWA & deployment | [phase-09-pwa-deployment.md](phases/phase-09-pwa-deployment.md) | 3–8 | ✅ Done | 100% |
-| 10 | Polish & QA | [phase-10-polish-qa.md](phases/phase-10-polish-qa.md) | all | ✅ Done | 100% |
+| 0 | Project scaffolding | [phase-00-scaffolding.md](phases/archive/phase-00-scaffolding.md) | — | ✅ Done | 100% |
+| 1 | Data layer | [phase-01-data-layer.md](phases/archive/phase-01-data-layer.md) | 0 | ✅ Done | 100% |
+| 2 | Core quiz engine | [phase-02-quiz-engine.md](phases/archive/phase-02-quiz-engine.md) | 1 | ✅ Done | 100% |
+| 3 | Flag modes UI | [phase-03-flag-modes.md](phases/archive/phase-03-flag-modes.md) | 2 | ✅ Done | 100% |
+| 4 | Map modes UI | [phase-04-map-modes.md](phases/archive/phase-04-map-modes.md) | 2, 3 | ✅ Done | 100% |
+| 5 | Region / sub-region filter | [phase-05-region-filter.md](phases/archive/phase-05-region-filter.md) | 2, 3, 4 | ✅ Done | 100% |
+| 6 | Persistence & history | [phase-06-persistence-history.md](phases/archive/phase-06-persistence-history.md) | 2, 3 | ✅ Done | 100% |
+| 7 | Spaced repetition & training | [phase-07-spaced-repetition.md](phases/archive/phase-07-spaced-repetition.md) | 2, 6 | ✅ Done | 100% |
+| 8 | i18n polish (EN/FR) | [phase-08-i18n.md](phases/archive/phase-08-i18n.md) | 0, 3, 4, 5, 6 | ✅ Done | 100% |
+| 9 | PWA & deployment | [phase-09-pwa-deployment.md](phases/archive/phase-09-pwa-deployment.md) | 3–8 | ✅ Done | 100% |
+| 10 | Polish & QA | [phase-10-polish-qa.md](phases/archive/phase-10-polish-qa.md) | all | ✅ Done | 100% |
 
 **Core v1.0 complete (11 / 11 build phases done).** The app meets the success criteria below.
 
@@ -60,9 +69,9 @@ round with the owner before implementation** (see the callout at the top of each
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 11 | Input & answer-flow UX | [phase-11-input-answer-ux.md](phases/phase-11-input-answer-ux.md) | 10 | ✅ Done | 100% |
-| 12 | Visual polish, option imagery & map readability | [phase-12-visual-map-overhaul.md](phases/phase-12-visual-map-overhaul.md) | 10 (11 recommended first) | ⬜ Not started | 0% |
-| 13 | Reset progress in Settings | [phase-13-reset-progress.md](phases/phase-13-reset-progress.md) | 6, 7 | ⬜ Not started | 0% |
+| 11 | Input & answer-flow UX | [phase-11-input-answer-ux.md](phases/archive/phase-11-input-answer-ux.md) | 10 | ✅ Done | 100% |
+| 12 | Visual polish, option imagery & map readability | [phase-12-visual-map-overhaul.md](phases/phase-12-visual-map-overhaul.md) | 10 (11 recommended first) | 🟡 In progress | 5% (decisions locked; NOT built — 2 builds reverted) |
+| 13 | Reset progress in Settings | [phase-13-reset-progress.md](phases/phase-13-reset-progress.md) | 6, 7 | 🟡 In progress | 5% (decisions locked; NOT built — awaiting build approval) |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
