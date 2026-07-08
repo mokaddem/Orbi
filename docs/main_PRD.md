@@ -73,6 +73,21 @@ round with the owner before implementation** (see the callout at the top of each
 | 12 | Visual polish, option imagery & map readability | [phase-12-visual-map-overhaul.md](phases/archive/phase-12-visual-map-overhaul.md) | 10 (11 recommended first) | ✅ Done | 100% (Stage 1 + Stage 2; Playful + turquoise built app-wide, signed off) |
 | 13 | Reset progress in Settings | [phase-13-reset-progress.md](phases/archive/phase-13-reset-progress.md) | 6, 7 | ✅ Done | 100% |
 
+### v1.2 — Retention & engagement ("keep playing")
+
+Owner-requested mechanics that give the player reasons to return: a smart "what to play next"
+recommendation, daily habit loops, and visible long-term progress. All computed from data already
+persisted (SR state + history) — **no backend**. Each PRD **requires a clarifying-questions round
+with the owner before implementation** (see the callout at the top of each file). Independent of
+each other and buildable in any order; **14 recommended first** (it's the centerpiece the others
+reinforce).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 14 | Smart "Next up" recommendations | [phase-14-next-up-recommendations.md](phases/phase-14-next-up-recommendations.md) | 6, 7 | ⬜ Not started | 0% |
+| 15 | Daily streak & Daily Challenge | [phase-15-daily-streak-challenge.md](phases/phase-15-daily-streak-challenge.md) | 2, 6 | ⬜ Not started | 0% |
+| 16 | Progress & rewards (mastery, achievements, recap) | [phase-16-progress-and-rewards.md](phases/phase-16-progress-and-rewards.md) | 6, 7 (15 for streak) | ⬜ Not started | 0% |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
