@@ -1,6 +1,6 @@
 # Phase 12 — Visual polish, option imagery & map readability
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done — Playful + turquoise direction built app-wide and signed off by the owner · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done — Playful + turquoise direction built app-wide and signed off by the owner · **Progress:** 100%
 · **Track:** v1.1 enhancements (post-launch)
 
 > **Note (2026-07-08):** Stage 1 signed off (commit `29ebfb3`). **Stage 2:** four full-UI directions
@@ -33,7 +33,7 @@ stages so the owner can react before a full restyle:
   UI design directions** for the owner to choose from.
 
 ## Depends on
-Functional app (Phases 2–10). **Recommended: [Phase 11](archive/phase-11-input-answer-ux.md) first**, so
+Functional app (Phases 2–10). **Recommended: [Phase 11](phase-11-input-answer-ux.md) first**, so
 the makeover styles the final button/auto-advance interaction model rather than the old one.
 
 ## Scope / Deliverables

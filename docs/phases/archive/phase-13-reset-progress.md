@@ -1,6 +1,6 @@
 # Phase 13 — Reset progress in Settings
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.1 enhancements (post-launch)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)

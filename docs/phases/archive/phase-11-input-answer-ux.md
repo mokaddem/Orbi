@@ -19,7 +19,7 @@ Make answering faster and lighter-weight, with two concrete changes requested by
 
 ## Depends on
 Functional app (Phases 2–10). Recommended to land **before** the visual makeover in
-[Phase 12](../phase-12-visual-map-overhaul.md) so the makeover styles the final interaction model.
+[Phase 12](phase-12-visual-map-overhaul.md) so the makeover styles the final interaction model.
 
 ## Scope / Deliverables
 - [x] **Segmented/button selectors for small option sets.** New `SegmentedControl.svelte`
