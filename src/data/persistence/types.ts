@@ -42,6 +42,23 @@ export interface SRItem {
   lastReviewedAt?: number;
 }
 
+/**
+ * Result of the most recent Daily Challenge (Phase 15) — a persisted singleton, not a log.
+ * "Done today" is `date === <today's local day-key> && completed`; on a new day the stored
+ * row is simply stale and the challenge is playable again. A replay overwrites it (latest
+ * attempt's score wins) but never un-completes the day.
+ */
+export interface DailyResult {
+  /** Local day-key (`YYYY-MM-DD`) the challenge was completed on. */
+  date: string;
+  completed: boolean;
+  /** Questions in the run and how many were correct — shown as today's score. */
+  total: number;
+  correct: number;
+  /** The mode that day's challenge was played in (for display). */
+  mode: GameMode;
+}
+
 /** User-editable preferences, persisted and applied at startup. */
 export interface Prefs {
   language: Locale;
@@ -112,4 +129,10 @@ export interface QuizStore {
   getAllSRItems(): Promise<SRItem[]>;
   /** Erase all SR/training state (leaves history and prefs intact). */
   clearSRItems(): Promise<void>;
+
+  // Daily Challenge (a singleton row: the most recent result)
+  getDailyResult(): Promise<DailyResult | undefined>;
+  saveDailyResult(result: DailyResult): Promise<void>;
+  /** Erase the Daily Challenge result (cleared alongside play history). */
+  clearDailyResult(): Promise<void>;
 }

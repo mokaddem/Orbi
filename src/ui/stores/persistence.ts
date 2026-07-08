@@ -14,16 +14,21 @@ import {
   clampPrefs,
   getCountry,
   openStore,
+  type DailyResult,
   type Prefs,
   type QuizStore,
   type SessionRecord,
 } from '../../data';
 import {
+  buildDailyChallenge,
   computeStats,
+  computeStreak,
   dominantTrainingMode,
+  localDayKey,
   recommend,
   scheduleNext,
   selectTrainingItems,
+  type DailyChallenge,
   type GameMode,
   type QuestionResult,
   type Recommendation,
@@ -31,6 +36,7 @@ import {
   type SelectTrainingOptions,
   type SessionSummary,
   type StatsOverview,
+  type StreakInfo,
   type TrainingItem,
 } from '../../domain';
 import { locale, setLocale } from '../../i18n';
@@ -64,7 +70,10 @@ export function summaryToRecord(summary: SessionSummary, id: string = newId()): 
     durationMs: summary.durationMs,
     mode: summary.mode,
     type: summary.type,
-    ...(summary.regionFilter ? { regionFilter: summary.regionFilter } : {}),
+    // Plain-copy the filter: recommendation- and daily-challenge-driven runs carry a filter
+    // sourced from a Svelte `$state` proxy, and IndexedDB's structured clone rejects proxies
+    // with a DataCloneError (silently dropping the session, and with it the streak).
+    ...(summary.regionFilter ? { regionFilter: { ...summary.regionFilter } } : {}),
     total: summary.total,
     correct: summary.correct,
     questions: summary.results,
@@ -210,6 +219,60 @@ export async function loadRecommendations(now = Date.now()): Promise<Recommendat
   return recommend(srItems, sessions, { now, regionOf });
 }
 
+/**
+ * Compute the daily streak from play history (Phase 15). Session start times are bucketed
+ * into the player's **local** calendar days (a habit streak is about their own day, unlike
+ * History's UTC buckets), then reduced by the pure {@link computeStreak}. Returns zeros
+ * before init or with no history.
+ */
+export async function loadStreak(now = Date.now()): Promise<StreakInfo> {
+  const empty: StreakInfo = { current: 0, longest: 0, playedToday: false };
+  if (!store) return empty;
+  const sessions = await store.getAllSessions();
+  return computeStreak(
+    sessions.map((s) => localDayKey(s.startedAt)),
+    localDayKey(now),
+  );
+}
+
+/** Today's Daily Challenge plus whether it's already been completed today. */
+export interface DailyState {
+  /** Local day-key the challenge belongs to. */
+  dateKey: string;
+  /** The date-seeded challenge to play (mode, region theme, length, seed). */
+  challenge: DailyChallenge;
+  /** `true` once today's challenge has been completed (persisted result matches today). */
+  done: boolean;
+  /** Today's result, present only when `done` — the score to show on the card. */
+  result?: DailyResult;
+}
+
+/**
+ * Resolve today's Daily Challenge and its completion state (Phase 15). The challenge is
+ * derived purely from today's local day-key, so it's the same all day; "done" comes from
+ * the persisted singleton and only counts when its date is today's.
+ */
+export async function loadDailyState(now = Date.now()): Promise<DailyState> {
+  const dateKey = localDayKey(now);
+  const challenge = buildDailyChallenge(dateKey);
+  const stored = store ? await store.getDailyResult() : undefined;
+  const done = !!stored && stored.completed && stored.date === dateKey;
+  return { dateKey, challenge, done, ...(done ? { result: stored } : {}) };
+}
+
+/**
+ * Persist the Daily Challenge result on completion. Best-effort (a refused write is
+ * swallowed, mirroring {@link saveSession}); a replay simply overwrites the single row.
+ */
+export async function saveDailyResult(result: DailyResult): Promise<void> {
+  if (!store) return;
+  try {
+    await store.saveDailyResult(result);
+  } catch {
+    // Storage became unwritable — the "done today" state just won't stick.
+  }
+}
+
 /** All persisted sessions (ascending by start time). Empty before init. */
 export async function loadSessions(): Promise<SessionRecord[]> {
   return store ? store.getAllSessions() : [];
@@ -230,9 +293,14 @@ export async function loadStats(): Promise<StatsOverview> {
   return computeStats(await loadSessions());
 }
 
-/** Erase all play history (leaves prefs and SR state intact). */
+/**
+ * Erase all play history (leaves prefs and SR state intact). The Daily Challenge result is
+ * cleared alongside it — the streak derives from history, so wiping history should reset the
+ * daily "done today" state too, keeping the two coherent.
+ */
 export async function clearHistory(): Promise<void> {
   await store?.clearSessions();
+  await store?.clearDailyResult();
 }
 
 /** Erase all SR/training state (leaves prefs and play history intact). */

@@ -3,15 +3,20 @@
   import { t } from '../../i18n';
   import { pendingConfig } from '../stores/game';
   import {
+    loadDailyState,
     loadRecommendations,
+    loadStreak,
     loadTrainingPlan,
     prefs,
     storageReady,
+    type DailyState,
     type TrainingPlan,
   } from '../stores/persistence';
-  import type { Recommendation } from '../../domain';
+  import type { Recommendation, StreakInfo } from '../../domain';
   import Demo from '../components/Demo.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
+  import StreakIndicator from '../components/StreakIndicator.svelte';
+  import DailyChallengeCard from '../components/DailyChallengeCard.svelte';
 
   // The "Next up" card (Phase 14) is the hero: it reads the player's own state and, in one
   // tap, launches the highest-value action (due reviews → weak spot → a fresh round). We
@@ -20,11 +25,15 @@
   // mistakes" link is kept as a secondary escape hatch alongside custom play.
   let recs = $state<Recommendation[] | null>(null);
   let plan = $state<TrainingPlan | null>(null);
+  let streak = $state<StreakInfo | null>(null);
+  let daily = $state<DailyState | null>(null);
 
   $effect(() => {
     if ($storageReady) {
       void loadRecommendations().then((r) => (recs = r));
       void loadTrainingPlan().then((p) => (plan = p));
+      void loadStreak().then((s) => (streak = s));
+      void loadDailyState().then((d) => (daily = d));
     }
   });
 
@@ -46,10 +55,22 @@
   <h1>{$t('home.title')}</h1>
   <p class="tagline">{$t('home.tagline')}</p>
 
+  {#if streak}
+    <div class="streak-row">
+      <StreakIndicator {streak} />
+    </div>
+  {/if}
+
   <Demo />
 
   {#if recs && recs.length}
     <NextUpCard rec={recs[0]} />
+  {/if}
+
+  {#if daily}
+    <div class="daily-row">
+      <DailyChallengeCard challenge={daily.challenge} done={daily.done} result={daily.result} />
+    </div>
   {/if}
 
   <div class="actions">
@@ -67,6 +88,16 @@
     color: var(--color-muted);
     font-size: 1.1rem;
     margin-top: -0.25rem;
+  }
+
+  /* A block row so the inline streak pill sits left-aligned with controlled spacing. */
+  .streak-row {
+    margin: 0.25rem 0 0;
+  }
+
+  /* Separate the Daily Challenge card from the Next-up card above it. */
+  .daily-row {
+    margin-top: 1rem;
   }
 
   .actions {

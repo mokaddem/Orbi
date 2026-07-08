@@ -1,6 +1,6 @@
 # Phase 15 — Daily streak & Daily Challenge
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.2 retention & engagement
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -40,29 +40,32 @@ RNG (Phase 2). Independent of Phases 14 and 16 (any order).
 
 ## Scope / Deliverables
 ### Daily streak
-- [ ] **Streak computation (pure, unit-tested)** — a `src/domain/streak.ts` (or an addition to
-      `stats.ts`) that, given the set of active day-keys and "today", returns `{ current, longest,
-      playedToday }`. Consecutive-day logic with an explicit "today" injected (no `Date.now` in the
-      pure fn), including the grace rule from Open Questions.
-- [ ] **Streak display on Home** — a small, friendly indicator (flame/counter) showing the current
-      streak and today's status; encourages finishing a round to keep it. Uses existing card/token
-      styling; respects `prefers-reduced-motion` for any flourish.
+- [x] **Streak computation (pure, unit-tested)** — `src/domain/streak.ts`: `computeStreak(dayKeys,
+      todayKey)` returns `{ current, longest, playedToday }` from day-key strings (no `Date.now` in the
+      pure fn; day math via `Date.UTC` on the parsed calendar date, TZ-independent). Strict grace
+      (miss a day → reset). `localDayKey(ts)` derives the player's **local** day-key.
+- [x] **Streak display on Home** — `StreakIndicator.svelte`: a compact flame pill showing the current
+      streak and today's status ("played today ✓" / "keep it going" / "start a streak"). Card/token
+      styling; the flame's idle pulse is dropped under `prefers-reduced-motion`.
 
 ### Daily Challenge
-- [ ] **Date → seed** — a pure helper turning a `YYYY-MM-DD` string into a stable 32-bit seed for
-      `mulberry32`, so the same day always yields the same challenge. Unit-tested (stable across
-      calls; different days differ).
-- [ ] **Challenge definition** — decide what the daily challenge *is* (mode, length, region theme) —
-      fixed format or itself seeded/rotating (see Open Questions) — and build its `RunConfig` with the
-      seeded `rng` so questions, order, and distractors are reproducible for the day.
-- [ ] **Entry point + "done today" state** — a Daily Challenge card on Home that launches it and, once
-      completed today, shows a completed state (and the day's result). Persist/derive completion per
-      Open Questions.
-- [ ] **i18n** — EN/FR strings for streak labels ("day streak", "played today", "keep it up") and the
-      Daily Challenge (title, theme label, done state). Parity enforced by `messages.test.ts`.
-- [ ] **Tests** — unit tests for streak logic (continues, breaks, longest, grace, timezone boundary)
-      and the date→seed helper (determinism, reproducible challenge); a component test that the Home
-      indicators render and the Daily Challenge stages a seeded `RunConfig` and flips to "done".
+- [x] **Date → seed** — `dailySeed(dateKey)` in `src/domain/daily.ts`: FNV-1a hash → stable 32-bit
+      seed for `mulberry32`. Unit-tested (stable across calls; consecutive days differ).
+- [x] **Challenge definition** — `buildDailyChallenge(dateKey)`: **seeded rotating theme** — the seed
+      picks the mode (of 4) and region theme (World or one of the 5 M49 regions). Fixed length 10 /
+      4 choices (constants, not prefs) so the day's challenge is identical for everyone. `dailyToConfig`
+      turns it into a `RunConfig` with a seeded `rng`, making questions/order/distractors reproducible.
+- [x] **Entry point + "done today" state** — `DailyChallengeCard.svelte` on Home launches it and, once
+      completed today, shows "Done for today ✓" + the score, plus a low-key "Play again". Completion is
+      a **persisted `DailyResult` singleton** (`{date, completed, total, correct, mode}`) in a new
+      `dailyChallenge` IDB store (DB v1→v2 migration); "done" = its date is today's local day-key.
+- [x] **i18n** — EN/FR strings for streak (`home.streak.*`) and the Daily Challenge (`daily.*`).
+      Parity enforced by `messages.test.ts` (green).
+- [x] **Tests** — `streak.test.ts` (continues, breaks, longest, strict grace, month/year boundary,
+      `localDayKey`), `daily.test.ts` (seed determinism, reproducible & day-varying challenge, valid
+      themes), store contract round-trip for `DailyResult`, `StreakIndicator`/`DailyChallengeCard`
+      component tests (render + stages a seeded `RunConfig` + flips to "done"), and a Home test asserting
+      both indicators render. Plus a `summaryToRecord` regression test (region filter is plain-copied).
 
 ## Technical notes
 - **Keep clocks out of pure code.** Streak and seed helpers take the date/day-key as an argument; the
@@ -80,21 +83,23 @@ RNG (Phase 2). Independent of Phases 14 and 16 (any order).
 - The Daily Challenge is a normal session; the only new thing is passing a **seeded `rng`** into
   `RunConfig`. No changes to the session engine are expected.
 
-## Open Questions — to resolve with the owner
-1. **Streak day basis** — **local** calendar day (recommended) or UTC (matches `dayKey` today)?
-2. **Streak grace** — does a streak break at the first fully-missed day, or is there a 1-day grace /
-   "freeze"? (Recommendation: strict — missing a day resets to 0; keep it honest and simple.)
-3. **What counts toward a streak** — any finished session, or must the player answer ≥ N questions /
-   finish the Daily Challenge? (Recommendation: any finished session.)
-4. **Daily Challenge format** — fixed (e.g. `flag-to-country`, 10 questions, whole world), or a
-   **rotating theme** seeded by the date (e.g. today = a random region, one of the four modes)?
-   (Recommendation: seeded rotating theme — more novelty, same infra.)
-5. **"Done today" storage** — derive-from-history (needs a session marker) vs a small persisted
-   `dailyChallenge` record (enables showing today's score and preventing re-scoring)? What happens on
-   replay — allowed for practice but not re-counted?
-6. **Does the Daily Challenge feed SR/history** like any other session? (Recommendation: yes — it's
-   real practice; it should update SR and appear in history.)
-7. **Placement** on Home relative to Play and the Phase 14 "Next up" card (if that ships too).
+## Open Questions — resolved with the owner (2026-07-08)
+1. **Streak day basis** — ✅ **Local** calendar day. `localDayKey` derives it; History's UTC `dayKey`
+   is left untouched.
+2. **Streak grace** — ✅ **Strict** (no freeze): a fully-missed day resets the streak to 0. The current
+   run anchors at today (if played) else yesterday, so it isn't shown as broken mid-day.
+3. **What counts toward a streak** — ✅ **Any finished session** (matches History's day buckets).
+4. **Daily Challenge format** — ✅ **Seeded rotating theme**: the date seed picks the mode (of 4) and a
+   region theme (World or one of the 5 M49 regions). Length 10 / 4 choices are fixed constants.
+5. **"Done today" storage** — ✅ **Small persisted `DailyResult` singleton** (new `dailyChallenge` IDB
+   store, DB v2). "Done today" = its date equals today's local day-key. **Replay** is allowed as
+   practice; it overwrites the stored result (latest score) but never un-completes the day, and — being
+   a normal session — still feeds SR + history each time.
+6. **Does the Daily Challenge feed SR/history** — ✅ **Yes.** It's a normal session: `recordAnswer`
+   updates SM-2 per question and `saveSession` writes it to history (verified: after the daily, the
+   "Next up" card surfaced the missed items and "Train all my mistakes" appeared).
+7. **Placement** — ✅ Compact streak pill under the tagline; Daily Challenge card directly below the
+   Phase 14 "Next up" card.
 
 ## Acceptance criteria
 - Home shows a current daily streak and today's status, computed from real play history, updating
@@ -115,3 +120,24 @@ RNG (Phase 2). Independent of Phases 14 and 16 (any order).
 ## Progress log
 - **2026-07-08 — PRD drafted from the retention brainstorm (owner picked: daily streak + Daily
   Challenge). NOT built — awaiting the clarifying round and explicit build approval.**
+- **2026-07-08 — Clarifying round done (answers recorded above: local day, any-finished-session,
+  seeded rotating theme, persisted `DailyResult`, strict grace, feeds SR/history) and owner gave an
+  explicit "go". Implemented and marked ✅ Done:**
+  - **Pure domain:** `streak.ts` (`localDayKey`, `computeStreak`) and `daily.ts` (`dailySeed`,
+    `buildDailyChallenge`, `DAILY_LENGTH`/`DAILY_CHOICES`), exported from `domain/index.ts`.
+  - **Persistence:** `DailyResult` type + `getDailyResult`/`saveDailyResult`/`clearDailyResult` on the
+    `QuizStore` port; new `dailyChallenge` IDB object store with **DB_VERSION 1→2** migration (existing
+    stores preserved); memory-store parity; contract round-trip test. `clearHistory` also clears the
+    daily result so the streak and "done today" stay coherent.
+  - **Wiring:** `RunConfig.dailyDate` + `dailyToConfig` (seeded `rng`); `loadStreak`/`loadDailyState`/
+    `saveDailyResult` in the persistence controller; `Play.svelte` records the `DailyResult` on finish.
+  - **UI:** `StreakIndicator` + `DailyChallengeCard` on Home (recompute on mount → refresh after a
+    session with no manual reload); EN/FR strings.
+  - **Bug found & fixed during verification:** daily/recommendation configs carry a filter sourced from
+    a Svelte `$state` proxy; IndexedDB's structured clone rejected it (`DataCloneError`), silently
+    dropping the session (so the streak never advanced). Fixed at the persistence choke point —
+    `summaryToRecord` now plain-copies `regionFilter` — which also fixes the same latent bug for Phase
+    14 weak-spot sessions. Guarded by a regression test.
+  - **Verification:** `npm run test` (271), `npm run check`, `npm run lint` all green; manual
+    end-to-end browser check on 5180 (Home empty → play today's daily map-locate/Africa → streak flips
+    to "1-day streak · Played today ✓", card shows "Done for today ✓ · 8/10", SR/history fed; EN + FR).

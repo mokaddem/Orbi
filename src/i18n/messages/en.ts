@@ -22,6 +22,21 @@ const en = {
     trainCount: 'Train my mistakes ({count})',
     trainAll: 'Train all my mistakes ({count})',
     trainHint: 'Training drills the countries you get wrong — play a few games to build it up.',
+    streak: {
+      days: '{count}-day streak',
+      playedToday: 'Played today ✓',
+      keepGoing: 'Play today to keep it going',
+      start: 'Start a streak today',
+    },
+  },
+  daily: {
+    label: 'Daily Challenge',
+    title: "Today's Challenge",
+    world: 'World',
+    play: 'Play',
+    playAgain: 'Play again',
+    done: 'Done for today ✓',
+    score: 'You scored {correct}/{total}',
   },
   recommend: {
     label: 'Next up',

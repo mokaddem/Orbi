@@ -5,6 +5,7 @@ import {
   IdbQuizStore,
   MemoryQuizStore,
   openStore,
+  type DailyResult,
   type Prefs,
   type QuizStore,
   type SessionRecord,
@@ -95,6 +96,25 @@ function contractTests(name: string, makeStore: () => Promise<QuizStore>): void 
       expect(await store.getSRItem(srItem.itemKey)).toBeUndefined();
       // History is a separate concern and must survive a training reset.
       expect(await store.getAllSessions()).toHaveLength(1);
+    });
+
+    it('round-trips the daily result (last write wins) and clears it', async () => {
+      expect(await store.getDailyResult()).toBeUndefined();
+      const daily: DailyResult = {
+        date: '2026-07-08',
+        completed: true,
+        total: 10,
+        correct: 7,
+        mode: 'flag-to-country',
+      };
+      await store.saveDailyResult(daily);
+      expect(await store.getDailyResult()).toEqual(daily);
+      // A replay overwrites the single row with the latest attempt.
+      await store.saveDailyResult({ ...daily, correct: 9 });
+      expect((await store.getDailyResult())?.correct).toBe(9);
+
+      await store.clearDailyResult();
+      expect(await store.getDailyResult()).toBeUndefined();
     });
   });
 }

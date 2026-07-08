@@ -33,6 +33,13 @@ describe('Home route — Next up card + train-all link', () => {
     expect(screen.getByRole('heading', { name: 'Ready to play' })).toBeInTheDocument();
     // With nothing to train, the "train all my mistakes" escape hatch is absent.
     expect(screen.queryByRole('button', { name: /Train all my mistakes/ })).not.toBeInTheDocument();
+
+    // Phase 15: with no history the streak nudges a start, and the Daily Challenge is
+    // present and not-yet-done.
+    const streak = await screen.findByTestId('streak-indicator');
+    expect(streak).toHaveTextContent('Start a streak today');
+    const daily = await screen.findByTestId('daily-card');
+    expect(daily).toHaveAttribute('data-done', 'false');
   });
 
   it('surfaces a due-review card and a train-all link once mistakes exist', async () => {
