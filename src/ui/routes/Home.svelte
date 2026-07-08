@@ -69,25 +69,40 @@
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border-radius: var(--radius);
-    font-weight: 600;
+    font-weight: 800;
+    box-shadow: var(--shadow-chunky);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .cta:hover {
     text-decoration: none;
-    filter: brightness(1.05);
+    transform: translateY(-2px);
+  }
+
+  .cta:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
   }
 
   .train {
     padding: 0.6rem 1.2rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
     color: var(--color-text);
-    font-weight: 600;
+    font-weight: 700;
+    box-shadow: var(--shadow-card);
+    transition:
+      transform 0.12s ease,
+      border-color 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .train:hover:not(:disabled) {
     border-color: var(--color-accent);
+    transform: translateY(-2px);
   }
 
   .train:disabled {
@@ -99,5 +114,17 @@
     margin: 0;
     font-size: 0.85rem;
     color: var(--color-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta,
+    .train {
+      transition: none;
+    }
+
+    .cta:hover,
+    .train:hover:not(:disabled) {
+      transform: none;
+    }
   }
 </style>

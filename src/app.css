@@ -1,30 +1,47 @@
 :root {
-  --color-bg: #f7f9fc;
+  /* Playful & educational theme (Phase 12 Stage 2) — warm ground, turquoise accent,
+     rounded/chunky components. Every component styles through these tokens. */
+  --color-bg: #fff6f1;
   --color-surface: #ffffff;
-  --color-border: #dce3ec;
-  --color-text: #1a2433;
-  --color-muted: #5a6b82;
-  --color-accent: #2b6cb0;
+  --color-border: #f1ded4;
+  --color-text: #2a2320;
+  --color-muted: #927f75;
+  --color-accent: #10a5a0;
   --color-accent-contrast: #ffffff;
-  --color-correct: #1a7f43;
-  --color-correct-bg: #e6f4ec;
-  --color-wrong: #c0392b;
-  --color-wrong-bg: #fdecea;
+  --color-accent-weak: #dbf3f1; /* selected / active tint */
+  --color-accent-strong: #0b7e7a; /* darker turquoise: chunky button drop, map strokes */
+  --color-correct: #1e9e5a;
+  --color-correct-bg: #e4f7ec;
+  --color-wrong: #cf3b2c;
+  --color-wrong-bg: #fce9e6;
 
-  /* Map-specific palette (Phase 12): every country reads on the board, not just the
-     selected one — muted land on tinted water with a soft-but-legible border. */
-  --map-water: #c6dcf0;
-  --map-land: #eef2f7;
-  --map-land-hover: #a7c8ea;
-  --map-border: #8ea7c4;
+  /* Map palette (Phase 12): warm land on a sky-tinted sea with a soft-but-legible
+     border, so every country reads. The highlighted country is a turquoise tint with
+     a darker outline (matches the signed-off Playful mockup). */
+  --map-water: #cde8f0;
+  --map-land: #fff3e8;
+  --map-land-hover: #a7e0dc;
+  --map-border: #e6b491;
+  --map-highlight: #7fd9d3;
+  --map-highlight-line: #0b7e7a;
 
-  --radius: 10px;
+  --radius: 16px;
   --max-width: 900px;
 
+  /* Shared Playful treatments: a chunky accent-button drop, a soft card drop, the
+     selection ring, and the progress-bar gradient. */
+  --shadow-chunky: 0 4px 0 var(--color-accent-strong);
+  --shadow-chunky-press: 0 2px 0 var(--color-accent-strong);
+  --shadow-card: 0 3px 0 rgb(42 35 32 / 5%);
+  --ring-selected: 0 0 0 3px var(--color-accent-weak);
+  --progress-gradient: linear-gradient(90deg, #4fd1ca, #10a5a0);
+
   font-family:
+    'Trebuchet MS',
+    'Segoe UI',
+    ui-rounded,
     system-ui,
     -apple-system,
-    'Segoe UI',
     Roboto,
     Helvetica,
     Arial,
@@ -69,4 +86,10 @@ h3 {
 button {
   font: inherit;
   cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }

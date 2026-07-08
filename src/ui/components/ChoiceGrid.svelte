@@ -91,23 +91,27 @@
     min-height: 3.25rem;
     padding: 0.75rem 1rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
     color: var(--color-text);
     font-weight: 600;
     text-align: center;
+    box-shadow: var(--shadow-card);
     transition:
+      transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
       background 0.12s ease,
-      border-color 0.12s ease;
+      border-color 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .choice:not(.answered):hover {
     border-color: var(--color-accent);
     background: var(--color-bg);
+    transform: translateY(-2px);
   }
 
   .choice:not(.answered):active {
-    transform: scale(0.985);
+    transform: translateY(0) scale(0.985);
   }
 
   .choice.answered {
@@ -177,6 +181,11 @@
       animation: none;
     }
 
+    .choice {
+      transition: none;
+    }
+
+    .choice:not(.answered):hover,
     .choice:not(.answered):active {
       transform: none;
     }

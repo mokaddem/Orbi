@@ -439,11 +439,17 @@
     gap: 0.2rem;
     padding: 0.9rem 1rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
     color: var(--color-text);
     font-weight: 600;
     text-align: left;
+    box-shadow: var(--shadow-card);
+    transition:
+      transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+      border-color 0.12s ease,
+      background 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .opt small {
@@ -486,15 +492,18 @@
     gap: 0.4rem;
     padding: 0.7rem 0.5rem 0.6rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
     color: var(--color-muted);
     font-weight: 600;
     text-align: center;
+    box-shadow: var(--shadow-card);
     transition:
+      transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
       border-color 0.12s ease,
       color 0.12s ease,
-      background 0.12s ease;
+      background 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .region-ico {
@@ -513,12 +522,13 @@
 
   .region-opt:hover {
     border-color: var(--color-accent);
+    transform: translateY(-2px);
   }
 
   .region-opt.selected {
     border-color: var(--color-accent);
-    background: var(--color-bg);
-    box-shadow: inset 0 0 0 1px var(--color-accent);
+    background: var(--color-accent-weak);
+    box-shadow: var(--ring-selected);
   }
 
   .region-opt.selected .region-ico,
@@ -532,26 +542,36 @@
 
   .opt:hover {
     border-color: var(--color-accent);
+    transform: translateY(-2px);
   }
 
   .opt.selected {
     border-color: var(--color-accent);
-    background: var(--color-bg);
-    box-shadow: inset 0 0 0 1px var(--color-accent);
+    background: var(--color-accent-weak);
+    box-shadow: var(--ring-selected);
   }
 
   .start {
     align-self: flex-start;
-    padding: 0.6rem 1.5rem;
+    padding: 0.65rem 1.6rem;
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border: 0;
     border-radius: var(--radius);
-    font-weight: 700;
+    font-weight: 800;
+    box-shadow: var(--shadow-chunky);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .start:hover {
-    filter: brightness(1.05);
+    transform: translateY(-2px);
+  }
+
+  .start:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
   }
 
   /* Game */
@@ -586,7 +606,7 @@
 
   .fill {
     height: 100%;
-    background: var(--color-accent);
+    background: var(--progress-gradient);
     transition: width 0.2s ease;
   }
 
@@ -622,8 +642,8 @@
   }
 
   .streak {
-    color: var(--color-text);
-    font-weight: 600;
+    color: var(--color-accent);
+    font-weight: 700;
     animation: streak-pop 0.34s ease;
   }
 
@@ -768,6 +788,18 @@
     .feedback,
     .streak {
       animation: none;
+    }
+
+    .opt,
+    .region-opt,
+    .start {
+      transition: none;
+    }
+
+    .opt:hover,
+    .region-opt:hover,
+    .start:hover {
+      transform: none;
     }
   }
 

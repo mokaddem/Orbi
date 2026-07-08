@@ -74,8 +74,8 @@
 
   .seg.selected {
     border-color: var(--color-accent);
-    background: var(--color-bg);
-    box-shadow: inset 0 0 0 1px var(--color-accent);
+    background: var(--color-accent-weak);
+    box-shadow: var(--ring-selected);
     color: var(--color-accent);
   }
 

@@ -149,12 +149,21 @@
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border-radius: var(--radius);
-    font-weight: 600;
+    font-weight: 800;
+    box-shadow: var(--shadow-chunky);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .cta:hover {
     text-decoration: none;
-    filter: brightness(1.05);
+    transform: translateY(-2px);
+  }
+
+  .cta:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
   }
 
   .meta {
@@ -176,8 +185,9 @@
     gap: 0.2rem;
     padding: 1rem 0.5rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
   }
 
   .stat .value {
@@ -210,8 +220,9 @@
     gap: 0.6rem;
     padding: 0.4rem 0.6rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
   }
 
   .missed-flag {
@@ -233,16 +244,26 @@
     padding: 0.55rem 1.3rem;
     border-radius: var(--radius);
     font-weight: 700;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
+    transition:
+      transform 0.12s ease,
+      border-color 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .primary {
     background: var(--color-accent);
     color: var(--color-accent-contrast);
+    box-shadow: var(--shadow-chunky);
   }
 
   .primary:hover {
-    filter: brightness(1.05);
+    transform: translateY(-2px);
+  }
+
+  .primary:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
   }
 
   .secondary {
@@ -253,6 +274,7 @@
 
   .secondary:hover:not(:disabled) {
     border-color: var(--color-accent);
+    transform: translateY(-2px);
   }
 
   .secondary:disabled {
@@ -264,6 +286,19 @@
     background: transparent;
     border-color: var(--color-border);
     color: var(--color-text);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta,
+    .actions button {
+      transition: none;
+    }
+
+    .cta:hover,
+    .primary:hover,
+    .secondary:hover:not(:disabled) {
+      transform: none;
+    }
   }
 
   @media (max-width: 560px) {

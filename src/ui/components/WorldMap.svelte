@@ -183,7 +183,7 @@
   .map {
     width: 100%;
     background: var(--map-water);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--map-border);
     border-radius: var(--radius);
     overflow: hidden;
   }
@@ -216,9 +216,9 @@
   }
 
   .country.highlight {
-    fill: var(--color-accent);
-    stroke: var(--color-accent);
-    stroke-width: 0.9;
+    fill: var(--map-highlight);
+    stroke: var(--map-highlight-line);
+    stroke-width: 1.1;
   }
 
   .country.reveal {
@@ -240,7 +240,7 @@
 
   .marker {
     fill: none;
-    stroke: var(--color-accent);
+    stroke: var(--color-accent-strong);
     stroke-width: 2;
     opacity: 0.9;
     pointer-events: none;

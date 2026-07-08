@@ -32,13 +32,13 @@
     flex-wrap: wrap;
     padding: 0.75rem 1rem;
     background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 2px solid var(--color-border);
   }
 
   .brand {
-    font-weight: 700;
+    font-weight: 800;
     font-size: 1.15rem;
-    color: var(--color-text);
+    color: var(--color-accent);
   }
 
   .links {
@@ -60,7 +60,7 @@
 
   .links a.active {
     color: var(--color-accent);
-    background: var(--color-bg);
-    font-weight: 600;
+    background: var(--color-accent-weak);
+    font-weight: 700;
   }
 </style>

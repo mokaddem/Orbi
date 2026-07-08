@@ -1,13 +1,14 @@
 # Phase 12 — Visual polish, option imagery & map readability
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Stage 1 built & verified — awaiting owner sign-off (Stage 2 gated) · **Progress:** 60%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Stage 2 built app-wide (Playful + turquoise) & verified — awaiting final owner review · **Progress:** 95%
 · **Track:** v1.1 enhancements (post-launch)
 
-> **Note (2026-07-08):** Stage 1 was **built for the third time — this time with the owner's explicit
-> approval** ("Go") after the plan was presented — and is now in the tree, verified (see Progress log).
-> The two earlier builds (2026-07-07) were reverted for lack of a clear go-ahead; that history is kept
-> in the Progress log. **Stage 2 (alternative full-UI makeovers) has not started and remains gated on
-> the owner signing off on Stage 1.**
+> **Note (2026-07-08):** Stage 1 signed off (commit `29ebfb3`). **Stage 2:** four full-UI directions
+> were presented as preview artifacts; the owner chose **Playful & educational** and recolored the
+> accent to **turquoise/teal (`#10A5A0`)**. That direction has now been **built into the real Svelte
+> app, app-wide** (token-first restyle; domain logic untouched; Stage 1 map framing preserved) and
+> verified (check/lint/224 tests/build + live headless screenshots of every screen). **Awaiting the
+> owner's final review at `localhost:5180`; then Phase 12 → ✅ Done.** Details in the Progress log.
 
 > ## ⚠️ Process requirement — get approval BEFORE building (MANDATORY)
 > **NEVER start implementing this phase (or any phase) without the owner's explicit approval first.**
@@ -59,9 +60,12 @@ the makeover styles the final button/auto-advance interaction model rather than 
       speck-culled), inlined into the JS bundle — no runtime geometry load. Mode glyphs are inline SVG.
 
 ### Stage 2 — alternative makeovers (gated on Stage 1 sign-off)
-- [ ] **Present a few (owner picks how many) alternative full UI directions** — e.g. as
-      side-by-side mockups / preview artifacts and/or a switchable live theme — covering layout,
-      palette, typography, and component styling, for the owner to choose one to finalise.
+- [x] **Presented** four alternative full-UI directions as clickable static preview artifacts
+      (Minimalist, Playful, Modern glossy, Map-atlas), each showing the setup + in-game screens on
+      the real layout/copy with the actual glyphs, region silhouettes, and a generated Europe map.
+- [x] **Owner picked: Playful & educational, turquoise/teal accent (`#10A5A0`).**
+- [x] **Built the Playful + turquoise direction into the real app, app-wide** — token-first restyle,
+      verified (check/lint/224 tests/build + live screenshots). Awaiting final owner review → ✅ Done.
 
 ## Technical notes
 - Only a **single light theme** exists today (dark mode is in the main PRD's Deferred list) —
@@ -175,3 +179,55 @@ Ask these (and more as needed) before building:
     Europe + World, hover, answered) all confirmed. No E2E harness exists in the repo to run.
   - **Next:** awaiting owner sign-off on Stage 1 before starting **Stage 2** (a few alternative
     full-UI makeovers, presented as static preview mockups per the earlier decision).
+- **2026-07-08 — Stage 1 signed off by the owner.** Reviewed at `localhost:5180` and approved as-is
+  ("perfect"), no tweaks requested. Stage 1 is final (commit `29ebfb3`). **Stage 2 is now unblocked:**
+  present a few alternative full-UI design directions as static preview mockups (build only the chosen
+  one, per the earlier decision). Count and vibes to be agreed with the owner before producing mockups.
+- **2026-07-08 — Stage 2 mockups built & presented (owner approved: all four directions, clickable
+  preview per direction).** Each preview shows the **setup** and **in-game (map-highlight)** screens on
+  the *real* app layout/copy, reusing the actual `ModeIcon` glyphs and `region-shapes.json` continent
+  silhouettes, plus a real Natural-Earth Europe map (France highlighted, framed to a clean Europe
+  window — no Russia blow-out) generated offline; flags are simplified representative SVGs. Built by a
+  single shared HTML/JS template with four distinct theme stylesheets, so the directions are strictly
+  comparable. All four verified (setup + in-game + answered feedback states) via headless-Chrome
+  screenshots before publishing. Directions & URLs:
+  - **Minimalist / calm** — flat, hairline, deep-teal accent, uppercase labels:
+    https://claude.ai/code/artifact/e8ab06d5-b28a-4049-b767-876c7e399166
+  - **Playful & educational** — warm ground, coral accent, chunky rounded cards, springy press:
+    https://claude.ai/code/artifact/bff298c1-4351-4e37-a439-bcef616b3863
+  - **Modern glossy** — cool neutrals, indigo accent, glassy cards + soft depth, gradient brand:
+    https://claude.ai/code/artifact/b6e0e354-336c-4d76-bf81-3963db6aa6a3
+  - **Map-atlas / cartographic** — parchment + serif, graticule overlay + compass, goldenrod highlight:
+    https://claude.ai/code/artifact/4c6dfe60-6972-4b1e-8d2a-2a1cbd46ee8d
+  - Mockup sources kept in the session scratch dir (not committed — throwaway previews). **Decision
+    pending: which direction to finalise.** Then build only that into the app (fresh go-ahead first).
+- **2026-07-08 — Owner chose the Playful direction; accent recolored to turquoise/teal.** The owner
+  liked Playful but not the orange; a side-by-side accent comparison (Berry / Cobalt / Turquoise /
+  Grape vs. the current orange) was produced
+  (https://claude.ai/code/artifact/bc686369-c266-46e5-bd6a-a2071f68fa89) and the owner picked
+  **turquoise/teal**. The Playful mockup was recolored (accent `#10A5A0`, hover tint `#DBF3F1`, button
+  shadow `#0B7E7A`, progress gradient `#4FD1CA→#10A5A0`, map highlight `#7FD9D3`/`#0B7E7A`) with
+  everything else — warm ground, rounded chunky style, layout — unchanged, and re-verified via
+  screenshots. The Playful artifact was updated in place (same URL, above). **Selected direction for
+  the app build: Playful & educational + turquoise.** Build into the real Svelte app is the remaining
+  Stage 2 work and needs a fresh explicit go-ahead before any app code changes.
+- **2026-07-08 — Stage 2 built into the app, app-wide (owner go-ahead: "apply it app-wide").**
+  Token-first restyle of the real Svelte app:
+  - `src/app.css`: Playful palette (warm ground `#fff6f1`, turquoise accent `#10a5a0` + weak `#dbf3f1`
+    / strong `#0b7e7a` tints, warm map tokens, turquoise highlight `#7fd9d3`/`#0b7e7a`), `--radius`
+    16px, a Trebuchet-led rounded font stack, shared treatment tokens (`--shadow-chunky[-press]`,
+    `--shadow-card`, `--ring-selected`, `--progress-gradient`), and a global `:focus-visible`.
+  - Components: chunky 2px rounded cards with a soft drop + springy `translateY(-2px)` hover,
+    accent-weak selected fills with a selection ring, gradient progress bar, chunky accent buttons
+    (press-down on `:active`), turquoise brand / active nav pill / streak. Touched `Play`, `ChoiceGrid`,
+    `Nav`, `Home`, `Summary`, `History`, `SegmentedControl`, and `WorldMap` (warm 2px map frame,
+    turquoise-tint highlight + darker outline, darker marker ring). New motion is
+    `prefers-reduced-motion`-gated. **No component had hardcoded colours** (all token-driven), so the
+    palette propagated app-wide from `app.css`.
+  - Domain logic untouched; the map framing is left exactly as the signed-off Stage 1 `focusFrame`.
+  - **Verified:** `npm run check` (0 errors/0 warnings) + `npm run lint` (eslint + prettier) clean;
+    **224 Vitest tests pass**; `npm run build` succeeds (PWA precache 56 entries). Drove the **live dev
+    app** headless over the DevTools protocol and screenshotted Home, Play setup, in-game map-highlight
+    (real world map with the turquoise highlight + marker and flag-thumbnail options), History, and
+    Settings — all consistently themed. **Awaiting the owner's final review at `localhost:5180`; then
+    Phase 12 will be marked ✅ Done.**

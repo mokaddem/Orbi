@@ -211,12 +211,21 @@
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border-radius: var(--radius);
-    font-weight: 600;
+    font-weight: 800;
+    box-shadow: var(--shadow-chunky);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease;
   }
 
   .cta:hover {
     text-decoration: none;
-    filter: brightness(1.05);
+    transform: translateY(-2px);
+  }
+
+  .cta:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
   }
 
   .warning {
@@ -244,8 +253,9 @@
     gap: 0.2rem;
     padding: 1rem 0.5rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
   }
 
   .tile .value {
@@ -266,7 +276,7 @@
     gap: 0.75rem;
     padding: 1rem;
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
   }
 
@@ -338,7 +348,7 @@
     gap: 0.6rem;
     padding: 0.4rem 0.6rem;
     background: var(--color-bg);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
     border-radius: var(--radius);
   }
 
@@ -408,6 +418,16 @@
     flex-direction: column;
     align-items: flex-end;
     font-weight: 700;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta {
+      transition: none;
+    }
+
+    .cta:hover {
+      transform: none;
+    }
   }
 
   @media (max-width: 560px) {

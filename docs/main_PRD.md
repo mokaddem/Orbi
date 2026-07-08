@@ -70,7 +70,7 @@ round with the owner before implementation** (see the callout at the top of each
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
 | 11 | Input & answer-flow UX | [phase-11-input-answer-ux.md](phases/archive/phase-11-input-answer-ux.md) | 10 | ✅ Done | 100% |
-| 12 | Visual polish, option imagery & map readability | [phase-12-visual-map-overhaul.md](phases/phase-12-visual-map-overhaul.md) | 10 (11 recommended first) | 🟡 In progress | 60% (Stage 1 built & verified w/ owner approval — awaiting sign-off; Stage 2 gated) |
+| 12 | Visual polish, option imagery & map readability | [phase-12-visual-map-overhaul.md](phases/phase-12-visual-map-overhaul.md) | 10 (11 recommended first) | 🟡 In progress | 95% (Stage 1 done; Stage 2 — Playful + turquoise built app-wide & verified, awaiting final review) |
 | 13 | Reset progress in Settings | [phase-13-reset-progress.md](phases/phase-13-reset-progress.md) | 6, 7 | ✅ Done | 100% |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
