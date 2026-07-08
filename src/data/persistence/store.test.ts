@@ -83,6 +83,19 @@ function contractTests(name: string, makeStore: () => Promise<QuizStore>): void 
       expect(await store.getAllSRItems()).toHaveLength(1);
       expect((await store.getSRItem(srItem.itemKey))?.lapses).toBe(2);
     });
+
+    it('clears SR items without touching sessions', async () => {
+      await store.addSession(record({ id: 's1' }));
+      await store.putSRItem(srItem);
+      await store.putSRItem({ ...srItem, itemKey: 'flag-to-country:RO' });
+
+      await store.clearSRItems();
+
+      expect(await store.getAllSRItems()).toEqual([]);
+      expect(await store.getSRItem(srItem.itemKey)).toBeUndefined();
+      // History is a separate concern and must survive a training reset.
+      expect(await store.getAllSessions()).toHaveLength(1);
+    });
   });
 }
 

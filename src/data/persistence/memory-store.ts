@@ -47,4 +47,8 @@ export class MemoryQuizStore implements QuizStore {
   async getAllSRItems(): Promise<SRItem[]> {
     return [...this.srItems.values()].map((i) => ({ ...i }));
   }
+
+  async clearSRItems(): Promise<void> {
+    this.srItems.clear();
+  }
 }

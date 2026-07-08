@@ -89,4 +89,8 @@ export class IdbQuizStore implements QuizStore {
   async getAllSRItems(): Promise<SRItem[]> {
     return this.db.getAll('srItems');
   }
+
+  async clearSRItems(): Promise<void> {
+    await this.db.clear('srItems');
+  }
 }

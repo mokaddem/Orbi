@@ -194,6 +194,16 @@ export async function loadSessions(): Promise<SessionRecord[]> {
   return store ? store.getAllSessions() : [];
 }
 
+/** Whether any play history exists — drives the "Clear history" control's enabled state. */
+export async function hasSessions(): Promise<boolean> {
+  return store ? (await store.getAllSessions()).length > 0 : false;
+}
+
+/** Whether any SR/training state exists — drives the "Reset training" control's enabled state. */
+export async function hasTrainingData(): Promise<boolean> {
+  return store ? (await store.getAllSRItems()).length > 0 : false;
+}
+
 /** Compute the History overview from persisted sessions. */
 export async function loadStats(): Promise<StatsOverview> {
   return computeStats(await loadSessions());
@@ -202,4 +212,9 @@ export async function loadStats(): Promise<StatsOverview> {
 /** Erase all play history (leaves prefs and SR state intact). */
 export async function clearHistory(): Promise<void> {
   await store?.clearSessions();
+}
+
+/** Erase all SR/training state (leaves prefs and play history intact). */
+export async function clearTraining(): Promise<void> {
+  await store?.clearSRItems();
 }

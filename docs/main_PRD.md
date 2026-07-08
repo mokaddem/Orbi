@@ -71,7 +71,7 @@ round with the owner before implementation** (see the callout at the top of each
 |---|---|---|---|---|---|
 | 11 | Input & answer-flow UX | [phase-11-input-answer-ux.md](phases/archive/phase-11-input-answer-ux.md) | 10 | ✅ Done | 100% |
 | 12 | Visual polish, option imagery & map readability | [phase-12-visual-map-overhaul.md](phases/phase-12-visual-map-overhaul.md) | 10 (11 recommended first) | 🟡 In progress | 5% (decisions locked; NOT built — 2 builds reverted) |
-| 13 | Reset progress in Settings | [phase-13-reset-progress.md](phases/phase-13-reset-progress.md) | 6, 7 | 🟡 In progress | 5% (decisions locked; NOT built — awaiting build approval) |
+| 13 | Reset progress in Settings | [phase-13-reset-progress.md](phases/phase-13-reset-progress.md) | 6, 7 | ✅ Done | 100% |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

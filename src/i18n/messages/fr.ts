@@ -4,6 +4,9 @@ const fr: typeof en = {
   app: {
     title: 'Quiz de géographie',
   },
+  common: {
+    cancel: 'Annuler',
+  },
   nav: {
     home: 'Accueil',
     play: 'Jouer',
@@ -124,6 +127,21 @@ const fr: typeof en = {
     hint: 'Les changements s’appliquent à votre prochaine partie.',
     notPersisted:
       'Le stockage est indisponible — les paramètres et l’historique ne seront pas enregistrés.',
+    data: {
+      title: 'Données',
+      historyLabel: 'Historique de jeu',
+      historyHint: 'Toutes les sessions et statistiques enregistrées.',
+      clearHistory: 'Effacer l’historique',
+      clearHistoryTitle: 'Effacer l’historique ?',
+      clearHistoryMessage:
+        'Cela supprime définitivement toutes les sessions et statistiques enregistrées. Cette action est irréversible.',
+      trainingLabel: 'Progression de révision',
+      trainingHint: 'Les pays que « Réviser mes erreurs » a mis en file d’attente.',
+      resetTraining: 'Réinitialiser la révision',
+      resetTrainingTitle: 'Réinitialiser la révision ?',
+      resetTrainingMessage:
+        'Cela efface définitivement votre progression de révision. Cette action est irréversible.',
+    },
   },
   storage: {
     unavailable:

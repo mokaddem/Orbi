@@ -1,6 +1,6 @@
 # Phase 13 — Reset progress in Settings
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Decisions locked — NOT built (awaiting build approval) · **Progress:** 5%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.1 enhancements (post-launch)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -28,19 +28,23 @@ confirmed: it does not).
 Persistence layer (Phase 6) + SR state (Phase 7). Independent of Phases 11–12.
 
 ## Scope / Deliverables
-- [ ] **Reset action in Settings** — a clearly-destructive control that wipes progress, with a
-      **confirmation** step.
-- [ ] **Store API** — add the clear method(s) implied by the agreed scope (e.g. `clearSRItems()`
-      and/or `clearAll()`) to the `QuizStore` interface and to **both** the IndexedDB and
-      in-memory implementations.
-- [ ] **Live-state refresh** — after a reset, update the in-app reactive state (History view,
-      SR-derived training availability, and prefs/language if those are in scope) without
-      requiring a manual reload.
-- [ ] **i18n** — new strings (button label, confirmation copy, success feedback) in `en` + `fr`.
-- [ ] **Tests** — store clear method(s) on both adapters; a Settings component test for the
-      action + confirmation.
-- [ ] **Reconcile with History's "Clear history"** — decide whether that stays, is relabelled,
-      or defers to the new Settings reset (avoid two overlapping-but-different actions).
+- [x] **Reset action in Settings** — two clearly-destructive, separately-confirmed controls in a
+      new "Data" section: **Clear history** (`sessions`) and **Reset training** (`srItems`). Each
+      gates on an in-app `ConfirmDialog` and disables once its store is empty.
+- [x] **Store API** — added `clearSRItems()` to the `QuizStore` interface and to **both** the
+      IndexedDB (`db.clear('srItems')`) and in-memory (`srItems.clear()`) implementations.
+      (`clearSessions()` already existed.)
+- [x] **Live-state refresh** — Settings tracks per-store presence (`historyPresent` /
+      `trainingPresent`) via `hasSessions()` / `hasTrainingData()`, recomputed on mount (the route
+      remounts on navigation) so the cleared state shows immediately with no manual reload. Prefs
+      and language are out of scope, so no prefs/locale refresh is needed.
+- [x] **i18n** — new EN/FR strings for the Data section (labels, hints, dialog titles/messages)
+      plus a shared `common.cancel`. Parity enforced by `messages.test.ts`.
+- [x] **Tests** — `clearSRItems()` contract test on both adapters (asserts history survives a
+      training reset); a Settings component test covering confirm, cancel, disabled-when-empty, and
+      the Settings "Clear history" path leaving training intact.
+- [x] **Reconcile with History's "Clear history"** — kept as a second entry point to the identical
+      sessions-clear action (per locked decision), now joined by the Settings control.
 
 ## Technical notes
 - "Progress" plausibly spans three stores: **history** (`sessions`), **SR/training state**
@@ -100,3 +104,25 @@ Ask these (and more as needed) before implementing:
     (none exists today); Settings "Data" section wiring; and matched EN/FR strings (parity enforced by
     `src/i18n/messages.test.ts`). Live refresh needs no new reactive store — `svelte-spa-router`
     remounts routes on navigation and History/Home fetch imperatively on mount.
+- **2026-07-08 — Built and verified (owner-approved). Phase ✅ Done.** Implemented the derived design
+  above:
+  - **Store:** `clearSRItems()` on the `QuizStore` port + both adapters. UI store gained
+    `clearTraining()`, `hasTrainingData()`, and (for symmetry with the history control)
+    `hasSessions()` in `src/ui/stores/persistence.ts`.
+  - **UI:** new reusable `src/ui/components/ConfirmDialog.svelte` — a div-based in-app modal (not
+    native `<dialog>`, so it renders in jsdom for component tests) with confirm/cancel buttons,
+    Escape + backdrop dismissal (both non-destructive → cancel), Cancel-focused on open, and
+    `prefers-reduced-motion`-gated fade/pop. Settings gained a "Data" section with **Clear history**
+    and **Reset training** controls, each disabling once its store is empty (the agreed no-toast
+    on-screen signal).
+  - **i18n:** `settings.data.*` (EN/FR) + shared `common.cancel`.
+  - **Tests:** `clearSRItems()` contract test (both adapters; asserts sessions survive); new
+    `Settings.test.ts` (confirm / cancel / disabled-when-empty / history-clear-leaves-training).
+  - **Verification (fast loop green):** `npm run test` → 27 files / 217 tests pass;
+    `npm run check` → 0 errors / 0 warnings (ConfirmDialog backdrop is a11y-clean); `npm run lint`
+    clean; `npm run build` compiles and regenerates the PWA precache. Playwright is **not** actually
+    configured in this repo (only a transitive lockfile entry), so there was no heavy E2E loop to
+    run; the component tests exercise the flow end-to-end through the real IndexedDB adapter.
+  - **Note:** `history.clearConfirm` (the older native-`confirm()` string used by History's button)
+    is now unused by Settings but retained — History still uses `confirm()` for its own button, which
+    was explicitly kept as a second entry point.

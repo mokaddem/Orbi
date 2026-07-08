@@ -110,4 +110,6 @@ export interface QuizStore {
   getSRItem(itemKey: string): Promise<SRItem | undefined>;
   putSRItem(item: SRItem): Promise<void>;
   getAllSRItems(): Promise<SRItem[]>;
+  /** Erase all SR/training state (leaves history and prefs intact). */
+  clearSRItems(): Promise<void>;
 }

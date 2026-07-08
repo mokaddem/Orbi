@@ -2,6 +2,9 @@ const en = {
   app: {
     title: 'Geography Quiz',
   },
+  common: {
+    cancel: 'Cancel',
+  },
   nav: {
     home: 'Home',
     play: 'Play',
@@ -120,6 +123,20 @@ const en = {
     choices: 'Answer choices per question',
     hint: 'Changes apply to your next game.',
     notPersisted: 'Storage is unavailable — settings and history won’t be saved.',
+    data: {
+      title: 'Data',
+      historyLabel: 'Play history',
+      historyHint: 'All saved sessions and statistics.',
+      clearHistory: 'Clear history',
+      clearHistoryTitle: 'Clear history?',
+      clearHistoryMessage:
+        'This permanently deletes all saved sessions and statistics. This can’t be undone.',
+      trainingLabel: 'Training progress',
+      trainingHint: 'The countries “Train my mistakes” has queued for review.',
+      resetTraining: 'Reset training',
+      resetTrainingTitle: 'Reset training?',
+      resetTrainingMessage: 'This permanently clears your training progress. This can’t be undone.',
+    },
   },
   storage: {
     unavailable: 'Storage is unavailable in this browser — your progress won’t be saved.',
