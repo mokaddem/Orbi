@@ -1,14 +1,14 @@
 # Phase 12 — Visual polish, option imagery & map readability
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Stage 2 built app-wide (Playful + turquoise) & verified — awaiting final owner review · **Progress:** 95%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done — Playful + turquoise direction built app-wide and signed off by the owner · **Progress:** 100%
 · **Track:** v1.1 enhancements (post-launch)
 
 > **Note (2026-07-08):** Stage 1 signed off (commit `29ebfb3`). **Stage 2:** four full-UI directions
 > were presented as preview artifacts; the owner chose **Playful & educational** and recolored the
-> accent to **turquoise/teal (`#10A5A0`)**. That direction has now been **built into the real Svelte
-> app, app-wide** (token-first restyle; domain logic untouched; Stage 1 map framing preserved) and
-> verified (check/lint/224 tests/build + live headless screenshots of every screen). **Awaiting the
-> owner's final review at `localhost:5180`; then Phase 12 → ✅ Done.** Details in the Progress log.
+> accent to **turquoise/teal (`#10A5A0`)**. That direction was **built into the real Svelte app,
+> app-wide** (token-first restyle; domain logic untouched; Stage 1 map framing preserved), verified
+> (check/lint/224 tests/build + live headless screenshots of every screen), and **signed off by the
+> owner** ("I love it"). Committed to `main` as `f5879ee`. **Phase 12 is ✅ Done.**
 
 > ## ⚠️ Process requirement — get approval BEFORE building (MANDATORY)
 > **NEVER start implementing this phase (or any phase) without the owner's explicit approval first.**
@@ -65,7 +65,8 @@ the makeover styles the final button/auto-advance interaction model rather than 
       the real layout/copy with the actual glyphs, region silhouettes, and a generated Europe map.
 - [x] **Owner picked: Playful & educational, turquoise/teal accent (`#10A5A0`).**
 - [x] **Built the Playful + turquoise direction into the real app, app-wide** — token-first restyle,
-      verified (check/lint/224 tests/build + live screenshots). Awaiting final owner review → ✅ Done.
+      verified (check/lint/224 tests/build + live screenshots), signed off by the owner. ✅ Done
+      (`main` `f5879ee`).
 
 ## Technical notes
 - Only a **single light theme** exists today (dark mode is in the main PRD's Deferred list) —
@@ -231,3 +232,10 @@ Ask these (and more as needed) before building:
     (real world map with the turquoise highlight + marker and flag-thumbnail options), History, and
     Settings — all consistently themed. **Awaiting the owner's final review at `localhost:5180`; then
     Phase 12 will be marked ✅ Done.**
+- **2026-07-08 — Owner signed off; Phase 12 ✅ Done.** The owner reviewed the app-wide Playful +
+  turquoise restyle at `localhost:5180` ("I love it"). Committed to `main` as `f5879ee` (work branch
+  created, fast-forward-merged, then deleted; the repo has no remote, so nothing was pushed). All
+  acceptance criteria are met — the map is legible, region-filtered sessions frame comfortably, options
+  carry imagery, effects are tasteful and reduced-motion-safe, everything stays offline/PWA-friendly,
+  and the two-stage delivery (Stage 1 signed off → alternatives presented → one chosen and built) is
+  complete. **Phase 12 closed.**
