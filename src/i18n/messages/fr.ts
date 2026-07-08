@@ -19,10 +19,30 @@ const fr: typeof en = {
     tagline: 'Apprenez la géographie du monde avec des cartes et des drapeaux.',
     demo: 'Bienvenue — prêt à explorer le monde ?',
     play: 'Commencer à jouer',
+    playCustom: 'Ou lancer une partie personnalisée',
     train: 'Réviser mes erreurs',
     trainCount: 'Réviser mes erreurs ({count})',
+    trainAll: 'Réviser toutes mes erreurs ({count})',
     trainHint:
       'La révision cible les pays que vous manquez — jouez quelques parties pour la nourrir.',
+  },
+  recommend: {
+    label: 'À suivre',
+    due: {
+      title: "C'est l'heure de réviser",
+      reason: '{count} à réviser — les plus fragiles d’abord.',
+      cta: 'Réviser',
+    },
+    weakSpot: {
+      title: 'Renforcez : {region}',
+      reason: '{percent} de réussite jusqu’ici.',
+      cta: 'S’entraîner',
+    },
+    fresh: {
+      title: 'Prêt à jouer',
+      reason: 'Choisissez un mode et une région pour commencer.',
+      cta: 'Jouer',
+    },
   },
   modes: {
     flagToCountry: 'Drapeau → Pays',

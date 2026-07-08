@@ -45,8 +45,11 @@ export {
   type MissedCountry,
   type DailyStat,
   type StatsOverview,
+  type RegionAccuracy,
+  type RegionResolver,
   dayKey,
   computeStats,
+  computeRegionAccuracy,
 } from './stats';
 
 export {
@@ -69,3 +72,14 @@ export {
   selectTrainingItems,
   dominantTrainingMode,
 } from './training';
+
+export {
+  type RecommendationKind,
+  type RecommendationRun,
+  type Recommendation,
+  type RecommendOptions,
+  DEFAULT_DUE_LIMIT,
+  DEFAULT_WEAK_SPOT_MIN_ATTEMPTS,
+  DEFAULT_WEAK_SPOT_MAX_ACCURACY,
+  recommend,
+} from './recommend';

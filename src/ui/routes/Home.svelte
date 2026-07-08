@@ -2,19 +2,33 @@
   import { push } from 'svelte-spa-router';
   import { t } from '../../i18n';
   import { pendingConfig } from '../stores/game';
-  import { loadTrainingPlan, prefs, storageReady, type TrainingPlan } from '../stores/persistence';
+  import {
+    loadRecommendations,
+    loadTrainingPlan,
+    prefs,
+    storageReady,
+    type TrainingPlan,
+  } from '../stores/persistence';
+  import type { Recommendation } from '../../domain';
   import Demo from '../components/Demo.svelte';
+  import NextUpCard from '../components/NextUpCard.svelte';
 
-  // "Train my mistakes" is available once there are weak items to drill. Recompute on
-  // mount (this route remounts on navigation, so the count refreshes after each session)
-  // and whenever storage finishes initializing.
+  // The "Next up" card (Phase 14) is the hero: it reads the player's own state and, in one
+  // tap, launches the highest-value action (due reviews → weak spot → a fresh round). We
+  // recompute on mount (this route remounts on navigation, so it refreshes after each
+  // session) and whenever storage finishes initializing. The full-backlog "train all my
+  // mistakes" link is kept as a secondary escape hatch alongside custom play.
+  let recs = $state<Recommendation[] | null>(null);
   let plan = $state<TrainingPlan | null>(null);
 
   $effect(() => {
-    if ($storageReady) void loadTrainingPlan().then((p) => (plan = p));
+    if ($storageReady) {
+      void loadRecommendations().then((r) => (recs = r));
+      void loadTrainingPlan().then((p) => (plan = p));
+    }
   });
 
-  function train(): void {
+  function trainAll(): void {
     if (!plan) return;
     const p = $prefs;
     pendingConfig.set({
@@ -34,19 +48,18 @@
 
   <Demo />
 
+  {#if recs && recs.length}
+    <NextUpCard rec={recs[0]} />
+  {/if}
+
   <div class="actions">
-    <a class="cta" href="#/play">{$t('home.play')}</a>
+    <a class="play-link" href="#/play">{$t('home.playCustom')}</a>
     {#if plan}
-      <button type="button" class="train" onclick={train}>
-        {$t('home.trainCount', { count: plan.iso2s.length })}
+      <button type="button" class="train-link" onclick={trainAll}>
+        {$t('home.trainAll', { count: plan.iso2s.length })}
       </button>
-    {:else}
-      <button type="button" class="train" disabled>{$t('home.train')}</button>
     {/if}
   </div>
-  {#if !plan}
-    <p class="train-hint">{$t('home.trainHint')}</p>
-  {/if}
 </section>
 
 <style>
@@ -59,72 +72,27 @@
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
+    align-items: center;
+    gap: 0.25rem 1.25rem;
+    margin-top: 0.25rem;
   }
 
-  .cta {
-    display: inline-block;
-    padding: 0.6rem 1.2rem;
-    background: var(--color-accent);
-    color: var(--color-accent-contrast);
-    border-radius: var(--radius);
-    font-weight: 800;
-    box-shadow: var(--shadow-chunky);
-    transition:
-      transform 0.12s ease,
-      box-shadow 0.12s ease;
-  }
-
-  .cta:hover {
-    text-decoration: none;
-    transform: translateY(-2px);
-  }
-
-  .cta:active {
-    transform: translateY(2px);
-    box-shadow: var(--shadow-chunky-press);
-  }
-
-  .train {
-    padding: 0.6rem 1.2rem;
-    background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius);
-    color: var(--color-text);
+  .play-link,
+  .train-link {
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--color-muted);
     font-weight: 700;
-    box-shadow: var(--shadow-card);
-    transition:
-      transform 0.12s ease,
-      border-color 0.12s ease,
-      box-shadow 0.12s ease;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.12s ease;
   }
 
-  .train:hover:not(:disabled) {
-    border-color: var(--color-accent);
-    transform: translateY(-2px);
-  }
-
-  .train:disabled {
-    color: var(--color-muted);
-    cursor: not-allowed;
-  }
-
-  .train-hint {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--color-muted);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .cta,
-    .train {
-      transition: none;
-    }
-
-    .cta:hover,
-    .train:hover:not(:disabled) {
-      transform: none;
-    }
+  .play-link:hover,
+  .train-link:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
   }
 </style>

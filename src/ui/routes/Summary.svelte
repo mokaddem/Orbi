@@ -3,8 +3,20 @@
   import { t, localizedName, localizedRegion } from '../../i18n';
   import { formatDuration, formatPercent } from '../format';
   import { play, lastSummary, pendingConfig } from '../stores/game';
-  import { prefs } from '../stores/persistence';
+  import { loadRecommendations, prefs, storageReady } from '../stores/persistence';
+  import type { Recommendation } from '../../domain';
   import Flag from '../components/Flag.svelte';
+  import NextUpCard from '../components/NextUpCard.svelte';
+
+  // A forward-looking "Next up" suggestion, computed from the player's overall state
+  // (distinct from the session-specific Retry / Train-these actions below). Refreshed on
+  // mount; the just-finished session's SR writes may still be settling, so it's a soft
+  // nudge that becomes exact on the next Home visit.
+  let recs = $state<Recommendation[] | null>(null);
+
+  $effect(() => {
+    if ($storageReady) void loadRecommendations().then((r) => (recs = r));
+  });
 
   const MODE_LABEL: Record<string, string> = {
     'flag-to-country': 'modes.flagToCountry',
@@ -115,6 +127,10 @@
         </ul>
       {/if}
     </div>
+
+    {#if recs && recs.length}
+      <NextUpCard rec={recs[0]} />
+    {/if}
 
     <div class="actions">
       <button type="button" class="primary" onclick={retry}>{$t('summary.retry')}</button>
