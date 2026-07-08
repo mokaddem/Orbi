@@ -41,7 +41,7 @@ const fr: typeof en = {
       chooseMode: 'Choisissez un mode',
       chooseType: 'Choisissez un format',
       chooseRegion: 'Choisissez une région',
-      regionWorld: 'Monde (tous les pays)',
+      regionWorld: 'Monde',
       subregionAll: 'Toute la région : {region}',
       poolCount: '{count} pays',
       poolReduced: '{count} pays — options réduites à {choices}',

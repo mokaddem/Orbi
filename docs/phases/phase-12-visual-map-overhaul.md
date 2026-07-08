@@ -1,13 +1,13 @@
 # Phase 12 — Visual polish, option imagery & map readability
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Decisions locked — NOT built (two Stage-1 builds reverted) · **Progress:** 5%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Stage 1 built & verified — awaiting owner sign-off (Stage 2 gated) · **Progress:** 60%
 · **Track:** v1.1 enhancements (post-launch)
 
-> **Note (2026-07-07):** Stage 1 has now been built **and reverted twice** at the owner's request —
-> **no Phase 12 code exists in the tree.** The owner will (re)do this phase in a fresh **interactive**
-> session and, per the process rule below, **implementation must not begin until the owner explicitly
-> approves it.** The clarifying decisions, the resolved open questions, and the carry-forward findings
-> in the Progress log are all retained to seed that session.
+> **Note (2026-07-08):** Stage 1 was **built for the third time — this time with the owner's explicit
+> approval** ("Go") after the plan was presented — and is now in the tree, verified (see Progress log).
+> The two earlier builds (2026-07-07) were reverted for lack of a clear go-ahead; that history is kept
+> in the Progress log. **Stage 2 (alternative full-UI makeovers) has not started and remains gated on
+> the owner signing off on Stage 1.**
 
 > ## ⚠️ Process requirement — get approval BEFORE building (MANDATORY)
 > **NEVER start implementing this phase (or any phase) without the owner's explicit approval first.**
@@ -38,25 +38,25 @@ the makeover styles the final button/auto-advance interaction model rather than 
 ## Scope / Deliverables
 
 ### Stage 1 — readability & enrichment
-- [ ] **Map contrast/readability.** Non-highlighted countries fill with `--color-bg` (#f7f9fc)
-      on a white `--color-surface` board with 0.4px `--color-border` strokes
-      (`src/ui/components/WorldMap.svelte`), so land barely reads. Introduce map-specific colors
-      (distinct land vs water/background, stronger borders, clear hover/selected states) so the
-      **whole** map is legible, not just the selected country. Keep microstate visibility
-      (existing marker ring + hit-dots).
-- [ ] **Map framing / zoom.** Region-filtered sessions felt *too zoomed out* (owner tried
-      "Central Europe → locate"). Tune the `geoNaturalEarth1().fitExtent` framing (currently
-      `MARGIN = 6`) so a filtered region fills the board better — e.g. tighter padding, a zoom
-      factor, or fitting to the sub-region bounds — while keeping some surrounding context.
-      Consider whether interactive pan/zoom is wanted.
-- [ ] **Option imagery.** Add flags/icons/pictures to answer options where it helps:
-      flag thumbnails beside country names (`flag-to-country`, `map-highlight`), and mode/region
-      iconography on the setup screen. `country-to-flag` already shows flags
-      (`src/ui/components/ChoiceGrid.svelte`).
-- [ ] **Micro-effects.** Tasteful transitions/animations (selection, correct/wrong feedback,
-      streak flourish, map reveal), honouring `prefers-reduced-motion`.
-- [ ] **Asset/offline budget.** Any new icons/images must stay bundled and PWA-precacheable
-      (no runtime network); keep the cache budget reasonable.
+- [x] **Map contrast/readability.** New `--map-*` tokens in `src/app.css` (muted land `--map-land`
+      on tinted water `--map-water`, soft-but-legible `--map-border`, accent-tinted `--map-land-hover`)
+      wired into `WorldMap.svelte`, so the **whole** map reads, not just the selected country.
+      Hover now uses a clear accent tint + accent stroke (a muted-land hover was too subtle).
+      Highlight/reveal/wrong still pop; marker ring + hit-dots retained for microstates.
+- [x] **Map framing / zoom.** Region-filtered sessions now frame to a robust MultiPoint over the
+      members' **centroids** (`src/ui/components/map-framing.ts`, unit-tested), trimming a far
+      isolated outlier (Russia in "Europe") via a ±60° floor + MAD gate and padding a small,
+      capped context margin. Fixes "too zoomed out"; the whole world still fits when unfiltered.
+      (Interactive pan/zoom not added — a fixed comfortable fit met the ask.)
+- [x] **Option imagery.** Flag thumbnails beside the name options in **map-highlight** only
+      (new `name-flag` variant in `ChoiceGrid.svelte`); **not** in `flag-to-country` (would
+      trivialise it). Setup screen gains inline-SVG mode glyphs (`ModeIcon.svelte`) and continent
+      silhouettes (`RegionIcon.svelte`) on the region cards.
+- [x] **Micro-effects.** Feedback banner entrance, correct-answer pop, streak flourish, marker
+      fade-in, and a button press response — all subtle and gated behind `prefers-reduced-motion`.
+- [x] **Asset/offline budget.** Continent silhouettes generated offline at build time from the
+      coarse 110m TopoJSON (`scripts/build-data.mjs` → `region-shapes.json`, ~17.5 KB, simplified +
+      speck-culled), inlined into the JS bundle — no runtime geometry load. Mode glyphs are inline SVG.
 
 ### Stage 2 — alternative makeovers (gated on Stage 1 sign-off)
 - [ ] **Present a few (owner picks how many) alternative full UI directions** — e.g. as
@@ -154,3 +154,24 @@ Ask these (and more as needed) before building:
       simplified + speck-culled, to ~7.6 KB total — no runtime geometry load.
     - Micro-effects should stay subtle and `prefers-reduced-motion`-gated; the locate hover needs a
       clear accent tint.
+- **2026-07-08 — Stage 1 built (third time), with explicit owner approval, and verified.** The owner
+  said "Go" after the plan was presented, so implementation proceeded (per the process rule).
+  Delivered exactly the locked decisions:
+  - **Map readability** via new `--map-*` tokens (muted land / tinted water / soft borders) in
+    `app.css` + `WorldMap.svelte`; hover now a clear accent tint.
+  - **Map framing** extracted to a pure, unit-tested `src/ui/components/map-framing.ts`
+    (`focusFrame()`): centroid-based robust box → MultiPoint fit, ±60° outlier floor + MAD gate,
+    capped padding. Confirmed by screenshot that Europe frames with context and no Russia blow-out;
+    world still fits whole.
+  - **Option flags** on map-highlight only (`ChoiceGrid` `name-flag` variant); **mode glyphs**
+    (`ModeIcon.svelte`) and **continent silhouettes** (`RegionIcon.svelte`) on the setup screen.
+    Silhouettes generated offline in `build-data.mjs` (110m → merge → per-region recentre + Russia
+    trim → Douglas–Peucker simplify + speck-cull → `region-shapes.json`, ~17.5 KB, no runtime fetch).
+  - **Micro-effects**: feedback entrance, correct pop, streak flourish, marker fade-in, press
+    response — all `prefers-reduced-motion`-gated.
+  - **Verification:** `npm run check` + `npm run lint` clean; **224 Vitest tests pass** (added
+    `map-framing.test.ts` and a `name-flag` `ChoiceGrid` case); `npm run build` (incl. `prebuild`
+    data step) succeeds and precaches. Manual browser checks (setup, map-highlight, map-locate for
+    Europe + World, hover, answered) all confirmed. No E2E harness exists in the repo to run.
+  - **Next:** awaiting owner sign-off on Stage 1 before starting **Stage 2** (a few alternative
+    full-UI makeovers, presented as static preview mockups per the earlier decision).

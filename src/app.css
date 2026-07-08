@@ -10,6 +10,14 @@
   --color-correct-bg: #e6f4ec;
   --color-wrong: #c0392b;
   --color-wrong-bg: #fdecea;
+
+  /* Map-specific palette (Phase 12): every country reads on the board, not just the
+     selected one — muted land on tinted water with a soft-but-legible border. */
+  --map-water: #c6dcf0;
+  --map-land: #eef2f7;
+  --map-land-hover: #a7c8ea;
+  --map-border: #8ea7c4;
+
   --radius: 10px;
   --max-width: 900px;
 

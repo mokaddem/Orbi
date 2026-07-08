@@ -24,6 +24,8 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
+import { feature, merge } from 'topojson-client';
+import { geoNaturalEarth1, geoPath, geoCentroid } from 'd3-geo';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
@@ -59,6 +61,199 @@ function pkgVersion(name) {
   } catch {
     return 'unknown';
   }
+}
+
+/**
+ * Build one dissolved continent silhouette per M49 region (plus a whole-world shape),
+ * as SVG path strings sharing a square viewBox. Uses the coarse 110m TopoJSON.
+ *
+ * @param {{iso2:string,numericId:string,region:string,hasGeometry:boolean}[]} countryRecords
+ */
+function buildRegionShapes(countryRecords) {
+  const VB = 100; // square viewBox side
+  const MARGIN = 6;
+  const OUTLIER_FLOOR_DEG = 60; // mirror src/ui/components/map-framing.ts
+  const MAD_K = 3;
+
+  const topo110 = readNmJson('world-atlas/countries-110m.json');
+  const geomByNumeric = new Map(
+    topo110.objects.countries.geometries.map((g) => [String(Number(g.id)), g]),
+  );
+
+  const wrap180 = (deg) => ((((deg + 180) % 360) + 360) % 360) - 180;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const toDeg = (rad) => (rad * 180) / Math.PI;
+
+  function median(nums) {
+    const s = [...nums].sort((a, b) => a - b);
+    const n = s.length;
+    if (!n) return NaN;
+    const m = n >> 1;
+    return n % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
+
+  /** Circular mean of longitudes (degrees), robust across the antimeridian. */
+  function meanLon(lons) {
+    const sin = lons.reduce((a, d) => a + Math.sin(toRad(d)), 0) / lons.length;
+    const cos = lons.reduce((a, d) => a + Math.cos(toRad(d)), 0) / lons.length;
+    return toDeg(Math.atan2(sin, cos));
+  }
+
+  /** Members of a region as { geom, centroid:[lon,lat] } (only those with 110m geometry). */
+  function membersOf(region) {
+    const out = [];
+    for (const c of countryRecords) {
+      if (region && c.region !== region) continue;
+      const geom = geomByNumeric.get(String(Number(c.numericId)));
+      if (!geom) continue;
+      const centroid = geoCentroid(feature(topo110, geom));
+      if (!Number.isFinite(centroid[0]) || !Number.isFinite(centroid[1])) continue;
+      out.push({ geom, centroid });
+    }
+    return out;
+  }
+
+  /**
+   * Drop a member whose centroid is a far isolated outlier on either axis (beyond both
+   * MAD_K·MAD and a ±60° floor from the median), measured in a frame recentred on the
+   * region's mean longitude so the antimeridian doesn't distort the judgement. Keeps
+   * continuous spreads whole; only clips a lone outlier like Russia in "Europe".
+   */
+  function trimOutliers(members) {
+    if (members.length < 4) return members;
+    const centreLon = meanLon(members.map((m) => m.centroid[0]));
+    const relLon = members.map((m) => wrap180(m.centroid[0] - centreLon));
+    const lat = members.map((m) => m.centroid[1]);
+    const keepAxis = (vals) => {
+      const med = median(vals);
+      const mad = median(vals.map((v) => Math.abs(v - med)));
+      const thr = Math.max(MAD_K * mad, OUTLIER_FLOOR_DEG);
+      return vals.map((v) => Math.abs(v - med) <= thr);
+    };
+    const okLon = keepAxis(relLon);
+    const okLat = keepAxis(lat);
+    const kept = members.filter((_, i) => okLon[i] && okLat[i]);
+    return kept.length ? kept : members;
+  }
+
+  // Icons render at ~40–90px, so sub-degree coastline detail is invisible: simplify
+  // the geometry (Douglas–Peucker, tolerance in degrees) and cull tiny islands before
+  // projecting. This keeps the whole file to a few KB with no visible loss.
+  const TOL_DEG = 0.7;
+  const MIN_AREA_DEG2 = 2.0; // ~1.4°×1.4°; drops specks, keeps the likes of Iceland/NZ
+
+  /** Shoelace area of a closed lon/lat ring (deg²). */
+  function ringArea(ring) {
+    let a = 0;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      a += ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+    }
+    return Math.abs(a) / 2;
+  }
+
+  /** Perpendicular distance from point p to segment a–b (planar; fine at continent scale). */
+  function perpDist(p, a, b) {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len2 = dx * dx + dy * dy;
+    if (!len2) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+    let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
+  }
+
+  /** Douglas–Peucker over an open point list. */
+  function dp(points, tol) {
+    if (points.length < 3) return points;
+    let maxD = 0;
+    let idx = 0;
+    const first = points[0];
+    const last = points[points.length - 1];
+    for (let i = 1; i < points.length - 1; i++) {
+      const d = perpDist(points[i], first, last);
+      if (d > maxD) {
+        maxD = d;
+        idx = i;
+      }
+    }
+    if (maxD > tol) {
+      const left = dp(points.slice(0, idx + 1), tol);
+      const right = dp(points.slice(idx), tol);
+      return left.slice(0, -1).concat(right);
+    }
+    return [first, last];
+  }
+
+  /** Simplify a closed ring (keeps it closed); returns null if it collapses. */
+  function simplifyRing(ring, tol) {
+    const open = ring.slice(0, -1);
+    if (open.length < 4) return ring;
+    const simp = dp(open, tol);
+    if (simp.length < 3) return null;
+    return [...simp, simp[0]];
+  }
+
+  /** Simplify one polygon [outer, ...holes]; null if its outer ring is a speck. */
+  function simplifyPolygon(poly, tol, minArea) {
+    if (ringArea(poly[0]) < minArea) return null;
+    const outer = simplifyRing(poly[0], tol);
+    if (!outer) return null;
+    const rings = [outer];
+    for (let i = 1; i < poly.length; i++) {
+      if (ringArea(poly[i]) < minArea) continue;
+      const hole = simplifyRing(poly[i], tol);
+      if (hole) rings.push(hole);
+    }
+    return rings;
+  }
+
+  function simplifyGeometry(geo, tol, minArea) {
+    if (geo.type === 'Polygon') {
+      const p = simplifyPolygon(geo.coordinates, tol, minArea);
+      return p ? { type: 'Polygon', coordinates: p } : null;
+    }
+    const polys = geo.coordinates
+      .map((p) => simplifyPolygon(p, tol, minArea))
+      .filter((p) => p !== null);
+    return polys.length ? { type: 'MultiPolygon', coordinates: polys } : null;
+  }
+
+  /** Round every number in a path 'd' string to 1 decimal place. */
+  const roundPath = (d) =>
+    d.replace(/-?\d+\.\d+/g, (n) => (Math.round(parseFloat(n) * 10) / 10).toString());
+
+  function silhouette(region) {
+    const members = region ? trimOutliers(membersOf(region)) : membersOf('');
+    if (!members.length) return '';
+    const merged = merge(
+      topo110,
+      members.map((m) => m.geom),
+    );
+    const simplified = simplifyGeometry(merged, TOL_DEG, MIN_AREA_DEG2);
+    if (!simplified) return '';
+    // Recentre the projection on the region so wide/Pacific spreads don't wrap.
+    const centreLon = region ? meanLon(members.map((m) => m.centroid[0])) : 0;
+    const projection = geoNaturalEarth1()
+      .rotate([-centreLon, 0])
+      .fitExtent(
+        [
+          [MARGIN, MARGIN],
+          [VB - MARGIN, VB - MARGIN],
+        ],
+        simplified,
+      );
+    const d = geoPath(projection)(simplified);
+    return d ? roundPath(d) : '';
+  }
+
+  const regions = [...new Set(countryRecords.map((c) => c.region))].sort((a, b) =>
+    a.localeCompare(b, 'en'),
+  );
+  /** @type {Record<string, string>} */
+  const shapes = { World: silhouette('') };
+  for (const region of regions) shapes[region] = silhouette(region);
+
+  return { viewBox: `0 0 ${VB} ${VB}`, source: 'world-atlas 110m · M49 regions', shapes };
 }
 
 // --- 1. Load sources ---------------------------------------------------------
@@ -117,6 +312,16 @@ copyFileSync(
 
 // --- 6. Write dataset + meta -------------------------------------------------
 writeFileSync(join(OUT, 'countries.json'), `${JSON.stringify(countries, null, 2)}\n`);
+
+// --- 6b. Continent silhouettes for the setup screen's region icons -----------
+// One small SVG path per M49 region (plus "World"), generated offline from the
+// coarse 110m TopoJSON so there's no runtime geometry load for the icons. Country
+// borders are dissolved (topojson `merge`), the shape is recentred per region so
+// Pacific-spanning Oceania doesn't wrap, and a far isolated member (Russia in
+// "Europe") is trimmed so the silhouette frames the continent proper. Coordinates
+// are rounded to 1 dp to keep the whole file to a few KB.
+const regionShapes = buildRegionShapes(countries);
+writeFileSync(join(OUT, 'region-shapes.json'), `${JSON.stringify(regionShapes)}\n`);
 
 const meta = {
   topoResolution: TOPO_RES,

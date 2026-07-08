@@ -3,6 +3,7 @@
   import type { FeatureCollection } from 'geojson';
   import type { CountryFeature } from '../../data';
   import { t } from '../../i18n';
+  import { focusFrame } from './map-framing';
 
   // Presentational D3-geo world map, shared by both map modes. It renders one SVG
   // path per country (joined geometry keyed by ISO alpha-2) and reports clicks back
@@ -67,18 +68,24 @@
   // (neither does during a session), so switching questions never re-runs the math.
   // The projection is *fit* to the focused subset when one is given (zooming the
   // board into the active region) but still renders every country for context.
+  //
+  // Framing a filtered region uses a robust MultiPoint over the members' centroids
+  // (see `map-framing.ts`) rather than their full geometry, so sprawling members like
+  // Russia don't blow the box out to half the globe. Unfiltered → fit the whole world.
   const rendered = $derived.by<RenderedCountry[]>(() => {
     const focus = focusIsos
       ? focusIsos.map((iso) => features.get(iso)).filter((f): f is CountryFeature => !!f)
       : [];
-    const fitList = focus.length > 0 ? focus : [...features.values()];
-    const collection: FeatureCollection = { type: 'FeatureCollection', features: fitList };
+    const frame = focusFrame(focus);
+    const fitTarget =
+      frame ??
+      ({ type: 'FeatureCollection', features: [...features.values()] } satisfies FeatureCollection);
     const projection = geoNaturalEarth1().fitExtent(
       [
         [MARGIN, MARGIN],
         [WIDTH - MARGIN, HEIGHT - MARGIN],
       ],
-      collection,
+      fitTarget,
     );
     const path = geoPath(projection);
     const out: RenderedCountry[] = [];
@@ -175,7 +182,7 @@
 <style>
   .map {
     width: 100%;
-    background: var(--color-surface);
+    background: var(--map-water);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     overflow: hidden;
@@ -188,40 +195,42 @@
   }
 
   .country {
-    fill: var(--color-bg);
-    stroke: var(--color-border);
-    stroke-width: 0.4;
+    fill: var(--map-land);
+    stroke: var(--map-border);
+    stroke-width: 0.5;
     stroke-linejoin: round;
     transition:
-      fill 0.12s ease,
-      stroke 0.12s ease;
+      fill 0.15s ease,
+      stroke 0.15s ease;
   }
 
   svg.interactive .country {
     cursor: pointer;
   }
 
+  /* Locate mode: a muted-land hover is too subtle, so use a clear accent tint. */
   svg.interactive .country:hover {
-    fill: var(--color-accent);
-    fill-opacity: 0.45;
+    fill: var(--map-land-hover);
+    stroke: var(--color-accent);
+    stroke-width: 0.8;
   }
 
   .country.highlight {
     fill: var(--color-accent);
     stroke: var(--color-accent);
-    stroke-width: 0.8;
+    stroke-width: 0.9;
   }
 
   .country.reveal {
     fill: var(--color-correct);
     stroke: var(--color-correct);
-    stroke-width: 0.8;
+    stroke-width: 0.9;
   }
 
   .country.picked-wrong {
     fill: var(--color-wrong);
     stroke: var(--color-wrong);
-    stroke-width: 0.8;
+    stroke-width: 0.9;
   }
 
   .hit-dots circle {
@@ -235,5 +244,25 @@
     stroke-width: 2;
     opacity: 0.9;
     pointer-events: none;
+    animation: marker-in 0.45s ease;
+  }
+
+  @keyframes marker-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 0.9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .country {
+      transition: none;
+    }
+
+    .marker {
+      animation: none;
+    }
   }
 </style>

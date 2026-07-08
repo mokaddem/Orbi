@@ -17,8 +17,15 @@
     onpick,
   }: {
     options: Country[];
-    /** 'name' → labelled buttons; 'flag' → flag buttons (names revealed once answered). */
-    variant: 'name' | 'flag';
+    /**
+     * How each option renders:
+     *  - 'name'      → text-only buttons (`flag-to-country`: the prompt is a flag, so
+     *                  flags here would trivialise it to picture-matching).
+     *  - 'name-flag' → a small flag thumbnail beside the name (`map-highlight`: the
+     *                  prompt is the map, so the flag is a helpful extra cue).
+     *  - 'flag'      → flag buttons, names revealed once answered (`country-to-flag`).
+     */
+    variant: 'name' | 'name-flag' | 'flag';
     answered?: boolean;
     /** ISO2 of the correct option; highlighted green once `answered`. */
     correctIso?: string | null;
@@ -37,7 +44,12 @@
   }
 </script>
 
-<div class="grid" class:flags={variant === 'flag'} role="group">
+<div
+  class="grid"
+  class:flags={variant === 'flag'}
+  class:name-flag={variant === 'name-flag'}
+  role="group"
+>
   {#each options as option (option.iso2)}
     {@const st = stateFor(option)}
     <button
@@ -53,6 +65,9 @@
       {#if variant === 'flag'}
         <span class="opt-flag"><Flag country={option} /></span>
         {#if answered}<span class="opt-name">{$localizedName(option)}</span>{/if}
+      {:else if variant === 'name-flag'}
+        <span class="opt-thumb"><Flag country={option} /></span>
+        <span class="opt-name">{$localizedName(option)}</span>
       {:else}
         <span class="opt-name">{$localizedName(option)}</span>
       {/if}
@@ -91,6 +106,10 @@
     background: var(--color-bg);
   }
 
+  .choice:not(.answered):active {
+    transform: scale(0.985);
+  }
+
   .choice.answered {
     cursor: default;
   }
@@ -99,6 +118,19 @@
     border-color: var(--color-correct);
     background: var(--color-correct-bg);
     color: var(--color-correct);
+    animation: choice-pop 0.32s ease;
+  }
+
+  @keyframes choice-pop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.04);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 
   .choice.wrong {
@@ -117,6 +149,19 @@
     max-width: 140px;
   }
 
+  /* name-flag: lay the flag and name out in a row rather than stacked. */
+  .grid.name-flag .choice {
+    flex-direction: row;
+    gap: 0.6rem;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .opt-thumb {
+    flex: 0 0 auto;
+    width: 34px;
+  }
+
   .opt-name {
     font-size: 0.95rem;
   }
@@ -124,6 +169,16 @@
   @media (max-width: 480px) {
     .grid.flags {
       grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .choice.correct {
+      animation: none;
+    }
+
+    .choice:not(.answered):active {
+      transform: none;
     }
   }
 </style>

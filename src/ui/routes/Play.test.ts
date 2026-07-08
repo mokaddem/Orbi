@@ -54,7 +54,7 @@ describe('Play route', () => {
   it('offers the region filter as buttons (few options) and starts a region-filtered session', async () => {
     render(Play);
     // World is the default selection, rendered as a pressed button (not a dropdown).
-    const worldBtn = screen.getByRole('button', { name: 'World (all countries)' });
+    const worldBtn = screen.getByRole('button', { name: 'World' });
     expect(worldBtn).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Europe' })).toBeInTheDocument();
 

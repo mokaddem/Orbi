@@ -38,7 +38,7 @@ const en = {
       chooseMode: 'Choose a mode',
       chooseType: 'Choose a format',
       chooseRegion: 'Choose a region',
-      regionWorld: 'World (all countries)',
+      regionWorld: 'World',
       subregionAll: 'All of {region}',
       poolCount: '{count} countries',
       poolReduced: '{count} countries — options reduced to {choices}',

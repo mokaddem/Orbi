@@ -23,6 +23,8 @@
   import Flag from '../components/Flag.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
   import SegmentedControl from '../components/SegmentedControl.svelte';
+  import ModeIcon from '../components/ModeIcon.svelte';
+  import RegionIcon from '../components/RegionIcon.svelte';
 
   // Auto-advance timings (ms): a brief dwell on a correct answer, a longer one on a
   // wrong answer so the revealed country can be read. Fixed by design (not a setting).
@@ -187,39 +189,43 @@
       <div class="options">
         <button
           type="button"
-          class="opt"
+          class="opt mode-opt"
           class:selected={mode === 'flag-to-country'}
           aria-pressed={mode === 'flag-to-country'}
           onclick={() => (mode = 'flag-to-country')}
         >
-          {$t('modes.flagToCountry')}
+          <ModeIcon mode="flag-to-country" />
+          <span>{$t('modes.flagToCountry')}</span>
         </button>
         <button
           type="button"
-          class="opt"
+          class="opt mode-opt"
           class:selected={mode === 'country-to-flag'}
           aria-pressed={mode === 'country-to-flag'}
           onclick={() => (mode = 'country-to-flag')}
         >
-          {$t('modes.countryToFlag')}
+          <ModeIcon mode="country-to-flag" />
+          <span>{$t('modes.countryToFlag')}</span>
         </button>
         <button
           type="button"
-          class="opt"
+          class="opt mode-opt"
           class:selected={mode === 'map-highlight'}
           aria-pressed={mode === 'map-highlight'}
           onclick={() => (mode = 'map-highlight')}
         >
-          {$t('modes.mapHighlight')}
+          <ModeIcon mode="map-highlight" />
+          <span>{$t('modes.mapHighlight')}</span>
         </button>
         <button
           type="button"
-          class="opt"
+          class="opt mode-opt"
           class:selected={mode === 'map-locate'}
           aria-pressed={mode === 'map-locate'}
           onclick={() => (mode = 'map-locate')}
         >
-          {$t('modes.mapLocate')}
+          <ModeIcon mode="map-locate" />
+          <span>{$t('modes.mapLocate')}</span>
         </button>
       </div>
     </div>
@@ -253,12 +259,20 @@
     <div class="field">
       <span class="legend" id="region-legend">{$t('play.setup.chooseRegion')}</span>
       <div class="region-selects">
-        <SegmentedControl
-          options={regionOptions}
-          value={selectedRegion}
-          onchange={selectRegion}
-          ariaLabel={$t('play.setup.chooseRegion')}
-        />
+        <div class="region-grid" role="group" aria-label={$t('play.setup.chooseRegion')}>
+          {#each regionOptions as opt (opt.value)}
+            <button
+              type="button"
+              class="region-opt"
+              class:selected={selectedRegion === opt.value}
+              aria-pressed={selectedRegion === opt.value}
+              onclick={() => selectRegion(opt.value)}
+            >
+              <span class="region-ico"><RegionIcon region={opt.value} /></span>
+              <span class="region-label">{opt.label}</span>
+            </button>
+          {/each}
+        </div>
 
         {#if subregions.length}
           <SegmentedControl
@@ -358,7 +372,11 @@
       {#if question.options}
         <ChoiceGrid
           options={question.options}
-          variant={cfg.mode === 'country-to-flag' ? 'flag' : 'name'}
+          variant={cfg.mode === 'country-to-flag'
+            ? 'flag'
+            : cfg.mode === 'map-highlight'
+              ? 'name-flag'
+              : 'name'}
           {answered}
           correctIso={question.answer.iso2}
           pickedIso={view.feedback?.pickedIso ?? null}
@@ -433,10 +451,79 @@
     color: var(--color-muted);
   }
 
+  /* Mode cards carry a leading glyph beside the label. */
+  .mode-opt {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .mode-opt :global(.mode-icon) {
+    color: var(--color-muted);
+    transition: color 0.12s ease;
+  }
+
+  .mode-opt.selected :global(.mode-icon) {
+    color: var(--color-accent);
+  }
+
   .region-selects {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .region-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+    gap: 0.6rem;
+  }
+
+  .region-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 0.5rem 0.6rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-muted);
+    font-weight: 600;
+    text-align: center;
+    transition:
+      border-color 0.12s ease,
+      color 0.12s ease,
+      background 0.12s ease;
+  }
+
+  .region-ico {
+    display: block;
+    width: 3.75rem;
+    height: 3.75rem;
+    color: var(--color-muted);
+    transition: color 0.12s ease;
+  }
+
+  .region-label {
+    font-size: 0.8rem;
+    line-height: 1.2;
+    color: var(--color-text);
+  }
+
+  .region-opt:hover {
+    border-color: var(--color-accent);
+  }
+
+  .region-opt.selected {
+    border-color: var(--color-accent);
+    background: var(--color-bg);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+
+  .region-opt.selected .region-ico,
+  .region-opt.selected .region-label {
+    color: var(--color-accent);
   }
 
   .pool-hint {
@@ -537,6 +624,21 @@
   .streak {
     color: var(--color-text);
     font-weight: 600;
+    animation: streak-pop 0.34s ease;
+  }
+
+  @keyframes streak-pop {
+    0% {
+      transform: scale(0.7);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.12);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   .quit {
@@ -592,6 +694,18 @@
     padding: 1rem;
     border-radius: var(--radius);
     border: 1px solid var(--color-border);
+    animation: feedback-in 0.25s ease;
+  }
+
+  @keyframes feedback-in {
+    from {
+      transform: translateY(6px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   .feedback.correct {
@@ -650,7 +764,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .countdown-fill {
+    .countdown-fill,
+    .feedback,
+    .streak {
       animation: none;
     }
   }

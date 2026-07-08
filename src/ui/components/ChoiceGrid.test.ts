@@ -65,6 +65,16 @@ describe('ChoiceGrid', () => {
     expect(onpick).not.toHaveBeenCalled();
   });
 
+  it('shows a flag thumbnail alongside every name in the "name-flag" variant (map-highlight)', () => {
+    const { container } = render(ChoiceGrid, { options, variant: 'name-flag', onpick: vi.fn() });
+    // Names are always visible…
+    for (const c of options) {
+      expect(screen.getByText(c.name.en)).toBeInTheDocument();
+    }
+    // …and each option carries a flag thumbnail from the start (an extra cue, not the answer).
+    expect(container.querySelectorAll('img.flag').length).toBe(options.length);
+  });
+
   it('shows flags (not names) in the "flag" variant until answered, then reveals names', () => {
     const { container, rerender } = render(ChoiceGrid, {
       options,
