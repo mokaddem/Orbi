@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeStats, dayKey } from './stats';
+import { computeRegionAccuracy, computeStats, dayKey, type RegionResolver } from './stats';
 import type { SessionRecord } from '../data/persistence/types';
 import type { QuestionResult } from './types';
 
@@ -104,5 +104,86 @@ describe('computeStats', () => {
     const a = record({ startedAt: 1000, questions: [q('BG', true)] });
     const b = record({ startedAt: 2000, questions: [q('FR', false)] });
     expect(computeStats([a, b])).toEqual(computeStats([b, a]));
+  });
+});
+
+// A tiny geo stub so the tests don't depend on the real dataset. FR/DE are Western
+// Europe, BG/RO Eastern Europe, JP Eastern Asia; anything else is unknown.
+const REGIONS: Record<string, { region: string; subregion: string }> = {
+  FR: { region: 'Europe', subregion: 'Western Europe' },
+  DE: { region: 'Europe', subregion: 'Western Europe' },
+  BG: { region: 'Europe', subregion: 'Eastern Europe' },
+  RO: { region: 'Europe', subregion: 'Eastern Europe' },
+  JP: { region: 'Asia', subregion: 'Eastern Asia' },
+};
+const regionOf: RegionResolver = (iso2) => REGIONS[iso2];
+
+describe('computeRegionAccuracy', () => {
+  it('returns nothing when there is no history', () => {
+    expect(computeRegionAccuracy([], regionOf)).toEqual([]);
+  });
+
+  it('rolls answers up per sub-region and computes accuracy', () => {
+    const records = [
+      record({
+        questions: [q('FR', true), q('DE', false), q('BG', false), q('RO', false)],
+      }),
+    ];
+    const rollup = computeRegionAccuracy(records, regionOf);
+    const west = rollup.find((r) => r.subregion === 'Western Europe')!;
+    const east = rollup.find((r) => r.subregion === 'Eastern Europe')!;
+    expect(west).toMatchObject({ region: 'Europe', attempts: 2, correct: 1, accuracy: 0.5 });
+    expect(east).toMatchObject({ region: 'Europe', attempts: 2, correct: 0, accuracy: 0 });
+  });
+
+  it('aggregates across sessions and modes (mode in itemKey is irrelevant to the join)', () => {
+    const records = [
+      record({ startedAt: 1000, questions: [q('BG', true), q('BG', false)] }),
+      record({
+        startedAt: 2000,
+        questions: [
+          { itemKey: `map-highlight:BG`, countryIso2: 'BG', correct: false, answerMs: 1 },
+        ],
+      }),
+    ];
+    const east = computeRegionAccuracy(records, regionOf).find(
+      (r) => r.subregion === 'Eastern Europe',
+    )!;
+    expect(east).toMatchObject({ attempts: 3, correct: 1 });
+    expect(east.accuracy).toBeCloseTo(1 / 3);
+  });
+
+  it('orders weakest-first, then most-attempted, then sub-region', () => {
+    const records = [
+      record({
+        questions: [
+          // Eastern Europe: 0/2 (weakest)
+          q('BG', false),
+          q('RO', false),
+          // Western Europe: 1/2
+          q('FR', true),
+          q('DE', false),
+          // Eastern Asia: 1/1 (best)
+          q('JP', true),
+        ],
+      }),
+    ];
+    const order = computeRegionAccuracy(records, regionOf).map((r) => r.subregion);
+    expect(order).toEqual(['Eastern Europe', 'Western Europe', 'Eastern Asia']);
+  });
+
+  it('skips answers whose country cannot be resolved', () => {
+    const records = [record({ questions: [q('FR', true), q('ZZ', false)] })];
+    const rollup = computeRegionAccuracy(records, regionOf);
+    expect(rollup).toHaveLength(1);
+    expect(rollup[0]).toMatchObject({ subregion: 'Western Europe', attempts: 1 });
+  });
+
+  it('is order-independent across records', () => {
+    const a = record({ startedAt: 1000, questions: [q('BG', true), q('FR', false)] });
+    const b = record({ startedAt: 2000, questions: [q('RO', false), q('DE', true)] });
+    expect(computeRegionAccuracy([a, b], regionOf)).toEqual(
+      computeRegionAccuracy([b, a], regionOf),
+    );
   });
 });

@@ -12,13 +12,14 @@ import {
   type GameMode,
   type Question,
   type QuestionResult,
+  type Recommendation,
   type Rng,
   type RegionFilter,
   type SessionState,
   type SessionSummary,
   type SessionType,
 } from '../../domain';
-import { getCountries, type Country } from '../../data';
+import { getCountries, type Country, type Prefs } from '../../data';
 
 /** UI-level description of a session to run — everything needed to (re)start one. */
 export interface RunConfig {
@@ -173,3 +174,33 @@ export const lastSummary = writable<SessionSummary | null>(null);
 
 /** A config staged for the Play route to auto-start (e.g. a Retry from Summary). */
 export const pendingConfig = writable<RunConfig | null>(null);
+
+/**
+ * Turn a "Next up" {@link Recommendation} into a launchable {@link RunConfig}, filling in
+ * the gameplay prefs (choices, fixed length, lives) the pure engine deliberately omits.
+ * Returns `null` for a `fresh-start` (no run payload): the caller then routes to the Play
+ * setup screen instead of staging a config. Mirrors Home's `train()` and Summary's
+ * `retry()` config shapes.
+ */
+export function recommendationToConfig(rec: Recommendation, prefs: Prefs): RunConfig | null {
+  const run = rec.run;
+  if (!run) return null;
+  if (run.type === 'training') {
+    const iso2s = run.answerPoolIso ?? [];
+    return {
+      mode: run.mode,
+      type: 'training',
+      answerPoolIso: iso2s,
+      fixedLength: iso2s.length,
+      choices: prefs.choicesPerQuestion,
+    };
+  }
+  return {
+    mode: run.mode,
+    type: run.type,
+    filter: run.filter,
+    fixedLength: prefs.fixedLength,
+    lives: prefs.survivalLives,
+    choices: prefs.choicesPerQuestion,
+  };
+}

@@ -17,9 +17,29 @@ const en = {
     tagline: 'Learn world geography through maps and flags.',
     demo: 'Welcome — ready to explore the world?',
     play: 'Start playing',
+    playCustom: 'Or start a custom game',
     train: 'Train my mistakes',
     trainCount: 'Train my mistakes ({count})',
+    trainAll: 'Train all my mistakes ({count})',
     trainHint: 'Training drills the countries you get wrong — play a few games to build it up.',
+  },
+  recommend: {
+    label: 'Next up',
+    due: {
+      title: 'Time to review',
+      reason: '{count} due for review — weakest first.',
+      cta: 'Review',
+    },
+    weakSpot: {
+      title: 'Brush up on {region}',
+      reason: '{percent} correct there so far.',
+      cta: 'Practice',
+    },
+    fresh: {
+      title: 'Ready to play',
+      reason: 'Pick a mode and region to get started.',
+      cta: 'Play',
+    },
   },
   modes: {
     flagToCountry: 'Flag → Country',

@@ -53,6 +53,28 @@ const EMPTY: StatsOverview = {
   mostMissed: [],
 };
 
+/** Accuracy across all answers within one sub-region — the "weak spot" signal. */
+export interface RegionAccuracy {
+  /** M49 region the sub-region belongs to, e.g. "Europe" (carried for display/icon). */
+  region: string;
+  /** M49 sub-region, e.g. "Eastern Europe" — the granularity of a weak spot. */
+  subregion: string;
+  /** Times any country in this sub-region was asked (across all modes). */
+  attempts: number;
+  /** Of those, how many were answered correctly. */
+  correct: number;
+  /** `correct / attempts`, in [0, 1]. */
+  accuracy: number;
+}
+
+/**
+ * Resolve a country's ISO alpha-2 code to its region + sub-region. Injected (rather than
+ * importing the data loader) so this module stays pure and framework/data-agnostic — the
+ * UI passes a `getCountry`-backed resolver, tests pass a stub. Returns `undefined` for
+ * codes it doesn't recognise (those answers are then skipped).
+ */
+export type RegionResolver = (iso2: string) => { region: string; subregion: string } | undefined;
+
 /** UTC calendar day (`YYYY-MM-DD`) of a timestamp — stable and timezone-independent. */
 export function dayKey(ts: number): string {
   return new Date(ts).toISOString().slice(0, 10);
@@ -109,4 +131,47 @@ export function computeStats(records: readonly SessionRecord[]): StatsOverview {
     byDay,
     mostMissed,
   };
+}
+
+/**
+ * Roll play history up into per-sub-region accuracy — the input to the "weak spot"
+ * recommendation. Each answered question's country is joined to its region via
+ * `regionOf`; questions whose country can't be resolved are skipped. Pure and
+ * order-independent.
+ *
+ * The result is ordered weakest-first (lowest accuracy), then by most attempts, then by
+ * sub-region for a stable total order. It is *not* filtered by sample size — the caller
+ * applies its own attempts floor (a single wrong answer must not crown a "weakest region"),
+ * but the raw rollup is useful on its own and easier to test.
+ */
+export function computeRegionAccuracy(
+  records: readonly SessionRecord[],
+  regionOf: RegionResolver,
+): RegionAccuracy[] {
+  const bySubregion = new Map<string, RegionAccuracy>();
+
+  for (const rec of records) {
+    for (const q of rec.questions) {
+      const loc = regionOf(q.countryIso2);
+      if (!loc) continue;
+      const entry = bySubregion.get(loc.subregion) ?? {
+        region: loc.region,
+        subregion: loc.subregion,
+        attempts: 0,
+        correct: 0,
+        accuracy: 0,
+      };
+      entry.attempts += 1;
+      if (q.correct) entry.correct += 1;
+      bySubregion.set(loc.subregion, entry);
+    }
+  }
+
+  const rollup = [...bySubregion.values()];
+  for (const r of rollup) r.accuracy = r.attempts === 0 ? 0 : r.correct / r.attempts;
+
+  return rollup.sort(
+    (a, b) =>
+      a.accuracy - b.accuracy || b.attempts - a.attempts || a.subregion.localeCompare(b.subregion),
+  );
 }

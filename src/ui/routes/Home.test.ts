@@ -23,17 +23,20 @@ afterEach(() => {
   pendingConfig.set(null);
 });
 
-describe('Home route — Train my mistakes', () => {
+describe('Home route — Next up card + train-all link', () => {
   // Runs first, before any SR items are seeded, so the store has nothing to train.
-  it('shows a disabled train entry with a hint when there is nothing to train', async () => {
+  it('shows the fresh-start card and no train link on an empty profile', async () => {
     render(Home);
-    const btn = await screen.findByRole('button', { name: 'Train my mistakes' });
-    expect(btn).toBeDisabled();
-    expect(screen.getByText(/Training drills the countries you get wrong/)).toBeInTheDocument();
+    // The card always renders (never empty); with no data it is the fresh-start fallback.
+    const card = await screen.findByTestId('next-up-card');
+    expect(card).toHaveAttribute('data-kind', 'fresh-start');
+    expect(screen.getByRole('heading', { name: 'Ready to play' })).toBeInTheDocument();
+    // With nothing to train, the "train all my mistakes" escape hatch is absent.
+    expect(screen.queryByRole('button', { name: /Train all my mistakes/ })).not.toBeInTheDocument();
   });
 
-  it('enables the entry once mistakes exist and stages a training session', async () => {
-    // Record a couple of missed map-highlight items so a plan exists.
+  it('surfaces a due-review card and a train-all link once mistakes exist', async () => {
+    // Record a couple of missed map-highlight items — a miss is due immediately (interval 0).
     await recordAnswer({
       itemKey: 'map-highlight:BG',
       countryIso2: 'BG',
@@ -49,11 +52,13 @@ describe('Home route — Train my mistakes', () => {
 
     render(Home);
 
-    // The effect loads the plan asynchronously; wait for the count to appear.
-    const btn = await screen.findByRole('button', { name: /Train my mistakes \(\d+\)/ });
-    expect(btn).toBeEnabled();
+    // The card reflects the due reviews.
+    const card = await screen.findByTestId('next-up-card');
+    expect(card).toHaveAttribute('data-kind', 'due');
 
-    await fireEvent.click(btn);
+    // The train-all link loads asynchronously; wait for its count, then launch it.
+    const link = await screen.findByRole('button', { name: /Train all my mistakes \(\d+\)/ });
+    await fireEvent.click(link);
 
     const cfg = get(pendingConfig);
     expect(cfg).toMatchObject({ mode: 'map-highlight', type: 'training' });

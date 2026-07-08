@@ -1,6 +1,6 @@
 # Phase 14 — Smart "Next up" recommendations
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.2 retention & engagement
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -51,28 +51,36 @@ Persistence + history (Phase 6) and SR/training (Phase 7). Independent of Phases
 any order), but **recommended first** — it's the centerpiece the other two reinforce.
 
 ## Scope / Deliverables
-- [ ] **Recommendation engine (pure, unit-tested)** — a new `src/domain/recommend.ts` that takes
+- [x] **Recommendation engine (pure, unit-tested)** — a new `src/domain/recommend.ts` that takes
       SR items + session records + `now` and returns an **ordered list** of typed recommendations,
       each with: a `kind` (`due` | `weak-spot` | fallback), a display payload (count / region key /
       accuracy), a *reason* key for i18n, and enough to build a `RunConfig`. Priority order and the
       thresholds are owner decisions (see Open Questions). Pure and deterministic given `now`.
-- [ ] **Per-region accuracy helper** — extend `stats.ts` (or a sibling) with a rollup of accuracy by
+- [x] **Per-region accuracy helper** — extend `stats.ts` (or a sibling) with a rollup of accuracy by
       region and sub-region (join `QuestionResult.countryIso2` → country region), with a minimum
       sample-size guard so a single wrong answer doesn't crown a "weakest region". Unit-tested.
-- [ ] **"Next up" card component** — a reusable component rendering the top recommendation: icon,
+      _(Built as `computeRegionAccuracy(records, regionOf)` in `stats.ts`; the sample-size floor is
+      applied by the engine, not the rollup, so the raw rollup stays reusable and easy to test.)_
+- [x] **"Next up" card component** — a reusable component rendering the top recommendation: icon,
       title, one-line reason, and a primary "Start" action; optionally a compact "more suggestions"
       affordance if we show >1 (Open Questions). Reuses existing card styling
-      (`--color-surface`, `--shadow-card`, `ModeIcon`/`RegionIcon`).
-- [ ] **Wire into Home** — show the card above/near Play; keep or fold in the existing "Train my
-      mistakes" button per the owner's call (the recommendation may supersede it).
-- [ ] **Wire into Summary** — show a forward-looking "Next up" alongside the existing session actions.
-- [ ] **Launch flow** — starting a recommendation sets `pendingConfig` and routes to `/play`, reusing
+      (`--color-surface`, `--shadow-card`, `ModeIcon`/`RegionIcon`). _(Single card, no
+      "more suggestions" list — decision Q2.)_
+- [x] **Wire into Home** — show the card above/near Play; keep or fold in the existing "Train my
+      mistakes" button per the owner's call (the recommendation may supersede it). _(Card is the hero;
+      the old train button became a compact "Train all my mistakes (N)" link + an "Or start a custom
+      game" link — decision Q6.)_
+- [x] **Wire into Summary** — show a forward-looking "Next up" alongside the existing session actions.
+      _(Card sits under the missed list, above Retry / Train-these / New-game.)_
+- [x] **Launch flow** — starting a recommendation sets `pendingConfig` and routes to `/play`, reusing
       the training (`answerPoolIso`) or region (`filter`) config paths already in `game.ts`.
-- [ ] **i18n** — EN/FR strings for card titles, each reason type, and the fallback. Parity enforced by
-      `src/i18n/messages.test.ts`.
-- [ ] **Tests** — unit tests for the engine (each `kind`, priority, thresholds, empty/fresh fallback,
+      _(`recommendationToConfig(rec, prefs)` in `game.ts`; `fresh-start` stages `null` → Play setup.)_
+- [x] **i18n** — EN/FR strings for card titles, each reason type, and the fallback. Parity enforced by
+      `src/i18n/messages.test.ts`. _(New `recommend.*` namespace + `home.trainAll`/`home.playCustom`.)_
+- [x] **Tests** — unit tests for the engine (each `kind`, priority, thresholds, empty/fresh fallback,
       tie-breaks) and the region-accuracy helper; a component test that the card renders the expected
-      recommendation and that its action stages the right `RunConfig`.
+      recommendation and that its action stages the right `RunConfig`. _(`recommend.test.ts`,
+      `stats.test.ts`, `NextUpCard.test.ts`; `Home.test.ts` updated to the new card + train-link.)_
 
 ## Technical notes
 - **Keep the brain pure.** All selection/priority logic lives in `src/domain/recommend.ts` with `now`
@@ -124,3 +132,28 @@ any order), but **recommended first** — it's the centerpiece the other two rei
 ## Progress log
 - **2026-07-08 — PRD drafted from the retention brainstorm (owner picked: Next up + Due-for-review +
   Weak-spot). NOT built — awaiting the clarifying round and explicit build approval.**
+- **2026-07-08 — Clarifying round resolved with owner; answers below. Then built and verified with
+  explicit approval ("Proceed with implem!").**
+  - **Q1 Priority:** due-for-review → weak-spot → fresh-start (the list always ends with fresh-start
+    so the card is never empty).
+  - **Q2 How many:** a single decisive card on Home + Summary; no "other ideas" list.
+  - **Q3 "Due" rule:** the card's *due* kind is **strictly `dueAt <= now`, min ≥ 1**. Missed-but-not-
+    yet-due items are intentionally left to the "train all my mistakes" link, so weak-spot gets a turn
+    once reviews are caught up.
+  - **Q4 Weak-spot:** weakest **sub-region**, needs **≥ 10 attempts** there and **< 70%** accuracy
+    (`DEFAULT_WEAK_SPOT_MIN_ATTEMPTS` / `DEFAULT_WEAK_SPOT_MAX_ACCURACY`). Session mode = the mode
+    most-attempted in that sub-region.
+  - **Q5 Fallback:** *Play your first round* — the fresh-start card routes to the normal Play setup
+    screen (no forced region); copy is neutral ("Ready to play") so it also fits the caught-up case.
+  - **Q6 Train button:** *card + link* — the card is the hero; the old "Train my mistakes" button is
+    now a compact "Train all my mistakes (N)" link (full backlog via `loadTrainingPlan`) beside an
+    "Or start a custom game" link.
+  - **Q7 Placement:** Home — card is the hero above the secondary links; Summary — card under the
+    missed list, above the session-specific Retry / Train-these / New-game actions.
+  - **Built:** `domain/recommend.ts` (+ `recommend.test.ts`), `computeRegionAccuracy` in `stats.ts`
+    (+ tests), `loadRecommendations()` in `persistence.ts`, `recommendationToConfig()` in `game.ts`,
+    `components/NextUpCard.svelte` (+ test), Home & Summary wiring, `recommend.*` i18n (EN/FR).
+  - **Verified:** `npm run test` (all suites green), `npm run check`, `npm run lint` all pass; manual
+    headless-Chrome check on :5180 exercised all three card kinds (fresh-start, weak-spot 33%, due),
+    the priority order, the train-all link, a one-tap launch into a 5-question training session, and
+    the Summary card placement.**

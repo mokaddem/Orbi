@@ -12,6 +12,7 @@ import {
   DEFAULT_PREFS,
   MemoryQuizStore,
   clampPrefs,
+  getCountry,
   openStore,
   type Prefs,
   type QuizStore,
@@ -20,10 +21,13 @@ import {
 import {
   computeStats,
   dominantTrainingMode,
+  recommend,
   scheduleNext,
   selectTrainingItems,
   type GameMode,
   type QuestionResult,
+  type Recommendation,
+  type RegionResolver,
   type SelectTrainingOptions,
   type SessionSummary,
   type StatsOverview,
@@ -187,6 +191,23 @@ export async function loadTrainingPlan(limit = TRAINING_SESSION_MAX): Promise<Tr
   const items = selectTrainingItems(srItems, { mode, limit });
   if (items.length === 0) return null;
   return { mode, iso2s: items.map((i) => i.iso2) };
+}
+
+/** Resolve an ISO alpha-2 code to its region/sub-region from the bundled dataset. */
+const regionOf: RegionResolver = (iso2) => {
+  const c = getCountry(iso2);
+  return c ? { region: c.region, subregion: c.subregion } : undefined;
+};
+
+/**
+ * Compute the ordered "Next up" recommendations from persisted SR state + play history.
+ * Always returns at least a fresh-start fallback (even before init or with no data), so
+ * the card is never empty.
+ */
+export async function loadRecommendations(now = Date.now()): Promise<Recommendation[]> {
+  if (!store) return recommend([], [], { now, regionOf });
+  const [srItems, sessions] = await Promise.all([store.getAllSRItems(), store.getAllSessions()]);
+  return recommend(srItems, sessions, { now, regionOf });
 }
 
 /** All persisted sessions (ascending by start time). Empty before init. */
