@@ -20,9 +20,18 @@ hit-detection and post-answer feedback so map play is fair for small countries.
 > "Liechtenstein was impossible to see, but the selection worked (not sure if clicking on Switzerland
 > validated it though)."
 
-Two distinct problems: **(1) visibility** — the country can't be seen on the board; and **(2)
-interaction confidence** — in click-to-locate it's unclear whether the right country was picked, and
-whether clicking a large neighbour (Switzerland) could falsely validate the tiny target (Liechtenstein).
+> **(v1.4 addition — ⭐ prioritized quick win)** "When playing 'locate on the map', when you're wrong,
+> instead of telling you which country you picked, it should tell you the country you were meant to
+> find." — i.e. on a wrong answer the reveal should **lead with the target** (where the country you were
+> asked to locate actually is), so the player *learns the location*, rather than drawing the eye to
+> their wrong pick.
+
+Three related problems: **(1) visibility** — the country can't be seen on the board; **(2) interaction
+confidence** — in click-to-locate it's unclear whether the right country was picked, and whether
+clicking a large neighbour (Switzerland) could falsely validate the tiny target (Liechtenstein); and
+**(3) reveal focus** — a wrong answer should teach *where the correct country is*, not just mark the
+wrong pick. Problem (3) is small and high-value and can ship on its own ahead of the zoom work (see the
+"Legible reveal" deliverable) — the owner flagged it as the top-priority item in this phase.
 
 ## In scope
 - Both map modes: `map-highlight` (see the prompt country) and `map-locate` (click the answer).
@@ -68,8 +77,16 @@ new game modes (23–25); placed **right before** them so the map is solid befor
 - [ ] **Reliable, unambiguous selection (map-locate)** — a below-threshold country's tap target
       reliably wins over its larger neighbours; clicking a neighbour registers **that neighbour** (never
       a false-positive for the tiny target); touch targets meet a comfortable minimum (~44px effective).
-- [ ] **Legible reveal** — after answering, the picked and correct countries are clearly indicated even
-      when tiny (e.g. ring/label/auto-zoom on reveal), so the player always sees what happened.
+- [ ] **Legible reveal, target-first (⭐ shippable on its own, do first)** — after a **wrong** answer,
+      the reveal should **lead with the correct target** — where the country you were asked to locate
+      actually is — clearly indicated (ring / **name label** / brief auto-pan-or-zoom) so the player
+      learns the location, with the wrong pick shown as secondary context (not the focus). Today the map
+      only tints the correct country green and the picked one red (`WorldMap.svelte` `stateFor`), with
+      no on-map labels, and the green target can be an unseen speck — so the wrong red pick draws the
+      eye. This sub-fix (the owner's top-priority v1.4 item) is small and does **not** require the
+      zoom/pan machinery; it can land as a standalone change ahead of the rest of the phase. The correct
+      country's **name** is already shown in the text feedback (`play.feedback.reveal`) — the gap is
+      *on-map emphasis of the target*.
 - [ ] **Responsive & touch-first** — works with mouse, trackpad, and touch; doesn't fight page scroll;
       respects `prefers-reduced-motion` (already honoured for the marker/transitions).
 - [ ] **Performance & offline** — keep the single projection pass; no new network/deps beyond a small
@@ -104,6 +121,10 @@ new game modes (23–25); placed **right before** them so the map is solid befor
    (a11y is otherwise Deferred in the main PRD)?
 5. **Is there a real hit-detection bug** in the LI/CH case, or purely visibility? (Drives whether
    grading logic needs a fix vs. just rendering.)
+6. **Reveal focus (v1.4, ⭐)** — on a wrong answer, how should the target be led with: a labelled ring
+   on the correct country, a brief auto-pan/zoom to it, an always-shown name label, or a combination?
+   And should the wrong pick still be shown (secondary) or dropped entirely? (Recommendation: label +
+   ring on the target, keep the wrong pick as a muted secondary tint. Ship this ahead of the zoom work.)
 
 ## Acceptance criteria
 - Every in-scope country, including micro-states, is **visible** and **selectable** in both map modes on
@@ -127,3 +148,8 @@ new game modes (23–25); placed **right before** them so the map is solid befor
   current map implementation (`WorldMap.svelte` one-shot projection with 13px marker floor + `r=9`
   hit-dots for `<14px²` countries; `map-framing.ts` region fit; no pan/zoom). NOT built — awaiting the
   clarifying round and explicit build approval.**
+- **2026-07-09 (v1.4 feedback) — folded in the owner's "reveal the target, not my pick" ask as a new
+  target-first **Legible reveal** deliverable + Open Question 6, and flagged it as the phase's
+  **top-priority quick win** (shippable on its own, no zoom needed). Confirmed the text feedback already
+  names the correct country (`play.feedback.reveal`); the gap is on-map emphasis of the target. Still
+  NOT built — awaiting approval.**

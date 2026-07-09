@@ -1,6 +1,6 @@
 # Geography Quiz — Main PRD
 
-**Status:** Draft v1 · **Last updated:** 2026-07-07 · **Owner:** Sami
+**Status:** Draft v1 · **Last updated:** 2026-07-09 · **Owner:** Sami
 
 Geography Quiz is a lightweight, bilingual (EN / FR), offline-first web game for learning
 world geography from multiple perspectives — **maps** and **flags** — with adaptive,
@@ -115,6 +115,28 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | 23 | New mode: National languages | [phase-23-mode-languages.md](phases/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ⬜ Not started | 0% |
 | 24 | New mode: Capitals | [phase-24-mode-capitals.md](phases/phase-24-mode-capitals.md) | 2 (engine-generalization pilot) | ⬜ Not started | 0% |
 | 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |
+
+### v1.4 — Post-play feedback (from the owner's play session)
+
+A round of owner feedback after playing a v1.3-era build. As before, each PRD **requires a
+clarifying-questions round with the owner before implementation** (see the callout at the top of each
+file). The items are independent and buildable in any order.
+
+**Priority:** the owner flagged the **map-locate reveal fix** (show *where the target country is* on a
+wrong answer, rather than emphasising the wrong pick) as the top quick win — it was **folded into
+Phase 22** as its ⭐ target-first *Legible reveal* deliverable and can ship on its own, ahead of that
+phase's zoom work. Of the phases below, **26 (review pollution)** addresses the other active in-play
+pain; **27 (targeted practice)** is the biggest new capability; **28/29** are polish.
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 26 | Region-scoped review ("time to review" by region) | [phase-26-region-scoped-review.md](phases/phase-26-region-scoped-review.md) | 7, 14 (re-verify after 19) | ⬜ Not started | 0% |
+| 27 | Targeted practice (custom country & attribute session builder) | [phase-27-targeted-practice.md](phases/phase-27-targeted-practice.md) | 2, 5 (grows with 23–25) | ⬜ Not started | 0% |
+| 28 | Selectable map projection (Settings) | [phase-28-map-projection.md](phases/phase-28-map-projection.md) | 4, 12 (coordinate w/ 22) | ⬜ Not started | 0% |
+| 29 | Identity & Home polish (app name · mascot favicon · region-mastery breakdown) | [phase-29-identity-home-polish.md](phases/phase-29-identity-home-polish.md) | 9, 16, 18 | ⬜ Not started | 0% |
+
+> The map-locate reveal item (show the target country, not the pick) lives in **Phase 22** — see its
+> ⭐ *Legible reveal, target-first* deliverable. It is the owner's top-priority v1.4 quick win.
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
