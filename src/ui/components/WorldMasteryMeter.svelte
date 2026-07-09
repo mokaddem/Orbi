@@ -3,12 +3,28 @@
   import { masteryFraction, type MasteryResult } from '../../domain';
   import { formatPercent } from '../format';
   import Icon from './Icon.svelte';
+  import type { IconName } from './icons';
 
   // World-mastery meter (Phase 16): "how much of the world have I learned". A segmented
   // progress bar — solid for mastered countries, a lighter band for those still in
   // learning — plus a count. `compact` is the slimmer variant shown on Home; the full
   // variant is a titled card on History. Presentational: given the computed rollup.
-  let { mastery, compact = false }: { mastery: MasteryResult; compact?: boolean } = $props();
+  //
+  // `titleKey` / `learnedKey` / `icon` default to the country-mastery labels but let the
+  // same meter render the separate capital-mastery rollup (Phase 24).
+  let {
+    mastery,
+    compact = false,
+    titleKey = 'progress.mastery.title',
+    learnedKey = 'progress.mastery.learned',
+    icon = 'globe',
+  }: {
+    mastery: MasteryResult;
+    compact?: boolean;
+    titleKey?: string;
+    learnedKey?: string;
+    icon?: IconName;
+  } = $props();
 
   const overall = $derived(mastery.overall);
   const total = $derived(Math.max(1, overall.total)); // guard div-by-zero for the widths
@@ -19,7 +35,7 @@
 
 <div class="meter" class:compact data-testid="mastery-meter">
   <div class="head">
-    <span class="title"><Icon name="globe" size="1.1em" />{$t('progress.mastery.title')}</span>
+    <span class="title"><Icon name={icon} size="1.1em" />{$t(titleKey)}</span>
     <span class="pct">{pctLabel}</span>
   </div>
   <div
@@ -28,14 +44,12 @@
     aria-valuemin="0"
     aria-valuemax={overall.total}
     aria-valuenow={overall.mastered}
-    aria-label={$t('progress.mastery.title')}
+    aria-label={$t(titleKey)}
   >
     <div class="fill mastered" style="width:{masteredPct}%"></div>
     <div class="fill learning" style="width:{learningPct}%"></div>
   </div>
-  <span class="sub"
-    >{$t('progress.mastery.learned', { mastered: overall.mastered, total: overall.total })}</span
-  >
+  <span class="sub">{$t(learnedKey, { mastered: overall.mastered, total: overall.total })}</span>
 </div>
 
 <style>

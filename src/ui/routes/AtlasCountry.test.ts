@@ -4,12 +4,15 @@ import { render } from '@testing-library/svelte';
 import AtlasCountry from './AtlasCountry.svelte';
 
 describe('AtlasCountry', () => {
-  it('shows the flag, name, and region / sub-region cross-links', () => {
+  it('shows the flag, name, capital, and region / sub-region cross-links', () => {
     const { container, getByRole } = render(AtlasCountry, { params: { iso2: 'FR' } });
 
     expect(getByRole('heading', { level: 1, name: 'France' })).toBeInTheDocument();
     expect(container.querySelector('a[href="#/atlas/region/Europe"]')).toBeInTheDocument();
     expect(container.textContent).toContain('Western Europe');
+    // The capital is shown as a labelled fact.
+    expect(container.textContent).toContain('Capital');
+    expect(container.textContent).toContain('Paris');
     // The flag is named for a11y on the reference page.
     expect(getByRole('img', { name: 'France' })).toBeInTheDocument();
   });

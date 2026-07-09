@@ -29,6 +29,7 @@ const en = {
     backToAtlas: 'Back to the Atlas',
     regionLabel: 'Region',
     subregionLabel: 'Sub-region',
+    capitalLabel: 'Capital',
   },
   home: {
     title: 'Geography Quiz',
@@ -179,6 +180,11 @@ const en = {
       regionsTitle: 'Mastery by region',
       regionCount: '{mastered}/{total}',
     },
+    capitalMastery: {
+      title: 'Capital mastery',
+      learned: '{mastered} of {total} capitals learned',
+      regionsTitle: 'Capitals by region',
+    },
     achievements: {
       title: 'Achievements',
       earned: '{earned} of {total} earned',
@@ -214,6 +220,29 @@ const en = {
         'mastered-oceania': { title: 'Oceania mastered', desc: 'Master every country in Oceania.' },
         century: { title: 'Centurion', desc: 'Master 100 countries.' },
         'world-mastered': { title: 'World master', desc: 'Master every country in the world.' },
+        'capitals-collector': { title: 'Capital collector', desc: 'Master 25 capitals.' },
+        'capitals-europe': {
+          title: 'Capitals of Europe',
+          desc: 'Master the capital of every country in Europe.',
+        },
+        'capitals-africa': {
+          title: 'Capitals of Africa',
+          desc: 'Master the capital of every country in Africa.',
+        },
+        'capitals-asia': {
+          title: 'Capitals of Asia',
+          desc: 'Master the capital of every country in Asia.',
+        },
+        'capitals-americas': {
+          title: 'Capitals of the Americas',
+          desc: 'Master the capital of every country in the Americas.',
+        },
+        'capitals-oceania': {
+          title: 'Capitals of Oceania',
+          desc: 'Master the capital of every country in Oceania.',
+        },
+        'capitals-century': { title: 'Capital scholar', desc: 'Master 100 capitals.' },
+        'capitals-world': { title: 'Capital master', desc: 'Master every capital in the world.' },
       },
     },
     recap: {

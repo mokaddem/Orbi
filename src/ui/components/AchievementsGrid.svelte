@@ -25,6 +25,11 @@
     'region-mastered': 'map',
     century: 'gem',
     'world-mastered': 'crown',
+    // Capitals (Phase 24). The per-continent capital badges carry a `region` and render the
+    // continent silhouette (like the country ones); only the world-tier trio needs a glyph.
+    'capitals-collector': 'landmark',
+    'capitals-century': 'gem',
+    'capitals-world': 'crown',
   };
 </script>
 

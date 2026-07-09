@@ -42,6 +42,7 @@ const ICONS = {
   crown: 'crown',
   medal: 'medal',
   globe: 'globe',
+  landmark: 'landmark', // capital-mastery meter + capital achievements (Phase 24)
   // misc UI
   party: 'party-popper',
   check: 'check',

@@ -11,6 +11,7 @@
   import {
     loadSessions,
     loadMastery,
+    loadCapitalMastery,
     loadWeeklyRecap,
     loadAchievements,
     clearHistory,
@@ -45,8 +46,14 @@
   let sessions = $state<SessionRecord[]>([]);
   let stats = $state<StatsOverview | null>(null);
   let mastery = $state<MasteryResult | null>(null);
+  let capitalMastery = $state<MasteryResult | null>(null);
   let recap = $state<WeeklyRecapData | null>(null);
   let achievements = $state<AchievementView[]>([]);
+  // The capital-mastery panel appears only once the player has played capitals at all, so it
+  // doesn't clutter the page for players who never touch the mode.
+  const hasCapitalActivity = $derived(
+    !!capitalMastery && capitalMastery.overall.mastered + capitalMastery.overall.learning > 0,
+  );
   let loading = $state(true);
   // Badges that unlocked on this load — celebrated once via a dismissible banner.
   let unlockDismissed = $state(false);
@@ -58,8 +65,9 @@
     stats = computeStats(sessions);
     // Progress surfaces (Phase 16): mastery + recap + achievements, computed from the same
     // persisted state. loadAchievements also persists any first-time unlocks.
-    [mastery, recap, achievements] = await Promise.all([
+    [mastery, capitalMastery, recap, achievements] = await Promise.all([
       loadMastery(),
+      loadCapitalMastery(),
       loadWeeklyRecap(),
       loadAchievements(),
     ]);
@@ -172,6 +180,21 @@
         <WorldMasteryMeter {mastery} />
         <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
         <RegionMasteryBreakdown regions={mastery.byRegion} />
+      </div>
+    {/if}
+
+    <!-- Capital mastery (Phase 24) — a separate rollup, shown once capitals have been played -->
+    {#if capitalMastery && hasCapitalActivity}
+      <div class="panel">
+        <h2>{$t('progress.capitalMastery.title')}</h2>
+        <WorldMasteryMeter
+          mastery={capitalMastery}
+          titleKey="progress.capitalMastery.title"
+          learnedKey="progress.capitalMastery.learned"
+          icon="landmark"
+        />
+        <h3 class="subhead">{$t('progress.capitalMastery.regionsTitle')}</h3>
+        <RegionMasteryBreakdown regions={capitalMastery.byRegion} />
       </div>
     {/if}
 

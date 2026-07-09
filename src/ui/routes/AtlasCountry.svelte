@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { t, localizedName, localizedRegion } from '../../i18n';
+  import { t, localizedName, localizedText, localizedRegion } from '../../i18n';
   import { getCountry } from '../../data';
   import Flag from '../components/Flag.svelte';
 
-  // Country detail page (MVP): the flag, the localized name, and the region / sub-region
-  // it belongs to (both linking back to the region page). Read-only; no map load here, so
-  // reaching a country page never pulls in the geometry chunk.
+  // Country detail page: the flag, the localized name, its capital, and the region /
+  // sub-region it belongs to (both linking back to the region page). Read-only; no map load
+  // here, so reaching a country page never pulls in the geometry chunk.
   let { params = {} }: { params?: { iso2?: string } } = $props();
 
   const country = $derived(getCountry((params.iso2 ?? '').toUpperCase()));
@@ -35,6 +35,10 @@
       <div class="facts">
         <h1>{$localizedName(country)}</h1>
         <dl>
+          <div class="fact">
+            <dt>{$t('atlas.capitalLabel')}</dt>
+            <dd>{$localizedText(country.capital)}</dd>
+          </div>
           <div class="fact">
             <dt>{$t('atlas.regionLabel')}</dt>
             <dd>

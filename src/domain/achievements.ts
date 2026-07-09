@@ -25,6 +25,10 @@ export const SPEEDY_MIN_QUESTIONS = 5;
 export const SPEEDY_MAX_AVG_MS = 3_000;
 /** The "century" badge target — countries mastered. */
 export const CENTURY_TARGET = 100;
+/** The "capital collector" badge target — capitals mastered. */
+export const CAPITALS_COLLECTOR_TARGET = 25;
+/** The "capital century" badge target — capitals mastered. */
+export const CAPITALS_CENTURY_TARGET = 100;
 /** Day thresholds for the streak badges. */
 export const STREAK_BADGE_DAYS = { week: 7, month: 30 } as const;
 
@@ -32,6 +36,8 @@ export const STREAK_BADGE_DAYS = { week: 7, month: 30 } as const;
 export interface AchievementContext {
   stats: StatsOverview;
   mastery: MasteryResult;
+  /** Separate capital-mastery rollup (Phase 24) — its own ladder, not folded into `mastery`. */
+  capitalMastery: MasteryResult;
   streak: StreakInfo;
   sessions: readonly SessionRecord[];
   /** Evaluation time — carried for extensibility (time-of-day badges etc.); pure given it. */
@@ -105,6 +111,27 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
     id: 'world-mastered',
     predicate: ({ mastery }) =>
       mastery.overall.total > 0 && mastery.overall.mastered === mastery.overall.total,
+  },
+  // Capitals (Phase 24) — a separate ladder over the capital-mastery rollup, so learning
+  // capitals earns its own badges without touching the country-mastery ones above.
+  {
+    id: 'capitals-collector',
+    predicate: ({ capitalMastery }) => capitalMastery.overall.mastered >= CAPITALS_COLLECTOR_TARGET,
+  },
+  ...CONTINENTS.map((region): AchievementDef => ({
+    id: `capitals-${region.toLowerCase()}`,
+    region,
+    predicate: ({ capitalMastery }) => regionComplete(capitalMastery, region),
+  })),
+  {
+    id: 'capitals-century',
+    predicate: ({ capitalMastery }) => capitalMastery.overall.mastered >= CAPITALS_CENTURY_TARGET,
+  },
+  {
+    id: 'capitals-world',
+    predicate: ({ capitalMastery }) =>
+      capitalMastery.overall.total > 0 &&
+      capitalMastery.overall.mastered === capitalMastery.overall.total,
   },
 ];
 

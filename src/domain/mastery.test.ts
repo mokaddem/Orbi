@@ -6,6 +6,7 @@ import {
   masteryFraction,
   type MasteryCountry,
 } from './mastery';
+import { CAPITAL_MODES } from './modes';
 import type { SRItem } from '../data/persistence/types';
 
 const NOW = 1_000_000;
@@ -102,6 +103,18 @@ describe('computeMastery', () => {
     ];
     const { overall } = computeMastery(items, countries, { now: NOW });
     expect(overall).toEqual({ mastered: 0, learning: 0, unseen: 5, total: 5 });
+  });
+
+  it('computes a separate capital rollup with modes: CAPITAL_MODES', () => {
+    const items = [
+      // FR mastered in a capital mode → counts here; DE only in an identity mode → does not.
+      sr('capital-to-country:FR', { repetitions: 5, dueAt: NOW + 30 * DAY }),
+      sr('flag-to-country:DE', { repetitions: 5, dueAt: NOW + 30 * DAY }),
+      sr('country-to-capital:NG', { repetitions: 0, dueAt: NOW, lapses: 1 }), // seen, learning
+    ];
+    const { overall } = computeMastery(items, countries, { now: NOW, modes: CAPITAL_MODES });
+    // FR mastered, NG learning, DE (identity-only) unseen, plus KE + JP unseen.
+    expect(overall).toEqual({ mastered: 1, learning: 1, unseen: 3, total: 5 });
   });
 
   it('demotes a lapsed country from mastered back to learning', () => {

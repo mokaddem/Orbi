@@ -37,6 +37,7 @@ const de: typeof en = {
     backToAtlas: 'Zurück zum Atlas',
     regionLabel: 'Region',
     subregionLabel: 'Unterregion',
+    capitalLabel: 'Hauptstadt',
   },
   home: {
     title: 'Geografie-Quiz',
@@ -188,6 +189,11 @@ const de: typeof en = {
       regionsTitle: 'Fortschritt nach Region',
       regionCount: '{mastered}/{total}',
     },
+    capitalMastery: {
+      title: 'Hauptstädte-Wissen',
+      learned: '{mastered} von {total} Hauptstädten gemeistert',
+      regionsTitle: 'Hauptstädte nach Region',
+    },
     achievements: {
       title: 'Erfolge',
       earned: '{earned} von {total} erhalten',
@@ -226,6 +232,32 @@ const de: typeof en = {
         },
         century: { title: 'Zenturio', desc: 'Meistere 100 Länder.' },
         'world-mastered': { title: 'Weltmeister', desc: 'Meistere alle Länder der Welt.' },
+        'capitals-collector': { title: 'Hauptstadt-Sammler', desc: 'Meistere 25 Hauptstädte.' },
+        'capitals-europe': {
+          title: 'Hauptstädte Europas',
+          desc: 'Meistere die Hauptstadt jedes Landes in Europa.',
+        },
+        'capitals-africa': {
+          title: 'Hauptstädte Afrikas',
+          desc: 'Meistere die Hauptstadt jedes Landes in Afrika.',
+        },
+        'capitals-asia': {
+          title: 'Hauptstädte Asiens',
+          desc: 'Meistere die Hauptstadt jedes Landes in Asien.',
+        },
+        'capitals-americas': {
+          title: 'Hauptstädte Amerikas',
+          desc: 'Meistere die Hauptstadt jedes Landes in Amerika.',
+        },
+        'capitals-oceania': {
+          title: 'Hauptstädte Ozeaniens',
+          desc: 'Meistere die Hauptstadt jedes Landes in Ozeanien.',
+        },
+        'capitals-century': { title: 'Hauptstadt-Gelehrter', desc: 'Meistere 100 Hauptstädte.' },
+        'capitals-world': {
+          title: 'Hauptstadt-Meister',
+          desc: 'Meistere alle Hauptstädte der Welt.',
+        },
       },
     },
     recap: {

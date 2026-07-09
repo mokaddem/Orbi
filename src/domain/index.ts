@@ -17,7 +17,14 @@ export type {
   SessionSummary,
 } from './types';
 
-export { ALL_MODES, MASTERY_MODES, ATTRIBUTE_MODES, isAttributeMode, isMasteryMode } from './modes';
+export {
+  ALL_MODES,
+  MASTERY_MODES,
+  ATTRIBUTE_MODES,
+  CAPITAL_MODES,
+  isAttributeMode,
+  isMasteryMode,
+} from './modes';
 
 export { type Rng, defaultRng, mulberry32, randomInt, shuffle, sample } from './rng';
 
@@ -118,6 +125,8 @@ export {
   SPEEDY_MIN_QUESTIONS,
   SPEEDY_MAX_AVG_MS,
   CENTURY_TARGET,
+  CAPITALS_COLLECTOR_TARGET,
+  CAPITALS_CENTURY_TARGET,
   STREAK_BADGE_DAYS,
   ACHIEVEMENTS,
   ACHIEVEMENT_IDS,

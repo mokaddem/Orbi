@@ -4,7 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import History from './History.svelte';
 import { setLocale } from '../../i18n';
-import { clearHistory, initPersistence, saveSession } from '../stores/persistence';
+import { clearHistory, initPersistence, recordAnswer, saveSession } from '../stores/persistence';
 import type { SessionSummary } from '../../domain';
 
 function summary(over: Partial<SessionSummary> = {}): SessionSummary {
@@ -54,5 +54,26 @@ describe('History route', () => {
     expect(screen.getByText('France')).toBeInTheDocument();
     expect(screen.getByText('Sessions per day')).toBeInTheDocument();
     expect(screen.getByText('Recent sessions')).toBeInTheDocument();
+    // No capitals played → the capital-mastery panel stays hidden.
+    expect(screen.queryByText('Capital mastery')).not.toBeInTheDocument();
+  });
+
+  it('reveals the capital-mastery panel once a capital mode has been played', async () => {
+    await saveSession(summary());
+    // A capital-mode answer creates capital SR state, which drives the separate panel.
+    await recordAnswer({
+      itemKey: 'capital-to-country:FR',
+      countryIso2: 'FR',
+      correct: true,
+      answerMs: 700,
+    });
+    render(History);
+
+    // The title renders twice (panel heading + meter head), so match all occurrences.
+    expect(
+      (await screen.findAllByText('Capital mastery', {}, { timeout: 3000 })).length,
+    ).toBeGreaterThan(0);
+    // World mastery is always present; the capital panel is the new, separate one.
+    expect(screen.getAllByText('World mastery').length).toBeGreaterThan(0);
   });
 });

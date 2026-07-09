@@ -42,6 +42,13 @@ export const MASTERY_MODES: readonly GameMode[] = [
  */
 export const ATTRIBUTE_MODES: readonly GameMode[] = ['country-to-capital'];
 
+/**
+ * The two capital-quiz modes (Phase 24). They roll up into their *own* mastery tally +
+ * achievements (kept separate from {@link MASTERY_MODES}); pass this to `computeMastery`'s
+ * `modes` option to compute capital mastery.
+ */
+export const CAPITAL_MODES: readonly GameMode[] = ['capital-to-country', 'country-to-capital'];
+
 /** Whether `mode` presents attribute-value options rather than country options. */
 export function isAttributeMode(mode: GameMode): boolean {
   return ATTRIBUTE_MODES.includes(mode);

@@ -69,7 +69,15 @@ function session(over: Partial<SessionRecord> = {}): SessionRecord {
 }
 
 function ctx(over: Partial<AchievementContext> = {}): AchievementContext {
-  return { stats: stats(), mastery: mastery(), streak: streak(), sessions: [], now: NOW, ...over };
+  return {
+    stats: stats(),
+    mastery: mastery(),
+    capitalMastery: mastery(),
+    streak: streak(),
+    sessions: [],
+    now: NOW,
+    ...over,
+  };
 }
 
 /** Convenience: is `id` unlocked under `context`? */
@@ -210,5 +218,53 @@ describe('badge predicates', () => {
     expect(unlocked('world-mastered', ctx({ mastery: mastery({ mastered: 0, total: 0 }) }))).toBe(
       false,
     );
+  });
+
+  // Capitals (Phase 24) — a separate ladder driven by capitalMastery, not mastery.
+  it('capital badges read capitalMastery, never the country mastery rollup', () => {
+    // Full country mastery must NOT unlock any capital badge.
+    const countryOnly = ctx({ mastery: mastery({ mastered: 195, total: 195 }) });
+    expect(unlocked('capitals-collector', countryOnly)).toBe(false);
+    expect(unlocked('capitals-world', countryOnly)).toBe(false);
+    // …and full capital mastery must NOT unlock the country badges.
+    const capitalOnly = ctx({ capitalMastery: mastery({ mastered: 195, total: 195 }) });
+    expect(unlocked('century', capitalOnly)).toBe(false);
+    expect(unlocked('world-mastered', capitalOnly)).toBe(false);
+  });
+
+  it('capitals-collector / capitals-century: at the 25 / 100 thresholds', () => {
+    expect(unlocked('capitals-collector', ctx({ capitalMastery: mastery({ mastered: 24 }) }))).toBe(
+      false,
+    );
+    expect(unlocked('capitals-collector', ctx({ capitalMastery: mastery({ mastered: 25 }) }))).toBe(
+      true,
+    );
+    expect(unlocked('capitals-century', ctx({ capitalMastery: mastery({ mastered: 99 }) }))).toBe(
+      false,
+    );
+    expect(unlocked('capitals-century', ctx({ capitalMastery: mastery({ mastered: 100 }) }))).toBe(
+      true,
+    );
+  });
+
+  it('capitals-<continent>: unlocks when that continent’s capitals are all mastered', () => {
+    const oceaniaDone = ctx({ capitalMastery: mastery({}, [region('Oceania', 14, 14)]) });
+    expect(unlocked('capitals-oceania', oceaniaDone)).toBe(true);
+    expect(unlocked('capitals-europe', oceaniaDone)).toBe(false);
+    expect(
+      unlocked(
+        'capitals-oceania',
+        ctx({ capitalMastery: mastery({}, [region('Oceania', 13, 14)]) }),
+      ),
+    ).toBe(false);
+  });
+
+  it('capitals-world: every capital mastered', () => {
+    expect(
+      unlocked('capitals-world', ctx({ capitalMastery: mastery({ mastered: 195, total: 195 }) })),
+    ).toBe(true);
+    expect(
+      unlocked('capitals-world', ctx({ capitalMastery: mastery({ mastered: 194, total: 195 }) })),
+    ).toBe(false);
   });
 });

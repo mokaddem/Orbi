@@ -31,6 +31,7 @@ const fr: typeof en = {
     backToAtlas: 'Retour à l’Atlas',
     regionLabel: 'Région',
     subregionLabel: 'Sous-région',
+    capitalLabel: 'Capitale',
   },
   home: {
     title: 'Quiz de géographie',
@@ -182,6 +183,11 @@ const fr: typeof en = {
       regionsTitle: 'Maîtrise par région',
       regionCount: '{mastered}/{total}',
     },
+    capitalMastery: {
+      title: 'Maîtrise des capitales',
+      learned: '{mastered} capitales sur {total} apprises',
+      regionsTitle: 'Capitales par région',
+    },
     achievements: {
       title: 'Réussites',
       earned: '{earned} sur {total} obtenues',
@@ -226,6 +232,35 @@ const fr: typeof en = {
         },
         century: { title: 'Centurion', desc: 'Maîtrisez 100 pays.' },
         'world-mastered': { title: 'Maître du monde', desc: 'Maîtrisez tous les pays du monde.' },
+        'capitals-collector': {
+          title: 'Collectionneur de capitales',
+          desc: 'Maîtrisez 25 capitales.',
+        },
+        'capitals-europe': {
+          title: "Capitales d'Europe",
+          desc: 'Maîtrisez la capitale de chaque pays d’Europe.',
+        },
+        'capitals-africa': {
+          title: "Capitales d'Afrique",
+          desc: 'Maîtrisez la capitale de chaque pays d’Afrique.',
+        },
+        'capitals-asia': {
+          title: "Capitales d'Asie",
+          desc: 'Maîtrisez la capitale de chaque pays d’Asie.',
+        },
+        'capitals-americas': {
+          title: 'Capitales des Amériques',
+          desc: 'Maîtrisez la capitale de chaque pays des Amériques.',
+        },
+        'capitals-oceania': {
+          title: "Capitales d'Océanie",
+          desc: 'Maîtrisez la capitale de chaque pays d’Océanie.',
+        },
+        'capitals-century': { title: 'Érudit des capitales', desc: 'Maîtrisez 100 capitales.' },
+        'capitals-world': {
+          title: 'Maître des capitales',
+          desc: 'Maîtrisez toutes les capitales du monde.',
+        },
       },
     },
     recap: {

@@ -17,8 +17,9 @@
 // Clock and country list are injected, so this is deterministic and needs no fake timer.
 
 import type { SRItem } from '../data/persistence/types';
+import type { GameMode } from './types';
 import { parseItemKey } from './training';
-import { isMasteryMode } from './modes';
+import { MASTERY_MODES } from './modes';
 
 /** Owner-agreed SR bar: consecutive correct recalls required to count an item mastered. */
 export const MASTERY_MIN_REPETITIONS = 2;
@@ -56,6 +57,12 @@ export interface MasteryCountry {
 export interface MasteryOptions {
   /** Clock, injected for deterministic tests (default `Date.now`). */
   now?: number;
+  /**
+   * Which game modes count toward this rollup (default: the four country-identification
+   * {@link MASTERY_MODES}). Pass `CAPITAL_MODES` to compute the separate capital-mastery
+   * tally (Phase 24) over the same country denominator.
+   */
+  modes?: readonly GameMode[];
 }
 
 /**
@@ -86,17 +93,17 @@ export function computeMastery(
   options: MasteryOptions = {},
 ): MasteryResult {
   const now = options.now ?? Date.now();
+  const modes = options.modes ?? MASTERY_MODES;
 
-  // Fold the four per-mode items down to two per-country facts: has it been seen at all,
-  // and is at least one mode mastered (the lenient rule).
+  // Fold the per-mode items down to two per-country facts: has it been seen at all, and is
+  // at least one mode mastered (the lenient rule). Only items in `modes` count — by default
+  // the four identity modes; capital modes (Phase 24) roll up separately via CAPITAL_MODES.
   const seen = new Set<string>();
   const mastered = new Set<string>();
   for (const item of srItems) {
     const parsed = parseItemKey(item.itemKey);
     if (!parsed) continue;
-    // Only the country-identification modes count toward mastery; capital modes (Phase 24)
-    // are trained and recorded but deliberately don't move the mastery tally.
-    if (!isMasteryMode(parsed.mode)) continue;
+    if (!modes.includes(parsed.mode)) continue;
     seen.add(parsed.iso2);
     if (isItemMastered(item, now)) mastered.add(parsed.iso2);
   }

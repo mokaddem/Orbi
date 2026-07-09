@@ -23,6 +23,7 @@ import {
 } from '../../data';
 import {
   ACHIEVEMENTS,
+  CAPITAL_MODES,
   buildDailyChallenge,
   computeMastery,
   computeStats,
@@ -315,6 +316,16 @@ export async function loadMastery(now = Date.now()): Promise<MasteryResult> {
   return computeMastery(srItems, masteryCountries(), { now });
 }
 
+/**
+ * Compute the separate **capital** mastery rollup (Phase 24) over the same country
+ * denominator, from the capital-mode SR items only. Kept distinct from {@link loadMastery}
+ * so learning capitals never moves the country-identification mastery tally.
+ */
+export async function loadCapitalMastery(now = Date.now()): Promise<MasteryResult> {
+  const srItems = store ? await store.getAllSRItems() : [];
+  return computeMastery(srItems, masteryCountries(), { now, modes: CAPITAL_MODES });
+}
+
 /** Compute this week's recap (Phase 16) from persisted sessions + SR state. */
 export async function loadWeeklyRecap(now = Date.now()): Promise<WeeklyRecap> {
   if (!store) return computeWeeklyRecap([], { now });
@@ -347,7 +358,9 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
     ? await Promise.all([store.getAllSessions(), store.getAllSRItems(), store.getAchievements()])
     : [[] as SessionRecord[], [], [] as AchievementUnlock[]];
 
-  const mastery = computeMastery(srItems, masteryCountries(), { now });
+  const countries = masteryCountries();
+  const mastery = computeMastery(srItems, countries, { now });
+  const capitalMastery = computeMastery(srItems, countries, { now, modes: CAPITAL_MODES });
   const streak = computeStreak(
     sessions.map((s) => localDayKey(s.startedAt)),
     localDayKey(now),
@@ -355,6 +368,7 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
   const statuses = evaluateAchievements({
     stats: computeStats(sessions),
     mastery,
+    capitalMastery,
     streak,
     sessions,
     now,
