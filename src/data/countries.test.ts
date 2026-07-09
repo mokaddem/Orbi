@@ -114,7 +114,7 @@ describe('region tree', () => {
     expect(europe).not.toContain('JP');
 
     expect(getSubregions('Europe')).toContain('Western Europe');
-    expect(getSubregions('Oceania')).toContain('Melanesia');
+    expect(getSubregions('Oceania')).toEqual(['Oceania']); // single, unsubdivided bucket
   });
 
   it('partitions every country into exactly one region and sub-region', () => {
@@ -147,5 +147,66 @@ describe('region tree', () => {
         expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'en')));
       }
     }
+  });
+});
+
+describe('play-region buckets (Phase 19)', () => {
+  const MIN_POOL = 8; // kept in sync with scripts/build-data.mjs
+  const countries = getCountries();
+
+  // Buckets are unique across regions, so grouping by sub-region name alone is safe.
+  const bySubregion = new Map<string, string[]>();
+  for (const c of countries) {
+    const list = bySubregion.get(c.subregion) ?? [];
+    list.push(c.iso2);
+    bySubregion.set(c.subregion, list);
+  }
+
+  it('groups every country into one of the 15 expected balanced buckets', () => {
+    const EXPECTED_BUCKETS = [
+      'Caribbean',
+      'Central & Eastern Asia',
+      'Eastern & Southern Africa',
+      'Eastern Europe',
+      'North & Central America',
+      'Northern & Central Africa',
+      'Northern Europe',
+      'Oceania',
+      'South America',
+      'South-Eastern Asia',
+      'Southern Asia',
+      'Southern Europe',
+      'Western Africa',
+      'Western Asia',
+      'Western Europe',
+    ];
+    expect([...bySubregion.keys()].sort((a, b) => a.localeCompare(b, 'en'))).toEqual(
+      EXPECTED_BUCKETS,
+    );
+  });
+
+  it('gives every selectable bucket at least MIN_POOL countries (no degenerate pools)', () => {
+    for (const [bucket, isos] of bySubregion) {
+      expect(isos.length, `bucket "${bucket}" size`).toBeGreaterThanOrEqual(MIN_POOL);
+    }
+  });
+
+  it('reshuffles Europe into the classic UN M49 four', () => {
+    const bucketOf = (iso: string) => getCountry(iso)!.subregion;
+    expect(bucketOf('AT')).toBe('Western Europe'); // Austria (raw "Central Europe")
+    expect(bucketOf('SI')).toBe('Southern Europe'); // Slovenia (raw "Central Europe")
+    expect(bucketOf('BG')).toBe('Eastern Europe'); // Bulgaria (raw "Southeast Europe")
+    expect(bucketOf('RO')).toBe('Eastern Europe'); // Romania (raw "Southeast Europe")
+    expect(getSubregions('Europe').sort((a, b) => a.localeCompare(b, 'en'))).toEqual([
+      'Eastern Europe',
+      'Northern Europe',
+      'Southern Europe',
+      'Western Europe',
+    ]);
+  });
+
+  it('keeps Oceania as a single, unsubdivided bucket', () => {
+    expect(getSubregions('Oceania')).toEqual(['Oceania']);
+    expect(bySubregion.get('Oceania')).toHaveLength(14);
   });
 });

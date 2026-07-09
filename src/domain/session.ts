@@ -90,9 +90,11 @@ export class QuizSession {
 
     this.universe = config.countries;
     // An explicit answer pool (training) wins over the region filter; otherwise the
-    // filter narrows the universe. Either way distractors still tier against `universe`.
-    // Map modes then drop geometry-less countries (they can't be highlighted/clicked);
-    // flag modes keep everything.
+    // filter narrows the *answers*. Distractors always tier against `universe` — the
+    // `countries` list exactly as passed in — so a caller that wants region-scoped
+    // distractors (as the UI's play store does for a filtered game) passes an already
+    // region-filtered `countries` list. Map modes then drop geometry-less countries
+    // (they can't be highlighted/clicked); flag modes keep everything.
     const rawAnswers = config.answerPool
       ? config.answerPool.slice()
       : filterCountries(config.countries, config.filter);

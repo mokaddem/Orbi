@@ -1,6 +1,6 @@
 # Phase 19 — Region classification & bucketing rework
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -53,25 +53,28 @@ Phase 1 (data layer). **Foundational — recommended before Phase 20** (so the e
 final grouping) and Phases 14/16 should be re-verified afterwards. Otherwise independent.
 
 ## Scope / Deliverables
-- [ ] **Investigation writeup** — the per-sub-region counts above, which buckets are too small, and a
+- [x] **Investigation writeup** — the per-sub-region counts above, which buckets are too small, and a
       target **minimum pool size** (e.g. ≥ 8, so a 10-question game has variety). Record in the Progress
       log / a short note.
-- [ ] **Chosen strategy (owner decision)** — one (or a mix) of:
+- [x] **Chosen strategy (owner decision)** — one (or a mix) of:
       - *Keep* the granular `world-countries` scheme (do nothing to data) **+ a runtime minimum-pool
         guard** — picking a too-small sub-region auto-widens the answer pool (and distractors) to the
         parent region, so it never degenerates. Lowest-risk, no data change.
       - *Revert to classic M49* 4-way sub-regions (merge Central Europe → Eastern/Western, etc.).
       - *Merge* only the smallest buckets into neighbours (targeted).
       - *Custom "play regions"* tuned for quiz balance (a curated grouping layer over the raw data).
-- [ ] **Implementation** — either a **data change** (derive/override `subregion` in `build-data.mjs`
-      or a mapping layer) **or** a **runtime guard** in the pool/filter logic, per the chosen strategy.
-      Keep domain logic pure and unit-testable.
-- [ ] **i18n** — add/rename/remove region labels (EN/FR/DE) to match the new grouping; keep the
-      English-key fallback; `regions.test.ts` + `messages.test.ts` green.
-- [ ] **Re-verify dependents** — weak-spot recommendations (14), mastery/achievements (16), Daily (15),
-      region filter (5), encyclopedia (20 if present) still behave and their tests pass.
-- [ ] **Tests** — the guard/merge logic; that no filterable group falls below the target minimum (or is
-      handled by the guard).
+- [x] **Implementation** — **data change**: a documented regroup map (`SUBREGION_REGROUP` +
+      per-ISO `SUBREGION_OVERRIDE_ISO`) applied in `build-data.mjs`, rewriting `subregion` at build
+      time (top-level `region` untouched). A build-time assertion fails the build if any bucket drops
+      below `MIN_POOL`. Domain logic unchanged/pure.
+- [x] **i18n** — replaced the sub-region labels (FR/DE) with the 15 new buckets; English-key fallback
+      kept; Oceania's single bucket reuses the region label; `regions.test.ts` + `messages.test.ts` green.
+- [x] **Re-verify dependents** — weak-spot recs (14) & `computeRegionAccuracy` and the region filter (5)
+      re-derive from live data (now target ≥ 8 buckets); mastery/achievements (16) and Daily (15) key off
+      top-level regions and are untouched. All their tests pass. Encyclopedia (20) not yet built.
+- [x] **Tests** — data-invariant tests (every bucket ≥ 8, the exact 15-bucket set, Europe reshuffle
+      spot-checks, Oceania single bucket); Play component test that the sub-region selector is hidden for
+      a single-bucket region; repurposed the obsolete "tiny sub-region" store test.
 
 ## Technical notes
 - **Two philosophies, and they can combine.** A *data* regrouping changes what the player sees as
@@ -116,3 +119,22 @@ final grouping) and Phases 14/16 should be re-verified afterwards. Otherwise ind
   Eastern Europe = 4 countries for a 10-question game). Confirmed against the live dataset: 12 of ~24
   sub-regions have < 8 countries (finer-than-M49 `world-countries` scheme). NOT built — awaiting the
   clarifying round and explicit build approval.**
+- **2026-07-09 — Clarifying round + owner decisions (Q1 keep the 5 top-level regions: yes; Q5 sub-region
+  only, not `region`; Q6 no progress migration — nothing persists a sub-region label, it's recomputed
+  from ISO). Q2 strategy: **data regroup into balanced "play regions"**. Q3 target: **≥ 8**. Q4: tiny
+  buckets are merged, not hidden/widened. Owner signed off on the recommended Africa pairing.**
+- **2026-07-09 — Built & verified (explicit go given).** Regrouped **24 → 15 sub-region buckets**, all
+  ≥ 8 (smallest 9); top-level regions unchanged:
+  - **Europe** → classic UN M49 four (Northern 10, Western 9, Eastern 10, Southern 16); the
+    `world-countries` "Central Europe"/"Southeast Europe" splits dissolve (Austria→Western, Slovenia +
+    Balkans→Southern, Czechia/Hungary/Poland/Slovakia + Bulgaria/Romania→Eastern).
+  - **Asia** → Central & Eastern Asia (10, merged), + South-Eastern (11) / Southern (9) / Western (17).
+  - **Americas** → North & Central America (10, merged), + Caribbean (13) / South America (12).
+  - **Africa** → Northern & Central (16) / Western (16) / Eastern & Southern (22) — the signed-off pairing.
+  - **Oceania** → a single region-only bucket (14); the Play sub-region selector is hidden for it.
+  - Implemented as a build-time regroup in `scripts/build-data.mjs` (+ MIN_POOL integrity assertion),
+    FR/DE labels in `src/i18n/regions.ts`, a `Play.svelte` selector tweak, data-invariant + component
+    tests, and a `session.ts` docstring correction (distractors tier against `universe` = the passed
+    `countries`; the UI scopes them by passing an already-filtered list).
+  - **Verified:** `npm run test` (345 ✓), `check` (0 errors), `lint` (clean); headless-Chrome on :5180 —
+    Eastern Europe now plays **10 distinct countries** in a 10-question game (was capped at 4). Marked ✅.**

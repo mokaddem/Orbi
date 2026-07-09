@@ -23,7 +23,7 @@
       "de": "Albanien"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Southern Europe",
     "flagAsset": "flags/al.svg",
     "hasGeometry": true
   },
@@ -37,7 +37,7 @@
       "de": "Algerien"
     },
     "region": "Africa",
-    "subregion": "Northern Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/dz.svg",
     "hasGeometry": true
   },
@@ -65,7 +65,7 @@
       "de": "Angola"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ao.svg",
     "hasGeometry": true
   },
@@ -121,7 +121,7 @@
       "de": "Australien"
     },
     "region": "Oceania",
-    "subregion": "Australia and New Zealand",
+    "subregion": "Oceania",
     "flagAsset": "flags/au.svg",
     "hasGeometry": true
   },
@@ -135,7 +135,7 @@
       "de": "Österreich"
     },
     "region": "Europe",
-    "subregion": "Central Europe",
+    "subregion": "Western Europe",
     "flagAsset": "flags/at.svg",
     "hasGeometry": true
   },
@@ -247,7 +247,7 @@
       "de": "Belize"
     },
     "region": "Americas",
-    "subregion": "Central America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/bz.svg",
     "hasGeometry": true
   },
@@ -303,7 +303,7 @@
       "de": "Bosnien und Herzegowina"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Southern Europe",
     "flagAsset": "flags/ba.svg",
     "hasGeometry": true
   },
@@ -317,7 +317,7 @@
       "de": "Botswana"
     },
     "region": "Africa",
-    "subregion": "Southern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/bw.svg",
     "hasGeometry": true
   },
@@ -359,7 +359,7 @@
       "de": "Bulgarien"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Eastern Europe",
     "flagAsset": "flags/bg.svg",
     "hasGeometry": true
   },
@@ -387,7 +387,7 @@
       "de": "Burundi"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/bi.svg",
     "hasGeometry": true
   },
@@ -415,7 +415,7 @@
       "de": "Kamerun"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cm.svg",
     "hasGeometry": true
   },
@@ -429,7 +429,7 @@
       "de": "Kanada"
     },
     "region": "Americas",
-    "subregion": "North America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/ca.svg",
     "hasGeometry": true
   },
@@ -457,7 +457,7 @@
       "de": "Zentralafrikanische Republik"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cf.svg",
     "hasGeometry": true
   },
@@ -471,7 +471,7 @@
       "de": "Tschad"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/td.svg",
     "hasGeometry": true
   },
@@ -499,7 +499,7 @@
       "de": "China"
     },
     "region": "Asia",
-    "subregion": "Eastern Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/cn.svg",
     "hasGeometry": true
   },
@@ -527,7 +527,7 @@
       "de": "Komoren"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/km.svg",
     "hasGeometry": true
   },
@@ -541,7 +541,7 @@
       "de": "Costa Rica"
     },
     "region": "Americas",
-    "subregion": "Central America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/cr.svg",
     "hasGeometry": true
   },
@@ -555,7 +555,7 @@
       "de": "Kroatien"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Southern Europe",
     "flagAsset": "flags/hr.svg",
     "hasGeometry": true
   },
@@ -597,7 +597,7 @@
       "de": "Tschechien"
     },
     "region": "Europe",
-    "subregion": "Central Europe",
+    "subregion": "Eastern Europe",
     "flagAsset": "flags/cz.svg",
     "hasGeometry": true
   },
@@ -625,7 +625,7 @@
       "de": "Dschibuti"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/dj.svg",
     "hasGeometry": true
   },
@@ -667,7 +667,7 @@
       "de": "Kongo (Dem. Rep.)"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cd.svg",
     "hasGeometry": true
   },
@@ -695,7 +695,7 @@
       "de": "Ägypten"
     },
     "region": "Africa",
-    "subregion": "Northern Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/eg.svg",
     "hasGeometry": true
   },
@@ -709,7 +709,7 @@
       "de": "El Salvador"
     },
     "region": "Americas",
-    "subregion": "Central America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/sv.svg",
     "hasGeometry": true
   },
@@ -723,7 +723,7 @@
       "de": "Äquatorialguinea"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/gq.svg",
     "hasGeometry": true
   },
@@ -737,7 +737,7 @@
       "de": "Eritrea"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/er.svg",
     "hasGeometry": true
   },
@@ -765,7 +765,7 @@
       "de": "Eswatini"
     },
     "region": "Africa",
-    "subregion": "Southern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/sz.svg",
     "hasGeometry": true
   },
@@ -779,7 +779,7 @@
       "de": "Äthiopien"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/et.svg",
     "hasGeometry": true
   },
@@ -793,7 +793,7 @@
       "de": "Fidschi"
     },
     "region": "Oceania",
-    "subregion": "Melanesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/fj.svg",
     "hasGeometry": true
   },
@@ -835,7 +835,7 @@
       "de": "Gabun"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ga.svg",
     "hasGeometry": true
   },
@@ -933,7 +933,7 @@
       "de": "Guatemala"
     },
     "region": "Americas",
-    "subregion": "Central America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/gt.svg",
     "hasGeometry": true
   },
@@ -1003,7 +1003,7 @@
       "de": "Honduras"
     },
     "region": "Americas",
-    "subregion": "Central America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/hn.svg",
     "hasGeometry": true
   },
@@ -1017,7 +1017,7 @@
       "de": "Ungarn"
     },
     "region": "Europe",
-    "subregion": "Central Europe",
+    "subregion": "Eastern Europe",
     "flagAsset": "flags/hu.svg",
     "hasGeometry": true
   },
@@ -1171,7 +1171,7 @@
       "de": "Japan"
     },
     "region": "Asia",
-    "subregion": "Eastern Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/jp.svg",
     "hasGeometry": true
   },
@@ -1199,7 +1199,7 @@
       "de": "Kasachstan"
     },
     "region": "Asia",
-    "subregion": "Central Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kz.svg",
     "hasGeometry": true
   },
@@ -1213,7 +1213,7 @@
       "de": "Kenia"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/ke.svg",
     "hasGeometry": true
   },
@@ -1227,7 +1227,7 @@
       "de": "Kiribati"
     },
     "region": "Oceania",
-    "subregion": "Micronesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/ki.svg",
     "hasGeometry": true
   },
@@ -1255,7 +1255,7 @@
       "de": "Kirgisistan"
     },
     "region": "Asia",
-    "subregion": "Central Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kg.svg",
     "hasGeometry": true
   },
@@ -1311,7 +1311,7 @@
       "de": "Lesotho"
     },
     "region": "Africa",
-    "subregion": "Southern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/ls.svg",
     "hasGeometry": true
   },
@@ -1339,7 +1339,7 @@
       "de": "Libyen"
     },
     "region": "Africa",
-    "subregion": "Northern Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ly.svg",
     "hasGeometry": true
   },
@@ -1395,7 +1395,7 @@
       "de": "Madagaskar"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mg.svg",
     "hasGeometry": true
   },
@@ -1409,7 +1409,7 @@
       "de": "Malawi"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mw.svg",
     "hasGeometry": true
   },
@@ -1479,7 +1479,7 @@
       "de": "Marshallinseln"
     },
     "region": "Oceania",
-    "subregion": "Micronesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/mh.svg",
     "hasGeometry": true
   },
@@ -1507,7 +1507,7 @@
       "de": "Mauritius"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mu.svg",
     "hasGeometry": true
   },
@@ -1521,7 +1521,7 @@
       "de": "Mexiko"
     },
     "region": "Americas",
-    "subregion": "North America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/mx.svg",
     "hasGeometry": true
   },
@@ -1535,7 +1535,7 @@
       "de": "Mikronesien"
     },
     "region": "Oceania",
-    "subregion": "Micronesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/fm.svg",
     "hasGeometry": true
   },
@@ -1577,7 +1577,7 @@
       "de": "Mongolei"
     },
     "region": "Asia",
-    "subregion": "Eastern Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/mn.svg",
     "hasGeometry": true
   },
@@ -1591,7 +1591,7 @@
       "de": "Montenegro"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Southern Europe",
     "flagAsset": "flags/me.svg",
     "hasGeometry": true
   },
@@ -1605,7 +1605,7 @@
       "de": "Marokko"
     },
     "region": "Africa",
-    "subregion": "Northern Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ma.svg",
     "hasGeometry": true
   },
@@ -1619,7 +1619,7 @@
       "de": "Mosambik"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mz.svg",
     "hasGeometry": true
   },
@@ -1647,7 +1647,7 @@
       "de": "Namibia"
     },
     "region": "Africa",
-    "subregion": "Southern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/na.svg",
     "hasGeometry": true
   },
@@ -1661,7 +1661,7 @@
       "de": "Nauru"
     },
     "region": "Oceania",
-    "subregion": "Micronesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/nr.svg",
     "hasGeometry": true
   },
@@ -1703,7 +1703,7 @@
       "de": "Neuseeland"
     },
     "region": "Oceania",
-    "subregion": "Australia and New Zealand",
+    "subregion": "Oceania",
     "flagAsset": "flags/nz.svg",
     "hasGeometry": true
   },
@@ -1717,7 +1717,7 @@
       "de": "Nicaragua"
     },
     "region": "Americas",
-    "subregion": "Central America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/ni.svg",
     "hasGeometry": true
   },
@@ -1759,7 +1759,7 @@
       "de": "Nordkorea"
     },
     "region": "Asia",
-    "subregion": "Eastern Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kp.svg",
     "hasGeometry": true
   },
@@ -1773,7 +1773,7 @@
       "de": "Nordmazedonien"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Southern Europe",
     "flagAsset": "flags/mk.svg",
     "hasGeometry": true
   },
@@ -1829,7 +1829,7 @@
       "de": "Palau"
     },
     "region": "Oceania",
-    "subregion": "Micronesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/pw.svg",
     "hasGeometry": true
   },
@@ -1857,7 +1857,7 @@
       "de": "Panama"
     },
     "region": "Americas",
-    "subregion": "Central America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/pa.svg",
     "hasGeometry": true
   },
@@ -1871,7 +1871,7 @@
       "de": "Papua-Neuguinea"
     },
     "region": "Oceania",
-    "subregion": "Melanesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/pg.svg",
     "hasGeometry": true
   },
@@ -1927,7 +1927,7 @@
       "de": "Polen"
     },
     "region": "Europe",
-    "subregion": "Central Europe",
+    "subregion": "Eastern Europe",
     "flagAsset": "flags/pl.svg",
     "hasGeometry": true
   },
@@ -1969,7 +1969,7 @@
       "de": "Kongo"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cg.svg",
     "hasGeometry": true
   },
@@ -1983,7 +1983,7 @@
       "de": "Rumänien"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Eastern Europe",
     "flagAsset": "flags/ro.svg",
     "hasGeometry": true
   },
@@ -2011,7 +2011,7 @@
       "de": "Ruanda"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/rw.svg",
     "hasGeometry": true
   },
@@ -2067,7 +2067,7 @@
       "de": "Samoa"
     },
     "region": "Oceania",
-    "subregion": "Polynesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/ws.svg",
     "hasGeometry": true
   },
@@ -2095,7 +2095,7 @@
       "de": "São Tomé und Príncipe"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/st.svg",
     "hasGeometry": true
   },
@@ -2137,7 +2137,7 @@
       "de": "Serbien"
     },
     "region": "Europe",
-    "subregion": "Southeast Europe",
+    "subregion": "Southern Europe",
     "flagAsset": "flags/rs.svg",
     "hasGeometry": true
   },
@@ -2151,7 +2151,7 @@
       "de": "Seychellen"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/sc.svg",
     "hasGeometry": true
   },
@@ -2193,7 +2193,7 @@
       "de": "Slowakei"
     },
     "region": "Europe",
-    "subregion": "Central Europe",
+    "subregion": "Eastern Europe",
     "flagAsset": "flags/sk.svg",
     "hasGeometry": true
   },
@@ -2207,7 +2207,7 @@
       "de": "Slowenien"
     },
     "region": "Europe",
-    "subregion": "Central Europe",
+    "subregion": "Southern Europe",
     "flagAsset": "flags/si.svg",
     "hasGeometry": true
   },
@@ -2221,7 +2221,7 @@
       "de": "Salomonen"
     },
     "region": "Oceania",
-    "subregion": "Melanesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/sb.svg",
     "hasGeometry": true
   },
@@ -2235,7 +2235,7 @@
       "de": "Somalia"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/so.svg",
     "hasGeometry": true
   },
@@ -2249,7 +2249,7 @@
       "de": "Südafrika"
     },
     "region": "Africa",
-    "subregion": "Southern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/za.svg",
     "hasGeometry": true
   },
@@ -2263,7 +2263,7 @@
       "de": "Südkorea"
     },
     "region": "Asia",
-    "subregion": "Eastern Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kr.svg",
     "hasGeometry": true
   },
@@ -2277,7 +2277,7 @@
       "de": "Südsudan"
     },
     "region": "Africa",
-    "subregion": "Middle Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ss.svg",
     "hasGeometry": true
   },
@@ -2319,7 +2319,7 @@
       "de": "Sudan"
     },
     "region": "Africa",
-    "subregion": "Northern Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/sd.svg",
     "hasGeometry": true
   },
@@ -2389,7 +2389,7 @@
       "de": "Tadschikistan"
     },
     "region": "Asia",
-    "subregion": "Central Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/tj.svg",
     "hasGeometry": true
   },
@@ -2403,7 +2403,7 @@
       "de": "Tansania"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/tz.svg",
     "hasGeometry": true
   },
@@ -2459,7 +2459,7 @@
       "de": "Tonga"
     },
     "region": "Oceania",
-    "subregion": "Polynesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/to.svg",
     "hasGeometry": true
   },
@@ -2487,7 +2487,7 @@
       "de": "Tunesien"
     },
     "region": "Africa",
-    "subregion": "Northern Africa",
+    "subregion": "Northern & Central Africa",
     "flagAsset": "flags/tn.svg",
     "hasGeometry": true
   },
@@ -2515,7 +2515,7 @@
       "de": "Turkmenistan"
     },
     "region": "Asia",
-    "subregion": "Central Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/tm.svg",
     "hasGeometry": true
   },
@@ -2529,7 +2529,7 @@
       "de": "Tuvalu"
     },
     "region": "Oceania",
-    "subregion": "Polynesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/tv.svg",
     "hasGeometry": false
   },
@@ -2543,7 +2543,7 @@
       "de": "Uganda"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/ug.svg",
     "hasGeometry": true
   },
@@ -2599,7 +2599,7 @@
       "de": "Vereinigte Staaten"
     },
     "region": "Americas",
-    "subregion": "North America",
+    "subregion": "North & Central America",
     "flagAsset": "flags/us.svg",
     "hasGeometry": true
   },
@@ -2627,7 +2627,7 @@
       "de": "Usbekistan"
     },
     "region": "Asia",
-    "subregion": "Central Asia",
+    "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/uz.svg",
     "hasGeometry": true
   },
@@ -2641,7 +2641,7 @@
       "de": "Vanuatu"
     },
     "region": "Oceania",
-    "subregion": "Melanesia",
+    "subregion": "Oceania",
     "flagAsset": "flags/vu.svg",
     "hasGeometry": true
   },
@@ -2711,7 +2711,7 @@
       "de": "Sambia"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/zm.svg",
     "hasGeometry": true
   },
@@ -2725,7 +2725,7 @@
       "de": "Simbabwe"
     },
     "region": "Africa",
-    "subregion": "Eastern Africa",
+    "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/zw.svg",
     "hasGeometry": true
   }

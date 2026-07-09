@@ -293,7 +293,9 @@
           {/each}
         </div>
 
-        {#if subregions.length}
+        <!-- Only offer the sub-region picker when the region is actually subdivided;
+             a region with a single bucket (Oceania) would just show a redundant button. -->
+        {#if subregions.length > 1}
           <SegmentedControl
             options={subregionOptions}
             value={selectedSubregion}

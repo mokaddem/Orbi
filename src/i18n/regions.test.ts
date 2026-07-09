@@ -5,23 +5,23 @@ import { localizedRegion, setLocale } from './index';
 import { getRegionTree } from '../data';
 
 describe('regionName', () => {
-  it('returns English M49 labels unchanged', () => {
+  it('returns English labels unchanged', () => {
     expect(regionName('Europe', 'en')).toBe('Europe');
-    expect(regionName('Eastern Europe', 'en')).toBe('Eastern Europe');
+    expect(regionName('Eastern & Southern Africa', 'en')).toBe('Eastern & Southern Africa');
   });
 
   it('translates known regions and sub-regions to French', () => {
     expect(regionName('Africa', 'fr')).toBe('Afrique');
-    expect(regionName('Northern Africa', 'fr')).toBe('Afrique du Nord');
+    expect(regionName('Northern & Central Africa', 'fr')).toBe('Afrique du Nord et centrale');
     expect(regionName('South-Eastern Asia', 'fr')).toBe('Asie du Sud-Est');
   });
 
   it('translates known regions and sub-regions to German', () => {
     expect(regionName('Africa', 'de')).toBe('Afrika');
-    expect(regionName('Northern Africa', 'de')).toBe('Nordafrika');
+    expect(regionName('Northern & Central Africa', 'de')).toBe('Nord- und Zentralafrika');
     expect(regionName('South-Eastern Asia', 'de')).toBe('Südostasien');
-    // The "Southern Africa" region stays distinct from "Südafrika" (the country).
-    expect(regionName('Southern Africa', 'de')).toBe('Südliches Afrika');
+    // "südliches" stays lowercase so the region reads distinct from "Südafrika" (the country).
+    expect(regionName('Eastern & Southern Africa', 'de')).toBe('Ost- und südliches Afrika');
   });
 
   it('falls back to the raw label for an unknown name', () => {

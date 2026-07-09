@@ -59,6 +59,83 @@ const NAME_OVERRIDES = {
   SZ: { fr: 'Eswatini', de: 'Eswatini' },
 };
 
+/**
+ * Phase 19 — sub-region regrouping into balanced "play regions".
+ *
+ * The raw `world-countries` sub-regions are finer than classic UN M49 (Europe alone is
+ * split into six, with non-M49 labels like "Central Europe"), leaving 12 of ~24 buckets
+ * below a playable size — e.g. Eastern Europe = 4, so a 10-question region game just
+ * cycles the same handful. We regroup them here, at build time, so every selectable
+ * bucket holds at least {@link MIN_POOL} countries and a filtered game has real variety.
+ *
+ * The top-level `region` (the five M49 continents) is left untouched — only `subregion`
+ * is rewritten. Nothing persists a sub-region label (history stores ISO codes; the
+ * bucket is always recomputed), so this needs no progress migration.
+ */
+const MIN_POOL = 8;
+
+/** Raw `world-countries` sub-region → play-region bucket (the common case). */
+const SUBREGION_REGROUP = {
+  // Africa: Northern (6) + Middle (10); Eastern (17) + Southern (5); Western (16) intact.
+  'Northern Africa': 'Northern & Central Africa',
+  'Middle Africa': 'Northern & Central Africa',
+  'Western Africa': 'Western Africa',
+  'Eastern Africa': 'Eastern & Southern Africa',
+  'Southern Africa': 'Eastern & Southern Africa',
+  // Americas: North America (3) + Central America (7); Caribbean (13), South America (12) intact.
+  'North America': 'North & Central America',
+  'Central America': 'North & Central America',
+  Caribbean: 'Caribbean',
+  'South America': 'South America',
+  // Asia: Central (5) + Eastern (5); Southern (9), South-Eastern (11), Western (17) intact.
+  'Central Asia': 'Central & Eastern Asia',
+  'Eastern Asia': 'Central & Eastern Asia',
+  'Southern Asia': 'Southern Asia',
+  'South-Eastern Asia': 'South-Eastern Asia',
+  'Western Asia': 'Western Asia',
+  // Europe → classic UN M49 four. The world-countries "Central Europe" and "Southeast
+  // Europe" splits dissolve back into the four; the members that don't follow their raw
+  // sub-region's majority are corrected by SUBREGION_OVERRIDE_ISO below.
+  'Northern Europe': 'Northern Europe',
+  'Western Europe': 'Western Europe',
+  'Eastern Europe': 'Eastern Europe',
+  'Southern Europe': 'Southern Europe',
+  'Central Europe': 'Eastern Europe', // Czechia, Hungary, Poland, Slovakia (Austria/Slovenia overridden)
+  'Southeast Europe': 'Southern Europe', // the Balkans (Bulgaria/Romania overridden)
+  // Oceania → a single bucket (14): its four raw sub-regions (2/3/4/5) are all far below
+  // MIN_POOL and 14 can't be split into two ≥ MIN_POOL pieces, so it stays region-only.
+  'Australia and New Zealand': 'Oceania',
+  Melanesia: 'Oceania',
+  Micronesia: 'Oceania',
+  Polynesia: 'Oceania',
+};
+
+/**
+ * Per-country overrides for the Europe reshuffle, where a country's classic-M49 bucket
+ * differs from the majority mapping of its raw `world-countries` sub-region.
+ */
+const SUBREGION_OVERRIDE_ISO = {
+  AT: 'Western Europe', // Austria: raw "Central Europe" → Western (classic M49)
+  SI: 'Southern Europe', // Slovenia: raw "Central Europe" → Southern (classic M49)
+  BG: 'Eastern Europe', // Bulgaria: raw "Southeast Europe" → Eastern (classic M49)
+  RO: 'Eastern Europe', // Romania: raw "Southeast Europe" → Eastern (classic M49)
+};
+
+/**
+ * Resolve a raw `world-countries` record to its play-region bucket. Throws on an
+ * unmapped sub-region so a data-source change fails the build loudly instead of
+ * silently leaving a country in a stale (possibly tiny) bucket.
+ */
+function playRegion(c) {
+  const bucket = SUBREGION_OVERRIDE_ISO[c.cca2] ?? SUBREGION_REGROUP[c.subregion];
+  if (!bucket) {
+    throw new Error(
+      `build-data: no play-region bucket for ${c.cca2} (raw sub-region "${c.subregion}")`,
+    );
+  }
+  return bucket;
+}
+
 /** Read a JSON file relative to node_modules. */
 function readNmJson(rel) {
   return JSON.parse(readFileSync(join(NM, rel), 'utf8'));
@@ -308,7 +385,7 @@ for (const c of inScope) {
       de: NAME_OVERRIDES[iso2]?.de ?? c.translations.deu?.common ?? c.name.common,
     },
     region: c.region,
-    subregion: c.subregion,
+    subregion: playRegion(c), // Phase 19: regrouped play-region bucket (region left as-is)
     flagAsset: `flags/${iso2lower}.svg`,
     hasGeometry,
   });
@@ -365,7 +442,20 @@ console.log(
 const unexpectedGeometry = missingGeometry.filter((cc) => !KNOWN_NO_GEOMETRY.has(cc));
 const staleExceptions = [...KNOWN_NO_GEOMETRY].filter((cc) => !missingGeometry.includes(cc));
 
-if (missingFlag.length || unexpectedGeometry.length || staleExceptions.length) {
+// Phase 19: every selectable play-region bucket must hold at least MIN_POOL countries,
+// so a region-filtered game never degenerates into cycling the same handful.
+const bucketSizes = new Map();
+for (const c of countries) {
+  const key = `${c.region} / ${c.subregion}`;
+  bucketSizes.set(key, (bucketSizes.get(key) ?? 0) + 1);
+}
+const tooSmall = [...bucketSizes].filter(([, count]) => count < MIN_POOL);
+console.log(
+  `[build-data] buckets:  ${bucketSizes.size} play-regions, smallest ` +
+    `${Math.min(...bucketSizes.values())} (min ${MIN_POOL})`,
+);
+
+if (missingFlag.length || unexpectedGeometry.length || staleExceptions.length || tooSmall.length) {
   console.error('[build-data] INTEGRITY CHECK FAILED:');
   if (missingFlag.length) console.error(`  - missing flags: ${missingFlag.join(', ')}`);
   if (unexpectedGeometry.length)
@@ -373,6 +463,11 @@ if (missingFlag.length || unexpectedGeometry.length || staleExceptions.length) {
   if (staleExceptions.length)
     console.error(
       `  - KNOWN_NO_GEOMETRY lists countries that now HAVE geometry: ${staleExceptions.join(', ')}`,
+    );
+  if (tooSmall.length)
+    console.error(
+      `  - play-region buckets below MIN_POOL (${MIN_POOL}): ` +
+        tooSmall.map(([k, n]) => `${k} (${n})`).join(', '),
     );
   process.exit(1);
 }

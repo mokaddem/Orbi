@@ -80,6 +80,22 @@ describe('Play route', () => {
     expect(get(play).config!.filter).toEqual({ region: 'Europe', subregion: 'Eastern Europe' });
   });
 
+  it('hides the sub-region selector for a region with a single bucket (Oceania)', async () => {
+    render(Play);
+    // Europe is subdivided, so its "All of …" sub-region option is shown.
+    await fireEvent.click(screen.getByRole('button', { name: 'Europe' }));
+    expect(screen.getByRole('button', { name: 'All of Europe' })).toBeInTheDocument();
+
+    // Oceania (post-Phase-19) has a single bucket, so no sub-region control renders.
+    await fireEvent.click(screen.getByRole('button', { name: 'Oceania' }));
+    expect(screen.queryByRole('button', { name: 'All of Oceania' })).not.toBeInTheDocument();
+
+    // Starting plays the whole region — the filter carries no sub-region.
+    await fireEvent.click(screen.getByText('Start'));
+    expect(get(play).config!.filter).toEqual({ region: 'Oceania' });
+    expect(get(play).question!.answer.region).toBe('Oceania');
+  });
+
   it('plays a map-highlight fixed session, auto-advancing between questions', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {

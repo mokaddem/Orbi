@@ -1,9 +1,10 @@
-// Localized display names for the M49 regions and sub-regions used by the region
-// filter (Phase 5). The bundled dataset stores region / sub-region names as their
-// English M49 labels, so these are keyed by that English string; the English display
-// name is the key itself (English needs no map). Anything missing falls back to the
-// raw key, so a data change surfaces as an untranslated (English) label rather than a
-// crash.
+// Localized display names for the five M49 regions and the regrouped "play-region"
+// sub-regions used by the region filter (Phase 5; buckets rebalanced in Phase 19). The
+// bundled dataset stores region / sub-region names as their English labels, so these are
+// keyed by that English string; the English display name is the key itself (English needs
+// no map). Anything missing falls back to the raw key, so a data change surfaces as an
+// untranslated (English) label rather than a crash. Oceania has no sub-buckets, so its
+// single "Oceania" bucket resolves through the region entry of the same name.
 //
 // Kept as a plain lookup (not in the dot-notation message dicts) because the keys
 // contain spaces and hyphens. Phase 17 generalized this from a single French map to a
@@ -23,39 +24,29 @@ const REGION_NAMES: Readonly<Record<TranslatedLocale, Readonly<Record<string, st
     Europe: 'Europe',
     Oceania: 'Océanie',
 
-    // Africa sub-regions
-    'Eastern Africa': "Afrique de l'Est",
-    'Middle Africa': 'Afrique centrale',
-    'Northern Africa': 'Afrique du Nord',
-    'Southern Africa': 'Afrique australe',
+    // Africa sub-regions (Phase 19 play-regions)
+    'Northern & Central Africa': 'Afrique du Nord et centrale',
+    'Eastern & Southern Africa': "Afrique de l'Est et australe",
     'Western Africa': "Afrique de l'Ouest",
 
     // Americas sub-regions
+    'North & Central America': 'Amérique du Nord et centrale',
     Caribbean: 'Caraïbes',
-    'Central America': 'Amérique centrale',
-    'North America': 'Amérique du Nord',
     'South America': 'Amérique du Sud',
 
     // Asia sub-regions
-    'Central Asia': 'Asie centrale',
-    'Eastern Asia': "Asie de l'Est",
+    'Central & Eastern Asia': "Asie centrale et de l'Est",
     'South-Eastern Asia': 'Asie du Sud-Est',
     'Southern Asia': 'Asie du Sud',
     'Western Asia': "Asie de l'Ouest",
 
-    // Europe sub-regions
-    'Central Europe': 'Europe centrale',
+    // Europe sub-regions (classic UN M49 four)
     'Eastern Europe': "Europe de l'Est",
     'Northern Europe': 'Europe du Nord',
-    'Southeast Europe': 'Europe du Sud-Est',
     'Southern Europe': 'Europe du Sud',
     'Western Europe': "Europe de l'Ouest",
 
-    // Oceania sub-regions
-    'Australia and New Zealand': 'Australie et Nouvelle-Zélande',
-    Melanesia: 'Mélanésie',
-    Micronesia: 'Micronésie',
-    Polynesia: 'Polynésie',
+    // Oceania has no sub-buckets — the single "Oceania" bucket reuses the region label above.
   },
   de: {
     // Regions
@@ -65,40 +56,30 @@ const REGION_NAMES: Readonly<Record<TranslatedLocale, Readonly<Record<string, st
     Europe: 'Europa',
     Oceania: 'Ozeanien',
 
-    // Africa sub-regions
-    'Eastern Africa': 'Ostafrika',
-    'Middle Africa': 'Zentralafrika',
-    'Northern Africa': 'Nordafrika',
-    // "Southern Africa" the region, kept distinct from "Südafrika" the country.
-    'Southern Africa': 'Südliches Afrika',
+    // Africa sub-regions (Phase 19 play-regions)
+    'Northern & Central Africa': 'Nord- und Zentralafrika',
+    // "südliches" stays lowercase (adjective) to read distinct from "Südafrika", the country.
+    'Eastern & Southern Africa': 'Ost- und südliches Afrika',
     'Western Africa': 'Westafrika',
 
     // Americas sub-regions
+    'North & Central America': 'Nord- und Mittelamerika',
     Caribbean: 'Karibik',
-    'Central America': 'Mittelamerika',
-    'North America': 'Nordamerika',
     'South America': 'Südamerika',
 
     // Asia sub-regions
-    'Central Asia': 'Zentralasien',
-    'Eastern Asia': 'Ostasien',
+    'Central & Eastern Asia': 'Zentral- und Ostasien',
     'South-Eastern Asia': 'Südostasien',
     'Southern Asia': 'Südasien',
     'Western Asia': 'Westasien',
 
-    // Europe sub-regions
-    'Central Europe': 'Mitteleuropa',
+    // Europe sub-regions (classic UN M49 four)
     'Eastern Europe': 'Osteuropa',
     'Northern Europe': 'Nordeuropa',
-    'Southeast Europe': 'Südosteuropa',
     'Southern Europe': 'Südeuropa',
     'Western Europe': 'Westeuropa',
 
-    // Oceania sub-regions
-    'Australia and New Zealand': 'Australien und Neuseeland',
-    Melanesia: 'Melanesien',
-    Micronesia: 'Mikronesien',
-    Polynesia: 'Polynesien',
+    // Oceania has no sub-buckets — the single "Oceania" bucket reuses the region label above.
   },
 };
 

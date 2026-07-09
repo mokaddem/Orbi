@@ -134,19 +134,19 @@ describe('play store', () => {
     }
   });
 
-  it('gracefully reduces options for a sub-region smaller than the default choice count', () => {
-    // Australia and New Zealand has only 2 countries — fewer than the 4 default options.
-    play.start(
-      baseConfig({
-        filter: { region: 'Oceania', subregion: 'Australia and New Zealand' },
-      }),
-    );
-    const q = get(play).question!;
-    expect(q.options).toHaveLength(2); // answer + the one available distractor, no error
-    for (const opt of q.options!) expect(opt.subregion).toBe('Australia and New Zealand');
-    // The session still plays through without throwing.
-    answerCorrect();
-    expect(get(play).status).toBe('answered');
+  it('fills the default option count for the smallest region filter (Phase 19: no tiny pools)', () => {
+    // Oceania is the smallest region (14) and, post-Phase-19, has no sub-buckets — it must
+    // still fill all 4 options and play without cycling a degenerate pool.
+    play.start(baseConfig({ filter: { region: 'Oceania' } }));
+    for (let i = 0; i < 6; i++) {
+      const q = get(play).question!;
+      expect(q.answer.region).toBe('Oceania');
+      expect(q.options).toHaveLength(4); // no reduced-option fallback needed anymore
+      expect(new Set(q.options!.map((o) => o.iso2)).size).toBe(4); // 4 distinct options
+      for (const opt of q.options!) expect(opt.region).toBe('Oceania');
+      answerCorrect();
+      play.advance();
+    }
   });
 
   it('records the region filter in the summary', () => {
