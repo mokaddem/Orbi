@@ -1,0 +1,139 @@
+import { describe, it, expect } from 'vitest';
+import {
+  MASTERY_MIN_REPETITIONS,
+  computeMastery,
+  isItemMastered,
+  masteryFraction,
+  type MasteryCountry,
+} from './mastery';
+import type { SRItem } from '../data/persistence/types';
+
+const NOW = 1_000_000;
+const DAY = 86_400_000;
+
+/** Build an SRItem with sensible defaults, overriding what a test cares about. */
+function sr(itemKey: string, over: Partial<SRItem> = {}): SRItem {
+  return {
+    itemKey,
+    repetitions: MASTERY_MIN_REPETITIONS,
+    easeFactor: 2.5,
+    intervalDays: 6,
+    dueAt: NOW + 6 * DAY, // future by default → not overdue
+    lapses: 0,
+    lastReviewedAt: NOW - DAY,
+    ...over,
+  };
+}
+
+describe('isItemMastered', () => {
+  it('is mastered at the repetition bar with a future due date', () => {
+    expect(
+      isItemMastered(sr('flag-to-country:FR', { repetitions: 2, dueAt: NOW + DAY }), NOW),
+    ).toBe(true);
+  });
+
+  it('is not mastered below the repetition bar', () => {
+    expect(
+      isItemMastered(sr('flag-to-country:FR', { repetitions: 1, dueAt: NOW + DAY }), NOW),
+    ).toBe(false);
+  });
+
+  it('is not mastered while overdue, however many repetitions', () => {
+    expect(
+      isItemMastered(sr('flag-to-country:FR', { repetitions: 9, dueAt: NOW - DAY }), NOW),
+    ).toBe(false);
+  });
+
+  it('treats due-exactly-now as overdue (strictly in the future)', () => {
+    expect(isItemMastered(sr('flag-to-country:FR', { repetitions: 5, dueAt: NOW }), NOW)).toBe(
+      false,
+    );
+  });
+});
+
+describe('masteryFraction', () => {
+  it('is 0 for an empty denominator', () => {
+    expect(masteryFraction({ mastered: 0, learning: 0, unseen: 0, total: 0 })).toBe(0);
+  });
+
+  it('is mastered/total otherwise', () => {
+    expect(masteryFraction({ mastered: 3, learning: 1, unseen: 6, total: 10 })).toBeCloseTo(0.3);
+  });
+});
+
+describe('computeMastery', () => {
+  const countries: MasteryCountry[] = [
+    { iso2: 'FR', region: 'Europe' },
+    { iso2: 'DE', region: 'Europe' },
+    { iso2: 'NG', region: 'Africa' },
+    { iso2: 'KE', region: 'Africa' },
+    { iso2: 'JP', region: 'Asia' },
+  ];
+
+  it('marks every country unseen when there is no SR state', () => {
+    const { overall, byRegion } = computeMastery([], countries, { now: NOW });
+    expect(overall).toEqual({ mastered: 0, learning: 0, unseen: 5, total: 5 });
+    // Every region present, all unseen.
+    expect(byRegion.map((r) => r.region).sort()).toEqual(['Africa', 'Asia', 'Europe']);
+    expect(byRegion.every((r) => r.mastered === 0 && r.unseen === r.total)).toBe(true);
+  });
+
+  it('is lenient: any one mastered mode masters the country', () => {
+    const items = [
+      // FR mastered in one mode, still learning in another → country is mastered.
+      sr('flag-to-country:FR', { repetitions: 3, dueAt: NOW + 10 * DAY }),
+      sr('map-locate:FR', { repetitions: 0, dueAt: NOW, lapses: 2 }),
+    ];
+    const { overall } = computeMastery(items, countries, { now: NOW });
+    expect(overall.mastered).toBe(1);
+  });
+
+  it('counts a seen-but-not-mastered country as learning', () => {
+    const items = [sr('flag-to-country:NG', { repetitions: 1, dueAt: NOW + DAY })];
+    const { overall } = computeMastery(items, countries, { now: NOW });
+    expect(overall).toMatchObject({ mastered: 0, learning: 1, unseen: 4, total: 5 });
+  });
+
+  it('demotes a lapsed country from mastered back to learning', () => {
+    const mastered = [sr('flag-to-country:JP', { repetitions: 4, dueAt: NOW + 30 * DAY })];
+    expect(computeMastery(mastered, countries, { now: NOW }).overall.mastered).toBe(1);
+    // After a lapse SM-2 resets repetitions to 0 and dueAt to now → learning, not mastered.
+    const lapsed = [sr('flag-to-country:JP', { repetitions: 0, dueAt: NOW, lapses: 1 })];
+    const roll = computeMastery(lapsed, countries, { now: NOW }).overall;
+    expect(roll).toMatchObject({ mastered: 0, learning: 1 });
+  });
+
+  it('partitions per region and always sums to the total', () => {
+    const items = [
+      sr('flag-to-country:FR', { repetitions: 3, dueAt: NOW + 10 * DAY }), // Europe mastered
+      sr('map-highlight:NG', { repetitions: 1, dueAt: NOW + DAY }), // Africa learning
+    ];
+    const { overall, byRegion } = computeMastery(items, countries, { now: NOW });
+    for (const r of [...byRegion, overall]) {
+      expect(r.mastered + r.learning + r.unseen).toBe(r.total);
+    }
+    const europe = byRegion.find((r) => r.region === 'Europe')!;
+    expect(europe).toMatchObject({ mastered: 1, learning: 0, unseen: 1, total: 2 });
+    const africa = byRegion.find((r) => r.region === 'Africa')!;
+    expect(africa).toMatchObject({ mastered: 0, learning: 1, unseen: 1, total: 2 });
+  });
+
+  it('orders regions least-complete first', () => {
+    const items = [
+      // Europe: 2/2 mastered (100%). Africa: 0/2 (0%). Asia: untouched (0%, but fewer to learn).
+      sr('flag-to-country:FR', { repetitions: 3, dueAt: NOW + 10 * DAY }),
+      sr('flag-to-country:DE', { repetitions: 3, dueAt: NOW + 10 * DAY }),
+    ];
+    const order = computeMastery(items, countries, { now: NOW }).byRegion.map((r) => r.region);
+    // Europe (100%) must come last; the two 0% regions lead, most-to-learn first (Africa: 2).
+    expect(order[order.length - 1]).toBe('Europe');
+    expect(order).toEqual(['Africa', 'Asia', 'Europe']);
+  });
+
+  it('ignores malformed item keys', () => {
+    const items = [sr('not-a-mode:FR'), sr(':FR'), sr('flag-to-country:')];
+    const { overall } = computeMastery(items, countries, { now: NOW });
+    expect(overall.mastered + overall.learning).toBe(0);
+    expect(overall.unseen).toBe(5);
+  });
+});

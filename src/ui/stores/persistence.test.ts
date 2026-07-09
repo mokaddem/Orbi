@@ -6,11 +6,15 @@ import { setLocale } from '../../i18n';
 import type { QuestionResult } from '../../domain';
 import {
   clearHistory,
+  clearTraining,
   initPersistence,
+  loadAchievements,
+  loadMastery,
   loadSessions,
   loadStats,
   loadTrainingItems,
   loadTrainingPlan,
+  loadWeeklyRecap,
   persistent,
   prefs,
   recordAnswer,
@@ -177,5 +181,64 @@ describe('spaced repetition wiring', () => {
     expect(plan).toBeTruthy();
     expect(plan!.mode).toBe('map-highlight');
     expect(plan!.iso2s).toEqual(expect.arrayContaining(['BG', 'RO']));
+  });
+});
+
+describe('progress & rewards wiring (Phase 16)', () => {
+  beforeAll(async () => {
+    await initPersistence();
+  });
+
+  beforeEach(async () => {
+    // Isolate from other describes: a clean history + SR + badge slate each test.
+    await clearHistory();
+    await clearTraining();
+  });
+
+  it('rolls mastered SR items into the mastery meter', async () => {
+    // Two correct answers push SM-2 to repetitions 2, interval 6d (future) → mastered.
+    const key = 'flag-to-country:SE';
+    await recordAnswer(answer({ itemKey: key, countryIso2: 'SE', correct: true, answerMs: 500 }));
+    await recordAnswer(answer({ itemKey: key, countryIso2: 'SE', correct: true, answerMs: 500 }));
+
+    const mastery = await loadMastery();
+    expect(mastery.overall.total).toBe(195); // full-world denominator
+    expect(mastery.overall.mastered).toBeGreaterThanOrEqual(1);
+    // Sweden's region (Europe) should reflect the mastered country.
+    const europe = mastery.byRegion.find((r) => r.region === 'Europe');
+    expect(europe!.mastered).toBeGreaterThanOrEqual(1);
+  });
+
+  it('summarizes the current week from saved sessions', async () => {
+    const now = Date.now();
+    await saveSession(summary({ startedAt: now, finishedAt: now, total: 2, correct: 1 }));
+    const recap = await loadWeeklyRecap(now);
+    expect(recap.sessions).toBe(1);
+    expect(recap.questions).toBe(2);
+    expect(recap.correct).toBe(1);
+  });
+
+  it('unlocks a badge, celebrates it once, then keeps it earned without re-flagging', async () => {
+    await saveSession(summary());
+
+    const first = await loadAchievements();
+    const fr1 = first.find((a) => a.id === 'first-round')!;
+    expect(fr1.unlocked).toBe(true);
+    expect(fr1.justUnlocked).toBe(true); // celebrated on the load it first crossed the line
+    expect(fr1.unlockedAt).toBeTypeOf('number');
+
+    const second = await loadAchievements();
+    const fr2 = second.find((a) => a.id === 'first-round')!;
+    expect(fr2.unlocked).toBe(true);
+    expect(fr2.justUnlocked).toBe(false); // persisted now → no repeat celebration
+  });
+
+  it('clears earned badges when history is cleared', async () => {
+    await saveSession(summary());
+    await loadAchievements(); // persists first-round
+    await clearHistory(); // wipes sessions + badges together
+
+    const after = await loadAchievements();
+    expect(after.find((a) => a.id === 'first-round')!.unlocked).toBe(false);
   });
 });

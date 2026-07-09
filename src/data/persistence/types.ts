@@ -59,6 +59,17 @@ export interface DailyResult {
   mode: GameMode;
 }
 
+/**
+ * A badge the player has earned (Phase 16), with when it first unlocked. Persisted one row
+ * per earned badge so the UI can fire a one-time "unlocked!" celebration and mark a badge as
+ * "new"; locked badges have no row. The `id` matches an entry in the achievements catalog.
+ */
+export interface AchievementUnlock {
+  id: string;
+  /** Timestamp the badge first unlocked. */
+  unlockedAt: number;
+}
+
 /** User-editable preferences, persisted and applied at startup. */
 export interface Prefs {
   language: Locale;
@@ -135,4 +146,10 @@ export interface QuizStore {
   saveDailyResult(result: DailyResult): Promise<void>;
   /** Erase the Daily Challenge result (cleared alongside play history). */
   clearDailyResult(): Promise<void>;
+
+  // Achievements (one row per earned badge, recording when it unlocked)
+  getAchievements(): Promise<AchievementUnlock[]>;
+  putAchievement(unlock: AchievementUnlock): Promise<void>;
+  /** Erase all earned badges (cleared alongside a full progress reset). */
+  clearAchievements(): Promise<void>;
 }

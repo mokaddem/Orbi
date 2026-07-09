@@ -149,6 +149,60 @@ const en = {
     clear: 'Clear history',
     clearConfirm: 'Delete all saved sessions? This cannot be undone.',
   },
+  progress: {
+    mastery: {
+      title: 'World mastery',
+      learned: '{mastered} of {total} countries learned',
+      regionsTitle: 'Mastery by region',
+      regionCount: '{mastered}/{total}',
+    },
+    achievements: {
+      title: 'Achievements',
+      earned: '{earned} of {total} earned',
+      unlocked: 'Achievement unlocked!',
+      dismiss: 'Dismiss',
+      badges: {
+        'first-round': { title: 'First round', desc: 'Finish your first session.' },
+        'perfect-fixed': {
+          title: 'Perfect round',
+          desc: 'Finish a fixed round with no mistakes.',
+        },
+        'flawless-survival': {
+          title: 'Survivor',
+          desc: 'Finish a survival run without a single miss.',
+        },
+        speedy: {
+          title: 'Speed demon',
+          desc: 'Average under 3 seconds per answer over a round of 5 or more.',
+        },
+        'streak-7': { title: 'Week streak', desc: 'Play 7 days in a row.' },
+        'streak-30': { title: 'Month streak', desc: 'Play 30 days in a row.' },
+        'region-mastered': {
+          title: 'Region master',
+          desc: 'Master every country in any one region.',
+        },
+        'mastered-europe': { title: 'Europe mastered', desc: 'Master every country in Europe.' },
+        'mastered-africa': { title: 'Africa mastered', desc: 'Master every country in Africa.' },
+        'mastered-asia': { title: 'Asia mastered', desc: 'Master every country in Asia.' },
+        'mastered-americas': {
+          title: 'Americas mastered',
+          desc: 'Master every country in the Americas.',
+        },
+        'mastered-oceania': { title: 'Oceania mastered', desc: 'Master every country in Oceania.' },
+        century: { title: 'Centurion', desc: 'Master 100 countries.' },
+        'world-mastered': { title: 'World master', desc: 'Master every country in the world.' },
+      },
+    },
+    recap: {
+      title: 'This week',
+      empty: 'Nothing yet this week — play a round to fill this in.',
+      sessions: 'Sessions',
+      accuracy: 'Accuracy',
+      questions: 'Questions',
+      mastered: 'Newly mastered',
+      streak: 'Day streak',
+    },
+  },
   settings: {
     title: 'Settings',
     language: 'Language',

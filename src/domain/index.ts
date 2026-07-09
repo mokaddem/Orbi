@@ -93,3 +93,32 @@ export {
   dailySeed,
   buildDailyChallenge,
 } from './daily';
+
+export {
+  type MasteryState,
+  type MasteryRollup,
+  type RegionMastery,
+  type MasteryResult,
+  type MasteryCountry,
+  type MasteryOptions,
+  MASTERY_MIN_REPETITIONS,
+  isItemMastered,
+  masteryFraction,
+  computeMastery,
+} from './mastery';
+
+export {
+  type AchievementContext,
+  type AchievementDef,
+  type AchievementStatus,
+  CONTINENTS,
+  SPEEDY_MIN_QUESTIONS,
+  SPEEDY_MAX_AVG_MS,
+  CENTURY_TARGET,
+  STREAK_BADGE_DAYS,
+  ACHIEVEMENTS,
+  ACHIEVEMENT_IDS,
+  evaluateAchievements,
+} from './achievements';
+
+export { type WeeklyRecap, type RecapOptions, localWeekStart, computeWeeklyRecap } from './recap';
