@@ -85,7 +85,7 @@ describe('WorldMap', () => {
     expect(container.querySelector('circle.marker')).toBeInTheDocument();
   });
 
-  it('reveals correct (green) and picked-wrong (red) after a miss', () => {
+  it('reveals correct (green) and marks the picked-wrong country after a miss', () => {
     const { container } = render(WorldMap, {
       features,
       interactive: true,
@@ -95,6 +95,42 @@ describe('WorldMap', () => {
     });
     expect(path(container, 'AA')).toHaveAttribute('data-state', 'reveal');
     expect(path(container, 'BB')).toHaveAttribute('data-state', 'picked-wrong');
+  });
+
+  it('leads the reveal with a target ring + name label (Phase 22)', () => {
+    const { container } = render(WorldMap, {
+      features,
+      interactive: true,
+      disabled: true,
+      revealIso: 'CC', // the microstate target
+      pickedIso: 'AA', // wrong pick (a large neighbour)
+      revealLabel: 'Ccland',
+    });
+    expect(container.querySelector('circle.reveal-ring')).toBeInTheDocument();
+    const label = container.querySelector('text.reveal-label');
+    expect(label).toBeInTheDocument();
+    expect(label?.textContent).toBe('Ccland');
+    // The target's own aim dot is replaced by the ring; the wrong pick is still
+    // identified (rendered muted via CSS) so it reads as secondary context.
+    expect(container.querySelector('circle[data-hit="dot"]')).not.toBeInTheDocument();
+    expect(path(container, 'AA')).toHaveAttribute('data-state', 'picked-wrong');
+  });
+
+  it('makes microstate aim dots visible in locate play', () => {
+    const { container } = render(WorldMap, { features, interactive: true });
+    const dot = container.querySelector('circle[data-hit="dot"]');
+    expect(dot).toBeInTheDocument();
+    // Visible now (not the old transparent target) — carries the styling class.
+    expect(dot).toHaveClass('dot');
+  });
+
+  it('never validates a microstate target from a neighbour click', async () => {
+    const onpick = vi.fn();
+    const { container } = render(WorldMap, { features, interactive: true, onpick });
+    // CC is the tiny target; clicking the large neighbour AA must report AA, not CC.
+    await fireEvent.click(path(container, 'AA'));
+    expect(onpick).toHaveBeenCalledWith('AA');
+    expect(onpick).not.toHaveBeenCalledWith('CC');
   });
 
   it('fits the projection to the focused subset (region zoom)', () => {

@@ -20,6 +20,7 @@
     highlightIso = null,
     pickedIso = null,
     revealIso = null,
+    revealLabel = null,
     focusIsos = null,
     interactive = false,
     disabled = false,
@@ -33,6 +34,11 @@
     pickedIso?: string | null;
     /** Correct country to reveal in green once answered (map-locate). */
     revealIso?: string | null;
+    /**
+     * Localised name of the reveal target, drawn as an on-map label so the player
+     * learns *where* it is (Phase 22). Only shown when `revealIso` is set.
+     */
+    revealLabel?: string | null;
     /**
      * ISO alpha-2 codes to zoom/fit the projection to (the active region filter).
      * `null` / empty fits the whole world. Every country is still drawn; this only
@@ -118,6 +124,22 @@
     return { cx: item.cx, cy: item.cy, r };
   });
 
+  // Target-first reveal (map-locate, once answered): a green ring + name label on the
+  // country the player was asked to locate, so a wrong answer teaches *where it is*
+  // (Phase 22) rather than drawing the eye to the wrong pick. Radius floors like the
+  // marker so a micro-state still gets a legible ring; the label is offset with a
+  // leader and flips side/clamps vertically to stay on the board.
+  const revealMarker = $derived.by(() => {
+    if (!revealIso) return null;
+    const item = rendered.find((r) => r.iso2 === revealIso);
+    if (!item || !Number.isFinite(item.cx) || !Number.isFinite(item.cy)) return null;
+    const r = Math.min(40, Math.max(11, Math.sqrt(item.area) * 0.9));
+    const dir = item.cx < WIDTH * 0.72 ? 1 : -1;
+    const lx = item.cx + dir * (r + 26);
+    const ly = Math.max(24, item.cy - (r + 16));
+    return { cx: item.cx, cy: item.cy, r, lx, ly, anchor: dir > 0 ? 'start' : 'end' };
+  });
+
   type FillState = 'reveal' | 'picked-wrong' | 'highlight' | '';
 
   function stateFor(iso2: string): FillState {
@@ -159,22 +181,50 @@
     {#if hitDots.length}
       <g class="hit-dots">
         {#each hitDots as c (c.iso2)}
-          <circle
-            cx={c.cx}
-            cy={c.cy}
-            r="9"
-            data-iso={c.iso2}
-            data-hit="dot"
-            role={interactive ? 'button' : undefined}
-            aria-label={interactive ? c.iso2 : undefined}
-            onclick={() => pick(c.iso2)}
-          />
+          <!-- The target's own dot is replaced by the reveal ring once answered. -->
+          {#if !(disabled && c.iso2 === revealIso)}
+            <circle
+              class="dot"
+              class:muted={disabled}
+              cx={c.cx}
+              cy={c.cy}
+              r="9"
+              data-iso={c.iso2}
+              data-hit="dot"
+              role={interactive ? 'button' : undefined}
+              aria-label={interactive ? c.iso2 : undefined}
+              onclick={() => pick(c.iso2)}
+            />
+          {/if}
         {/each}
       </g>
     {/if}
 
     {#if marker}
       <circle class="marker" cx={marker.cx} cy={marker.cy} r={marker.r} />
+    {/if}
+
+    {#if revealMarker}
+      <g class="reveal-target">
+        {#if revealLabel}
+          <line
+            class="reveal-leader"
+            x1={revealMarker.cx}
+            y1={revealMarker.cy}
+            x2={revealMarker.lx}
+            y2={revealMarker.ly}
+          />
+        {/if}
+        <circle class="reveal-ring" cx={revealMarker.cx} cy={revealMarker.cy} r={revealMarker.r} />
+        {#if revealLabel}
+          <text
+            class="reveal-label"
+            x={revealMarker.lx}
+            y={revealMarker.ly}
+            text-anchor={revealMarker.anchor}>{revealLabel}</text
+          >
+        {/if}
+      </g>
     {/if}
   </svg>
 </div>
@@ -227,15 +277,51 @@
     stroke-width: 0.9;
   }
 
+  /* The wrong pick is kept as muted secondary context so the reveal target leads. */
   .country.picked-wrong {
     fill: var(--color-wrong);
+    fill-opacity: 0.3;
     stroke: var(--color-wrong);
-    stroke-width: 0.9;
+    stroke-opacity: 0.55;
+    stroke-width: 0.8;
   }
 
-  .hit-dots circle {
-    fill: transparent;
+  /* Micro-state aim points: visible during locate play, dimmed once answered so the
+     reveal stands out. Painted above country paths, so a click resolves to the tiny
+     target (never its larger neighbour). */
+  .dot {
+    fill: var(--color-accent-strong);
+    stroke: #fff;
+    stroke-width: 1;
     cursor: pointer;
+  }
+
+  .dot.muted {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .reveal-ring {
+    fill: none;
+    stroke: var(--color-correct);
+    stroke-width: 3;
+    animation: marker-in 0.45s ease;
+  }
+
+  .reveal-leader {
+    stroke: var(--color-correct);
+    stroke-width: 1.5;
+  }
+
+  .reveal-label {
+    font:
+      600 22px system-ui,
+      sans-serif;
+    fill: var(--color-text);
+    paint-order: stroke;
+    stroke: var(--map-water);
+    stroke-width: 4;
+    stroke-linejoin: round;
   }
 
   .marker {
@@ -261,7 +347,8 @@
       transition: none;
     }
 
-    .marker {
+    .marker,
+    .reveal-ring {
       animation: none;
     }
   }

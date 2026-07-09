@@ -111,7 +111,7 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | 19 | Region classification & bucketing | [phase-19-region-classification.md](phases/archive/phase-19-region-classification.md) | 1 (before 20; re-verify 14, 16) | ✅ Done | 100% |
 | 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/archive/phase-20-encyclopedia.md) | 1, 12 (19 first) | ✅ Done | 100% |
 | 21 | Country scope: disclaimer & definitions | [phase-21-country-scope.md](phases/archive/phase-21-country-scope.md) | 1 (20 for Stage B) | ✅ Done | 100% (Stage A; Stage B deferred) |
-| 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/phase-22-map-zoom-small-countries.md) | 4, 12 | ⬜ Not started | 0% |
+| 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/phase-22-map-zoom-small-countries.md) | 4, 12 | 🟡 In progress | ~70% (visible micro-state dots + ⭐ target-first reveal shipped; pan/zoom deferred) |
 | 23 | New mode: National languages | [phase-23-mode-languages.md](phases/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ⬜ Not started | 0% |
 | 24 | New mode: Capitals | [phase-24-mode-capitals.md](phases/phase-24-mode-capitals.md) | 2 (engine-generalization pilot) | ⬜ Not started | 0% |
 | 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |
@@ -136,7 +136,8 @@ pain; **27 (targeted practice)** is the biggest new capability; **28/29** are po
 | 29 | Identity & Home polish (app name · mascot favicon · region-mastery breakdown) | [phase-29-identity-home-polish.md](phases/phase-29-identity-home-polish.md) | 9, 16, 18 | ⬜ Not started | 0% |
 
 > The map-locate reveal item (show the target country, not the pick) lives in **Phase 22** — see its
-> ⭐ *Legible reveal, target-first* deliverable. It is the owner's top-priority v1.4 quick win.
+> ⭐ *Legible reveal, target-first* deliverable. It is the owner's top-priority v1.4 quick win, and
+> **shipped** in Phase 22's first increment (2026-07-09), alongside visible micro-state dots.
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

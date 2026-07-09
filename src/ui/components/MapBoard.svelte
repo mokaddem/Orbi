@@ -12,6 +12,7 @@
     highlightIso = null,
     pickedIso = null,
     revealIso = null,
+    revealLabel = null,
     focusIsos = null,
     interactive = false,
     disabled = false,
@@ -20,6 +21,7 @@
     highlightIso?: string | null;
     pickedIso?: string | null;
     revealIso?: string | null;
+    revealLabel?: string | null;
     focusIsos?: string[] | null;
     interactive?: boolean;
     disabled?: boolean;
@@ -44,6 +46,7 @@
     {highlightIso}
     {pickedIso}
     {revealIso}
+    {revealLabel}
     {focusIsos}
     {interactive}
     {disabled}

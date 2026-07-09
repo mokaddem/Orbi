@@ -383,6 +383,9 @@
             disabled={answered}
             pickedIso={cfg.mode === 'map-locate' ? (view.feedback?.pickedIso ?? null) : null}
             revealIso={cfg.mode === 'map-locate' && answered ? question.answer.iso2 : null}
+            revealLabel={cfg.mode === 'map-locate' && answered
+              ? $localizedName(question.answer)
+              : null}
             focusIsos={mapFocusIsos(cfg)}
             onpick={onMapPick}
           />

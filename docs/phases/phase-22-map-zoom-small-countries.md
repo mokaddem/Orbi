@@ -1,7 +1,13 @@
 # Phase 22 — Map zoom & small-country visibility/selection
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** ~70%
 · **Track:** v1.3 content, languages & new modes
+
+> **Owner decision (2026-07-09):** ship a first increment of **visible micro-state dots + a
+> target-first reveal**, and **defer interactive pan/zoom** (OQ1–4) unless play shows it's still
+> needed. The three reported problems are addressed at region/world framing; the remaining gap is a
+> *comfortable* touch target in dense micro-state clusters on small phones, which only zoom/insets
+> would fully close — left as the deferred follow-up.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -64,36 +70,29 @@ hit-dot machinery this phase revisits). Related to Phase 11 (input & answer-flow
 new game modes (23–25); placed **right before** them so the map is solid before more modes lean on it.
 
 ## Scope / Deliverables
-- [ ] **Chosen mechanism (owner decision)** — one or a combination of:
-      - **Interactive pan + zoom** on the board (wheel/trackpad, pinch, drag; double-tap/`+`/`−`
-        buttons; a reset/"fit" control), with sensible min/max zoom. Likely `d3-zoom` or a lightweight
-        SVG transform on the projected `<g>` (avoid re-projecting per frame — keep the one-shot
-        projection and transform the group).
-      - **Auto-focus the target** — in `map-highlight`, frame/zoom toward the highlighted country (with
-        surrounding context) so it's unmistakably visible; in `map-locate`, ensure the target's tap
-        target is generous even before any manual zoom.
-      - **Inset / loupe panels** for dense micro-state clusters (as paper atlases do for Europe), or an
-        enlarged always-on marker + label for below-threshold countries.
-- [ ] **Reliable, unambiguous selection (map-locate)** — a below-threshold country's tap target
-      reliably wins over its larger neighbours; clicking a neighbour registers **that neighbour** (never
-      a false-positive for the tiny target); touch targets meet a comfortable minimum (~44px effective).
-- [ ] **Legible reveal, target-first (⭐ shippable on its own, do first)** — after a **wrong** answer,
-      the reveal should **lead with the correct target** — where the country you were asked to locate
-      actually is — clearly indicated (ring / **name label** / brief auto-pan-or-zoom) so the player
-      learns the location, with the wrong pick shown as secondary context (not the focus). Today the map
-      only tints the correct country green and the picked one red (`WorldMap.svelte` `stateFor`), with
-      no on-map labels, and the green target can be an unseen speck — so the wrong red pick draws the
-      eye. This sub-fix (the owner's top-priority v1.4 item) is small and does **not** require the
-      zoom/pan machinery; it can land as a standalone change ahead of the rest of the phase. The correct
-      country's **name** is already shown in the text feedback (`play.feedback.reveal`) — the gap is
-      *on-map emphasis of the target*.
-- [ ] **Responsive & touch-first** — works with mouse, trackpad, and touch; doesn't fight page scroll;
-      respects `prefers-reduced-motion` (already honoured for the marker/transitions).
-- [ ] **Performance & offline** — keep the single projection pass; no new network/deps beyond a small
-      zoom helper; no regression to flag-only sessions (map code stays lazy-loaded via `MapBoard`).
-- [ ] **Tests** — pan/zoom transform math or hit-target logic unit-tested where pure; a component test
-      that a micro-state (e.g. LI) is reachable/selectable and that a neighbour click doesn't validate
-      the target; existing `WorldMap`/`map-framing` tests still green.
+- [x] **Chosen mechanism (owner decision)** — **visible micro-state dots** (the owner's idea), *not*
+      pan/zoom. The existing transparent locate-mode hit-dots (`< 14px²` countries) are now drawn as
+      **filled dots** (`.dot`, `--color-accent-strong` + white edge) so micro-states are visible and
+      have an aim point at the current zoom. Pan/zoom, auto-focus, and insets are **deferred** (see the
+      owner-decision note above) — kept as options if play shows the dots aren't enough for dense
+      clusters.
+- [x] **Reliable, unambiguous selection (map-locate)** — the dot is painted above country paths and is
+      the tap target, so a click resolves to the tiny target where the dot is and to the **neighbour**
+      everywhere else; confirmed (code + `WorldMap.test.ts`) that a neighbour click **never** validates
+      the target. *(Partial: a comfortable ~44px effective target in dense clusters on small phones
+      still needs zoom/insets — the deferred part.)*
+- [x] **Legible reveal, target-first (⭐)** — after an answer in `map-locate`, the reveal now **leads
+      with the correct target**: a green **ring + on-map name label** (with a leader, side-flipping and
+      vertically clamped to stay on the board) marks *where* the country is, the wrong pick is kept as a
+      **muted** secondary tint (was bright red), and other micro-state dots dim. Threaded via a new
+      `revealLabel` prop (`Play` → `MapBoard` → `WorldMap`), fed by `$localizedName(question.answer)`.
+- [x] **Responsive & touch-first** — SVG scales via `viewBox` (unchanged); the ring's fade-in respects
+      `prefers-reduced-motion` (added to the existing reduced-motion block).
+- [x] **Performance & offline** — single projection pass kept; **no new deps** (dots/ring are plain
+      SVG); map code still lazy-loaded via `MapBoard`; no flag-session regression.
+- [x] **Tests** — `WorldMap.test.ts`: target ring + name label on reveal, micro-state dots visible in
+      locate play, and a neighbour click never validates a micro-state target. Existing
+      `WorldMap`/`map-framing` tests still green (374 total).
 
 ## Technical notes
 - **Prefer transforming the projected group over re-projecting.** The projection is computed once and
@@ -153,3 +152,17 @@ new game modes (23–25); placed **right before** them so the map is solid befor
   **top-priority quick win** (shippable on its own, no zoom needed). Confirmed the text feedback already
   names the correct country (`play.feedback.reveal`); the gap is on-map emphasis of the target. Still
   NOT built — awaiting approval.**
+- **2026-07-09 — Clarifying round + build (increment 1).** Traced the grading path and resolved
+  **OQ5 from code:** there is **no false-validation bug** — `onpick` reports the exact ISO of the
+  clicked element and `play.answer` grades that; LI's hit-dot sits above CH, so a CH-body click reports
+  CH. The owner's uncertainty was an invisible dot working with no visual confirmation → purely a
+  visibility/confidence problem. Owner's steer on **OQ1**: instead of pan/zoom, **make the existing
+  hit-dot visible** ("wouldn't that solve it?") — yes, far cheaper and offline. Decisions: **dots +
+  target-first reveal now, defer zoom**; picked the visual fork from a throwaway prototype (framed on
+  the Alps, real projection): **filled dot** for play (over ring/halo) and **green ring + name label**
+  for the reveal (**OQ6**; wrong pick kept muted). OQ2/3/4 deferred with the zoom work. Built in
+  `WorldMap.svelte` (+ `revealLabel` threaded through `MapBoard`/`Play`). Fast loop green (check 0
+  errors / 374 tests / lint) and a headless-Chrome pass on :5180 of the real components in all three
+  states (locate play; wrong reveal; correct reveal) — dots visible, target ring+label leads, wrong
+  pick muted. Prototype/verify harnesses removed. **Zoom/insets + comfortable dense-cluster touch
+  target remain deferred** (OQ1–4) pending whether play shows they're needed.**
