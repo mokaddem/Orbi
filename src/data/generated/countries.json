@@ -8,6 +8,11 @@
       "fr": "Afghanistan",
       "de": "Afghanistan"
     },
+    "capital": {
+      "en": "Kabul",
+      "fr": "Kaboul",
+      "de": "Kabul"
+    },
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/af.svg",
@@ -21,6 +26,11 @@
       "en": "Albania",
       "fr": "Albanie",
       "de": "Albanien"
+    },
+    "capital": {
+      "en": "Tirana",
+      "fr": "Tirana",
+      "de": "Tirana"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -36,6 +46,11 @@
       "fr": "Algérie",
       "de": "Algerien"
     },
+    "capital": {
+      "en": "Algiers",
+      "fr": "Alger",
+      "de": "Algier"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/dz.svg",
@@ -49,6 +64,11 @@
       "en": "Andorra",
       "fr": "Andorre",
       "de": "Andorra"
+    },
+    "capital": {
+      "en": "Andorra la Vella",
+      "fr": "Andorre-la-Vieille",
+      "de": "Andorra la Vella"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -64,6 +84,11 @@
       "fr": "Angola",
       "de": "Angola"
     },
+    "capital": {
+      "en": "Luanda",
+      "fr": "Luanda",
+      "de": "Luanda"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ao.svg",
@@ -77,6 +102,11 @@
       "en": "Antigua and Barbuda",
       "fr": "Antigua-et-Barbuda",
       "de": "Antigua und Barbuda"
+    },
+    "capital": {
+      "en": "Saint John's",
+      "fr": "Saint John's",
+      "de": "Saint John's"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -92,6 +122,11 @@
       "fr": "Argentine",
       "de": "Argentinien"
     },
+    "capital": {
+      "en": "Buenos Aires",
+      "fr": "Buenos Aires",
+      "de": "Buenos Aires"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/ar.svg",
@@ -105,6 +140,11 @@
       "en": "Armenia",
       "fr": "Arménie",
       "de": "Armenien"
+    },
+    "capital": {
+      "en": "Yerevan",
+      "fr": "Erevan",
+      "de": "Eriwan"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -120,6 +160,11 @@
       "fr": "Australie",
       "de": "Australien"
     },
+    "capital": {
+      "en": "Canberra",
+      "fr": "Canberra",
+      "de": "Canberra"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/au.svg",
@@ -133,6 +178,11 @@
       "en": "Austria",
       "fr": "Autriche",
       "de": "Österreich"
+    },
+    "capital": {
+      "en": "Vienna",
+      "fr": "Vienne",
+      "de": "Wien"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -148,6 +198,11 @@
       "fr": "Azerbaïdjan",
       "de": "Aserbaidschan"
     },
+    "capital": {
+      "en": "Baku",
+      "fr": "Bakou",
+      "de": "Baku"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/az.svg",
@@ -161,6 +216,11 @@
       "en": "Bahamas",
       "fr": "Bahamas",
       "de": "Bahamas"
+    },
+    "capital": {
+      "en": "Nassau",
+      "fr": "Nassau",
+      "de": "Nassau"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -176,6 +236,11 @@
       "fr": "Bahreïn",
       "de": "Bahrain"
     },
+    "capital": {
+      "en": "Manama",
+      "fr": "Manama",
+      "de": "Manama"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/bh.svg",
@@ -189,6 +254,11 @@
       "en": "Bangladesh",
       "fr": "Bangladesh",
       "de": "Bangladesch"
+    },
+    "capital": {
+      "en": "Dhaka",
+      "fr": "Dhaka",
+      "de": "Dhaka"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -204,6 +274,11 @@
       "fr": "Barbade",
       "de": "Barbados"
     },
+    "capital": {
+      "en": "Bridgetown",
+      "fr": "Bridgetown",
+      "de": "Bridgetown"
+    },
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/bb.svg",
@@ -217,6 +292,11 @@
       "en": "Belarus",
       "fr": "Biélorussie",
       "de": "Belarus"
+    },
+    "capital": {
+      "en": "Minsk",
+      "fr": "Minsk",
+      "de": "Minsk"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -232,6 +312,11 @@
       "fr": "Belgique",
       "de": "Belgien"
     },
+    "capital": {
+      "en": "Brussels",
+      "fr": "Bruxelles",
+      "de": "Brüssel"
+    },
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/be.svg",
@@ -245,6 +330,11 @@
       "en": "Belize",
       "fr": "Belize",
       "de": "Belize"
+    },
+    "capital": {
+      "en": "Belmopan",
+      "fr": "Belmopan",
+      "de": "Belmopan"
     },
     "region": "Americas",
     "subregion": "North & Central America",
@@ -260,6 +350,11 @@
       "fr": "Bénin",
       "de": "Benin"
     },
+    "capital": {
+      "en": "Porto-Novo",
+      "fr": "Porto-Novo",
+      "de": "Porto-Novo"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/bj.svg",
@@ -273,6 +368,11 @@
       "en": "Bhutan",
       "fr": "Bhoutan",
       "de": "Bhutan"
+    },
+    "capital": {
+      "en": "Thimphu",
+      "fr": "Thimphu",
+      "de": "Thimphu"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -288,6 +388,11 @@
       "fr": "Bolivie",
       "de": "Bolivien"
     },
+    "capital": {
+      "en": "Sucre",
+      "fr": "Sucre",
+      "de": "Sucre"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/bo.svg",
@@ -301,6 +406,11 @@
       "en": "Bosnia and Herzegovina",
       "fr": "Bosnie-Herzégovine",
       "de": "Bosnien und Herzegowina"
+    },
+    "capital": {
+      "en": "Sarajevo",
+      "fr": "Sarajevo",
+      "de": "Sarajevo"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -316,6 +426,11 @@
       "fr": "Botswana",
       "de": "Botswana"
     },
+    "capital": {
+      "en": "Gaborone",
+      "fr": "Gaborone",
+      "de": "Gaborone"
+    },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/bw.svg",
@@ -329,6 +444,11 @@
       "en": "Brazil",
       "fr": "Brésil",
       "de": "Brasilien"
+    },
+    "capital": {
+      "en": "Brasília",
+      "fr": "Brasília",
+      "de": "Brasília"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -344,6 +464,11 @@
       "fr": "Brunei",
       "de": "Brunei"
     },
+    "capital": {
+      "en": "Bandar Seri Begawan",
+      "fr": "Bandar Seri Begawan",
+      "de": "Bandar Seri Begawan"
+    },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/bn.svg",
@@ -357,6 +482,11 @@
       "en": "Bulgaria",
       "fr": "Bulgarie",
       "de": "Bulgarien"
+    },
+    "capital": {
+      "en": "Sofia",
+      "fr": "Sofia",
+      "de": "Sofia"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -372,6 +502,11 @@
       "fr": "Burkina Faso",
       "de": "Burkina Faso"
     },
+    "capital": {
+      "en": "Ouagadougou",
+      "fr": "Ouagadougou",
+      "de": "Ouagadougou"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/bf.svg",
@@ -385,6 +520,11 @@
       "en": "Burundi",
       "fr": "Burundi",
       "de": "Burundi"
+    },
+    "capital": {
+      "en": "Gitega",
+      "fr": "Gitega",
+      "de": "Gitega"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -400,6 +540,11 @@
       "fr": "Cambodge",
       "de": "Kambodscha"
     },
+    "capital": {
+      "en": "Phnom Penh",
+      "fr": "Phnom Penh",
+      "de": "Phnom Penh"
+    },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/kh.svg",
@@ -413,6 +558,11 @@
       "en": "Cameroon",
       "fr": "Cameroun",
       "de": "Kamerun"
+    },
+    "capital": {
+      "en": "Yaoundé",
+      "fr": "Yaoundé",
+      "de": "Yaoundé"
     },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
@@ -428,6 +578,11 @@
       "fr": "Canada",
       "de": "Kanada"
     },
+    "capital": {
+      "en": "Ottawa",
+      "fr": "Ottawa",
+      "de": "Ottawa"
+    },
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/ca.svg",
@@ -441,6 +596,11 @@
       "en": "Cape Verde",
       "fr": "Îles du Cap-Vert",
       "de": "Kap Verde"
+    },
+    "capital": {
+      "en": "Praia",
+      "fr": "Praia",
+      "de": "Praia"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -456,6 +616,11 @@
       "fr": "République centrafricaine",
       "de": "Zentralafrikanische Republik"
     },
+    "capital": {
+      "en": "Bangui",
+      "fr": "Bangui",
+      "de": "Bangui"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cf.svg",
@@ -469,6 +634,11 @@
       "en": "Chad",
       "fr": "Tchad",
       "de": "Tschad"
+    },
+    "capital": {
+      "en": "N'Djamena",
+      "fr": "N'Djamena",
+      "de": "N'Djamena"
     },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
@@ -484,6 +654,11 @@
       "fr": "Chili",
       "de": "Chile"
     },
+    "capital": {
+      "en": "Santiago",
+      "fr": "Santiago",
+      "de": "Santiago"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/cl.svg",
@@ -497,6 +672,11 @@
       "en": "China",
       "fr": "Chine",
       "de": "China"
+    },
+    "capital": {
+      "en": "Beijing",
+      "fr": "Pékin",
+      "de": "Peking"
     },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
@@ -512,6 +692,11 @@
       "fr": "Colombie",
       "de": "Kolumbien"
     },
+    "capital": {
+      "en": "Bogotá",
+      "fr": "Bogotá",
+      "de": "Bogotá"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/co.svg",
@@ -525,6 +710,11 @@
       "en": "Comoros",
       "fr": "Comores",
       "de": "Komoren"
+    },
+    "capital": {
+      "en": "Moroni",
+      "fr": "Moroni",
+      "de": "Moroni"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -540,6 +730,11 @@
       "fr": "Costa Rica",
       "de": "Costa Rica"
     },
+    "capital": {
+      "en": "San José",
+      "fr": "San José",
+      "de": "San José"
+    },
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/cr.svg",
@@ -553,6 +748,11 @@
       "en": "Croatia",
       "fr": "Croatie",
       "de": "Kroatien"
+    },
+    "capital": {
+      "en": "Zagreb",
+      "fr": "Zagreb",
+      "de": "Zagreb"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -568,6 +768,11 @@
       "fr": "Cuba",
       "de": "Kuba"
     },
+    "capital": {
+      "en": "Havana",
+      "fr": "La Havane",
+      "de": "Havanna"
+    },
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/cu.svg",
@@ -581,6 +786,11 @@
       "en": "Cyprus",
       "fr": "Chypre",
       "de": "Zypern"
+    },
+    "capital": {
+      "en": "Nicosia",
+      "fr": "Nicosie",
+      "de": "Nikosia"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -596,6 +806,11 @@
       "fr": "Tchéquie",
       "de": "Tschechien"
     },
+    "capital": {
+      "en": "Prague",
+      "fr": "Prague",
+      "de": "Prag"
+    },
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/cz.svg",
@@ -610,6 +825,11 @@
       "fr": "Danemark",
       "de": "Dänemark"
     },
+    "capital": {
+      "en": "Copenhagen",
+      "fr": "Copenhague",
+      "de": "Kopenhagen"
+    },
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/dk.svg",
@@ -620,6 +840,11 @@
     "iso3": "DJI",
     "numericId": "262",
     "name": {
+      "en": "Djibouti",
+      "fr": "Djibouti",
+      "de": "Dschibuti"
+    },
+    "capital": {
       "en": "Djibouti",
       "fr": "Djibouti",
       "de": "Dschibuti"
@@ -638,6 +863,11 @@
       "fr": "Dominique",
       "de": "Dominica"
     },
+    "capital": {
+      "en": "Roseau",
+      "fr": "Roseau",
+      "de": "Roseau"
+    },
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/dm.svg",
@@ -651,6 +881,11 @@
       "en": "Dominican Republic",
       "fr": "République dominicaine",
       "de": "Dominikanische Republik"
+    },
+    "capital": {
+      "en": "Santo Domingo",
+      "fr": "Saint-Domingue",
+      "de": "Santo Domingo"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -666,6 +901,11 @@
       "fr": "Congo (Rép. dém.)",
       "de": "Kongo (Dem. Rep.)"
     },
+    "capital": {
+      "en": "Kinshasa",
+      "fr": "Kinshasa",
+      "de": "Kinshasa"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cd.svg",
@@ -679,6 +919,11 @@
       "en": "Ecuador",
       "fr": "Équateur",
       "de": "Ecuador"
+    },
+    "capital": {
+      "en": "Quito",
+      "fr": "Quito",
+      "de": "Quito"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -694,6 +939,11 @@
       "fr": "Égypte",
       "de": "Ägypten"
     },
+    "capital": {
+      "en": "Cairo",
+      "fr": "Le Caire",
+      "de": "Kairo"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/eg.svg",
@@ -707,6 +957,11 @@
       "en": "El Salvador",
       "fr": "Salvador",
       "de": "El Salvador"
+    },
+    "capital": {
+      "en": "San Salvador",
+      "fr": "San Salvador",
+      "de": "San Salvador"
     },
     "region": "Americas",
     "subregion": "North & Central America",
@@ -722,6 +977,11 @@
       "fr": "Guinée équatoriale",
       "de": "Äquatorialguinea"
     },
+    "capital": {
+      "en": "Malabo",
+      "fr": "Malabo",
+      "de": "Malabo"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/gq.svg",
@@ -735,6 +995,11 @@
       "en": "Eritrea",
       "fr": "Érythrée",
       "de": "Eritrea"
+    },
+    "capital": {
+      "en": "Asmara",
+      "fr": "Asmara",
+      "de": "Asmara"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -750,6 +1015,11 @@
       "fr": "Estonie",
       "de": "Estland"
     },
+    "capital": {
+      "en": "Tallinn",
+      "fr": "Tallinn",
+      "de": "Tallinn"
+    },
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/ee.svg",
@@ -763,6 +1033,11 @@
       "en": "Eswatini",
       "fr": "Eswatini",
       "de": "Eswatini"
+    },
+    "capital": {
+      "en": "Lobamba",
+      "fr": "Lobamba",
+      "de": "Lobamba"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -778,6 +1053,11 @@
       "fr": "Éthiopie",
       "de": "Äthiopien"
     },
+    "capital": {
+      "en": "Addis Ababa",
+      "fr": "Addis-Abeba",
+      "de": "Addis Abeba"
+    },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/et.svg",
@@ -791,6 +1071,11 @@
       "en": "Fiji",
       "fr": "Fidji",
       "de": "Fidschi"
+    },
+    "capital": {
+      "en": "Suva",
+      "fr": "Suva",
+      "de": "Suva"
     },
     "region": "Oceania",
     "subregion": "Oceania",
@@ -806,6 +1091,11 @@
       "fr": "Finlande",
       "de": "Finnland"
     },
+    "capital": {
+      "en": "Helsinki",
+      "fr": "Helsinki",
+      "de": "Helsinki"
+    },
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/fi.svg",
@@ -819,6 +1109,11 @@
       "en": "France",
       "fr": "France",
       "de": "Frankreich"
+    },
+    "capital": {
+      "en": "Paris",
+      "fr": "Paris",
+      "de": "Paris"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -834,6 +1129,11 @@
       "fr": "Gabon",
       "de": "Gabun"
     },
+    "capital": {
+      "en": "Libreville",
+      "fr": "Libreville",
+      "de": "Libreville"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ga.svg",
@@ -847,6 +1147,11 @@
       "en": "Gambia",
       "fr": "Gambie",
       "de": "Gambia"
+    },
+    "capital": {
+      "en": "Banjul",
+      "fr": "Banjul",
+      "de": "Banjul"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -862,6 +1167,11 @@
       "fr": "Géorgie",
       "de": "Georgien"
     },
+    "capital": {
+      "en": "Tbilisi",
+      "fr": "Tbilissi",
+      "de": "Tiflis"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/ge.svg",
@@ -875,6 +1185,11 @@
       "en": "Germany",
       "fr": "Allemagne",
       "de": "Deutschland"
+    },
+    "capital": {
+      "en": "Berlin",
+      "fr": "Berlin",
+      "de": "Berlin"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -890,6 +1205,11 @@
       "fr": "Ghana",
       "de": "Ghana"
     },
+    "capital": {
+      "en": "Accra",
+      "fr": "Accra",
+      "de": "Accra"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/gh.svg",
@@ -903,6 +1223,11 @@
       "en": "Greece",
       "fr": "Grèce",
       "de": "Griechenland"
+    },
+    "capital": {
+      "en": "Athens",
+      "fr": "Athènes",
+      "de": "Athen"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -918,6 +1243,11 @@
       "fr": "Grenade",
       "de": "Grenada"
     },
+    "capital": {
+      "en": "St. George's",
+      "fr": "St. George's",
+      "de": "St. George's"
+    },
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/gd.svg",
@@ -931,6 +1261,11 @@
       "en": "Guatemala",
       "fr": "Guatemala",
       "de": "Guatemala"
+    },
+    "capital": {
+      "en": "Guatemala City",
+      "fr": "Guatemala",
+      "de": "Guatemala-Stadt"
     },
     "region": "Americas",
     "subregion": "North & Central America",
@@ -946,6 +1281,11 @@
       "fr": "Guinée",
       "de": "Guinea"
     },
+    "capital": {
+      "en": "Conakry",
+      "fr": "Conakry",
+      "de": "Conakry"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/gn.svg",
@@ -959,6 +1299,11 @@
       "en": "Guinea-Bissau",
       "fr": "Guinée-Bissau",
       "de": "Guinea-Bissau"
+    },
+    "capital": {
+      "en": "Bissau",
+      "fr": "Bissau",
+      "de": "Bissau"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -974,6 +1319,11 @@
       "fr": "Guyana",
       "de": "Guyana"
     },
+    "capital": {
+      "en": "Georgetown",
+      "fr": "Georgetown",
+      "de": "Georgetown"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/gy.svg",
@@ -987,6 +1337,11 @@
       "en": "Haiti",
       "fr": "Haïti",
       "de": "Haiti"
+    },
+    "capital": {
+      "en": "Port-au-Prince",
+      "fr": "Port-au-Prince",
+      "de": "Port-au-Prince"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -1002,6 +1357,11 @@
       "fr": "Honduras",
       "de": "Honduras"
     },
+    "capital": {
+      "en": "Tegucigalpa",
+      "fr": "Tegucigalpa",
+      "de": "Tegucigalpa"
+    },
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/hn.svg",
@@ -1015,6 +1375,11 @@
       "en": "Hungary",
       "fr": "Hongrie",
       "de": "Ungarn"
+    },
+    "capital": {
+      "en": "Budapest",
+      "fr": "Budapest",
+      "de": "Budapest"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -1030,6 +1395,11 @@
       "fr": "Islande",
       "de": "Island"
     },
+    "capital": {
+      "en": "Reykjavik",
+      "fr": "Reykjavik",
+      "de": "Reykjavik"
+    },
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/is.svg",
@@ -1043,6 +1413,11 @@
       "en": "India",
       "fr": "Inde",
       "de": "Indien"
+    },
+    "capital": {
+      "en": "New Delhi",
+      "fr": "New Delhi",
+      "de": "Neu-Delhi"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1058,6 +1433,11 @@
       "fr": "Indonésie",
       "de": "Indonesien"
     },
+    "capital": {
+      "en": "Jakarta",
+      "fr": "Jakarta",
+      "de": "Jakarta"
+    },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/id.svg",
@@ -1071,6 +1451,11 @@
       "en": "Iran",
       "fr": "Iran",
       "de": "Iran"
+    },
+    "capital": {
+      "en": "Tehran",
+      "fr": "Téhéran",
+      "de": "Teheran"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1086,6 +1471,11 @@
       "fr": "Irak",
       "de": "Irak"
     },
+    "capital": {
+      "en": "Baghdad",
+      "fr": "Bagdad",
+      "de": "Bagdad"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/iq.svg",
@@ -1099,6 +1489,11 @@
       "en": "Ireland",
       "fr": "Irlande",
       "de": "Irland"
+    },
+    "capital": {
+      "en": "Dublin",
+      "fr": "Dublin",
+      "de": "Dublin"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -1114,6 +1509,11 @@
       "fr": "Israël",
       "de": "Israel"
     },
+    "capital": {
+      "en": "Jerusalem",
+      "fr": "Jérusalem",
+      "de": "Jerusalem"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/il.svg",
@@ -1127,6 +1527,11 @@
       "en": "Italy",
       "fr": "Italie",
       "de": "Italien"
+    },
+    "capital": {
+      "en": "Rome",
+      "fr": "Rome",
+      "de": "Rom"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -1142,6 +1547,11 @@
       "fr": "Côte d'Ivoire",
       "de": "Côte d'Ivoire"
     },
+    "capital": {
+      "en": "Yamoussoukro",
+      "fr": "Yamoussoukro",
+      "de": "Yamoussoukro"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/ci.svg",
@@ -1155,6 +1565,11 @@
       "en": "Jamaica",
       "fr": "Jamaïque",
       "de": "Jamaika"
+    },
+    "capital": {
+      "en": "Kingston",
+      "fr": "Kingston",
+      "de": "Kingston"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -1170,6 +1585,11 @@
       "fr": "Japon",
       "de": "Japan"
     },
+    "capital": {
+      "en": "Tokyo",
+      "fr": "Tokyo",
+      "de": "Tokio"
+    },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/jp.svg",
@@ -1183,6 +1603,11 @@
       "en": "Jordan",
       "fr": "Jordanie",
       "de": "Jordanien"
+    },
+    "capital": {
+      "en": "Amman",
+      "fr": "Amman",
+      "de": "Amman"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1198,6 +1623,11 @@
       "fr": "Kazakhstan",
       "de": "Kasachstan"
     },
+    "capital": {
+      "en": "Astana",
+      "fr": "Astana",
+      "de": "Astana"
+    },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kz.svg",
@@ -1211,6 +1641,11 @@
       "en": "Kenya",
       "fr": "Kenya",
       "de": "Kenia"
+    },
+    "capital": {
+      "en": "Nairobi",
+      "fr": "Nairobi",
+      "de": "Nairobi"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -1226,6 +1661,11 @@
       "fr": "Kiribati",
       "de": "Kiribati"
     },
+    "capital": {
+      "en": "South Tarawa",
+      "fr": "South Tarawa",
+      "de": "South Tarawa"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/ki.svg",
@@ -1239,6 +1679,11 @@
       "en": "Kuwait",
       "fr": "Koweït",
       "de": "Kuwait"
+    },
+    "capital": {
+      "en": "Kuwait City",
+      "fr": "Koweït",
+      "de": "Kuwait-Stadt"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1254,6 +1699,11 @@
       "fr": "Kirghizistan",
       "de": "Kirgisistan"
     },
+    "capital": {
+      "en": "Bishkek",
+      "fr": "Bichkek",
+      "de": "Bischkek"
+    },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kg.svg",
@@ -1267,6 +1717,11 @@
       "en": "Laos",
       "fr": "Laos",
       "de": "Laos"
+    },
+    "capital": {
+      "en": "Vientiane",
+      "fr": "Vientiane",
+      "de": "Vientiane"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -1282,6 +1737,11 @@
       "fr": "Lettonie",
       "de": "Lettland"
     },
+    "capital": {
+      "en": "Riga",
+      "fr": "Riga",
+      "de": "Riga"
+    },
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/lv.svg",
@@ -1295,6 +1755,11 @@
       "en": "Lebanon",
       "fr": "Liban",
       "de": "Libanon"
+    },
+    "capital": {
+      "en": "Beirut",
+      "fr": "Beyrouth",
+      "de": "Beirut"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1310,6 +1775,11 @@
       "fr": "Lesotho",
       "de": "Lesotho"
     },
+    "capital": {
+      "en": "Maseru",
+      "fr": "Maseru",
+      "de": "Maseru"
+    },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/ls.svg",
@@ -1323,6 +1793,11 @@
       "en": "Liberia",
       "fr": "Liberia",
       "de": "Liberia"
+    },
+    "capital": {
+      "en": "Monrovia",
+      "fr": "Monrovia",
+      "de": "Monrovia"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1338,6 +1813,11 @@
       "fr": "Libye",
       "de": "Libyen"
     },
+    "capital": {
+      "en": "Tripoli",
+      "fr": "Tripoli",
+      "de": "Tripolis"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ly.svg",
@@ -1351,6 +1831,11 @@
       "en": "Liechtenstein",
       "fr": "Liechtenstein",
       "de": "Liechtenstein"
+    },
+    "capital": {
+      "en": "Vaduz",
+      "fr": "Vaduz",
+      "de": "Vaduz"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -1366,6 +1851,11 @@
       "fr": "Lituanie",
       "de": "Litauen"
     },
+    "capital": {
+      "en": "Vilnius",
+      "fr": "Vilnius",
+      "de": "Vilnius"
+    },
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/lt.svg",
@@ -1376,6 +1866,11 @@
     "iso3": "LUX",
     "numericId": "442",
     "name": {
+      "en": "Luxembourg",
+      "fr": "Luxembourg",
+      "de": "Luxemburg"
+    },
+    "capital": {
       "en": "Luxembourg",
       "fr": "Luxembourg",
       "de": "Luxemburg"
@@ -1394,6 +1889,11 @@
       "fr": "Madagascar",
       "de": "Madagaskar"
     },
+    "capital": {
+      "en": "Antananarivo",
+      "fr": "Antananarivo",
+      "de": "Antananarivo"
+    },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mg.svg",
@@ -1407,6 +1907,11 @@
       "en": "Malawi",
       "fr": "Malawi",
       "de": "Malawi"
+    },
+    "capital": {
+      "en": "Lilongwe",
+      "fr": "Lilongwe",
+      "de": "Lilongwe"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -1422,6 +1927,11 @@
       "fr": "Malaisie",
       "de": "Malaysia"
     },
+    "capital": {
+      "en": "Kuala Lumpur",
+      "fr": "Kuala Lumpur",
+      "de": "Kuala Lumpur"
+    },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/my.svg",
@@ -1435,6 +1945,11 @@
       "en": "Maldives",
       "fr": "Maldives",
       "de": "Malediven"
+    },
+    "capital": {
+      "en": "Malé",
+      "fr": "Malé",
+      "de": "Malé"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1450,6 +1965,11 @@
       "fr": "Mali",
       "de": "Mali"
     },
+    "capital": {
+      "en": "Bamako",
+      "fr": "Bamako",
+      "de": "Bamako"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/ml.svg",
@@ -1463,6 +1983,11 @@
       "en": "Malta",
       "fr": "Malte",
       "de": "Malta"
+    },
+    "capital": {
+      "en": "Valletta",
+      "fr": "La Valette",
+      "de": "Valletta"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -1478,6 +2003,11 @@
       "fr": "Îles Marshall",
       "de": "Marshallinseln"
     },
+    "capital": {
+      "en": "Majuro",
+      "fr": "Majuro",
+      "de": "Majuro"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/mh.svg",
@@ -1491,6 +2021,11 @@
       "en": "Mauritania",
       "fr": "Mauritanie",
       "de": "Mauretanien"
+    },
+    "capital": {
+      "en": "Nouakchott",
+      "fr": "Nouakchott",
+      "de": "Nouakchott"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1506,6 +2041,11 @@
       "fr": "Île Maurice",
       "de": "Mauritius"
     },
+    "capital": {
+      "en": "Port Louis",
+      "fr": "Port Louis",
+      "de": "Port Louis"
+    },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mu.svg",
@@ -1519,6 +2059,11 @@
       "en": "Mexico",
       "fr": "Mexique",
       "de": "Mexiko"
+    },
+    "capital": {
+      "en": "Mexico City",
+      "fr": "Mexico",
+      "de": "Mexiko-Stadt"
     },
     "region": "Americas",
     "subregion": "North & Central America",
@@ -1534,6 +2079,11 @@
       "fr": "Micronésie",
       "de": "Mikronesien"
     },
+    "capital": {
+      "en": "Palikir",
+      "fr": "Palikir",
+      "de": "Palikir"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/fm.svg",
@@ -1548,6 +2098,11 @@
       "fr": "Moldavie",
       "de": "Moldawien"
     },
+    "capital": {
+      "en": "Chișinău",
+      "fr": "Chișinău",
+      "de": "Chișinău"
+    },
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/md.svg",
@@ -1558,6 +2113,11 @@
     "iso3": "MCO",
     "numericId": "492",
     "name": {
+      "en": "Monaco",
+      "fr": "Monaco",
+      "de": "Monaco"
+    },
+    "capital": {
       "en": "Monaco",
       "fr": "Monaco",
       "de": "Monaco"
@@ -1576,6 +2136,11 @@
       "fr": "Mongolie",
       "de": "Mongolei"
     },
+    "capital": {
+      "en": "Ulan Bator",
+      "fr": "Oulan-Bator",
+      "de": "Ulan-Bator"
+    },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/mn.svg",
@@ -1589,6 +2154,11 @@
       "en": "Montenegro",
       "fr": "Monténégro",
       "de": "Montenegro"
+    },
+    "capital": {
+      "en": "Podgorica",
+      "fr": "Podgorica",
+      "de": "Podgorica"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -1604,6 +2174,11 @@
       "fr": "Maroc",
       "de": "Marokko"
     },
+    "capital": {
+      "en": "Rabat",
+      "fr": "Rabat",
+      "de": "Rabat"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ma.svg",
@@ -1617,6 +2192,11 @@
       "en": "Mozambique",
       "fr": "Mozambique",
       "de": "Mosambik"
+    },
+    "capital": {
+      "en": "Maputo",
+      "fr": "Maputo",
+      "de": "Maputo"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -1632,6 +2212,11 @@
       "fr": "Birmanie",
       "de": "Myanmar"
     },
+    "capital": {
+      "en": "Naypyidaw",
+      "fr": "Naypyidaw",
+      "de": "Naypyidaw"
+    },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/mm.svg",
@@ -1645,6 +2230,11 @@
       "en": "Namibia",
       "fr": "Namibie",
       "de": "Namibia"
+    },
+    "capital": {
+      "en": "Windhoek",
+      "fr": "Windhoek",
+      "de": "Windhoek"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -1660,6 +2250,11 @@
       "fr": "Nauru",
       "de": "Nauru"
     },
+    "capital": {
+      "en": "Yaren",
+      "fr": "Yaren",
+      "de": "Yaren"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/nr.svg",
@@ -1673,6 +2268,11 @@
       "en": "Nepal",
       "fr": "Népal",
       "de": "Nepal"
+    },
+    "capital": {
+      "en": "Kathmandu",
+      "fr": "Katmandou",
+      "de": "Kathmandu"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1688,6 +2288,11 @@
       "fr": "Pays-Bas",
       "de": "Niederlande"
     },
+    "capital": {
+      "en": "Amsterdam",
+      "fr": "Amsterdam",
+      "de": "Amsterdam"
+    },
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/nl.svg",
@@ -1701,6 +2306,11 @@
       "en": "New Zealand",
       "fr": "Nouvelle-Zélande",
       "de": "Neuseeland"
+    },
+    "capital": {
+      "en": "Wellington",
+      "fr": "Wellington",
+      "de": "Wellington"
     },
     "region": "Oceania",
     "subregion": "Oceania",
@@ -1716,6 +2326,11 @@
       "fr": "Nicaragua",
       "de": "Nicaragua"
     },
+    "capital": {
+      "en": "Managua",
+      "fr": "Managua",
+      "de": "Managua"
+    },
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/ni.svg",
@@ -1729,6 +2344,11 @@
       "en": "Niger",
       "fr": "Niger",
       "de": "Niger"
+    },
+    "capital": {
+      "en": "Niamey",
+      "fr": "Niamey",
+      "de": "Niamey"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1744,6 +2364,11 @@
       "fr": "Nigéria",
       "de": "Nigeria"
     },
+    "capital": {
+      "en": "Abuja",
+      "fr": "Abuja",
+      "de": "Abuja"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/ng.svg",
@@ -1757,6 +2382,11 @@
       "en": "North Korea",
       "fr": "Corée du Nord",
       "de": "Nordkorea"
+    },
+    "capital": {
+      "en": "Pyongyang",
+      "fr": "Pyongyang",
+      "de": "Pjöngjang"
     },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
@@ -1772,6 +2402,11 @@
       "fr": "Macédoine du Nord",
       "de": "Nordmazedonien"
     },
+    "capital": {
+      "en": "Skopje",
+      "fr": "Skopje",
+      "de": "Skopje"
+    },
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/mk.svg",
@@ -1785,6 +2420,11 @@
       "en": "Norway",
       "fr": "Norvège",
       "de": "Norwegen"
+    },
+    "capital": {
+      "en": "Oslo",
+      "fr": "Oslo",
+      "de": "Oslo"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -1800,6 +2440,11 @@
       "fr": "Oman",
       "de": "Oman"
     },
+    "capital": {
+      "en": "Muscat",
+      "fr": "Mascate",
+      "de": "Maskat"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/om.svg",
@@ -1813,6 +2458,11 @@
       "en": "Pakistan",
       "fr": "Pakistan",
       "de": "Pakistan"
+    },
+    "capital": {
+      "en": "Islamabad",
+      "fr": "Islamabad",
+      "de": "Islamabad"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1828,6 +2478,11 @@
       "fr": "Palaos (Palau)",
       "de": "Palau"
     },
+    "capital": {
+      "en": "Ngerulmud",
+      "fr": "Ngerulmud",
+      "de": "Ngerulmud"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/pw.svg",
@@ -1841,6 +2496,11 @@
       "en": "Palestine",
       "fr": "Palestine",
       "de": "Palästina"
+    },
+    "capital": {
+      "en": "Ramallah",
+      "fr": "Ramallah",
+      "de": "Ramallah"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1856,6 +2516,11 @@
       "fr": "Panama",
       "de": "Panama"
     },
+    "capital": {
+      "en": "Panama City",
+      "fr": "Panama",
+      "de": "Panama-Stadt"
+    },
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/pa.svg",
@@ -1869,6 +2534,11 @@
       "en": "Papua New Guinea",
       "fr": "Papouasie-Nouvelle-Guinée",
       "de": "Papua-Neuguinea"
+    },
+    "capital": {
+      "en": "Port Moresby",
+      "fr": "Port Moresby",
+      "de": "Port Moresby"
     },
     "region": "Oceania",
     "subregion": "Oceania",
@@ -1884,6 +2554,11 @@
       "fr": "Paraguay",
       "de": "Paraguay"
     },
+    "capital": {
+      "en": "Asunción",
+      "fr": "Asunción",
+      "de": "Asunción"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/py.svg",
@@ -1897,6 +2572,11 @@
       "en": "Peru",
       "fr": "Pérou",
       "de": "Peru"
+    },
+    "capital": {
+      "en": "Lima",
+      "fr": "Lima",
+      "de": "Lima"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -1912,6 +2592,11 @@
       "fr": "Philippines",
       "de": "Philippinen"
     },
+    "capital": {
+      "en": "Manila",
+      "fr": "Manille",
+      "de": "Manila"
+    },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/ph.svg",
@@ -1925,6 +2610,11 @@
       "en": "Poland",
       "fr": "Pologne",
       "de": "Polen"
+    },
+    "capital": {
+      "en": "Warsaw",
+      "fr": "Varsovie",
+      "de": "Warschau"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -1940,6 +2630,11 @@
       "fr": "Portugal",
       "de": "Portugal"
     },
+    "capital": {
+      "en": "Lisbon",
+      "fr": "Lisbonne",
+      "de": "Lissabon"
+    },
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/pt.svg",
@@ -1953,6 +2648,11 @@
       "en": "Qatar",
       "fr": "Qatar",
       "de": "Katar"
+    },
+    "capital": {
+      "en": "Doha",
+      "fr": "Doha",
+      "de": "Doha"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1968,6 +2668,11 @@
       "fr": "Congo",
       "de": "Kongo"
     },
+    "capital": {
+      "en": "Brazzaville",
+      "fr": "Brazzaville",
+      "de": "Brazzaville"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cg.svg",
@@ -1981,6 +2686,11 @@
       "en": "Romania",
       "fr": "Roumanie",
       "de": "Rumänien"
+    },
+    "capital": {
+      "en": "Bucharest",
+      "fr": "Bucarest",
+      "de": "Bukarest"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -1996,6 +2706,11 @@
       "fr": "Russie",
       "de": "Russland"
     },
+    "capital": {
+      "en": "Moscow",
+      "fr": "Moscou",
+      "de": "Moskau"
+    },
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/ru.svg",
@@ -2009,6 +2724,11 @@
       "en": "Rwanda",
       "fr": "Rwanda",
       "de": "Ruanda"
+    },
+    "capital": {
+      "en": "Kigali",
+      "fr": "Kigali",
+      "de": "Kigali"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -2024,6 +2744,11 @@
       "fr": "Saint-Christophe-et-Niévès",
       "de": "St. Kitts und Nevis"
     },
+    "capital": {
+      "en": "Basseterre",
+      "fr": "Basseterre",
+      "de": "Basseterre"
+    },
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/kn.svg",
@@ -2037,6 +2762,11 @@
       "en": "Saint Lucia",
       "fr": "Sainte-Lucie",
       "de": "St. Lucia"
+    },
+    "capital": {
+      "en": "Castries",
+      "fr": "Castries",
+      "de": "Castries"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -2052,6 +2782,11 @@
       "fr": "Saint-Vincent-et-les-Grenadines",
       "de": "St. Vincent und die Grenadinen"
     },
+    "capital": {
+      "en": "Kingstown",
+      "fr": "Kingstown",
+      "de": "Kingstown"
+    },
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/vc.svg",
@@ -2065,6 +2800,11 @@
       "en": "Samoa",
       "fr": "Samoa",
       "de": "Samoa"
+    },
+    "capital": {
+      "en": "Apia",
+      "fr": "Apia",
+      "de": "Apia"
     },
     "region": "Oceania",
     "subregion": "Oceania",
@@ -2080,6 +2820,11 @@
       "fr": "Saint-Marin",
       "de": "San Marino"
     },
+    "capital": {
+      "en": "City of San Marino",
+      "fr": "City of San Marino",
+      "de": "City of San Marino"
+    },
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/sm.svg",
@@ -2093,6 +2838,11 @@
       "en": "São Tomé and Príncipe",
       "fr": "São Tomé et Príncipe",
       "de": "São Tomé und Príncipe"
+    },
+    "capital": {
+      "en": "São Tomé",
+      "fr": "São Tomé",
+      "de": "São Tomé"
     },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
@@ -2108,6 +2858,11 @@
       "fr": "Arabie Saoudite",
       "de": "Saudi-Arabien"
     },
+    "capital": {
+      "en": "Riyadh",
+      "fr": "Riyad",
+      "de": "Riad"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/sa.svg",
@@ -2121,6 +2876,11 @@
       "en": "Senegal",
       "fr": "Sénégal",
       "de": "Senegal"
+    },
+    "capital": {
+      "en": "Dakar",
+      "fr": "Dakar",
+      "de": "Dakar"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -2136,6 +2896,11 @@
       "fr": "Serbie",
       "de": "Serbien"
     },
+    "capital": {
+      "en": "Belgrade",
+      "fr": "Belgrade",
+      "de": "Belgrad"
+    },
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/rs.svg",
@@ -2149,6 +2914,11 @@
       "en": "Seychelles",
       "fr": "Seychelles",
       "de": "Seychellen"
+    },
+    "capital": {
+      "en": "Victoria",
+      "fr": "Victoria",
+      "de": "Victoria"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -2164,6 +2934,11 @@
       "fr": "Sierra Leone",
       "de": "Sierra Leone"
     },
+    "capital": {
+      "en": "Freetown",
+      "fr": "Freetown",
+      "de": "Freetown"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/sl.svg",
@@ -2174,6 +2949,11 @@
     "iso3": "SGP",
     "numericId": "702",
     "name": {
+      "en": "Singapore",
+      "fr": "Singapour",
+      "de": "Singapur"
+    },
+    "capital": {
       "en": "Singapore",
       "fr": "Singapour",
       "de": "Singapur"
@@ -2192,6 +2972,11 @@
       "fr": "Slovaquie",
       "de": "Slowakei"
     },
+    "capital": {
+      "en": "Bratislava",
+      "fr": "Bratislava",
+      "de": "Bratislava"
+    },
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/sk.svg",
@@ -2205,6 +2990,11 @@
       "en": "Slovenia",
       "fr": "Slovénie",
       "de": "Slowenien"
+    },
+    "capital": {
+      "en": "Ljubljana",
+      "fr": "Ljubljana",
+      "de": "Ljubljana"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -2220,6 +3010,11 @@
       "fr": "Îles Salomon",
       "de": "Salomonen"
     },
+    "capital": {
+      "en": "Honiara",
+      "fr": "Honiara",
+      "de": "Honiara"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/sb.svg",
@@ -2233,6 +3028,11 @@
       "en": "Somalia",
       "fr": "Somalie",
       "de": "Somalia"
+    },
+    "capital": {
+      "en": "Mogadishu",
+      "fr": "Mogadiscio",
+      "de": "Mogadischu"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -2248,6 +3048,11 @@
       "fr": "Afrique du Sud",
       "de": "Südafrika"
     },
+    "capital": {
+      "en": "Pretoria",
+      "fr": "Pretoria",
+      "de": "Pretoria"
+    },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/za.svg",
@@ -2261,6 +3066,11 @@
       "en": "South Korea",
       "fr": "Corée du Sud",
       "de": "Südkorea"
+    },
+    "capital": {
+      "en": "Seoul",
+      "fr": "Séoul",
+      "de": "Seoul"
     },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
@@ -2276,6 +3086,11 @@
       "fr": "Soudan du Sud",
       "de": "Südsudan"
     },
+    "capital": {
+      "en": "Juba",
+      "fr": "Juba",
+      "de": "Juba"
+    },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ss.svg",
@@ -2289,6 +3104,11 @@
       "en": "Spain",
       "fr": "Espagne",
       "de": "Spanien"
+    },
+    "capital": {
+      "en": "Madrid",
+      "fr": "Madrid",
+      "de": "Madrid"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -2304,6 +3124,11 @@
       "fr": "Sri Lanka",
       "de": "Sri Lanka"
     },
+    "capital": {
+      "en": "Colombo",
+      "fr": "Colombo",
+      "de": "Colombo"
+    },
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/lk.svg",
@@ -2317,6 +3142,11 @@
       "en": "Sudan",
       "fr": "Soudan",
       "de": "Sudan"
+    },
+    "capital": {
+      "en": "Khartoum",
+      "fr": "Khartoum",
+      "de": "Khartum"
     },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
@@ -2332,6 +3162,11 @@
       "fr": "Surinam",
       "de": "Suriname"
     },
+    "capital": {
+      "en": "Paramaribo",
+      "fr": "Paramaribo",
+      "de": "Paramaribo"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/sr.svg",
@@ -2345,6 +3180,11 @@
       "en": "Sweden",
       "fr": "Suède",
       "de": "Schweden"
+    },
+    "capital": {
+      "en": "Stockholm",
+      "fr": "Stockholm",
+      "de": "Stockholm"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -2360,6 +3200,11 @@
       "fr": "Suisse",
       "de": "Schweiz"
     },
+    "capital": {
+      "en": "Bern",
+      "fr": "Berne",
+      "de": "Bern"
+    },
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/ch.svg",
@@ -2373,6 +3218,11 @@
       "en": "Syria",
       "fr": "Syrie",
       "de": "Syrien"
+    },
+    "capital": {
+      "en": "Damascus",
+      "fr": "Damas",
+      "de": "Damaskus"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -2388,6 +3238,11 @@
       "fr": "Tadjikistan",
       "de": "Tadschikistan"
     },
+    "capital": {
+      "en": "Dushanbe",
+      "fr": "Douchanbé",
+      "de": "Duschanbe"
+    },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/tj.svg",
@@ -2401,6 +3256,11 @@
       "en": "Tanzania",
       "fr": "Tanzanie",
       "de": "Tansania"
+    },
+    "capital": {
+      "en": "Dodoma",
+      "fr": "Dodoma",
+      "de": "Dodoma"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -2416,6 +3276,11 @@
       "fr": "Thaïlande",
       "de": "Thailand"
     },
+    "capital": {
+      "en": "Bangkok",
+      "fr": "Bangkok",
+      "de": "Bangkok"
+    },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/th.svg",
@@ -2429,6 +3294,11 @@
       "en": "Timor-Leste",
       "fr": "Timor oriental",
       "de": "Osttimor"
+    },
+    "capital": {
+      "en": "Dili",
+      "fr": "Dili",
+      "de": "Dili"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -2444,6 +3314,11 @@
       "fr": "Togo",
       "de": "Togo"
     },
+    "capital": {
+      "en": "Lomé",
+      "fr": "Lomé",
+      "de": "Lomé"
+    },
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/tg.svg",
@@ -2457,6 +3332,11 @@
       "en": "Tonga",
       "fr": "Tonga",
       "de": "Tonga"
+    },
+    "capital": {
+      "en": "Nuku'alofa",
+      "fr": "Nuku'alofa",
+      "de": "Nuku'alofa"
     },
     "region": "Oceania",
     "subregion": "Oceania",
@@ -2472,6 +3352,11 @@
       "fr": "Trinité-et-Tobago",
       "de": "Trinidad und Tobago"
     },
+    "capital": {
+      "en": "Port of Spain",
+      "fr": "Port-d'Espagne",
+      "de": "Port of Spain"
+    },
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/tt.svg",
@@ -2485,6 +3370,11 @@
       "en": "Tunisia",
       "fr": "Tunisie",
       "de": "Tunesien"
+    },
+    "capital": {
+      "en": "Tunis",
+      "fr": "Tunis",
+      "de": "Tunis"
     },
     "region": "Africa",
     "subregion": "Northern & Central Africa",
@@ -2500,6 +3390,11 @@
       "fr": "Turquie",
       "de": "Türkei"
     },
+    "capital": {
+      "en": "Ankara",
+      "fr": "Ankara",
+      "de": "Ankara"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/tr.svg",
@@ -2513,6 +3408,11 @@
       "en": "Turkmenistan",
       "fr": "Turkménistan",
       "de": "Turkmenistan"
+    },
+    "capital": {
+      "en": "Ashgabat",
+      "fr": "Achgabat",
+      "de": "Aschgabat"
     },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
@@ -2528,6 +3428,11 @@
       "fr": "Tuvalu",
       "de": "Tuvalu"
     },
+    "capital": {
+      "en": "Funafuti",
+      "fr": "Funafuti",
+      "de": "Funafuti"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/tv.svg",
@@ -2541,6 +3446,11 @@
       "en": "Uganda",
       "fr": "Ouganda",
       "de": "Uganda"
+    },
+    "capital": {
+      "en": "Kampala",
+      "fr": "Kampala",
+      "de": "Kampala"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
@@ -2556,6 +3466,11 @@
       "fr": "Ukraine",
       "de": "Ukraine"
     },
+    "capital": {
+      "en": "Kyiv",
+      "fr": "Kyiv",
+      "de": "Kyiv"
+    },
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/ua.svg",
@@ -2569,6 +3484,11 @@
       "en": "United Arab Emirates",
       "fr": "Émirats arabes unis",
       "de": "Vereinigte Arabische Emirate"
+    },
+    "capital": {
+      "en": "Abu Dhabi",
+      "fr": "Abou Dabi",
+      "de": "Abu Dhabi"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -2584,6 +3504,11 @@
       "fr": "Royaume-Uni",
       "de": "Vereinigtes Königreich"
     },
+    "capital": {
+      "en": "London",
+      "fr": "Londres",
+      "de": "London"
+    },
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/gb.svg",
@@ -2597,6 +3522,11 @@
       "en": "United States",
       "fr": "États-Unis",
       "de": "Vereinigte Staaten"
+    },
+    "capital": {
+      "en": "Washington D.C.",
+      "fr": "Washington D.C.",
+      "de": "Washington D.C."
     },
     "region": "Americas",
     "subregion": "North & Central America",
@@ -2612,6 +3542,11 @@
       "fr": "Uruguay",
       "de": "Uruguay"
     },
+    "capital": {
+      "en": "Montevideo",
+      "fr": "Montevideo",
+      "de": "Montevideo"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/uy.svg",
@@ -2625,6 +3560,11 @@
       "en": "Uzbekistan",
       "fr": "Ouzbékistan",
       "de": "Usbekistan"
+    },
+    "capital": {
+      "en": "Tashkent",
+      "fr": "Tachkent",
+      "de": "Taschkent"
     },
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
@@ -2640,6 +3580,11 @@
       "fr": "Vanuatu",
       "de": "Vanuatu"
     },
+    "capital": {
+      "en": "Port Vila",
+      "fr": "Port Vila",
+      "de": "Port Vila"
+    },
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/vu.svg",
@@ -2650,6 +3595,11 @@
     "iso3": "VAT",
     "numericId": "336",
     "name": {
+      "en": "Vatican City",
+      "fr": "Cité du Vatican",
+      "de": "Vatikanstadt"
+    },
+    "capital": {
       "en": "Vatican City",
       "fr": "Cité du Vatican",
       "de": "Vatikanstadt"
@@ -2668,6 +3618,11 @@
       "fr": "Venezuela",
       "de": "Venezuela"
     },
+    "capital": {
+      "en": "Caracas",
+      "fr": "Caracas",
+      "de": "Caracas"
+    },
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/ve.svg",
@@ -2681,6 +3636,11 @@
       "en": "Vietnam",
       "fr": "Viêt Nam",
       "de": "Vietnam"
+    },
+    "capital": {
+      "en": "Hanoi",
+      "fr": "Hanoï",
+      "de": "Hanoi"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -2696,6 +3656,11 @@
       "fr": "Yémen",
       "de": "Jemen"
     },
+    "capital": {
+      "en": "Sana'a",
+      "fr": "Sana'a",
+      "de": "Sana'a"
+    },
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/ye.svg",
@@ -2710,6 +3675,11 @@
       "fr": "Zambie",
       "de": "Sambia"
     },
+    "capital": {
+      "en": "Lusaka",
+      "fr": "Lusaka",
+      "de": "Lusaka"
+    },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/zm.svg",
@@ -2723,6 +3693,11 @@
       "en": "Zimbabwe",
       "fr": "Zimbabwe",
       "de": "Simbabwe"
+    },
+    "capital": {
+      "en": "Harare",
+      "fr": "Harare",
+      "de": "Harare"
     },
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",

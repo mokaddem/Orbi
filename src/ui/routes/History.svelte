@@ -31,6 +31,8 @@
     'country-to-flag': 'modes.countryToFlag',
     'map-highlight': 'modes.mapHighlight',
     'map-locate': 'modes.mapLocate',
+    'capital-to-country': 'modes.capitalToCountry',
+    'country-to-capital': 'modes.countryToCapital',
   };
 
   /** Cap the timeline so many play-days stay legible; a note flags any truncation. */

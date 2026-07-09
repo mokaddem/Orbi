@@ -30,6 +30,16 @@
     <!-- A location pin dropped on a place: you're shown which country. -->
     <path d="M12 21c4.5-4.2 6.5-7.2 6.5-10.5a6.5 6.5 0 0 0-13 0C5.5 13.8 7.5 16.8 12 21Z" />
     <circle cx="12" cy="10.5" r="2.3" />
+  {:else if mode === 'capital-to-country'}
+    <!-- A star: the cartographic marker for a capital city — the prompt is a capital. -->
+    <path
+      d="M12 3.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.77l-5.2 2.73.99-5.79-4.21-4.1 5.82-.85z"
+    />
+  {:else if mode === 'country-to-capital'}
+    <!-- A classical government building: the answer is the country's capital city. -->
+    <path d="M12 3.5 3.5 8h17z" />
+    <path d="M6 8v9M12 8v9M18 8v9" />
+    <path d="M3.5 17.5h17M3 20.5h18" />
   {:else}
     <!-- A crosshair / target: you must find the place yourself (locate). -->
     <circle cx="12" cy="12" r="7" />

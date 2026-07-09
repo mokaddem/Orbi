@@ -43,12 +43,14 @@ describe('Play route', () => {
     expect(screen.getByText(/Question 1 \/ 10/)).toBeInTheDocument();
   });
 
-  it('offers all four modes on the setup screen', () => {
+  it('offers all six modes on the setup screen', () => {
     render(Play);
     expect(screen.getByText('Flag → Country')).toBeInTheDocument();
     expect(screen.getByText('Country → Flag')).toBeInTheDocument();
     expect(screen.getByText('Find the highlighted country')).toBeInTheDocument();
     expect(screen.getByText('Locate on the map')).toBeInTheDocument();
+    expect(screen.getByText('Capital → Country')).toBeInTheDocument();
+    expect(screen.getByText('Country → Capital')).toBeInTheDocument();
   });
 
   it('offers the region filter as buttons (few options) and starts a region-filtered session', async () => {
@@ -113,7 +115,7 @@ describe('Play route', () => {
 
       for (let i = 0; i < 2; i++) {
         const answerIso = get(play).question!.answer.iso2;
-        await fireEvent.click(container.querySelector(`button[data-iso="${answerIso}"]`)!);
+        await fireEvent.click(container.querySelector(`button[data-id="${answerIso}"]`)!);
         expect(get(play).status).toBe('answered');
         // No manual Continue button; a countdown drives the auto-advance.
         expect(container.querySelector('button.continue')).toBeNull();
@@ -128,6 +130,56 @@ describe('Play route', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('plays capital-to-country: the prompt is a capital, options are countries', async () => {
+    pendingConfig.set({
+      mode: 'capital-to-country',
+      type: 'fixed',
+      fixedLength: 3,
+      rng: mulberry32(4),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+
+    expect(get(play).status).toBe('playing');
+    expect(screen.getByText("Which country's capital is this?")).toBeInTheDocument();
+
+    const q = get(play).question!;
+    // The prompt shows the answer country's (English) capital.
+    expect(container.querySelector('.prompt-name')!.textContent).toBe(q.answer.capital.en);
+    // Options are countries: picking the answer country's ISO2 grades correct.
+    const correct = container.querySelector(`button[data-id="${q.answer.iso2}"]`)!;
+    expect(correct).not.toBeNull();
+    await fireEvent.click(correct);
+    expect(get(play).status).toBe('answered');
+    expect(get(play).feedback!.correct).toBe(true);
+  });
+
+  it('plays country-to-capital: the prompt is a country, options are capitals graded by id', async () => {
+    pendingConfig.set({
+      mode: 'country-to-capital',
+      type: 'fixed',
+      fixedLength: 3,
+      rng: mulberry32(8),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+
+    expect(get(play).status).toBe('playing');
+    expect(screen.getByText('Which is its capital?')).toBeInTheDocument();
+
+    const q = get(play).question!;
+    // Prompt shows the country name; the correct capital appears among the options.
+    expect(container.querySelector('.prompt-name')!.textContent).toBe(q.answer.name.en);
+    const labels = [...container.querySelectorAll('.opt-name')].map((e) => e.textContent);
+    expect(labels).toContain(q.answer.capital.en);
+    // The correct option carries the owning country's ISO2 as its id.
+    const correct = container.querySelector(`button[data-id="${q.correctOptionId}"]`)!;
+    expect(correct).not.toBeNull();
+    await fireEvent.click(correct);
+    expect(get(play).status).toBe('answered');
+    expect(get(play).feedback!.correct).toBe(true);
   });
 
   it('auto-starts a staged config and plays a fixed session end-to-end via the timer', async () => {
@@ -146,7 +198,7 @@ describe('Play route', () => {
 
       for (let i = 0; i < 2; i++) {
         const answerIso = get(play).question!.answer.iso2;
-        await fireEvent.click(container.querySelector(`button[data-iso="${answerIso}"]`)!);
+        await fireEvent.click(container.querySelector(`button[data-id="${answerIso}"]`)!);
         expect(get(play).status).toBe('answered');
         await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
       }
@@ -175,7 +227,7 @@ describe('Play route', () => {
 
       // Q1 — correct: advances at ~CORRECT_MS.
       let q = get(play).question!;
-      await fireEvent.click(container.querySelector(`button[data-iso="${q.answer.iso2}"]`)!);
+      await fireEvent.click(container.querySelector(`button[data-id="${q.answer.iso2}"]`)!);
       expect(get(play).status).toBe('answered');
       await vi.advanceTimersByTimeAsync(CORRECT_MS - 100);
       expect(get(play).status).toBe('answered'); // not yet
@@ -185,7 +237,7 @@ describe('Play route', () => {
       // Q2 — wrong: still waiting at CORRECT_MS, only advances near WRONG_MS.
       q = get(play).question!;
       const wrong = q.options!.find((o) => o.iso2 !== q.answer.iso2)!;
-      await fireEvent.click(container.querySelector(`button[data-iso="${wrong.iso2}"]`)!);
+      await fireEvent.click(container.querySelector(`button[data-id="${wrong.iso2}"]`)!);
       expect(get(play).status).toBe('answered');
       await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
       expect(get(play).status).toBe('answered'); // wrong dwells longer than a correct answer

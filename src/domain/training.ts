@@ -8,14 +8,7 @@
 
 import type { SRItem } from '../data/persistence/types';
 import type { GameMode } from './types';
-
-/** A GameMode is always the prefix of an itemKey; kept in sync with `itemKey()`. */
-const GAME_MODES: readonly GameMode[] = [
-  'flag-to-country',
-  'country-to-flag',
-  'map-highlight',
-  'map-locate',
-];
+import { ALL_MODES } from './modes';
 
 /** Split an `itemKey` (`mode:iso2`) back into its parts, or `null` if malformed. */
 export function parseItemKey(itemKey: string): { mode: GameMode; iso2: string } | null {
@@ -23,7 +16,7 @@ export function parseItemKey(itemKey: string): { mode: GameMode; iso2: string } 
   if (sep <= 0) return null;
   const mode = itemKey.slice(0, sep) as GameMode;
   const iso2 = itemKey.slice(sep + 1);
-  if (!iso2 || !GAME_MODES.includes(mode)) return null;
+  if (!iso2 || !ALL_MODES.includes(mode)) return null;
   return { mode, iso2 };
 }
 
@@ -120,7 +113,7 @@ export function dominantTrainingMode(
 
   let best: GameMode | null = null;
   let bestCount = 0;
-  for (const mode of GAME_MODES) {
+  for (const mode of ALL_MODES) {
     const count = counts.get(mode) ?? 0;
     if (count > bestCount) {
       best = mode;

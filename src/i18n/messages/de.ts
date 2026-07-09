@@ -89,6 +89,8 @@ const de: typeof en = {
     countryToFlag: 'Land → Flagge',
     mapHighlight: 'Finde das markierte Land',
     mapLocate: 'Auf der Karte finden',
+    capitalToCountry: 'Hauptstadt → Land',
+    countryToCapital: 'Land → Hauptstadt',
   },
   sessionType: {
     fixed: 'Fest',
@@ -114,6 +116,8 @@ const de: typeof en = {
       whichFlag: 'Welche ist seine Flagge?',
       whichHighlighted: 'Welches Land ist markiert?',
       locate: 'Finde es auf der Karte',
+      whichCountryOfCapital: 'Hauptstadt welches Landes ist das?',
+      whichCapital: 'Was ist seine Hauptstadt?',
     },
     map: {
       loading: 'Karte wird geladen…',

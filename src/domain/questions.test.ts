@@ -24,6 +24,7 @@ function mk(iso2: string, region: string, subregion: string): Country {
     iso3: (iso2 + 'Z').toUpperCase(),
     numericId: '000',
     name: { en: iso2, fr: iso2, de: iso2 },
+    capital: { en: `${iso2}-cap`, fr: `${iso2}-cap`, de: `${iso2}-cap` },
     region,
     subregion,
     flagAsset: `flags/${iso2.toLowerCase()}.svg`,
@@ -47,7 +48,14 @@ const UNIVERSE: Country[] = [
 const iso = (cs: Country[]) => cs.map((c) => c.iso2).sort();
 const byIso2 = (i: string) => UNIVERSE.find((c) => c.iso2 === i)!;
 
-const OPTION_MODES: GameMode[] = ['flag-to-country', 'country-to-flag', 'map-highlight'];
+// Country-option modes: the answer and options are all countries (capital-to-country is
+// one too — only its prompt is a capital string, the options stay country names).
+const OPTION_MODES: GameMode[] = [
+  'flag-to-country',
+  'country-to-flag',
+  'map-highlight',
+  'capital-to-country',
+];
 
 describe('itemKey / hasOptions', () => {
   it('builds a stable per-item key', () => {
@@ -187,6 +195,35 @@ describe('buildQuestion', () => {
     const tiny = [mk('AA', 'R1', 'S1'), mk('AB', 'R1', 'S1')];
     const q = buildQuestion('flag-to-country', tiny[0], tiny, 4, mulberry32(1));
     expect(q.options).toHaveLength(2); // answer + the one available distractor
+  });
+});
+
+describe('buildQuestion — attribute modes (country-to-capital)', () => {
+  it('builds attributeOptions (capitals) keyed by owning ISO2, with the answer correct', () => {
+    const answer = byIso2('AA');
+    const q = buildQuestion('country-to-capital', answer, UNIVERSE, DEFAULT_CHOICES, mulberry32(5));
+
+    expect(q.itemKey).toBe('country-to-capital:AA'); // keyed per-country like every mode
+    expect(q.options).toBeUndefined(); // no country options
+    expect(q.attributeOptions).toHaveLength(DEFAULT_CHOICES);
+    // The correct option is the answer country's ISO2, and its label is the answer's capital.
+    expect(q.correctOptionId).toBe('AA');
+    const correct = q.attributeOptions!.find((o) => o.id === q.correctOptionId);
+    expect(correct!.label).toEqual(answer.capital);
+    // Every option label is some in-universe country's capital, and ids/labels are unique.
+    const ids = q.attributeOptions!.map((o) => o.id);
+    expect(ids).toContain('AA');
+    expect(new Set(ids).size).toBe(DEFAULT_CHOICES);
+    expect(new Set(q.attributeOptions!.map((o) => o.label.en)).size).toBe(DEFAULT_CHOICES);
+  });
+
+  it('grades an attribute pick by option id, not by country ISO', () => {
+    const q = buildQuestion('country-to-capital', byIso2('AA'), UNIVERSE, 4, mulberry32(1));
+    expect(checkAnswer(q, q.correctOptionId!)).toBe(true);
+    const wrong = q.attributeOptions!.find((o) => o.id !== q.correctOptionId)!;
+    expect(checkAnswer(q, wrong.id)).toBe(false);
+    expect(checkAnswer(q, null)).toBe(false);
+    expect(checkAnswer(q, undefined)).toBe(false);
   });
 });
 

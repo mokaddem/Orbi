@@ -24,6 +24,8 @@
     'country-to-flag': 'modes.countryToFlag',
     'map-highlight': 'modes.mapHighlight',
     'map-locate': 'modes.mapLocate',
+    'capital-to-country': 'modes.capitalToCountry',
+    'country-to-capital': 'modes.countryToCapital',
   };
 
   function retry(): void {

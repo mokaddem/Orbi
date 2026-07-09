@@ -26,6 +26,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { feature, merge } from 'topojson-client';
 import { geoNaturalEarth1, geoPath, geoCentroid } from 'd3-geo';
+import { CAPITAL_I18N } from './data/capitals-i18n.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
@@ -362,6 +363,7 @@ mkdirSync(FLAG_OUT, { recursive: true });
 const countries = [];
 const missingFlag = [];
 const missingGeometry = [];
+const missingCapital = [];
 
 for (const c of inScope) {
   const iso2 = c.cca2;
@@ -375,6 +377,17 @@ for (const c of inScope) {
   const hasGeometry = geometryIds.has(String(Number(c.ccn3)));
   if (!hasGeometry) missingGeometry.push(iso2);
 
+  // Canonical capital (English) from world-countries; the first listed for the one
+  // in-scope multi-capital country (South Africa → Pretoria). FR/DE come from the
+  // curated override map, defaulting to English where no exonym differs.
+  const capitalEn = c.capital?.[0];
+  if (!capitalEn) missingCapital.push(iso2);
+  const capital = {
+    en: capitalEn ?? '',
+    fr: CAPITAL_I18N[iso2]?.fr ?? capitalEn ?? '',
+    de: CAPITAL_I18N[iso2]?.de ?? capitalEn ?? '',
+  };
+
   countries.push({
     iso2,
     iso3: c.cca3,
@@ -384,6 +397,7 @@ for (const c of inScope) {
       fr: NAME_OVERRIDES[iso2]?.fr ?? c.translations.fra?.common ?? c.name.common,
       de: NAME_OVERRIDES[iso2]?.de ?? c.translations.deu?.common ?? c.name.common,
     },
+    capital,
     region: c.region,
     subregion: playRegion(c), // Phase 19: regrouped play-region bucket (region left as-is)
     flagAsset: `flags/${iso2lower}.svg`,
@@ -421,9 +435,11 @@ const meta = {
     countries: countries.length,
     withFlag: countries.length - missingFlag.length,
     withGeometry: countries.length - missingGeometry.length,
+    withCapital: countries.length - missingCapital.length,
   },
   geometryExceptions: missingGeometry,
   flagExceptions: missingFlag,
+  capitalExceptions: missingCapital,
 };
 writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`);
 
@@ -438,9 +454,30 @@ console.log(
   `[build-data] geometry: ${n - missingGeometry.length}/${n} (${TOPO_RES})` +
     (missingGeometry.length ? `  absent: ${missingGeometry.join(', ')}` : ''),
 );
+console.log(
+  `[build-data] capitals: ${n - missingCapital.length}/${n}` +
+    (missingCapital.length ? `  MISSING: ${missingCapital.join(', ')}` : ''),
+);
 
 const unexpectedGeometry = missingGeometry.filter((cc) => !KNOWN_NO_GEOMETRY.has(cc));
 const staleExceptions = [...KNOWN_NO_GEOMETRY].filter((cc) => !missingGeometry.includes(cc));
+
+// Keep the curated CAPITAL_I18N map honest: fail on an entry for a country not in scope,
+// or an override that just repeats the English name (a no-op that should be deleted).
+const inScopeIso = new Set(countries.map((c) => c.iso2));
+const capitalEnByIso = new Map(countries.map((c) => [c.iso2, c.capital.en]));
+const staleCapitalI18n = [];
+const noopCapitalI18n = [];
+for (const [iso, ov] of Object.entries(CAPITAL_I18N)) {
+  if (!inScopeIso.has(iso)) {
+    staleCapitalI18n.push(iso);
+    continue;
+  }
+  const en = capitalEnByIso.get(iso);
+  for (const loc of ['fr', 'de']) {
+    if (ov[loc] !== undefined && ov[loc] === en) noopCapitalI18n.push(`${iso}.${loc}`);
+  }
+}
 
 // Phase 19: every selectable play-region bucket must hold at least MIN_POOL countries,
 // so a region-filtered game never degenerates into cycling the same handful.
@@ -455,7 +492,15 @@ console.log(
     `${Math.min(...bucketSizes.values())} (min ${MIN_POOL})`,
 );
 
-if (missingFlag.length || unexpectedGeometry.length || staleExceptions.length || tooSmall.length) {
+if (
+  missingFlag.length ||
+  unexpectedGeometry.length ||
+  staleExceptions.length ||
+  tooSmall.length ||
+  missingCapital.length ||
+  staleCapitalI18n.length ||
+  noopCapitalI18n.length
+) {
   console.error('[build-data] INTEGRITY CHECK FAILED:');
   if (missingFlag.length) console.error(`  - missing flags: ${missingFlag.join(', ')}`);
   if (unexpectedGeometry.length)
@@ -468,6 +513,16 @@ if (missingFlag.length || unexpectedGeometry.length || staleExceptions.length ||
     console.error(
       `  - play-region buckets below MIN_POOL (${MIN_POOL}): ` +
         tooSmall.map(([k, n]) => `${k} (${n})`).join(', '),
+    );
+  if (missingCapital.length)
+    console.error(`  - countries with no capital: ${missingCapital.join(', ')}`);
+  if (staleCapitalI18n.length)
+    console.error(
+      `  - CAPITAL_I18N entries for out-of-scope countries: ${staleCapitalI18n.join(', ')}`,
+    );
+  if (noopCapitalI18n.length)
+    console.error(
+      `  - CAPITAL_I18N overrides identical to English (delete them): ${noopCapitalI18n.join(', ')}`,
     );
   process.exit(1);
 }

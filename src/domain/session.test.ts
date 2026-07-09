@@ -10,6 +10,7 @@ function mk(iso2: string, region: string, subregion: string): Country {
     iso3: (iso2 + 'Z').toUpperCase(),
     numericId: '000',
     name: { en: iso2, fr: iso2, de: iso2 },
+    capital: { en: `${iso2}-cap`, fr: `${iso2}-cap`, de: `${iso2}-cap` },
     region,
     subregion,
     flagAsset: `flags/${iso2.toLowerCase()}.svg`,

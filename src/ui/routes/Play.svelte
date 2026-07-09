@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
   import { push } from 'svelte-spa-router';
-  import { t, localizedName, localizedRegion } from '../../i18n';
+  import { t, localizedName, localizedText, localizedRegion } from '../../i18n';
   import {
     filterCountries,
     hasOptions,
@@ -11,13 +11,7 @@
     type RegionFilter,
     type SessionType,
   } from '../../domain';
-  import {
-    countryCount,
-    getCountries,
-    getRegionTree,
-    type Country,
-    type RegionNode,
-  } from '../../data';
+  import { countryCount, getCountries, getRegionTree, type RegionNode } from '../../data';
   import { play, lastSummary, pendingConfig, type RunConfig } from '../stores/game';
   import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
@@ -35,6 +29,16 @@
   // Setup selections.
   let mode = $state<GameMode>('flag-to-country');
   let type = $state<SessionType>('fixed');
+
+  /** The selectable modes, in display order, with their label keys. */
+  const MODE_OPTIONS: { mode: GameMode; labelKey: string }[] = [
+    { mode: 'flag-to-country', labelKey: 'modes.flagToCountry' },
+    { mode: 'country-to-flag', labelKey: 'modes.countryToFlag' },
+    { mode: 'map-highlight', labelKey: 'modes.mapHighlight' },
+    { mode: 'map-locate', labelKey: 'modes.mapLocate' },
+    { mode: 'capital-to-country', labelKey: 'modes.capitalToCountry' },
+    { mode: 'country-to-capital', labelKey: 'modes.countryToCapital' },
+  ];
 
   // Region filter selections. Empty string means "no narrowing": no region → World
   // (all countries); no sub-region → the whole selected region.
@@ -128,8 +132,8 @@
     });
   }
 
-  function onPick(country: Country): void {
-    const result = play.answer(country.iso2);
+  function onPick(id: string): void {
+    const result = play.answer(id);
     if (result) void recordAnswer(result);
   }
 
@@ -202,46 +206,18 @@
     <div class="field">
       <span class="legend">{$t('play.setup.chooseMode')}</span>
       <div class="options">
-        <button
-          type="button"
-          class="opt mode-opt"
-          class:selected={mode === 'flag-to-country'}
-          aria-pressed={mode === 'flag-to-country'}
-          onclick={() => (mode = 'flag-to-country')}
-        >
-          <ModeIcon mode="flag-to-country" />
-          <span>{$t('modes.flagToCountry')}</span>
-        </button>
-        <button
-          type="button"
-          class="opt mode-opt"
-          class:selected={mode === 'country-to-flag'}
-          aria-pressed={mode === 'country-to-flag'}
-          onclick={() => (mode = 'country-to-flag')}
-        >
-          <ModeIcon mode="country-to-flag" />
-          <span>{$t('modes.countryToFlag')}</span>
-        </button>
-        <button
-          type="button"
-          class="opt mode-opt"
-          class:selected={mode === 'map-highlight'}
-          aria-pressed={mode === 'map-highlight'}
-          onclick={() => (mode = 'map-highlight')}
-        >
-          <ModeIcon mode="map-highlight" />
-          <span>{$t('modes.mapHighlight')}</span>
-        </button>
-        <button
-          type="button"
-          class="opt mode-opt"
-          class:selected={mode === 'map-locate'}
-          aria-pressed={mode === 'map-locate'}
-          onclick={() => (mode = 'map-locate')}
-        >
-          <ModeIcon mode="map-locate" />
-          <span>{$t('modes.mapLocate')}</span>
-        </button>
+        {#each MODE_OPTIONS as opt (opt.mode)}
+          <button
+            type="button"
+            class="opt mode-opt"
+            class:selected={mode === opt.mode}
+            aria-pressed={mode === opt.mode}
+            onclick={() => (mode = opt.mode)}
+          >
+            <ModeIcon mode={opt.mode} />
+            <span>{$t(opt.labelKey)}</span>
+          </button>
+        {/each}
       </div>
     </div>
 
@@ -369,6 +345,12 @@
           <p class="ask">{$t('play.prompt.whichFlag')}</p>
         {:else if cfg.mode === 'map-highlight'}
           <p class="ask">{$t('play.prompt.whichHighlighted')}</p>
+        {:else if cfg.mode === 'capital-to-country'}
+          <p class="prompt-name">{$localizedText(question.answer.capital)}</p>
+          <p class="ask">{$t('play.prompt.whichCountryOfCapital')}</p>
+        {:else if cfg.mode === 'country-to-capital'}
+          <p class="prompt-name">{$localizedName(question.answer)}</p>
+          <p class="ask">{$t('play.prompt.whichCapital')}</p>
         {:else}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">{$t('play.prompt.locate')}</p>
@@ -397,16 +379,34 @@
       {/if}
 
       {#if question.options}
+        {@const countryOptions = question.options.map((c) => ({
+          id: c.iso2,
+          label: $localizedName(c),
+          country: c,
+        }))}
         <ChoiceGrid
-          options={question.options}
+          options={countryOptions}
           variant={cfg.mode === 'country-to-flag'
             ? 'flag'
             : cfg.mode === 'map-highlight'
               ? 'name-flag'
               : 'name'}
           {answered}
-          correctIso={question.answer.iso2}
-          pickedIso={view.feedback?.pickedIso ?? null}
+          correctId={question.answer.iso2}
+          pickedId={view.feedback?.pickedIso ?? null}
+          onpick={onPick}
+        />
+      {:else if question.attributeOptions}
+        {@const attrOptions = question.attributeOptions.map((o) => ({
+          id: o.id,
+          label: $localizedText(o.label),
+        }))}
+        <ChoiceGrid
+          options={attrOptions}
+          variant="name"
+          {answered}
+          correctId={question.correctOptionId ?? null}
+          pickedId={view.feedback?.pickedIso ?? null}
           onpick={onPick}
         />
       {/if}
@@ -419,7 +419,12 @@
           </p>
           {#if !fb.correct}
             <p class="reveal">
-              {$t('play.feedback.reveal', { country: $localizedName(fb.question.answer) })}
+              {$t('play.feedback.reveal', {
+                country:
+                  fb.question.mode === 'country-to-capital'
+                    ? $localizedText(fb.question.answer.capital)
+                    : $localizedName(fb.question.answer),
+              })}
             </p>
           {/if}
           <div

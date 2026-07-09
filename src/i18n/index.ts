@@ -88,6 +88,18 @@ export const localizedName = derived(
 );
 
 /**
+ * Reactive accessor for any localized `CountryName` value that isn't an entity's `name`
+ * — e.g. a capital city or an attribute option's label (Phase 24). Usage:
+ * `{$localizedText(country.capital)}`. Re-evaluates on locale change.
+ */
+export const localizedText = derived(
+  locale,
+  ($locale) =>
+    (text: CountryName): string =>
+      text[$locale],
+);
+
+/**
  * Reactive localized name for an M49 region / sub-region (stored in the dataset as
  * an English label). Usage: `{$localizedRegion(country.region)}`. Falls back to the
  * raw English label when no translation exists. Re-evaluates on locale change.

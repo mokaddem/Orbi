@@ -80,6 +80,8 @@ const en = {
     countryToFlag: 'Country → Flag',
     mapHighlight: 'Find the highlighted country',
     mapLocate: 'Locate on the map',
+    capitalToCountry: 'Capital → Country',
+    countryToCapital: 'Country → Capital',
   },
   sessionType: {
     fixed: 'Fixed',
@@ -105,6 +107,8 @@ const en = {
       whichFlag: 'Which is its flag?',
       whichHighlighted: 'Which country is highlighted?',
       locate: 'Find it on the map',
+      whichCountryOfCapital: "Which country's capital is this?",
+      whichCapital: 'Which is its capital?',
     },
     map: {
       loading: 'Loading map…',

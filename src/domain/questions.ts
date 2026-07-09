@@ -4,9 +4,10 @@
 // engine (session.ts) draws answers one at a time via `buildQuestion`; the batch
 // `generateQuestions` is a convenience for callers that want a fixed list up front.
 
-import type { Country } from '../data/types';
-import type { GameMode, Question, RegionFilter } from './types';
+import type { Country, CountryName } from '../data/types';
+import type { AttributeOption, GameMode, Question, RegionFilter } from './types';
 import { type Rng, defaultRng, shuffle } from './rng';
+import { isAttributeMode } from './modes';
 
 /** Default number of multiple-choice options per question (including the answer). */
 export const DEFAULT_CHOICES = 4;
@@ -80,10 +81,22 @@ export function selectDistractors(
   return chosen;
 }
 
+/** The localized attribute value a country carries for an attribute mode. */
+function attributeOf(mode: GameMode, country: Country): CountryName {
+  switch (mode) {
+    case 'country-to-capital':
+      return country.capital;
+    default:
+      throw new Error(`attributeOf: ${mode} is not an attribute mode`);
+  }
+}
+
 /**
- * Build one question for `answer` in `mode`. Option-based modes get `choices`
- * shuffled options including the answer (drawn from `universe`); `map-locate`
- * gets no options.
+ * Build one question for `answer` in `mode`. Country-option modes get `choices` shuffled
+ * country options including the answer; attribute modes (e.g. `country-to-capital`) get
+ * `attributeOptions` — localized values keyed by the owning country's ISO2, with
+ * `correctOptionId` marking the answer's. `map-locate` gets neither (the map is the input).
+ * Distractors are drawn from `universe` with the same geography tiering in both cases.
  */
 export function buildQuestion(
   mode: GameMode,
@@ -93,7 +106,15 @@ export function buildQuestion(
   rng: Rng = defaultRng,
 ): Question {
   const question: Question = { itemKey: itemKey(mode, answer.iso2), mode, answer };
-  if (hasOptions(mode)) {
+  if (isAttributeMode(mode)) {
+    const distractors = selectDistractors(answer, universe, Math.max(0, choices - 1), rng);
+    const options: AttributeOption[] = shuffle([answer, ...distractors], rng).map((c) => ({
+      id: c.iso2,
+      label: attributeOf(mode, c),
+    }));
+    question.attributeOptions = options;
+    question.correctOptionId = answer.iso2;
+  } else if (hasOptions(mode)) {
     const distractors = selectDistractors(answer, universe, Math.max(0, choices - 1), rng);
     question.options = shuffle([answer, ...distractors], rng);
   }
@@ -162,11 +183,18 @@ function pickedIso(pick: Country | string | null | undefined): string | null {
 /**
  * Whether `pick` correctly answers `question`. Accepts a `Country`, an ISO
  * alpha-2/alpha-3 string, or `null`/`undefined` (no answer / timeout → incorrect).
+ *
+ * For attribute modes the pick is an {@link AttributeOption} id (a raw string, compared
+ * as-is to `correctOptionId`); for country modes it is an ISO code / `Country`.
  */
 export function checkAnswer(
   question: Question,
   pick: Country | string | null | undefined,
 ): boolean {
+  if (question.correctOptionId !== undefined) {
+    const id = typeof pick === 'string' ? pick : (pick?.iso2 ?? null);
+    return id != null && id === question.correctOptionId;
+  }
   const iso = pickedIso(pick);
   if (iso == null) return false;
   return iso === question.answer.iso2 || iso === question.answer.iso3;

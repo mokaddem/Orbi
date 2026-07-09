@@ -94,6 +94,16 @@ describe('computeMastery', () => {
     expect(overall).toMatchObject({ mastered: 0, learning: 1, unseen: 4, total: 5 });
   });
 
+  it('ignores capital-mode SR items entirely (Phase 24 stays out of mastery)', () => {
+    // A country only ever played in the capital modes must NOT count as seen or mastered.
+    const items = [
+      sr('capital-to-country:FR', { repetitions: 5, dueAt: NOW + 30 * DAY }),
+      sr('country-to-capital:FR', { repetitions: 5, dueAt: NOW + 30 * DAY }),
+    ];
+    const { overall } = computeMastery(items, countries, { now: NOW });
+    expect(overall).toEqual({ mastered: 0, learning: 0, unseen: 5, total: 5 });
+  });
+
   it('demotes a lapsed country from mastered back to learning', () => {
     const mastered = [sr('flag-to-country:JP', { repetitions: 4, dueAt: NOW + 30 * DAY })];
     expect(computeMastery(mastered, countries, { now: NOW }).overall.mastered).toBe(1);

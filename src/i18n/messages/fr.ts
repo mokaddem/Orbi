@@ -83,6 +83,8 @@ const fr: typeof en = {
     countryToFlag: 'Pays → Drapeau',
     mapHighlight: 'Trouver le pays surligné',
     mapLocate: 'Localiser sur la carte',
+    capitalToCountry: 'Capitale → Pays',
+    countryToCapital: 'Pays → Capitale',
   },
   sessionType: {
     fixed: 'Fixe',
@@ -108,6 +110,8 @@ const fr: typeof en = {
       whichFlag: 'Quel est son drapeau ?',
       whichHighlighted: 'Quel est le pays surligné ?',
       locate: 'Trouvez-le sur la carte',
+      whichCountryOfCapital: 'De quel pays est-ce la capitale ?',
+      whichCapital: 'Quelle est sa capitale ?',
     },
     map: {
       loading: 'Chargement de la carte…',

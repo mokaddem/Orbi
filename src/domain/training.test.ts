@@ -22,6 +22,17 @@ describe('parseItemKey', () => {
     expect(parseItemKey('map-locate:FR')).toEqual({ mode: 'map-locate', iso2: 'FR' });
   });
 
+  it('accepts the capital modes so they are trainable (Phase 24)', () => {
+    expect(parseItemKey('capital-to-country:FR')).toEqual({
+      mode: 'capital-to-country',
+      iso2: 'FR',
+    });
+    expect(parseItemKey('country-to-capital:JP')).toEqual({
+      mode: 'country-to-capital',
+      iso2: 'JP',
+    });
+  });
+
   it('rejects malformed or unknown-mode keys', () => {
     expect(parseItemKey('BG')).toBeNull();
     expect(parseItemKey(':BG')).toBeNull();

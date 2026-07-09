@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { localizedName } from '../../i18n';
   import Flag from './Flag.svelte';
-  import type { Country } from '../../data';
+  import type { ChoiceOption } from './choice-grid';
 
-  // Multiple-choice answer surface, shared by both flag modes (and reusable by any
-  // option-based mode). Options render either as country names or as flags. Once
+  // Multiple-choice answer surface, shared by every option-based mode: country modes
+  // (names / flags) and attribute modes (e.g. capital strings). Options are normalized
+  // to {@link ChoiceOption} by the caller, which also localizes the labels. Once
   // `answered` is set the grid locks and reveals: the correct option is highlighted,
   // and the picked-but-wrong option is marked. Purely presentational — grading and
   // state live in the caller (the Play shell / play store).
@@ -12,34 +12,34 @@
     options,
     variant,
     answered = false,
-    correctIso = null,
-    pickedIso = null,
+    correctId = null,
+    pickedId = null,
     onpick,
   }: {
-    options: Country[];
+    options: ChoiceOption[];
     /**
      * How each option renders:
-     *  - 'name'      → text-only buttons (`flag-to-country`: the prompt is a flag, so
-     *                  flags here would trivialise it to picture-matching).
+     *  - 'name'      → text-only buttons (`flag-to-country`, `capital-to-country`, and
+     *                  attribute modes like `country-to-capital`).
      *  - 'name-flag' → a small flag thumbnail beside the name (`map-highlight`: the
      *                  prompt is the map, so the flag is a helpful extra cue).
      *  - 'flag'      → flag buttons, names revealed once answered (`country-to-flag`).
      */
     variant: 'name' | 'name-flag' | 'flag';
     answered?: boolean;
-    /** ISO2 of the correct option; highlighted green once `answered`. */
-    correctIso?: string | null;
-    /** ISO2 of the option the player chose; marked red if wrong. */
-    pickedIso?: string | null;
-    onpick: (country: Country) => void;
+    /** id of the correct option; highlighted green once `answered`. */
+    correctId?: string | null;
+    /** id of the option the player chose; marked red if wrong. */
+    pickedId?: string | null;
+    onpick: (id: string) => void;
   } = $props();
 
   type OptionState = '' | 'correct' | 'wrong' | 'muted';
 
-  function stateFor(c: Country): OptionState {
+  function stateFor(o: ChoiceOption): OptionState {
     if (!answered) return '';
-    if (c.iso2 === correctIso) return 'correct';
-    if (c.iso2 === pickedIso) return 'wrong';
+    if (o.id === correctId) return 'correct';
+    if (o.id === pickedId) return 'wrong';
     return 'muted';
   }
 </script>
@@ -50,26 +50,26 @@
   class:name-flag={variant === 'name-flag'}
   role="group"
 >
-  {#each options as option (option.iso2)}
+  {#each options as option (option.id)}
     {@const st = stateFor(option)}
     <button
       type="button"
       class="choice {st}"
       class:answered
-      data-iso={option.iso2}
+      data-id={option.id}
       data-state={st}
       disabled={answered}
-      aria-pressed={option.iso2 === pickedIso}
-      onclick={() => !answered && onpick(option)}
+      aria-pressed={option.id === pickedId}
+      onclick={() => !answered && onpick(option.id)}
     >
-      {#if variant === 'flag'}
-        <span class="opt-flag"><Flag country={option} /></span>
-        {#if answered}<span class="opt-name">{$localizedName(option)}</span>{/if}
-      {:else if variant === 'name-flag'}
-        <span class="opt-thumb"><Flag country={option} /></span>
-        <span class="opt-name">{$localizedName(option)}</span>
+      {#if variant === 'flag' && option.country}
+        <span class="opt-flag"><Flag country={option.country} /></span>
+        {#if answered}<span class="opt-name">{option.label}</span>{/if}
+      {:else if variant === 'name-flag' && option.country}
+        <span class="opt-thumb"><Flag country={option.country} /></span>
+        <span class="opt-name">{option.label}</span>
       {:else}
-        <span class="opt-name">{$localizedName(option)}</span>
+        <span class="opt-name">{option.label}</span>
       {/if}
     </button>
   {/each}

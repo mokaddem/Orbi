@@ -7,6 +7,7 @@
 
 export type {
   GameMode,
+  AttributeOption,
   SessionType,
   RegionFilter,
   Question,
@@ -15,6 +16,8 @@ export type {
   SessionState,
   SessionSummary,
 } from './types';
+
+export { ALL_MODES, MASTERY_MODES, ATTRIBUTE_MODES, isAttributeMode, isMasteryMode } from './modes';
 
 export { type Rng, defaultRng, mulberry32, randomInt, shuffle, sample } from './rng';
 

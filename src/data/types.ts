@@ -20,6 +20,13 @@ export interface Country {
   /** ISO 3166-1 numeric code (e.g. "100"). The join key into the TopoJSON. */
   numericId: string;
   name: CountryName;
+  /**
+   * Capital city, localized. Canonical only — for the one in-scope multi-capital country
+   * (South Africa) the first listed is used (Pretoria). Sourced English from
+   * `world-countries`; FR/DE come from the curated `capitals-i18n` override map,
+   * defaulting to English where no exonym differs. Added in Phase 24 (capitals modes).
+   */
+  capital: CountryName;
   /** UN M49 region (Africa, Americas, Asia, Europe, Oceania). */
   region: string;
   /** UN M49 sub-region (e.g. "Eastern Europe"). */

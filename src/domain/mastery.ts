@@ -18,6 +18,7 @@
 
 import type { SRItem } from '../data/persistence/types';
 import { parseItemKey } from './training';
+import { isMasteryMode } from './modes';
 
 /** Owner-agreed SR bar: consecutive correct recalls required to count an item mastered. */
 export const MASTERY_MIN_REPETITIONS = 2;
@@ -93,6 +94,9 @@ export function computeMastery(
   for (const item of srItems) {
     const parsed = parseItemKey(item.itemKey);
     if (!parsed) continue;
+    // Only the country-identification modes count toward mastery; capital modes (Phase 24)
+    // are trained and recorded but deliberately don't move the mastery tally.
+    if (!isMasteryMode(parsed.mode)) continue;
     seen.add(parsed.iso2);
     if (isItemMastered(item, now)) mastered.add(parsed.iso2);
   }

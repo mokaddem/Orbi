@@ -4,14 +4,29 @@
 // storage-agnostic: the persisted shapes in `main_PRD.md` (SessionRecord, SRItem)
 // are built *from* these in Phases 6–7, so `QuestionResult` here is the bridge.
 
-import type { Country } from '../data/types';
+import type { Country, CountryName } from '../data/types';
 
-/** The four ways the same country knowledge is exercised. */
+/** The ways the same country knowledge is exercised. */
 export type GameMode =
   | 'flag-to-country' // see a flag → pick the country name
   | 'country-to-flag' // see a country name → pick the flag
   | 'map-highlight' // a country is highlighted on the map → pick its name
-  | 'map-locate'; // given a country name → click it on the map
+  | 'map-locate' // given a country name → click it on the map
+  | 'capital-to-country' // see a capital city → pick the country (Phase 24)
+  | 'country-to-capital'; // see a country → pick its capital city (Phase 24)
+
+/**
+ * A non-country multiple-choice option — a localized *attribute value* the player picks
+ * (Phase 24's capital strings; reused by Phases 23/25 for languages/industries). The
+ * answer stays a `Country` for keying, so `id` identifies the option (for capitals it is
+ * the owning country's ISO2) and `correctOptionId` on the question says which is right.
+ */
+export interface AttributeOption {
+  /** Stable option id, unique within a question. For capitals: the owning country's ISO2. */
+  id: string;
+  /** The value shown on the option card, localized. */
+  label: CountryName;
+}
 
 /** How a session ends. `training` (SR-driven) is wired up in Phase 7. */
 export type SessionType = 'fixed' | 'survival' | 'training';
@@ -32,7 +47,15 @@ export interface Question {
   itemKey: string;
   mode: GameMode;
   answer: Country;
+  /** Country options (country-identification modes and `capital-to-country`). */
   options?: Country[];
+  /**
+   * Attribute-value options (attribute modes like `country-to-capital`). Present instead
+   * of `options`; the correct one is identified by {@link correctOptionId}.
+   */
+  attributeOptions?: AttributeOption[];
+  /** For attribute modes: the id of the correct {@link AttributeOption}. */
+  correctOptionId?: string;
 }
 
 /**
