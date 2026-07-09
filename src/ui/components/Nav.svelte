@@ -2,6 +2,7 @@
   import { router } from 'svelte-spa-router';
   import { t } from '../../i18n';
   import { navLinks } from '../routes';
+  import Icon from './Icon.svelte';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
 
   function isActive(href: string, current: string): boolean {
@@ -16,7 +17,8 @@
   <nav class="links" aria-label={$t('nav.primary')}>
     {#each navLinks as link (link.href)}
       <a href={link.href} class:active={isActive(link.href, router.location)}>
-        {$t(link.labelKey)}
+        <Icon name={link.icon} size={17} />
+        <span>{$t(link.labelKey)}</span>
       </a>
     {/each}
   </nav>
@@ -48,6 +50,9 @@
   }
 
   .links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     padding: 0.35rem 0.7rem;
     border-radius: var(--radius);
     color: var(--color-muted);

@@ -1,4 +1,5 @@
 import type { RouteDefinition } from 'svelte-spa-router';
+import type { IconName } from './components/icons';
 import Home from './routes/Home.svelte';
 import Play from './routes/Play.svelte';
 import Summary from './routes/Summary.svelte';
@@ -17,11 +18,11 @@ const routes: RouteDefinition = {
 };
 
 /** Primary navigation entries (order matters). */
-export const navLinks: { href: string; labelKey: string }[] = [
-  { href: '#/', labelKey: 'nav.home' },
-  { href: '#/play', labelKey: 'nav.play' },
-  { href: '#/history', labelKey: 'nav.history' },
-  { href: '#/settings', labelKey: 'nav.settings' },
+export const navLinks: { href: string; labelKey: string; icon: IconName }[] = [
+  { href: '#/', labelKey: 'nav.home', icon: 'home' },
+  { href: '#/play', labelKey: 'nav.play', icon: 'play' },
+  { href: '#/history', labelKey: 'nav.history', icon: 'history' },
+  { href: '#/settings', labelKey: 'nav.settings', icon: 'settings' },
 ];
 
 export default routes;

@@ -19,6 +19,7 @@
     type AchievementView,
   } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
+  import Mascot from '../components/Mascot.svelte';
   import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
   import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
   import AchievementsGrid from '../components/AchievementsGrid.svelte';
@@ -104,8 +105,11 @@
   {#if loading}
     <p class="muted">{$t('history.loading')}</p>
   {:else if !stats || sessions.length === 0}
-    <p class="muted">{$t('history.empty')}</p>
-    <a class="cta" href="#/play">{$t('history.play')}</a>
+    <div class="empty-state">
+      <Mascot pose="sleepy" size={116} />
+      <p class="muted">{$t('history.empty')}</p>
+      <a class="cta" href="#/play">{$t('history.play')}</a>
+    </div>
   {:else}
     {@const s = stats}
     <!-- One-time "unlocked!" celebration for badges earned on this load. -->
@@ -281,6 +285,20 @@
 
   .muted {
     color: var(--color-muted);
+  }
+
+  /* Empty History: the sleepy globe stands in for the blank list, above the message + CTA. */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.7rem;
+    padding: 2rem 1rem 1rem;
+  }
+
+  .empty-state .cta {
+    align-self: center;
   }
 
   .cta {

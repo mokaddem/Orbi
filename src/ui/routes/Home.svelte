@@ -15,6 +15,8 @@
   } from '../stores/persistence';
   import type { MasteryResult, Recommendation, StreakInfo } from '../../domain';
   import Demo from '../components/Demo.svelte';
+  import Icon from '../components/Icon.svelte';
+  import Mascot from '../components/Mascot.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
   import StreakIndicator from '../components/StreakIndicator.svelte';
   import DailyChallengeCard from '../components/DailyChallengeCard.svelte';
@@ -56,8 +58,13 @@
 </script>
 
 <section class="home">
-  <h1>{$t('home.title')}</h1>
-  <p class="tagline">{$t('home.tagline')}</p>
+  <header class="home-header">
+    <Mascot pose="wave" size={84} />
+    <div class="home-heading">
+      <h1>{$t('home.title')}</h1>
+      <p class="tagline">{$t('home.tagline')}</p>
+    </div>
+  </header>
 
   {#if streak}
     <div class="streak-row">
@@ -84,20 +91,42 @@
   {/if}
 
   <div class="actions">
-    <a class="play-link" href="#/play">{$t('home.playCustom')}</a>
+    <a class="play-link" href="#/play">
+      <Icon name="custom" size={16} />
+      <span>{$t('home.playCustom')}</span>
+    </a>
     {#if plan}
       <button type="button" class="train-link" onclick={trainAll}>
-        {$t('home.trainAll', { count: plan.iso2s.length })}
+        <Icon name="train" size={16} />
+        <span>{$t('home.trainAll', { count: plan.iso2s.length })}</span>
       </button>
     {/if}
   </div>
 </section>
 
 <style>
+  /* Hero header: the globe mascot greets beside the title. It's decorative spot art (the
+     mascot is aria-hidden), so the heading text still carries the screen. */
+  .home-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .home-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .home-header h1 {
+    margin: 0;
+  }
+
   .tagline {
     color: var(--color-muted);
     font-size: 1.1rem;
-    margin-top: -0.25rem;
+    margin: 0;
   }
 
   /* A block row so the inline streak pill sits left-aligned with controlled spacing. */
@@ -125,6 +154,9 @@
 
   .play-link,
   .train-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     padding: 0;
     background: none;
     border: none;

@@ -107,7 +107,7 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
 | 17 | German (DE) localization | [phase-17-de-localization.md](phases/archive/phase-17-de-localization.md) | 8 | ✅ Done | 100% |
-| 18 | Playful visual layer (icons & imagery) | [phase-18-playful-visuals.md](phases/phase-18-playful-visuals.md) | 12 | ⬜ Not started | 0% |
+| 18 | Playful visual layer (icons & imagery) | [phase-18-playful-visuals.md](phases/phase-18-playful-visuals.md) | 12 | 🟡 In progress | 40% |
 | 19 | Region classification & bucketing | [phase-19-region-classification.md](phases/phase-19-region-classification.md) | 1 (before 20; re-verify 14, 16) | ⬜ Not started | 0% |
 | 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/phase-20-encyclopedia.md) | 1, 12 (19 first) | ⬜ Not started | 0% |
 | 21 | Country scope: disclaimer & definitions | [phase-21-country-scope.md](phases/phase-21-country-scope.md) | 1 (20 for Stage B) | ⬜ Not started | 0% |

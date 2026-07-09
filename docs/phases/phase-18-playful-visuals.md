@@ -1,6 +1,6 @@
 # Phase 18 — Playful visual layer (icons & imagery)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 40%
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -102,3 +102,33 @@ Phase 12 (visual polish & palette). Independent of the other v1.3 phases; it onl
 ## Progress log
 - **2026-07-09 — PRD drafted from the owner's v1.3 improvement list ("more playful icons and pictures
   overall"). NOT built — awaiting the clarifying round and explicit build approval.**
+- **2026-07-09 — Clarifying round resolved with owner; explicit go-ahead given (mascot concept first).
+  Decisions:**
+  - **Q1 Icon source:** *Hybrid* — copy only the used Lucide (ISC/MIT) icon paths inline into a small
+    registry (no runtime dependency) for generic UI; keep hand-authored domain glyphs (`ModeIcon`,
+    `RegionIcon`). A header/NOTICE credits Lucide's license.
+  - **Q2 Illustration style:** *Richer duotone illustrations with a recurring mascot* — a friendly-globe
+    character, one pose per key surface.
+  - **Q3 Colour:** *Two-tone* — line in `currentColor` + a turquoise accent from the Phase 12 CSS vars.
+    Nuance agreed: two-tone is the default for the mascot/illustrations and larger domain glyphs; tiny
+    functional icons default to monochrome `currentColor` (accent variant for active/filled states).
+  - **Q4 Rollout:** *Incremental, high-impact first* — Stage 1 (mascot concept → Home hero + Nav/action
+    icons + empty states), Stage 2 (achievements art + emoji→SVG + session chips), Stage 3 (stat tiles +
+    daily card). Review between stages.
+  - **Q5 Photos:** *No raster photos* — vector only, per the flag/offline precedent.
+  - Started on branch `phase-18-playful-visuals`. First deliverable: mascot concept (2–3 poses) rendered
+    for sign-off before rolling it across screens.
+- **2026-07-09 — Mascot concept approved** (owner: "approve the concept, add the daily pose"). Six poses:
+  wave, celebrate, relaxed, sleepy, thinking, daily (globe holding a calendar). Generic name kept.
+- **2026-07-09 — Foundation + Stage 1 built (fast loop green: 327 tests, 0 type errors, lint clean).**
+  - `Mascot.svelte` — the six-pose globe; inline SVG, duotone via CSS vars, `currentColor` line,
+    decorative `aria-hidden` (optional `label`). Verified in-app via headless Chrome.
+  - Icon system — `scripts/build-icons.mjs` generates `icons.ts` (28 icons copied inline from Lucide,
+    ISC; `lucide-static` is a **devDependency** used only as the source — no runtime icon dep) + a thin
+    `Icon.svelte` house-style renderer.
+  - Stage 1 surfaces: Home hero (wave mascot beside the title); `Nav` link icons (home/play/history/
+    settings, text retained); Home action icons (custom/train); empty-state art — History (sleepy),
+    Summary no-result (thinking), Summary perfect (celebrate).
+  - **Not yet placed:** the `relaxed` pose — there is no standalone "all caught up / nothing to train"
+    surface today (it's only a NextUpCard title). Flagged for the owner. Stages 2–3 and the budget/test
+    pass (cross-cutting) still pending.

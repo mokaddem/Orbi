@@ -6,6 +6,7 @@
   import { loadRecommendations, prefs, storageReady } from '../stores/persistence';
   import type { Recommendation } from '../../domain';
   import Flag from '../components/Flag.svelte';
+  import Mascot from '../components/Mascot.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
 
   // A forward-looking "Next up" suggestion, computed from the player's overall state
@@ -82,8 +83,11 @@
   <h1>{$t('summary.title')}</h1>
 
   {#if !$lastSummary}
-    <p class="empty">{$t('summary.empty')}</p>
-    <a class="cta" href="#/play">{$t('summary.playNow')}</a>
+    <div class="empty-state">
+      <Mascot pose="thinking" size={116} />
+      <p class="empty">{$t('summary.empty')}</p>
+      <a class="cta" href="#/play">{$t('summary.playNow')}</a>
+    </div>
   {:else}
     {@const s = $lastSummary}
     {@const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region ?? null}
@@ -114,7 +118,10 @@
 
     <div class="missed">
       {#if s.missed.length === 0}
-        <p class="perfect">{$t('summary.noneMissed')}</p>
+        <div class="perfect-state">
+          <Mascot pose="celebrate" size={104} />
+          <p class="perfect">{$t('summary.noneMissed')}</p>
+        </div>
       {:else}
         <h2>{$t('summary.missedTitle', { count: s.missed.length })}</h2>
         <ul class="missed-list">
@@ -157,6 +164,20 @@
 
   .empty {
     color: var(--color-muted);
+  }
+
+  /* No-result / perfect states: centre the mascot above its message. */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.7rem;
+    padding: 1.5rem 1rem 0.5rem;
+  }
+
+  .empty-state .cta {
+    align-self: center;
   }
 
   .cta {
@@ -214,6 +235,15 @@
   .stat .label {
     font-size: 0.8rem;
     color: var(--color-muted);
+  }
+
+  .perfect-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
   }
 
   .perfect {
