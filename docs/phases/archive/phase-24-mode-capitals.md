@@ -55,6 +55,9 @@ by Phases 23 (languages) and 25 (industries): the `capital → country` directio
       Pretoria), documented in the dataset + i18n source.
 - [x] **Tests** — generation (both directions), attribute grading, mastery exclusion, training
       inclusion, ChoiceGrid attribute rendering, Play in-game flow, i18n parity.
+- [x] **Follow-up (owner-requested):** capital shown on the Atlas country page; a separate
+      **capital-mastery** panel + capital achievements surfaced in History/stats (see the
+      2026-07-09 follow-up progress-log entry).
 
 ## Technical notes
 - **Ship `capital → country` first** — it is nearly free given the existing engine and gives an
@@ -115,3 +118,20 @@ by Phases 23 (languages) and 25 (industries): the `capital → country` directio
     (195/195 capitals integrity pass). Real screenshot confirms both new mode cards + icons on setup;
     in-game flow for both directions verified by Play component tests (interactive headless Chrome is
     blocked in this sandbox — only self-exiting `--screenshot` runs).
+- **2026-07-09 — Follow-up increment (owner-requested: "2 things missing"): Atlas capital entry +
+  capital mastery/achievements.**
+  - **Atlas:** the country reference page (`AtlasCountry.svelte`) now shows a localized **Capital**
+    fact (`atlas.capitalLabel`); confirmed by a real `--screenshot` of the Belgium page ("Brussels").
+  - **Capital mastery (separate rollup):** `computeMastery` gained an optional `modes` filter (default
+    = the 4 identity modes); `CAPITAL_MODES` drives a distinct capital rollup so learning capitals never
+    moves the country tally. History gains a **"Capital mastery"** panel (reuses `WorldMasteryMeter`,
+    now parametrized with title/label/icon, + `RegionMasteryBreakdown`), shown once any capital has been
+    played. Owner choice: capitals get their **own** progress surface — still "kept separate" from
+    country mastery.
+  - **Achievements:** 8 capital badges via a new `capitalMastery` field on `AchievementContext` — three
+    world tiers (collector 25 / scholar 100 / master-all) + one per continent. New `landmark` icon
+    (Lucide) themes them. Owner picked "three + per-continent".
+  - **Verification:** `npm run test` 387 pass (new mastery/achievements/History/Atlas cases),
+    `npm run check` 0 errors, `npm run lint` clean, `npm run build` OK. Atlas capital fact verified by
+    screenshot; the capital-mastery panel verified by a History component test that seeds a capital SR
+    item and asserts the panel appears (and is absent without capital play).
