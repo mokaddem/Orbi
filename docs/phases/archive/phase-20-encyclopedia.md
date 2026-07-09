@@ -1,11 +1,11 @@
 # Phase 20 — Encyclopedia (region & country info pages)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.3 content, languages & new modes
 
 > Built as the **Atlas** section. Fast loop green (check / 369 tests / lint) and a headless-Chrome
-> pass on :5180 (index, region, country, deep-links). Not yet committed/merged, so the PRD is **not
-> yet archived** — archive on merge to main.
+> pass on :5180 (index, region, country, deep-links). Merged to `main` (commit `96870e9`) and
+> archived.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
