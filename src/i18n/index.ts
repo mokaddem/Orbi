@@ -2,26 +2,22 @@ import { derived, writable } from 'svelte/store';
 import { translate, type Dict, type TranslateVars } from './translate';
 import type { CountryName } from '../data/types';
 import { regionName } from './regions';
+import { isLocale, SUPPORTED_LOCALES, type Locale } from './locale';
 import en from './messages/en';
 import fr from './messages/fr';
+import de from './messages/de';
 
-export type Locale = 'en' | 'fr';
-
-export const SUPPORTED_LOCALES: { code: Locale; label: string }[] = [
-  { code: 'en', label: 'English' },
-  { code: 'fr', label: 'Français' },
-];
+// Re-exported from the side-effect-free primitives module so existing UI imports of
+// `Locale` / `SUPPORTED_LOCALES` / `isLocale` from `../i18n` keep working unchanged.
+export { isLocale, SUPPORTED_LOCALES, type Locale };
 
 const dictionaries: Record<Locale, Dict> = {
   en: en as Dict,
   fr: fr as Dict,
+  de: de as Dict,
 };
 
 const STORAGE_KEY = 'geo-quiz:locale';
-
-function isLocale(value: unknown): value is Locale {
-  return value === 'en' || value === 'fr';
-}
 
 /**
  * Read the saved locale, tolerating a `localStorage` that is absent *or* throws on
@@ -49,9 +45,9 @@ function persistLocale(value: Locale): void {
 function detectInitialLocale(): Locale {
   const saved = readStoredLocale();
   if (saved) return saved;
-  if (typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('fr')) {
-    return 'fr';
-  }
+  const lang = typeof navigator !== 'undefined' ? navigator.language?.toLowerCase() : undefined;
+  if (lang?.startsWith('fr')) return 'fr';
+  if (lang?.startsWith('de')) return 'de';
   return 'en';
 }
 

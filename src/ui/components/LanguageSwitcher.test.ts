@@ -14,8 +14,10 @@ describe('LanguageSwitcher', () => {
     render(LanguageSwitcher);
     const en = screen.getByRole('button', { name: 'EN' });
     const fr = screen.getByRole('button', { name: 'FR' });
+    const de = screen.getByRole('button', { name: 'DE' });
     expect(en).toHaveAttribute('aria-pressed', 'true');
     expect(fr).toHaveAttribute('aria-pressed', 'false');
+    expect(de).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('switches the active locale when another language is clicked', async () => {
@@ -24,6 +26,14 @@ describe('LanguageSwitcher', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'FR' }));
     expect(get(locale)).toBe('fr');
     expect(screen.getByRole('button', { name: 'FR' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('switches to German when DE is clicked', async () => {
+    setLocale('en');
+    render(LanguageSwitcher);
+    await fireEvent.click(screen.getByRole('button', { name: 'DE' }));
+    expect(get(locale)).toBe('de');
+    expect(screen.getByRole('button', { name: 'DE' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('exposes a localized group label that follows the locale', async () => {

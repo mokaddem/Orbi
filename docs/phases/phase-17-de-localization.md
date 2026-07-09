@@ -1,6 +1,6 @@
 # Phase 17 — German (DE) localization
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -47,28 +47,40 @@ Phase 8 (i18n polish) — the infra this phase extends. Independent of the other
 phases just add a `de` block instead of a retroactive catch-up sweep.
 
 ## Scope / Deliverables
-- [ ] **Widen the locale system** — `Locale` gains `'de'`; add it to `SUPPORTED_LOCALES` (label
+- [x] **Widen the locale system** — `Locale` gains `'de'`; add it to `SUPPORTED_LOCALES` (label
       "Deutsch"); update `isLocale()`; extend `detectInitialLocale()` to return `de` for a German
       `navigator.language`. `LanguageSwitcher` already iterates `SUPPORTED_LOCALES`, so it picks up the
-      third option automatically (verify layout with 3 options).
-- [ ] **German country names in the dataset** — extend `CountryName` with `de`; update
+      third option automatically (verify layout with 3 options). *(Locale primitives — `Locale`,
+      `SUPPORTED_LOCALES`, `isLocale` — extracted into a side-effect-free `src/i18n/locale.ts` and
+      re-exported from `index.ts`, so the data layer can validate a locale without importing the Svelte
+      store runtime. 3-option switcher layout verified.)*
+- [x] **German country names in the dataset** — extend `CountryName` with `de`; update
       `build-data.mjs` to emit `de: c.translations.deu?.common ?? c.name.common`; rerun `data:build`
       and commit the regenerated `countries.json`. Add a build-integrity note if any `deu` is missing
-      (none today).
-- [ ] **German message catalog** — new `src/i18n/messages/de.ts` typed `typeof en`, registered in
-      `dictionaries`. Every key translated.
-- [ ] **German region / sub-region names** — add German labels for all 5 regions + all sub-regions.
+      (none today). *(All 195 `deu.common` present — 0 missing. One curated override:
+      `SZ` "Swasiland" → "Eswatini" via `DE_NAME_OVERRIDES`, the pre-2018 name. The two Congos and
+      Côte d'Ivoire already mirror the app's existing FR style.)*
+- [x] **German message catalog** — new `src/i18n/messages/de.ts` typed `typeof en`, registered in
+      `dictionaries`. Every key translated. *(Informal "du" tone; German typographic quotes „ ".)*
+- [x] **German region / sub-region names** — add German labels for all 5 regions + all sub-regions.
       Generalize `regions.ts` from a single `REGION_NAMES_FR` to a per-locale structure (e.g.
       `Record<Locale, Record<string,string>>`) and widen `regionName(name, locale: Locale)`; keep the
-      English-key fallback so a data change surfaces as an English label, not a crash.
-- [ ] **Widen `Prefs.language`** to include `'de'` (persistence types, `DEFAULT_PREFS`, `clampPrefs`
-      validation) so the choice persists in IndexedDB.
-- [ ] **Locale-aware formatting audit** — check `src/ui/format.ts` (and any `toLocaleString`/date
+      English-key fallback so a data change surfaces as an English label, not a crash. *(FR map kept
+      byte-identical; `REGION_NAMES_FR` still exported. "Southern Africa" → "Südliches Afrika", kept
+      distinct from "Südafrika".)*
+- [x] **Widen `Prefs.language`** to include `'de'` (persistence types, `DEFAULT_PREFS`, `clampPrefs`
+      validation) so the choice persists in IndexedDB. *(`Prefs.language` is `Locale` so it widened
+      automatically; `clampPrefs` now validates via `isLocale`, falling back to `DEFAULT_PREFS.language`.)*
+- [x] **Locale-aware formatting audit** — check `src/ui/format.ts` (and any `toLocaleString`/date
       formatting) for hard-coded `'en'`/`'fr'`; route through the active locale where it changes output.
-- [ ] **Tests** — extend `messages.test.ts` to assert key/placeholder parity across **all three**
+      *(Only site: `History.svelte` `toLocaleDateString($locale, …)` — already locale-driven; renders
+      "9. Juli" under DE. `format.ts` is language-agnostic. No changes needed.)*
+- [x] **Tests** — extend `messages.test.ts` to assert key/placeholder parity across **all three**
       catalogs; extend `regions.test.ts` for DE coverage; a `LanguageSwitcher` test that DE renders and
       switches. `check`/`lint`/`test` green + a headless-Chrome pass switching EN↔FR↔DE at runtime and
-      across a reload.
+      across a reload. *(All green — 327 tests; `index.test.ts` widened to accept `de`. Headless pass
+      confirmed the full UI, region names, achievements and a played round + summary in German, and
+      persistence across reload.)*
 
 ## Technical notes
 - The heavy lifting is **translation quality**, not code. Once `de` exists in `Locale`, `CountryName`,
@@ -107,3 +119,18 @@ phases just add a `de` block instead of a retroactive catch-up sweep.
 ## Progress log
 - **2026-07-09 — PRD drafted from the owner's v1.3 improvement list. NOT built — awaiting the
   clarifying round and explicit build approval.**
+- **2026-07-09 — Clarifying round + build. Open questions resolved with the owner:**
+  1. **Translation source/quality** — owner does not read German, so Claude authored native-quality
+     German in an **informal "du"** tone and owns its correctness.
+  2. **Country names** — accept `translations.deu.common` verbatim + one curated override
+     (`SZ` "Swasiland" → "Eswatini"). Owner deferred the choice; this ships modern standard German.
+  3. **Region wording** — standard German geo terms (Nordafrika, Südostasien, …); "Südliches Afrika"
+     for the *Southern Africa* region to keep it distinct from *Südafrika* (the country).
+  4. **Auto-detect** — yes: `navigator.language` starting `de` → German (mirrors the `fr` case).
+  5. **Formatting** — audit found only `History.svelte`'s `toLocaleDateString`, already locale-driven;
+     no change needed.
+  Implemented on branch `phase-17-de-localization`: pure `src/i18n/locale.ts` (primitives), `de.ts`
+  catalog, per-locale `regions.ts`, `CountryName.de` + `build-data.mjs` override, `clampPrefs`
+  validation, and tri-locale tests. `npm run check`/`lint`/`test` green (327 tests). Headless-Chrome
+  pass on :5180 confirmed the full UI, country/region names, achievements, a played round + summary in
+  German, and that the DE choice survives a reload. **Status → ✅ Done (pending merge & PRD archival).**

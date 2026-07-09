@@ -5,6 +5,7 @@
 export interface CountryName {
   en: string;
   fr: string;
+  de: string;
 }
 
 /**

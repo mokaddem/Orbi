@@ -23,7 +23,7 @@ describe('i18n locale persistence resilience', () => {
     // Importing must not throw even though detectInitialLocale() touches the throwing store,
     // and the immediate subscribe fires persistLocale() (setItem) on the initial value.
     const mod = await import('./index');
-    expect(['en', 'fr']).toContain(get(mod.locale));
+    expect(['en', 'fr', 'de']).toContain(get(mod.locale));
 
     // Changing language persists best-effort: the throwing setItem must not surface.
     expect(() => mod.setLocale('fr')).not.toThrow();

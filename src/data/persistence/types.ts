@@ -10,7 +10,7 @@
 // it, and the domain/stats code never touches IndexedDB directly.
 
 import type { GameMode, QuestionResult, RegionFilter, SessionType } from '../../domain/types';
-import type { Locale } from '../../i18n';
+import { isLocale, type Locale } from '../../i18n/locale';
 
 /** One completed play session, persisted verbatim from a {@link SessionSummary}. */
 export interface SessionRecord {
@@ -97,7 +97,8 @@ export const PREFS_BOUNDS = {
 export function clampPrefs(prefs: Prefs): Prefs {
   const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(v)));
   return {
-    language: prefs.language,
+    // Guard against a corrupted/legacy persisted value leaking through as the active locale.
+    language: isLocale(prefs.language) ? prefs.language : DEFAULT_PREFS.language,
     survivalLives: clamp(
       prefs.survivalLives,
       PREFS_BOUNDS.survivalLives.min,

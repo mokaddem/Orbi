@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import en from './messages/en';
 import fr from './messages/fr';
+import de from './messages/de';
 import type { Dict } from './translate';
 
 /** Flatten a (possibly nested) message dict into `dotted.key -> string` entries. */
@@ -23,27 +24,40 @@ function placeholders(template: string): string[] {
 }
 
 const flatEn = flatten(en as Dict);
-const flatFr = flatten(fr as Dict);
 
-describe('message catalogs (EN/FR parity)', () => {
-  it('define exactly the same set of keys', () => {
-    expect(Object.keys(flatFr).sort()).toEqual(Object.keys(flatEn).sort());
-  });
+// Every non-English catalog is validated against the English source, which is the
+// single point of truth for the key set and placeholder tokens.
+const others: Record<string, Record<string, string>> = {
+  fr: flatten(fr as Dict),
+  de: flatten(de as Dict),
+};
 
-  it('have no empty strings', () => {
+describe('message catalogs (EN/FR/DE parity)', () => {
+  it('EN itself has no empty strings', () => {
     for (const [key, value] of Object.entries(flatEn)) {
       expect(value.trim(), `empty EN string for "${key}"`).not.toBe('');
     }
-    for (const [key, value] of Object.entries(flatFr)) {
-      expect(value.trim(), `empty FR string for "${key}"`).not.toBe('');
-    }
   });
 
-  it('use the same interpolation placeholders per key', () => {
-    for (const key of Object.keys(flatEn)) {
-      expect(placeholders(flatFr[key]), `placeholder mismatch for "${key}"`).toEqual(
-        placeholders(flatEn[key]),
-      );
-    }
-  });
+  for (const [lang, flat] of Object.entries(others)) {
+    describe(`${lang} vs en`, () => {
+      it('defines exactly the same set of keys', () => {
+        expect(Object.keys(flat).sort()).toEqual(Object.keys(flatEn).sort());
+      });
+
+      it('has no empty strings', () => {
+        for (const [key, value] of Object.entries(flat)) {
+          expect(value.trim(), `empty ${lang} string for "${key}"`).not.toBe('');
+        }
+      });
+
+      it('uses the same interpolation placeholders per key', () => {
+        for (const key of Object.keys(flatEn)) {
+          expect(placeholders(flat[key]), `placeholder mismatch for "${lang}.${key}"`).toEqual(
+            placeholders(flatEn[key]),
+          );
+        }
+      });
+    });
+  }
 });

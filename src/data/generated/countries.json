@@ -5,7 +5,8 @@
     "numericId": "004",
     "name": {
       "en": "Afghanistan",
-      "fr": "Afghanistan"
+      "fr": "Afghanistan",
+      "de": "Afghanistan"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -18,7 +19,8 @@
     "numericId": "008",
     "name": {
       "en": "Albania",
-      "fr": "Albanie"
+      "fr": "Albanie",
+      "de": "Albanien"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -31,7 +33,8 @@
     "numericId": "012",
     "name": {
       "en": "Algeria",
-      "fr": "Algérie"
+      "fr": "Algérie",
+      "de": "Algerien"
     },
     "region": "Africa",
     "subregion": "Northern Africa",
@@ -44,7 +47,8 @@
     "numericId": "020",
     "name": {
       "en": "Andorra",
-      "fr": "Andorre"
+      "fr": "Andorre",
+      "de": "Andorra"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -57,7 +61,8 @@
     "numericId": "024",
     "name": {
       "en": "Angola",
-      "fr": "Angola"
+      "fr": "Angola",
+      "de": "Angola"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -70,7 +75,8 @@
     "numericId": "028",
     "name": {
       "en": "Antigua and Barbuda",
-      "fr": "Antigua-et-Barbuda"
+      "fr": "Antigua-et-Barbuda",
+      "de": "Antigua und Barbuda"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -83,7 +89,8 @@
     "numericId": "032",
     "name": {
       "en": "Argentina",
-      "fr": "Argentine"
+      "fr": "Argentine",
+      "de": "Argentinien"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -96,7 +103,8 @@
     "numericId": "051",
     "name": {
       "en": "Armenia",
-      "fr": "Arménie"
+      "fr": "Arménie",
+      "de": "Armenien"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -109,7 +117,8 @@
     "numericId": "036",
     "name": {
       "en": "Australia",
-      "fr": "Australie"
+      "fr": "Australie",
+      "de": "Australien"
     },
     "region": "Oceania",
     "subregion": "Australia and New Zealand",
@@ -122,7 +131,8 @@
     "numericId": "040",
     "name": {
       "en": "Austria",
-      "fr": "Autriche"
+      "fr": "Autriche",
+      "de": "Österreich"
     },
     "region": "Europe",
     "subregion": "Central Europe",
@@ -135,7 +145,8 @@
     "numericId": "031",
     "name": {
       "en": "Azerbaijan",
-      "fr": "Azerbaïdjan"
+      "fr": "Azerbaïdjan",
+      "de": "Aserbaidschan"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -148,7 +159,8 @@
     "numericId": "044",
     "name": {
       "en": "Bahamas",
-      "fr": "Bahamas"
+      "fr": "Bahamas",
+      "de": "Bahamas"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -161,7 +173,8 @@
     "numericId": "048",
     "name": {
       "en": "Bahrain",
-      "fr": "Bahreïn"
+      "fr": "Bahreïn",
+      "de": "Bahrain"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -174,7 +187,8 @@
     "numericId": "050",
     "name": {
       "en": "Bangladesh",
-      "fr": "Bangladesh"
+      "fr": "Bangladesh",
+      "de": "Bangladesch"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -187,7 +201,8 @@
     "numericId": "052",
     "name": {
       "en": "Barbados",
-      "fr": "Barbade"
+      "fr": "Barbade",
+      "de": "Barbados"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -200,7 +215,8 @@
     "numericId": "112",
     "name": {
       "en": "Belarus",
-      "fr": "Biélorussie"
+      "fr": "Biélorussie",
+      "de": "Belarus"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -213,7 +229,8 @@
     "numericId": "056",
     "name": {
       "en": "Belgium",
-      "fr": "Belgique"
+      "fr": "Belgique",
+      "de": "Belgien"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -226,7 +243,8 @@
     "numericId": "084",
     "name": {
       "en": "Belize",
-      "fr": "Belize"
+      "fr": "Belize",
+      "de": "Belize"
     },
     "region": "Americas",
     "subregion": "Central America",
@@ -239,7 +257,8 @@
     "numericId": "204",
     "name": {
       "en": "Benin",
-      "fr": "Bénin"
+      "fr": "Bénin",
+      "de": "Benin"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -252,7 +271,8 @@
     "numericId": "064",
     "name": {
       "en": "Bhutan",
-      "fr": "Bhoutan"
+      "fr": "Bhoutan",
+      "de": "Bhutan"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -265,7 +285,8 @@
     "numericId": "068",
     "name": {
       "en": "Bolivia",
-      "fr": "Bolivie"
+      "fr": "Bolivie",
+      "de": "Bolivien"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -278,7 +299,8 @@
     "numericId": "070",
     "name": {
       "en": "Bosnia and Herzegovina",
-      "fr": "Bosnie-Herzégovine"
+      "fr": "Bosnie-Herzégovine",
+      "de": "Bosnien und Herzegowina"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -291,7 +313,8 @@
     "numericId": "072",
     "name": {
       "en": "Botswana",
-      "fr": "Botswana"
+      "fr": "Botswana",
+      "de": "Botswana"
     },
     "region": "Africa",
     "subregion": "Southern Africa",
@@ -304,7 +327,8 @@
     "numericId": "076",
     "name": {
       "en": "Brazil",
-      "fr": "Brésil"
+      "fr": "Brésil",
+      "de": "Brasilien"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -317,7 +341,8 @@
     "numericId": "096",
     "name": {
       "en": "Brunei",
-      "fr": "Brunei"
+      "fr": "Brunei",
+      "de": "Brunei"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -330,7 +355,8 @@
     "numericId": "100",
     "name": {
       "en": "Bulgaria",
-      "fr": "Bulgarie"
+      "fr": "Bulgarie",
+      "de": "Bulgarien"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -343,7 +369,8 @@
     "numericId": "854",
     "name": {
       "en": "Burkina Faso",
-      "fr": "Burkina Faso"
+      "fr": "Burkina Faso",
+      "de": "Burkina Faso"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -356,7 +383,8 @@
     "numericId": "108",
     "name": {
       "en": "Burundi",
-      "fr": "Burundi"
+      "fr": "Burundi",
+      "de": "Burundi"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -369,7 +397,8 @@
     "numericId": "116",
     "name": {
       "en": "Cambodia",
-      "fr": "Cambodge"
+      "fr": "Cambodge",
+      "de": "Kambodscha"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -382,7 +411,8 @@
     "numericId": "120",
     "name": {
       "en": "Cameroon",
-      "fr": "Cameroun"
+      "fr": "Cameroun",
+      "de": "Kamerun"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -395,7 +425,8 @@
     "numericId": "124",
     "name": {
       "en": "Canada",
-      "fr": "Canada"
+      "fr": "Canada",
+      "de": "Kanada"
     },
     "region": "Americas",
     "subregion": "North America",
@@ -408,7 +439,8 @@
     "numericId": "132",
     "name": {
       "en": "Cape Verde",
-      "fr": "Îles du Cap-Vert"
+      "fr": "Îles du Cap-Vert",
+      "de": "Kap Verde"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -421,7 +453,8 @@
     "numericId": "140",
     "name": {
       "en": "Central African Republic",
-      "fr": "République centrafricaine"
+      "fr": "République centrafricaine",
+      "de": "Zentralafrikanische Republik"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -434,7 +467,8 @@
     "numericId": "148",
     "name": {
       "en": "Chad",
-      "fr": "Tchad"
+      "fr": "Tchad",
+      "de": "Tschad"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -447,7 +481,8 @@
     "numericId": "152",
     "name": {
       "en": "Chile",
-      "fr": "Chili"
+      "fr": "Chili",
+      "de": "Chile"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -460,7 +495,8 @@
     "numericId": "156",
     "name": {
       "en": "China",
-      "fr": "Chine"
+      "fr": "Chine",
+      "de": "China"
     },
     "region": "Asia",
     "subregion": "Eastern Asia",
@@ -473,7 +509,8 @@
     "numericId": "170",
     "name": {
       "en": "Colombia",
-      "fr": "Colombie"
+      "fr": "Colombie",
+      "de": "Kolumbien"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -486,7 +523,8 @@
     "numericId": "174",
     "name": {
       "en": "Comoros",
-      "fr": "Comores"
+      "fr": "Comores",
+      "de": "Komoren"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -499,7 +537,8 @@
     "numericId": "188",
     "name": {
       "en": "Costa Rica",
-      "fr": "Costa Rica"
+      "fr": "Costa Rica",
+      "de": "Costa Rica"
     },
     "region": "Americas",
     "subregion": "Central America",
@@ -512,7 +551,8 @@
     "numericId": "191",
     "name": {
       "en": "Croatia",
-      "fr": "Croatie"
+      "fr": "Croatie",
+      "de": "Kroatien"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -525,7 +565,8 @@
     "numericId": "192",
     "name": {
       "en": "Cuba",
-      "fr": "Cuba"
+      "fr": "Cuba",
+      "de": "Kuba"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -538,7 +579,8 @@
     "numericId": "196",
     "name": {
       "en": "Cyprus",
-      "fr": "Chypre"
+      "fr": "Chypre",
+      "de": "Zypern"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -551,7 +593,8 @@
     "numericId": "203",
     "name": {
       "en": "Czechia",
-      "fr": "Tchéquie"
+      "fr": "Tchéquie",
+      "de": "Tschechien"
     },
     "region": "Europe",
     "subregion": "Central Europe",
@@ -564,7 +607,8 @@
     "numericId": "208",
     "name": {
       "en": "Denmark",
-      "fr": "Danemark"
+      "fr": "Danemark",
+      "de": "Dänemark"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -577,7 +621,8 @@
     "numericId": "262",
     "name": {
       "en": "Djibouti",
-      "fr": "Djibouti"
+      "fr": "Djibouti",
+      "de": "Dschibuti"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -590,7 +635,8 @@
     "numericId": "212",
     "name": {
       "en": "Dominica",
-      "fr": "Dominique"
+      "fr": "Dominique",
+      "de": "Dominica"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -603,7 +649,8 @@
     "numericId": "214",
     "name": {
       "en": "Dominican Republic",
-      "fr": "République dominicaine"
+      "fr": "République dominicaine",
+      "de": "Dominikanische Republik"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -616,7 +663,8 @@
     "numericId": "180",
     "name": {
       "en": "DR Congo",
-      "fr": "Congo (Rép. dém.)"
+      "fr": "Congo (Rép. dém.)",
+      "de": "Kongo (Dem. Rep.)"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -629,7 +677,8 @@
     "numericId": "218",
     "name": {
       "en": "Ecuador",
-      "fr": "Équateur"
+      "fr": "Équateur",
+      "de": "Ecuador"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -642,7 +691,8 @@
     "numericId": "818",
     "name": {
       "en": "Egypt",
-      "fr": "Égypte"
+      "fr": "Égypte",
+      "de": "Ägypten"
     },
     "region": "Africa",
     "subregion": "Northern Africa",
@@ -655,7 +705,8 @@
     "numericId": "222",
     "name": {
       "en": "El Salvador",
-      "fr": "Salvador"
+      "fr": "Salvador",
+      "de": "El Salvador"
     },
     "region": "Americas",
     "subregion": "Central America",
@@ -668,7 +719,8 @@
     "numericId": "226",
     "name": {
       "en": "Equatorial Guinea",
-      "fr": "Guinée équatoriale"
+      "fr": "Guinée équatoriale",
+      "de": "Äquatorialguinea"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -681,7 +733,8 @@
     "numericId": "232",
     "name": {
       "en": "Eritrea",
-      "fr": "Érythrée"
+      "fr": "Érythrée",
+      "de": "Eritrea"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -694,7 +747,8 @@
     "numericId": "233",
     "name": {
       "en": "Estonia",
-      "fr": "Estonie"
+      "fr": "Estonie",
+      "de": "Estland"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -707,7 +761,8 @@
     "numericId": "748",
     "name": {
       "en": "Eswatini",
-      "fr": "Swaziland"
+      "fr": "Eswatini",
+      "de": "Eswatini"
     },
     "region": "Africa",
     "subregion": "Southern Africa",
@@ -720,7 +775,8 @@
     "numericId": "231",
     "name": {
       "en": "Ethiopia",
-      "fr": "Éthiopie"
+      "fr": "Éthiopie",
+      "de": "Äthiopien"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -733,7 +789,8 @@
     "numericId": "242",
     "name": {
       "en": "Fiji",
-      "fr": "Fidji"
+      "fr": "Fidji",
+      "de": "Fidschi"
     },
     "region": "Oceania",
     "subregion": "Melanesia",
@@ -746,7 +803,8 @@
     "numericId": "246",
     "name": {
       "en": "Finland",
-      "fr": "Finlande"
+      "fr": "Finlande",
+      "de": "Finnland"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -759,7 +817,8 @@
     "numericId": "250",
     "name": {
       "en": "France",
-      "fr": "France"
+      "fr": "France",
+      "de": "Frankreich"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -772,7 +831,8 @@
     "numericId": "266",
     "name": {
       "en": "Gabon",
-      "fr": "Gabon"
+      "fr": "Gabon",
+      "de": "Gabun"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -785,7 +845,8 @@
     "numericId": "270",
     "name": {
       "en": "Gambia",
-      "fr": "Gambie"
+      "fr": "Gambie",
+      "de": "Gambia"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -798,7 +859,8 @@
     "numericId": "268",
     "name": {
       "en": "Georgia",
-      "fr": "Géorgie"
+      "fr": "Géorgie",
+      "de": "Georgien"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -811,7 +873,8 @@
     "numericId": "276",
     "name": {
       "en": "Germany",
-      "fr": "Allemagne"
+      "fr": "Allemagne",
+      "de": "Deutschland"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -824,7 +887,8 @@
     "numericId": "288",
     "name": {
       "en": "Ghana",
-      "fr": "Ghana"
+      "fr": "Ghana",
+      "de": "Ghana"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -837,7 +901,8 @@
     "numericId": "300",
     "name": {
       "en": "Greece",
-      "fr": "Grèce"
+      "fr": "Grèce",
+      "de": "Griechenland"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -850,7 +915,8 @@
     "numericId": "308",
     "name": {
       "en": "Grenada",
-      "fr": "Grenade"
+      "fr": "Grenade",
+      "de": "Grenada"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -863,7 +929,8 @@
     "numericId": "320",
     "name": {
       "en": "Guatemala",
-      "fr": "Guatemala"
+      "fr": "Guatemala",
+      "de": "Guatemala"
     },
     "region": "Americas",
     "subregion": "Central America",
@@ -876,7 +943,8 @@
     "numericId": "324",
     "name": {
       "en": "Guinea",
-      "fr": "Guinée"
+      "fr": "Guinée",
+      "de": "Guinea"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -889,7 +957,8 @@
     "numericId": "624",
     "name": {
       "en": "Guinea-Bissau",
-      "fr": "Guinée-Bissau"
+      "fr": "Guinée-Bissau",
+      "de": "Guinea-Bissau"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -902,7 +971,8 @@
     "numericId": "328",
     "name": {
       "en": "Guyana",
-      "fr": "Guyana"
+      "fr": "Guyana",
+      "de": "Guyana"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -915,7 +985,8 @@
     "numericId": "332",
     "name": {
       "en": "Haiti",
-      "fr": "Haïti"
+      "fr": "Haïti",
+      "de": "Haiti"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -928,7 +999,8 @@
     "numericId": "340",
     "name": {
       "en": "Honduras",
-      "fr": "Honduras"
+      "fr": "Honduras",
+      "de": "Honduras"
     },
     "region": "Americas",
     "subregion": "Central America",
@@ -941,7 +1013,8 @@
     "numericId": "348",
     "name": {
       "en": "Hungary",
-      "fr": "Hongrie"
+      "fr": "Hongrie",
+      "de": "Ungarn"
     },
     "region": "Europe",
     "subregion": "Central Europe",
@@ -954,7 +1027,8 @@
     "numericId": "352",
     "name": {
       "en": "Iceland",
-      "fr": "Islande"
+      "fr": "Islande",
+      "de": "Island"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -967,7 +1041,8 @@
     "numericId": "356",
     "name": {
       "en": "India",
-      "fr": "Inde"
+      "fr": "Inde",
+      "de": "Indien"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -980,7 +1055,8 @@
     "numericId": "360",
     "name": {
       "en": "Indonesia",
-      "fr": "Indonésie"
+      "fr": "Indonésie",
+      "de": "Indonesien"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -993,7 +1069,8 @@
     "numericId": "364",
     "name": {
       "en": "Iran",
-      "fr": "Iran"
+      "fr": "Iran",
+      "de": "Iran"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1006,7 +1083,8 @@
     "numericId": "368",
     "name": {
       "en": "Iraq",
-      "fr": "Irak"
+      "fr": "Irak",
+      "de": "Irak"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1019,7 +1097,8 @@
     "numericId": "372",
     "name": {
       "en": "Ireland",
-      "fr": "Irlande"
+      "fr": "Irlande",
+      "de": "Irland"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -1032,7 +1111,8 @@
     "numericId": "376",
     "name": {
       "en": "Israel",
-      "fr": "Israël"
+      "fr": "Israël",
+      "de": "Israel"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1045,7 +1125,8 @@
     "numericId": "380",
     "name": {
       "en": "Italy",
-      "fr": "Italie"
+      "fr": "Italie",
+      "de": "Italien"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -1058,7 +1139,8 @@
     "numericId": "384",
     "name": {
       "en": "Ivory Coast",
-      "fr": "Côte d'Ivoire"
+      "fr": "Côte d'Ivoire",
+      "de": "Côte d'Ivoire"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1071,7 +1153,8 @@
     "numericId": "388",
     "name": {
       "en": "Jamaica",
-      "fr": "Jamaïque"
+      "fr": "Jamaïque",
+      "de": "Jamaika"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -1084,7 +1167,8 @@
     "numericId": "392",
     "name": {
       "en": "Japan",
-      "fr": "Japon"
+      "fr": "Japon",
+      "de": "Japan"
     },
     "region": "Asia",
     "subregion": "Eastern Asia",
@@ -1097,7 +1181,8 @@
     "numericId": "400",
     "name": {
       "en": "Jordan",
-      "fr": "Jordanie"
+      "fr": "Jordanie",
+      "de": "Jordanien"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1110,7 +1195,8 @@
     "numericId": "398",
     "name": {
       "en": "Kazakhstan",
-      "fr": "Kazakhstan"
+      "fr": "Kazakhstan",
+      "de": "Kasachstan"
     },
     "region": "Asia",
     "subregion": "Central Asia",
@@ -1123,7 +1209,8 @@
     "numericId": "404",
     "name": {
       "en": "Kenya",
-      "fr": "Kenya"
+      "fr": "Kenya",
+      "de": "Kenia"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -1136,7 +1223,8 @@
     "numericId": "296",
     "name": {
       "en": "Kiribati",
-      "fr": "Kiribati"
+      "fr": "Kiribati",
+      "de": "Kiribati"
     },
     "region": "Oceania",
     "subregion": "Micronesia",
@@ -1149,7 +1237,8 @@
     "numericId": "414",
     "name": {
       "en": "Kuwait",
-      "fr": "Koweït"
+      "fr": "Koweït",
+      "de": "Kuwait"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1162,7 +1251,8 @@
     "numericId": "417",
     "name": {
       "en": "Kyrgyzstan",
-      "fr": "Kirghizistan"
+      "fr": "Kirghizistan",
+      "de": "Kirgisistan"
     },
     "region": "Asia",
     "subregion": "Central Asia",
@@ -1175,7 +1265,8 @@
     "numericId": "418",
     "name": {
       "en": "Laos",
-      "fr": "Laos"
+      "fr": "Laos",
+      "de": "Laos"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -1188,7 +1279,8 @@
     "numericId": "428",
     "name": {
       "en": "Latvia",
-      "fr": "Lettonie"
+      "fr": "Lettonie",
+      "de": "Lettland"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -1201,7 +1293,8 @@
     "numericId": "422",
     "name": {
       "en": "Lebanon",
-      "fr": "Liban"
+      "fr": "Liban",
+      "de": "Libanon"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1214,7 +1307,8 @@
     "numericId": "426",
     "name": {
       "en": "Lesotho",
-      "fr": "Lesotho"
+      "fr": "Lesotho",
+      "de": "Lesotho"
     },
     "region": "Africa",
     "subregion": "Southern Africa",
@@ -1227,7 +1321,8 @@
     "numericId": "430",
     "name": {
       "en": "Liberia",
-      "fr": "Liberia"
+      "fr": "Liberia",
+      "de": "Liberia"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1240,7 +1335,8 @@
     "numericId": "434",
     "name": {
       "en": "Libya",
-      "fr": "Libye"
+      "fr": "Libye",
+      "de": "Libyen"
     },
     "region": "Africa",
     "subregion": "Northern Africa",
@@ -1253,7 +1349,8 @@
     "numericId": "438",
     "name": {
       "en": "Liechtenstein",
-      "fr": "Liechtenstein"
+      "fr": "Liechtenstein",
+      "de": "Liechtenstein"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -1266,7 +1363,8 @@
     "numericId": "440",
     "name": {
       "en": "Lithuania",
-      "fr": "Lituanie"
+      "fr": "Lituanie",
+      "de": "Litauen"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -1279,7 +1377,8 @@
     "numericId": "442",
     "name": {
       "en": "Luxembourg",
-      "fr": "Luxembourg"
+      "fr": "Luxembourg",
+      "de": "Luxemburg"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -1292,7 +1391,8 @@
     "numericId": "450",
     "name": {
       "en": "Madagascar",
-      "fr": "Madagascar"
+      "fr": "Madagascar",
+      "de": "Madagaskar"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -1305,7 +1405,8 @@
     "numericId": "454",
     "name": {
       "en": "Malawi",
-      "fr": "Malawi"
+      "fr": "Malawi",
+      "de": "Malawi"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -1318,7 +1419,8 @@
     "numericId": "458",
     "name": {
       "en": "Malaysia",
-      "fr": "Malaisie"
+      "fr": "Malaisie",
+      "de": "Malaysia"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -1331,7 +1433,8 @@
     "numericId": "462",
     "name": {
       "en": "Maldives",
-      "fr": "Maldives"
+      "fr": "Maldives",
+      "de": "Malediven"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1344,7 +1447,8 @@
     "numericId": "466",
     "name": {
       "en": "Mali",
-      "fr": "Mali"
+      "fr": "Mali",
+      "de": "Mali"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1357,7 +1461,8 @@
     "numericId": "470",
     "name": {
       "en": "Malta",
-      "fr": "Malte"
+      "fr": "Malte",
+      "de": "Malta"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -1370,7 +1475,8 @@
     "numericId": "584",
     "name": {
       "en": "Marshall Islands",
-      "fr": "Îles Marshall"
+      "fr": "Îles Marshall",
+      "de": "Marshallinseln"
     },
     "region": "Oceania",
     "subregion": "Micronesia",
@@ -1383,7 +1489,8 @@
     "numericId": "478",
     "name": {
       "en": "Mauritania",
-      "fr": "Mauritanie"
+      "fr": "Mauritanie",
+      "de": "Mauretanien"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1396,7 +1503,8 @@
     "numericId": "480",
     "name": {
       "en": "Mauritius",
-      "fr": "Île Maurice"
+      "fr": "Île Maurice",
+      "de": "Mauritius"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -1409,7 +1517,8 @@
     "numericId": "484",
     "name": {
       "en": "Mexico",
-      "fr": "Mexique"
+      "fr": "Mexique",
+      "de": "Mexiko"
     },
     "region": "Americas",
     "subregion": "North America",
@@ -1422,7 +1531,8 @@
     "numericId": "583",
     "name": {
       "en": "Micronesia",
-      "fr": "Micronésie"
+      "fr": "Micronésie",
+      "de": "Mikronesien"
     },
     "region": "Oceania",
     "subregion": "Micronesia",
@@ -1435,7 +1545,8 @@
     "numericId": "498",
     "name": {
       "en": "Moldova",
-      "fr": "Moldavie"
+      "fr": "Moldavie",
+      "de": "Moldawien"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -1448,7 +1559,8 @@
     "numericId": "492",
     "name": {
       "en": "Monaco",
-      "fr": "Monaco"
+      "fr": "Monaco",
+      "de": "Monaco"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -1461,7 +1573,8 @@
     "numericId": "496",
     "name": {
       "en": "Mongolia",
-      "fr": "Mongolie"
+      "fr": "Mongolie",
+      "de": "Mongolei"
     },
     "region": "Asia",
     "subregion": "Eastern Asia",
@@ -1474,7 +1587,8 @@
     "numericId": "499",
     "name": {
       "en": "Montenegro",
-      "fr": "Monténégro"
+      "fr": "Monténégro",
+      "de": "Montenegro"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -1487,7 +1601,8 @@
     "numericId": "504",
     "name": {
       "en": "Morocco",
-      "fr": "Maroc"
+      "fr": "Maroc",
+      "de": "Marokko"
     },
     "region": "Africa",
     "subregion": "Northern Africa",
@@ -1500,7 +1615,8 @@
     "numericId": "508",
     "name": {
       "en": "Mozambique",
-      "fr": "Mozambique"
+      "fr": "Mozambique",
+      "de": "Mosambik"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -1513,7 +1629,8 @@
     "numericId": "104",
     "name": {
       "en": "Myanmar",
-      "fr": "Birmanie"
+      "fr": "Birmanie",
+      "de": "Myanmar"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -1526,7 +1643,8 @@
     "numericId": "516",
     "name": {
       "en": "Namibia",
-      "fr": "Namibie"
+      "fr": "Namibie",
+      "de": "Namibia"
     },
     "region": "Africa",
     "subregion": "Southern Africa",
@@ -1539,7 +1657,8 @@
     "numericId": "520",
     "name": {
       "en": "Nauru",
-      "fr": "Nauru"
+      "fr": "Nauru",
+      "de": "Nauru"
     },
     "region": "Oceania",
     "subregion": "Micronesia",
@@ -1552,7 +1671,8 @@
     "numericId": "524",
     "name": {
       "en": "Nepal",
-      "fr": "Népal"
+      "fr": "Népal",
+      "de": "Nepal"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1565,7 +1685,8 @@
     "numericId": "528",
     "name": {
       "en": "Netherlands",
-      "fr": "Pays-Bas"
+      "fr": "Pays-Bas",
+      "de": "Niederlande"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -1578,7 +1699,8 @@
     "numericId": "554",
     "name": {
       "en": "New Zealand",
-      "fr": "Nouvelle-Zélande"
+      "fr": "Nouvelle-Zélande",
+      "de": "Neuseeland"
     },
     "region": "Oceania",
     "subregion": "Australia and New Zealand",
@@ -1591,7 +1713,8 @@
     "numericId": "558",
     "name": {
       "en": "Nicaragua",
-      "fr": "Nicaragua"
+      "fr": "Nicaragua",
+      "de": "Nicaragua"
     },
     "region": "Americas",
     "subregion": "Central America",
@@ -1604,7 +1727,8 @@
     "numericId": "562",
     "name": {
       "en": "Niger",
-      "fr": "Niger"
+      "fr": "Niger",
+      "de": "Niger"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1617,7 +1741,8 @@
     "numericId": "566",
     "name": {
       "en": "Nigeria",
-      "fr": "Nigéria"
+      "fr": "Nigéria",
+      "de": "Nigeria"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1630,7 +1755,8 @@
     "numericId": "408",
     "name": {
       "en": "North Korea",
-      "fr": "Corée du Nord"
+      "fr": "Corée du Nord",
+      "de": "Nordkorea"
     },
     "region": "Asia",
     "subregion": "Eastern Asia",
@@ -1643,7 +1769,8 @@
     "numericId": "807",
     "name": {
       "en": "North Macedonia",
-      "fr": "Macédoine du Nord"
+      "fr": "Macédoine du Nord",
+      "de": "Nordmazedonien"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -1656,7 +1783,8 @@
     "numericId": "578",
     "name": {
       "en": "Norway",
-      "fr": "Norvège"
+      "fr": "Norvège",
+      "de": "Norwegen"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -1669,7 +1797,8 @@
     "numericId": "512",
     "name": {
       "en": "Oman",
-      "fr": "Oman"
+      "fr": "Oman",
+      "de": "Oman"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1682,7 +1811,8 @@
     "numericId": "586",
     "name": {
       "en": "Pakistan",
-      "fr": "Pakistan"
+      "fr": "Pakistan",
+      "de": "Pakistan"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -1695,7 +1825,8 @@
     "numericId": "585",
     "name": {
       "en": "Palau",
-      "fr": "Palaos (Palau)"
+      "fr": "Palaos (Palau)",
+      "de": "Palau"
     },
     "region": "Oceania",
     "subregion": "Micronesia",
@@ -1708,7 +1839,8 @@
     "numericId": "275",
     "name": {
       "en": "Palestine",
-      "fr": "Palestine"
+      "fr": "Palestine",
+      "de": "Palästina"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1721,7 +1853,8 @@
     "numericId": "591",
     "name": {
       "en": "Panama",
-      "fr": "Panama"
+      "fr": "Panama",
+      "de": "Panama"
     },
     "region": "Americas",
     "subregion": "Central America",
@@ -1734,7 +1867,8 @@
     "numericId": "598",
     "name": {
       "en": "Papua New Guinea",
-      "fr": "Papouasie-Nouvelle-Guinée"
+      "fr": "Papouasie-Nouvelle-Guinée",
+      "de": "Papua-Neuguinea"
     },
     "region": "Oceania",
     "subregion": "Melanesia",
@@ -1747,7 +1881,8 @@
     "numericId": "600",
     "name": {
       "en": "Paraguay",
-      "fr": "Paraguay"
+      "fr": "Paraguay",
+      "de": "Paraguay"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -1760,7 +1895,8 @@
     "numericId": "604",
     "name": {
       "en": "Peru",
-      "fr": "Pérou"
+      "fr": "Pérou",
+      "de": "Peru"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -1773,7 +1909,8 @@
     "numericId": "608",
     "name": {
       "en": "Philippines",
-      "fr": "Philippines"
+      "fr": "Philippines",
+      "de": "Philippinen"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -1786,7 +1923,8 @@
     "numericId": "616",
     "name": {
       "en": "Poland",
-      "fr": "Pologne"
+      "fr": "Pologne",
+      "de": "Polen"
     },
     "region": "Europe",
     "subregion": "Central Europe",
@@ -1799,7 +1937,8 @@
     "numericId": "620",
     "name": {
       "en": "Portugal",
-      "fr": "Portugal"
+      "fr": "Portugal",
+      "de": "Portugal"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -1812,7 +1951,8 @@
     "numericId": "634",
     "name": {
       "en": "Qatar",
-      "fr": "Qatar"
+      "fr": "Qatar",
+      "de": "Katar"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1825,7 +1965,8 @@
     "numericId": "178",
     "name": {
       "en": "Republic of the Congo",
-      "fr": "Congo"
+      "fr": "Congo",
+      "de": "Kongo"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -1838,7 +1979,8 @@
     "numericId": "642",
     "name": {
       "en": "Romania",
-      "fr": "Roumanie"
+      "fr": "Roumanie",
+      "de": "Rumänien"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -1851,7 +1993,8 @@
     "numericId": "643",
     "name": {
       "en": "Russia",
-      "fr": "Russie"
+      "fr": "Russie",
+      "de": "Russland"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -1864,7 +2007,8 @@
     "numericId": "646",
     "name": {
       "en": "Rwanda",
-      "fr": "Rwanda"
+      "fr": "Rwanda",
+      "de": "Ruanda"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -1877,7 +2021,8 @@
     "numericId": "659",
     "name": {
       "en": "Saint Kitts and Nevis",
-      "fr": "Saint-Christophe-et-Niévès"
+      "fr": "Saint-Christophe-et-Niévès",
+      "de": "St. Kitts und Nevis"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -1890,7 +2035,8 @@
     "numericId": "662",
     "name": {
       "en": "Saint Lucia",
-      "fr": "Sainte-Lucie"
+      "fr": "Sainte-Lucie",
+      "de": "St. Lucia"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -1903,7 +2049,8 @@
     "numericId": "670",
     "name": {
       "en": "Saint Vincent and the Grenadines",
-      "fr": "Saint-Vincent-et-les-Grenadines"
+      "fr": "Saint-Vincent-et-les-Grenadines",
+      "de": "St. Vincent und die Grenadinen"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -1916,7 +2063,8 @@
     "numericId": "882",
     "name": {
       "en": "Samoa",
-      "fr": "Samoa"
+      "fr": "Samoa",
+      "de": "Samoa"
     },
     "region": "Oceania",
     "subregion": "Polynesia",
@@ -1929,7 +2077,8 @@
     "numericId": "674",
     "name": {
       "en": "San Marino",
-      "fr": "Saint-Marin"
+      "fr": "Saint-Marin",
+      "de": "San Marino"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -1942,7 +2091,8 @@
     "numericId": "678",
     "name": {
       "en": "São Tomé and Príncipe",
-      "fr": "São Tomé et Príncipe"
+      "fr": "São Tomé et Príncipe",
+      "de": "São Tomé und Príncipe"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -1955,7 +2105,8 @@
     "numericId": "682",
     "name": {
       "en": "Saudi Arabia",
-      "fr": "Arabie Saoudite"
+      "fr": "Arabie Saoudite",
+      "de": "Saudi-Arabien"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -1968,7 +2119,8 @@
     "numericId": "686",
     "name": {
       "en": "Senegal",
-      "fr": "Sénégal"
+      "fr": "Sénégal",
+      "de": "Senegal"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -1981,7 +2133,8 @@
     "numericId": "688",
     "name": {
       "en": "Serbia",
-      "fr": "Serbie"
+      "fr": "Serbie",
+      "de": "Serbien"
     },
     "region": "Europe",
     "subregion": "Southeast Europe",
@@ -1994,7 +2147,8 @@
     "numericId": "690",
     "name": {
       "en": "Seychelles",
-      "fr": "Seychelles"
+      "fr": "Seychelles",
+      "de": "Seychellen"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -2007,7 +2161,8 @@
     "numericId": "694",
     "name": {
       "en": "Sierra Leone",
-      "fr": "Sierra Leone"
+      "fr": "Sierra Leone",
+      "de": "Sierra Leone"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -2020,7 +2175,8 @@
     "numericId": "702",
     "name": {
       "en": "Singapore",
-      "fr": "Singapour"
+      "fr": "Singapour",
+      "de": "Singapur"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -2033,7 +2189,8 @@
     "numericId": "703",
     "name": {
       "en": "Slovakia",
-      "fr": "Slovaquie"
+      "fr": "Slovaquie",
+      "de": "Slowakei"
     },
     "region": "Europe",
     "subregion": "Central Europe",
@@ -2046,7 +2203,8 @@
     "numericId": "705",
     "name": {
       "en": "Slovenia",
-      "fr": "Slovénie"
+      "fr": "Slovénie",
+      "de": "Slowenien"
     },
     "region": "Europe",
     "subregion": "Central Europe",
@@ -2059,7 +2217,8 @@
     "numericId": "090",
     "name": {
       "en": "Solomon Islands",
-      "fr": "Îles Salomon"
+      "fr": "Îles Salomon",
+      "de": "Salomonen"
     },
     "region": "Oceania",
     "subregion": "Melanesia",
@@ -2072,7 +2231,8 @@
     "numericId": "706",
     "name": {
       "en": "Somalia",
-      "fr": "Somalie"
+      "fr": "Somalie",
+      "de": "Somalia"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -2085,7 +2245,8 @@
     "numericId": "710",
     "name": {
       "en": "South Africa",
-      "fr": "Afrique du Sud"
+      "fr": "Afrique du Sud",
+      "de": "Südafrika"
     },
     "region": "Africa",
     "subregion": "Southern Africa",
@@ -2098,7 +2259,8 @@
     "numericId": "410",
     "name": {
       "en": "South Korea",
-      "fr": "Corée du Sud"
+      "fr": "Corée du Sud",
+      "de": "Südkorea"
     },
     "region": "Asia",
     "subregion": "Eastern Asia",
@@ -2111,7 +2273,8 @@
     "numericId": "728",
     "name": {
       "en": "South Sudan",
-      "fr": "Soudan du Sud"
+      "fr": "Soudan du Sud",
+      "de": "Südsudan"
     },
     "region": "Africa",
     "subregion": "Middle Africa",
@@ -2124,7 +2287,8 @@
     "numericId": "724",
     "name": {
       "en": "Spain",
-      "fr": "Espagne"
+      "fr": "Espagne",
+      "de": "Spanien"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -2137,7 +2301,8 @@
     "numericId": "144",
     "name": {
       "en": "Sri Lanka",
-      "fr": "Sri Lanka"
+      "fr": "Sri Lanka",
+      "de": "Sri Lanka"
     },
     "region": "Asia",
     "subregion": "Southern Asia",
@@ -2150,7 +2315,8 @@
     "numericId": "729",
     "name": {
       "en": "Sudan",
-      "fr": "Soudan"
+      "fr": "Soudan",
+      "de": "Sudan"
     },
     "region": "Africa",
     "subregion": "Northern Africa",
@@ -2163,7 +2329,8 @@
     "numericId": "740",
     "name": {
       "en": "Suriname",
-      "fr": "Surinam"
+      "fr": "Surinam",
+      "de": "Suriname"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -2176,7 +2343,8 @@
     "numericId": "752",
     "name": {
       "en": "Sweden",
-      "fr": "Suède"
+      "fr": "Suède",
+      "de": "Schweden"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -2189,7 +2357,8 @@
     "numericId": "756",
     "name": {
       "en": "Switzerland",
-      "fr": "Suisse"
+      "fr": "Suisse",
+      "de": "Schweiz"
     },
     "region": "Europe",
     "subregion": "Western Europe",
@@ -2202,7 +2371,8 @@
     "numericId": "760",
     "name": {
       "en": "Syria",
-      "fr": "Syrie"
+      "fr": "Syrie",
+      "de": "Syrien"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -2215,7 +2385,8 @@
     "numericId": "762",
     "name": {
       "en": "Tajikistan",
-      "fr": "Tadjikistan"
+      "fr": "Tadjikistan",
+      "de": "Tadschikistan"
     },
     "region": "Asia",
     "subregion": "Central Asia",
@@ -2228,7 +2399,8 @@
     "numericId": "834",
     "name": {
       "en": "Tanzania",
-      "fr": "Tanzanie"
+      "fr": "Tanzanie",
+      "de": "Tansania"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -2241,7 +2413,8 @@
     "numericId": "764",
     "name": {
       "en": "Thailand",
-      "fr": "Thaïlande"
+      "fr": "Thaïlande",
+      "de": "Thailand"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -2254,7 +2427,8 @@
     "numericId": "626",
     "name": {
       "en": "Timor-Leste",
-      "fr": "Timor oriental"
+      "fr": "Timor oriental",
+      "de": "Osttimor"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -2267,7 +2441,8 @@
     "numericId": "768",
     "name": {
       "en": "Togo",
-      "fr": "Togo"
+      "fr": "Togo",
+      "de": "Togo"
     },
     "region": "Africa",
     "subregion": "Western Africa",
@@ -2280,7 +2455,8 @@
     "numericId": "776",
     "name": {
       "en": "Tonga",
-      "fr": "Tonga"
+      "fr": "Tonga",
+      "de": "Tonga"
     },
     "region": "Oceania",
     "subregion": "Polynesia",
@@ -2293,7 +2469,8 @@
     "numericId": "780",
     "name": {
       "en": "Trinidad and Tobago",
-      "fr": "Trinité-et-Tobago"
+      "fr": "Trinité-et-Tobago",
+      "de": "Trinidad und Tobago"
     },
     "region": "Americas",
     "subregion": "Caribbean",
@@ -2306,7 +2483,8 @@
     "numericId": "788",
     "name": {
       "en": "Tunisia",
-      "fr": "Tunisie"
+      "fr": "Tunisie",
+      "de": "Tunesien"
     },
     "region": "Africa",
     "subregion": "Northern Africa",
@@ -2319,7 +2497,8 @@
     "numericId": "792",
     "name": {
       "en": "Türkiye",
-      "fr": "Turquie"
+      "fr": "Turquie",
+      "de": "Türkei"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -2332,7 +2511,8 @@
     "numericId": "795",
     "name": {
       "en": "Turkmenistan",
-      "fr": "Turkménistan"
+      "fr": "Turkménistan",
+      "de": "Turkmenistan"
     },
     "region": "Asia",
     "subregion": "Central Asia",
@@ -2345,7 +2525,8 @@
     "numericId": "798",
     "name": {
       "en": "Tuvalu",
-      "fr": "Tuvalu"
+      "fr": "Tuvalu",
+      "de": "Tuvalu"
     },
     "region": "Oceania",
     "subregion": "Polynesia",
@@ -2358,7 +2539,8 @@
     "numericId": "800",
     "name": {
       "en": "Uganda",
-      "fr": "Ouganda"
+      "fr": "Ouganda",
+      "de": "Uganda"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -2371,7 +2553,8 @@
     "numericId": "804",
     "name": {
       "en": "Ukraine",
-      "fr": "Ukraine"
+      "fr": "Ukraine",
+      "de": "Ukraine"
     },
     "region": "Europe",
     "subregion": "Eastern Europe",
@@ -2384,7 +2567,8 @@
     "numericId": "784",
     "name": {
       "en": "United Arab Emirates",
-      "fr": "Émirats arabes unis"
+      "fr": "Émirats arabes unis",
+      "de": "Vereinigte Arabische Emirate"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -2397,7 +2581,8 @@
     "numericId": "826",
     "name": {
       "en": "United Kingdom",
-      "fr": "Royaume-Uni"
+      "fr": "Royaume-Uni",
+      "de": "Vereinigtes Königreich"
     },
     "region": "Europe",
     "subregion": "Northern Europe",
@@ -2410,7 +2595,8 @@
     "numericId": "840",
     "name": {
       "en": "United States",
-      "fr": "États-Unis"
+      "fr": "États-Unis",
+      "de": "Vereinigte Staaten"
     },
     "region": "Americas",
     "subregion": "North America",
@@ -2423,7 +2609,8 @@
     "numericId": "858",
     "name": {
       "en": "Uruguay",
-      "fr": "Uruguay"
+      "fr": "Uruguay",
+      "de": "Uruguay"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -2436,7 +2623,8 @@
     "numericId": "860",
     "name": {
       "en": "Uzbekistan",
-      "fr": "Ouzbékistan"
+      "fr": "Ouzbékistan",
+      "de": "Usbekistan"
     },
     "region": "Asia",
     "subregion": "Central Asia",
@@ -2449,7 +2637,8 @@
     "numericId": "548",
     "name": {
       "en": "Vanuatu",
-      "fr": "Vanuatu"
+      "fr": "Vanuatu",
+      "de": "Vanuatu"
     },
     "region": "Oceania",
     "subregion": "Melanesia",
@@ -2462,7 +2651,8 @@
     "numericId": "336",
     "name": {
       "en": "Vatican City",
-      "fr": "Cité du Vatican"
+      "fr": "Cité du Vatican",
+      "de": "Vatikanstadt"
     },
     "region": "Europe",
     "subregion": "Southern Europe",
@@ -2475,7 +2665,8 @@
     "numericId": "862",
     "name": {
       "en": "Venezuela",
-      "fr": "Venezuela"
+      "fr": "Venezuela",
+      "de": "Venezuela"
     },
     "region": "Americas",
     "subregion": "South America",
@@ -2488,7 +2679,8 @@
     "numericId": "704",
     "name": {
       "en": "Vietnam",
-      "fr": "Viêt Nam"
+      "fr": "Viêt Nam",
+      "de": "Vietnam"
     },
     "region": "Asia",
     "subregion": "South-Eastern Asia",
@@ -2501,7 +2693,8 @@
     "numericId": "887",
     "name": {
       "en": "Yemen",
-      "fr": "Yémen"
+      "fr": "Yémen",
+      "de": "Jemen"
     },
     "region": "Asia",
     "subregion": "Western Asia",
@@ -2514,7 +2707,8 @@
     "numericId": "894",
     "name": {
       "en": "Zambia",
-      "fr": "Zambie"
+      "fr": "Zambie",
+      "de": "Sambia"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",
@@ -2527,7 +2721,8 @@
     "numericId": "716",
     "name": {
       "en": "Zimbabwe",
-      "fr": "Zimbabwe"
+      "fr": "Zimbabwe",
+      "de": "Simbabwe"
     },
     "region": "Africa",
     "subregion": "Eastern Africa",

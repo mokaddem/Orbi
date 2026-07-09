@@ -50,6 +50,15 @@ const OBSERVERS = new Set(['PS']);
  */
 const KNOWN_NO_GEOMETRY = new Set(['TV']); // Tuvalu — too small for world-atlas 50m
 
+/**
+ * Localized short-name overrides, keyed by ISO alpha-2 then locale, for the few cases
+ * where world-countries ships an outdated exonym. Upstream FR/DE both still carry the
+ * pre-2018 "Swaziland"/"Swasiland" for Eswatini; EN already uses the modern name.
+ */
+const NAME_OVERRIDES = {
+  SZ: { fr: 'Eswatini', de: 'Eswatini' },
+};
+
 /** Read a JSON file relative to node_modules. */
 function readNmJson(rel) {
   return JSON.parse(readFileSync(join(NM, rel), 'utf8'));
@@ -295,7 +304,8 @@ for (const c of inScope) {
     numericId: c.ccn3, // numeric ISO 3166-1 code — the TopoJSON join key
     name: {
       en: c.name.common,
-      fr: c.translations.fra?.common ?? c.name.common,
+      fr: NAME_OVERRIDES[iso2]?.fr ?? c.translations.fra?.common ?? c.name.common,
+      de: NAME_OVERRIDES[iso2]?.de ?? c.translations.deu?.common ?? c.name.common,
     },
     region: c.region,
     subregion: c.subregion,

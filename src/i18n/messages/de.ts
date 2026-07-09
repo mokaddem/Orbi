@@ -1,0 +1,254 @@
+import type en from './en';
+
+// German (DE) message catalog — Phase 17. Typed `typeof en` so the compiler enforces
+// the exact same key set as the English source (a missing or extra key fails
+// `npm run check`), mirroring how `fr.ts` is guaranteed. Tone is informal ("du") to
+// match the friendly voice of the EN/FR catalogs. German typographic quotes „ … " are
+// used where the EN/FR strings quote.
+
+const de: typeof en = {
+  app: {
+    title: 'Geografie-Quiz',
+  },
+  common: {
+    cancel: 'Abbrechen',
+  },
+  nav: {
+    home: 'Start',
+    play: 'Spielen',
+    history: 'Verlauf',
+    settings: 'Einstellungen',
+    primary: 'Hauptnavigation',
+  },
+  home: {
+    title: 'Geografie-Quiz',
+    tagline: 'Lerne die Geografie der Welt mit Karten und Flaggen.',
+    demo: 'Willkommen — bereit, die Welt zu erkunden?',
+    play: 'Los geht’s',
+    playCustom: 'Oder starte ein eigenes Spiel',
+    train: 'Meine Fehler üben',
+    trainCount: 'Meine Fehler üben ({count})',
+    trainAll: 'Alle meine Fehler üben ({count})',
+    trainHint:
+      'Beim Üben trainierst du die Länder, die du falsch hast — spiel ein paar Runden, um es aufzubauen.',
+    streak: {
+      days: 'Serie von {count} Tagen',
+      playedToday: 'Heute gespielt ✓',
+      keepGoing: 'Spiel heute, damit sie weiterläuft',
+      start: 'Starte heute eine Serie',
+    },
+  },
+  daily: {
+    label: 'Tägliche Herausforderung',
+    title: 'Die heutige Herausforderung',
+    world: 'Welt',
+    play: 'Spielen',
+    playAgain: 'Nochmal spielen',
+    done: 'Für heute erledigt ✓',
+    score: 'Du hast {correct}/{total} erreicht',
+  },
+  recommend: {
+    label: 'Als Nächstes',
+    due: {
+      title: 'Zeit zum Wiederholen',
+      reason: '{count} zur Wiederholung fällig — die schwächsten zuerst.',
+      cta: 'Wiederholen',
+    },
+    weakSpot: {
+      title: '{region} auffrischen',
+      reason: 'Bisher {percent} richtig dort.',
+      cta: 'Üben',
+    },
+    fresh: {
+      title: 'Bereit zum Spielen',
+      reason: 'Wähle einen Modus und eine Region, um loszulegen.',
+      cta: 'Spielen',
+    },
+  },
+  modes: {
+    flagToCountry: 'Flagge → Land',
+    countryToFlag: 'Land → Flagge',
+    mapHighlight: 'Finde das markierte Land',
+    mapLocate: 'Auf der Karte finden',
+  },
+  sessionType: {
+    fixed: 'Fest',
+    survival: 'Überleben',
+    training: 'Training',
+  },
+  play: {
+    title: 'Spielen',
+    setup: {
+      chooseMode: 'Wähle einen Modus',
+      chooseType: 'Wähle ein Format',
+      chooseRegion: 'Wähle eine Region',
+      regionWorld: 'Welt',
+      subregionAll: 'Ganz {region}',
+      poolCount: '{count} Länder',
+      poolReduced: '{count} Länder — Auswahl auf {choices} reduziert',
+      fixedHint: '{count} Fragen',
+      survivalHint: '{lives} Leben',
+      start: 'Start',
+    },
+    prompt: {
+      whichCountry: 'Welches Land ist das?',
+      whichFlag: 'Welche ist seine Flagge?',
+      whichHighlighted: 'Welches Land ist markiert?',
+      locate: 'Finde es auf der Karte',
+    },
+    map: {
+      loading: 'Karte wird geladen…',
+      error: 'Die Karte konnte nicht geladen werden.',
+      label: 'Weltkarte',
+    },
+    progress: {
+      question: 'Frage {current} / {total}',
+      answered: 'Beantwortet: {count}',
+      lives: 'Leben',
+      score: 'Punkte: {correct}/{total}',
+      streak: 'Serie: {streak}',
+    },
+    feedback: {
+      correct: 'Richtig!',
+      wrong: 'Nicht ganz',
+      reveal: 'Es ist {country}',
+    },
+    quit: 'Beenden',
+  },
+  summary: {
+    title: 'Zusammenfassung der Runde',
+    empty: 'Noch keine Ergebnisse — spiel zuerst eine Runde.',
+    playNow: 'Jetzt spielen',
+    score: 'Punkte',
+    accuracy: 'Genauigkeit',
+    time: 'Zeit',
+    bestStreak: 'Beste Serie',
+    missedTitle: 'Verpasst ({count})',
+    noneMissed: 'Perfekt — nichts verpasst!',
+    retry: 'Nochmal',
+    train: 'Diese üben',
+    trainThese: 'Übe die Länder, die du gerade verpasst hast',
+    trainNone: 'Nichts verpasst — nichts zu üben',
+    newGame: 'Neues Spiel',
+  },
+  history: {
+    title: 'Verlauf & Statistiken',
+    loading: 'Dein Verlauf wird geladen…',
+    empty: 'Noch keine Runden — spiel eine Partie, um deinen Fortschritt zu verfolgen.',
+    play: 'Jetzt spielen',
+    stats: {
+      sessions: 'Runden',
+      accuracy: 'Genauigkeit',
+      avgTime: 'Ø / Frage',
+      playTime: 'Spielzeit',
+    },
+    timeline: {
+      title: 'Runden pro Tag',
+      truncated: 'Es werden die letzten {days} aktiven Tage angezeigt.',
+      tooltip: '{date}: {count} Runden, {correct}/{questions} richtig',
+    },
+    missed: {
+      title: 'Am häufigsten verpasste Länder',
+      none: 'Noch keine Fehler erfasst — super!',
+      ratio: '{misses} von {attempts} verpasst',
+    },
+    recent: {
+      title: 'Letzte Runden',
+    },
+    clear: 'Verlauf löschen',
+    clearConfirm: 'Alle gespeicherten Runden löschen? Das kann nicht rückgängig gemacht werden.',
+  },
+  progress: {
+    mastery: {
+      title: 'Weltwissen',
+      learned: '{mastered} von {total} Ländern gemeistert',
+      regionsTitle: 'Fortschritt nach Region',
+      regionCount: '{mastered}/{total}',
+    },
+    achievements: {
+      title: 'Erfolge',
+      earned: '{earned} von {total} erhalten',
+      unlocked: 'Erfolg freigeschaltet!',
+      dismiss: 'Schließen',
+      badges: {
+        'first-round': { title: 'Erste Runde', desc: 'Beende deine erste Runde.' },
+        'perfect-fixed': {
+          title: 'Fehlerfrei',
+          desc: 'Beende eine feste Runde ohne einen einzigen Fehler.',
+        },
+        'flawless-survival': {
+          title: 'Überlebenskünstler',
+          desc: 'Beende einen Überlebenslauf ohne einen einzigen Fehler.',
+        },
+        speedy: {
+          title: 'Tempoteufel',
+          desc: 'Im Schnitt unter 3 Sekunden pro Antwort über eine Runde mit 5 oder mehr Fragen.',
+        },
+        'streak-7': { title: 'Wochenserie', desc: 'Spiel an 7 Tagen in Folge.' },
+        'streak-30': { title: 'Monatsserie', desc: 'Spiel an 30 Tagen in Folge.' },
+        'region-mastered': {
+          title: 'Regionsmeister',
+          desc: 'Meistere alle Länder einer beliebigen Region.',
+        },
+        'mastered-europe': { title: 'Europa gemeistert', desc: 'Meistere alle Länder Europas.' },
+        'mastered-africa': { title: 'Afrika gemeistert', desc: 'Meistere alle Länder Afrikas.' },
+        'mastered-asia': { title: 'Asien gemeistert', desc: 'Meistere alle Länder Asiens.' },
+        'mastered-americas': {
+          title: 'Amerika gemeistert',
+          desc: 'Meistere alle Länder Amerikas.',
+        },
+        'mastered-oceania': {
+          title: 'Ozeanien gemeistert',
+          desc: 'Meistere alle Länder Ozeaniens.',
+        },
+        century: { title: 'Zenturio', desc: 'Meistere 100 Länder.' },
+        'world-mastered': { title: 'Weltmeister', desc: 'Meistere alle Länder der Welt.' },
+      },
+    },
+    recap: {
+      title: 'Diese Woche',
+      empty: 'Diese Woche noch nichts — spiel eine Runde, um es zu füllen.',
+      sessions: 'Runden',
+      accuracy: 'Genauigkeit',
+      questions: 'Fragen',
+      mastered: 'Neu gemeistert',
+      streak: 'Tage-Serie',
+    },
+  },
+  settings: {
+    title: 'Einstellungen',
+    language: 'Sprache',
+    gameplay: 'Spiel',
+    fixedLength: 'Fragen pro fester Runde',
+    survivalLives: 'Leben im Überlebensmodus',
+    choices: 'Antwortmöglichkeiten pro Frage',
+    hint: 'Änderungen gelten ab deiner nächsten Runde.',
+    notPersisted:
+      'Der Speicher ist nicht verfügbar — Einstellungen und Verlauf werden nicht gesichert.',
+    data: {
+      title: 'Daten',
+      historyLabel: 'Spielverlauf',
+      historyHint: 'Alle gespeicherten Runden und Statistiken.',
+      clearHistory: 'Verlauf löschen',
+      clearHistoryTitle: 'Verlauf löschen?',
+      clearHistoryMessage:
+        'Dies löscht dauerhaft alle gespeicherten Runden und Statistiken. Das kann nicht rückgängig gemacht werden.',
+      trainingLabel: 'Übungsfortschritt',
+      trainingHint: 'Die Länder, die „Meine Fehler üben“ zur Wiederholung vorgemerkt hat.',
+      resetTraining: 'Übung zurücksetzen',
+      resetTrainingTitle: 'Übung zurücksetzen?',
+      resetTrainingMessage:
+        'Dies löscht dauerhaft deinen Übungsfortschritt. Das kann nicht rückgängig gemacht werden.',
+    },
+  },
+  storage: {
+    unavailable:
+      'Der Speicher ist in diesem Browser nicht verfügbar — dein Fortschritt wird nicht gesichert.',
+  },
+  notFound: {
+    title: 'Seite nicht gefunden',
+    back: 'Zurück zum Start',
+  },
+};
+
+export default de;
