@@ -5,6 +5,7 @@ import {
   IdbQuizStore,
   MemoryQuizStore,
   openStore,
+  type AchievementUnlock,
   type DailyResult,
   type Prefs,
   type QuizStore,
@@ -115,6 +116,38 @@ function contractTests(name: string, makeStore: () => Promise<QuizStore>): void 
 
       await store.clearDailyResult();
       expect(await store.getDailyResult()).toBeUndefined();
+    });
+
+    it('round-trips achievements (last write wins per id) and clears them', async () => {
+      expect(await store.getAchievements()).toEqual([]);
+      const first: AchievementUnlock = { id: 'first-round', unlockedAt: 1000 };
+      const streak: AchievementUnlock = { id: 'streak-7', unlockedAt: 2000 };
+      await store.putAchievement(first);
+      await store.putAchievement(streak);
+      expect((await store.getAchievements()).map((a) => a.id).sort()).toEqual([
+        'first-round',
+        'streak-7',
+      ]);
+      // Re-putting the same id updates in place rather than duplicating.
+      await store.putAchievement({ ...first, unlockedAt: 9999 });
+      const all = await store.getAchievements();
+      expect(all).toHaveLength(2);
+      expect(all.find((a) => a.id === 'first-round')?.unlockedAt).toBe(9999);
+
+      await store.clearAchievements();
+      expect(await store.getAchievements()).toEqual([]);
+    });
+
+    it('keeps achievements separate from SR and history resets', async () => {
+      await store.addSession(record({ id: 's1' }));
+      await store.putSRItem(srItem);
+      await store.putAchievement({ id: 'first-round', unlockedAt: 1000 });
+
+      await store.clearSRItems();
+      await store.clearSessions();
+
+      // A training/history reset must not silently wipe earned badges.
+      expect((await store.getAchievements()).map((a) => a.id)).toEqual(['first-round']);
     });
   });
 }

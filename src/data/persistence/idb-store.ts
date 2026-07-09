@@ -2,17 +2,26 @@
 //
 // Object stores mirror the persisted data model: `sessions` (play history, keyed by id,
 // indexed by start time), `srItems` (SM-2 state, keyed by itemKey, indexed by due date so
-// Phase 7 can query what's due), `prefs` (a single row), and `dailyChallenge` (Phase 15 —
-// the most recent Daily Challenge result, a single row). The `upgrade` callback creates
-// only the missing stores, so bumping the version to add `dailyChallenge` leaves existing
+// Phase 7 can query what's due), `prefs` (a single row), `dailyChallenge` (Phase 15 — the
+// most recent Daily Challenge result, a single row), and `achievements` (Phase 16 — one row
+// per earned badge, keyed by badge id, recording when it unlocked). The `upgrade` callback
+// creates only the missing stores, so bumping the version to add a store leaves existing
 // history / SR / prefs data intact.
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { DailyResult, Prefs, QuizStore, SessionRecord, SRItem } from './types';
+import type {
+  AchievementUnlock,
+  DailyResult,
+  Prefs,
+  QuizStore,
+  SessionRecord,
+  SRItem,
+} from './types';
 
 const DB_NAME = 'geo-quiz';
-// v2 (Phase 15): add the `dailyChallenge` store. Existing stores are preserved on upgrade.
-const DB_VERSION = 2;
+// v2 (Phase 15): add `dailyChallenge`. v3 (Phase 16): add `achievements`. Upgrades are
+// additive (only missing stores are created), so existing data is preserved across bumps.
+const DB_VERSION = 3;
 
 /** The single prefs row lives under a fixed, out-of-line key. */
 const PREFS_KEY = 'app';
@@ -38,6 +47,10 @@ interface GeoQuizDB extends DBSchema {
     key: string;
     value: DailyResult;
   };
+  achievements: {
+    key: string;
+    value: AchievementUnlock;
+  };
 }
 
 export class IdbQuizStore implements QuizStore {
@@ -62,6 +75,9 @@ export class IdbQuizStore implements QuizStore {
         }
         if (!db.objectStoreNames.contains('dailyChallenge')) {
           db.createObjectStore('dailyChallenge');
+        }
+        if (!db.objectStoreNames.contains('achievements')) {
+          db.createObjectStore('achievements', { keyPath: 'id' });
         }
       },
     });
@@ -115,5 +131,17 @@ export class IdbQuizStore implements QuizStore {
 
   async clearDailyResult(): Promise<void> {
     await this.db.delete('dailyChallenge', DAILY_KEY);
+  }
+
+  async getAchievements(): Promise<AchievementUnlock[]> {
+    return this.db.getAll('achievements');
+  }
+
+  async putAchievement(unlock: AchievementUnlock): Promise<void> {
+    await this.db.put('achievements', unlock);
+  }
+
+  async clearAchievements(): Promise<void> {
+    await this.db.clear('achievements');
   }
 }

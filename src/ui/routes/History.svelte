@@ -1,10 +1,28 @@
 <script lang="ts">
   import { t, locale, localizedName, localizedRegion } from '../../i18n';
-  import { computeStats, type StatsOverview } from '../../domain';
+  import {
+    computeStats,
+    type MasteryResult,
+    type StatsOverview,
+    type WeeklyRecap as WeeklyRecapData,
+  } from '../../domain';
   import { getCountry, type SessionRecord } from '../../data';
   import { formatDuration, formatPercent } from '../format';
-  import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
+  import {
+    loadSessions,
+    loadMastery,
+    loadWeeklyRecap,
+    loadAchievements,
+    clearHistory,
+    persistent,
+    storageReady,
+    type AchievementView,
+  } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
+  import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
+  import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
+  import AchievementsGrid from '../components/AchievementsGrid.svelte';
+  import WeeklyRecap from '../components/WeeklyRecap.svelte';
 
   const MODE_LABEL: Record<string, string> = {
     'flag-to-country': 'modes.flagToCountry',
@@ -22,12 +40,25 @@
 
   let sessions = $state<SessionRecord[]>([]);
   let stats = $state<StatsOverview | null>(null);
+  let mastery = $state<MasteryResult | null>(null);
+  let recap = $state<WeeklyRecapData | null>(null);
+  let achievements = $state<AchievementView[]>([]);
   let loading = $state(true);
+  // Badges that unlocked on this load — celebrated once via a dismissible banner.
+  let unlockDismissed = $state(false);
+  const justUnlocked = $derived(achievements.filter((a) => a.justUnlocked));
 
   async function refresh(): Promise<void> {
     loading = true;
     sessions = await loadSessions();
     stats = computeStats(sessions);
+    // Progress surfaces (Phase 16): mastery + recap + achievements, computed from the same
+    // persisted state. loadAchievements also persists any first-time unlocks.
+    [mastery, recap, achievements] = await Promise.all([
+      loadMastery(),
+      loadWeeklyRecap(),
+      loadAchievements(),
+    ]);
     loading = false;
   }
 
@@ -77,6 +108,27 @@
     <a class="cta" href="#/play">{$t('history.play')}</a>
   {:else}
     {@const s = stats}
+    <!-- One-time "unlocked!" celebration for badges earned on this load. -->
+    {#if justUnlocked.length > 0 && !unlockDismissed}
+      <div class="unlock" role="status">
+        <span class="unlock-icon" aria-hidden="true">🎉</span>
+        <span class="unlock-text">
+          {$t('progress.achievements.unlocked')}
+          <strong>
+            {justUnlocked.map((a) => $t(`progress.achievements.badges.${a.id}.title`)).join(', ')}
+          </strong>
+        </span>
+        <button
+          type="button"
+          class="unlock-dismiss"
+          onclick={() => (unlockDismissed = true)}
+          aria-label={$t('progress.achievements.dismiss')}
+        >
+          ✕
+        </button>
+      </div>
+    {/if}
+
     <!-- Overview tiles -->
     <div class="tiles">
       <div class="tile">
@@ -96,6 +148,32 @@
         <span class="label">{$t('history.stats.playTime')}</span>
       </div>
     </div>
+
+    <!-- This week's recap -->
+    {#if recap}
+      <div class="panel">
+        <h2>{$t('progress.recap.title')}</h2>
+        <WeeklyRecap {recap} />
+      </div>
+    {/if}
+
+    <!-- World mastery + per-region breakdown -->
+    {#if mastery}
+      <div class="panel">
+        <h2>{$t('progress.mastery.title')}</h2>
+        <WorldMasteryMeter {mastery} />
+        <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
+        <RegionMasteryBreakdown regions={mastery.byRegion} />
+      </div>
+    {/if}
+
+    <!-- Achievements -->
+    {#if achievements.length > 0}
+      <div class="panel">
+        <h2>{$t('progress.achievements.title')}</h2>
+        <AchievementsGrid {achievements} />
+      </div>
+    {/if}
 
     <!-- Sessions over time: single-series bar chart, so no legend — the title names it. -->
     <div class="panel">
@@ -237,6 +315,48 @@
     border-radius: var(--radius);
     font-size: 0.9rem;
     font-weight: 600;
+  }
+
+  /* One-time achievement-unlock banner */
+  .unlock {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--color-accent-weak);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius);
+  }
+
+  .unlock-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .unlock-text {
+    flex: 1 1 auto;
+    font-size: 0.92rem;
+  }
+
+  .unlock-dismiss {
+    flex: 0 0 auto;
+    padding: 0.15rem 0.4rem;
+    background: none;
+    border: none;
+    color: var(--color-muted);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .unlock-dismiss:hover {
+    color: var(--color-text);
+  }
+
+  .subhead {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: var(--color-muted);
   }
 
   /* Overview tiles */

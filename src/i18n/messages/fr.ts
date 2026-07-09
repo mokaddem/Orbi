@@ -152,6 +152,69 @@ const fr: typeof en = {
     clear: 'Effacer l’historique',
     clearConfirm: 'Supprimer toutes les sessions enregistrées ? Cette action est irréversible.',
   },
+  progress: {
+    mastery: {
+      title: 'Maîtrise du monde',
+      learned: '{mastered} pays sur {total} appris',
+      regionsTitle: 'Maîtrise par région',
+      regionCount: '{mastered}/{total}',
+    },
+    achievements: {
+      title: 'Réussites',
+      earned: '{earned} sur {total} obtenues',
+      unlocked: 'Réussite débloquée !',
+      dismiss: 'Fermer',
+      badges: {
+        'first-round': { title: 'Première partie', desc: 'Terminez votre première session.' },
+        'perfect-fixed': {
+          title: 'Sans faute',
+          desc: 'Terminez une partie à questions fixes sans aucune erreur.',
+        },
+        'flawless-survival': {
+          title: 'Survivant',
+          desc: 'Terminez une partie survie sans la moindre erreur.',
+        },
+        speedy: {
+          title: 'Rapide comme l’éclair',
+          desc: 'Moins de 3 secondes par réponse en moyenne sur une partie de 5 questions ou plus.',
+        },
+        'streak-7': { title: 'Semaine complète', desc: 'Jouez 7 jours d’affilée.' },
+        'streak-30': { title: 'Mois complet', desc: 'Jouez 30 jours d’affilée.' },
+        'region-mastered': {
+          title: 'Maître d’une région',
+          desc: 'Maîtrisez tous les pays d’une même région.',
+        },
+        'mastered-europe': {
+          title: 'Europe maîtrisée',
+          desc: 'Maîtrisez tous les pays d’Europe.',
+        },
+        'mastered-africa': {
+          title: 'Afrique maîtrisée',
+          desc: 'Maîtrisez tous les pays d’Afrique.',
+        },
+        'mastered-asia': { title: 'Asie maîtrisée', desc: 'Maîtrisez tous les pays d’Asie.' },
+        'mastered-americas': {
+          title: 'Amériques maîtrisées',
+          desc: 'Maîtrisez tous les pays des Amériques.',
+        },
+        'mastered-oceania': {
+          title: 'Océanie maîtrisée',
+          desc: 'Maîtrisez tous les pays d’Océanie.',
+        },
+        century: { title: 'Centurion', desc: 'Maîtrisez 100 pays.' },
+        'world-mastered': { title: 'Maître du monde', desc: 'Maîtrisez tous les pays du monde.' },
+      },
+    },
+    recap: {
+      title: 'Cette semaine',
+      empty: 'Rien cette semaine pour l’instant — jouez une partie pour la remplir.',
+      sessions: 'Sessions',
+      accuracy: 'Précision',
+      questions: 'Questions',
+      mastered: 'Nouvellement maîtrisés',
+      streak: 'Jours de série',
+    },
+  },
   settings: {
     title: 'Paramètres',
     language: 'Langue',

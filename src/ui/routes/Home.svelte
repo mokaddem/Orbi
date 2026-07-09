@@ -4,6 +4,7 @@
   import { pendingConfig } from '../stores/game';
   import {
     loadDailyState,
+    loadMastery,
     loadRecommendations,
     loadStreak,
     loadTrainingPlan,
@@ -12,11 +13,12 @@
     type DailyState,
     type TrainingPlan,
   } from '../stores/persistence';
-  import type { Recommendation, StreakInfo } from '../../domain';
+  import type { MasteryResult, Recommendation, StreakInfo } from '../../domain';
   import Demo from '../components/Demo.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
   import StreakIndicator from '../components/StreakIndicator.svelte';
   import DailyChallengeCard from '../components/DailyChallengeCard.svelte';
+  import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
 
   // The "Next up" card (Phase 14) is the hero: it reads the player's own state and, in one
   // tap, launches the highest-value action (due reviews → weak spot → a fresh round). We
@@ -27,6 +29,7 @@
   let plan = $state<TrainingPlan | null>(null);
   let streak = $state<StreakInfo | null>(null);
   let daily = $state<DailyState | null>(null);
+  let mastery = $state<MasteryResult | null>(null);
 
   $effect(() => {
     if ($storageReady) {
@@ -34,6 +37,7 @@
       void loadTrainingPlan().then((p) => (plan = p));
       void loadStreak().then((s) => (streak = s));
       void loadDailyState().then((d) => (daily = d));
+      void loadMastery().then((m) => (mastery = m));
     }
   });
 
@@ -73,6 +77,12 @@
     </div>
   {/if}
 
+  {#if mastery}
+    <div class="mastery-row">
+      <WorldMasteryMeter {mastery} compact />
+    </div>
+  {/if}
+
   <div class="actions">
     <a class="play-link" href="#/play">{$t('home.playCustom')}</a>
     {#if plan}
@@ -97,6 +107,11 @@
 
   /* Separate the Daily Challenge card from the Next-up card above it. */
   .daily-row {
+    margin-top: 1rem;
+  }
+
+  /* The compact world-mastery glance sits below the daily card. */
+  .mastery-row {
     margin-top: 1rem;
   }
 

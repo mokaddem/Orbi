@@ -5,7 +5,14 @@
 // is lost on reload. `persistent` is `false` so the UI can warn the user. It doubles
 // as the unit-test double for anything that depends on a `QuizStore`.
 
-import type { DailyResult, Prefs, QuizStore, SessionRecord, SRItem } from './types';
+import type {
+  AchievementUnlock,
+  DailyResult,
+  Prefs,
+  QuizStore,
+  SessionRecord,
+  SRItem,
+} from './types';
 
 export class MemoryQuizStore implements QuizStore {
   readonly persistent = false;
@@ -14,6 +21,7 @@ export class MemoryQuizStore implements QuizStore {
   private srItems = new Map<string, SRItem>();
   private prefs: Prefs | undefined;
   private daily: DailyResult | undefined;
+  private achievements = new Map<string, AchievementUnlock>();
 
   async addSession(record: SessionRecord): Promise<void> {
     this.sessions.push(record);
@@ -63,5 +71,17 @@ export class MemoryQuizStore implements QuizStore {
 
   async clearDailyResult(): Promise<void> {
     this.daily = undefined;
+  }
+
+  async getAchievements(): Promise<AchievementUnlock[]> {
+    return [...this.achievements.values()].map((a) => ({ ...a }));
+  }
+
+  async putAchievement(unlock: AchievementUnlock): Promise<void> {
+    this.achievements.set(unlock.id, { ...unlock });
+  }
+
+  async clearAchievements(): Promise<void> {
+    this.achievements.clear();
   }
 }

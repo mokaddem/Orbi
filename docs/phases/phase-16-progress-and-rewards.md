@@ -1,6 +1,6 @@
 # Phase 16 — Progress & rewards
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.2 retention & engagement
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -43,37 +43,36 @@ streak helper first** or factor it into a shared module. Otherwise independent (
 
 ## Scope / Deliverables
 ### Mastery
-- [ ] **"Mastered" definition (pure, unit-tested)** — a rule mapping a country's SR items to a
-      mastered/learning/unseen state (thresholds in Open Questions), plus a rollup:
-      `{ mastered, learning, unseen, total }` overall and **per region**. Lives in a pure module
-      (extend `stats.ts` or a new `mastery.ts`), `now` injected.
-- [ ] **World mastery meter** — a progress bar + count on Home (compact) and/or History (full),
-      reusing existing card styling.
-- [ ] **Per-region mastery breakdown** — a list/grid of regions with mastered/total and a bar each,
-      ordered most- or least-complete (Open Questions). Uses `RegionIcon` and localized region names
-      (`$localizedRegion`).
+- [x] **"Mastered" definition (pure, unit-tested)** — `src/domain/mastery.ts`: `isItemMastered`
+      (`repetitions ≥ 2` **and** `dueAt` in the future) + lenient country rule (any mode) + rollup
+      `{ mastered, learning, unseen, total }` overall and **per region**. `now` + country list injected.
+- [x] **World mastery meter** — `WorldMasteryMeter.svelte`, compact on Home + full on History,
+      segmented bar (mastered / learning), reusing existing card styling.
+- [x] **Per-region mastery breakdown** — `RegionMasteryBreakdown.svelte`: one row per region with
+      `RegionIcon`, localized name (`$localizedRegion`), `mastered/total`, and a bar; least-complete
+      first.
 
 ### Achievements
-- [ ] **Achievements model (pure, unit-tested)** — a declarative catalog of badges, each with an
-      `id`, i18n key, and a pure predicate over `{ stats, srState, streak, now }`. Evaluating the
-      catalog yields unlocked/locked + (if persisted) unlock timestamps.
-- [ ] **Achievements display** — a badges section (History, or its own small view) showing earned vs
-      locked, with a short description of how to earn each. Optional one-time "unlocked!" toast if we
-      persist unlock state (Open Questions).
-- [ ] **Starter badge set** — agree the initial list with the owner (candidates below).
+- [x] **Achievements model (pure, unit-tested)** — `src/domain/achievements.ts`: a 14-badge
+      declarative catalog, each an `id` + pure predicate over `{ stats, mastery, streak, sessions, now }`.
+      `evaluateAchievements` yields unlocked/locked; the wiring layer stamps unlock dates.
+- [x] **Achievements display** — `AchievementsGrid.svelte` showing earned vs locked with how-to-earn
+      text; one-time "unlocked!" banner on History (unlock dates persisted in a new IDB store).
+- [x] **Starter badge set** — owner confirmed the full candidate list (14 badges).
 
 ### Weekly recap
-- [ ] **Weekly rollup (pure, unit-tested)** — given sessions + a week window (injected "now"),
-      compute sessions, accuracy, questions, countries newly mastered this week, and best streak.
-- [ ] **Recap display** — a compact recap card (History, or shown once on Home at the start of a new
-      week). Placement in Open Questions.
+- [x] **Weekly rollup (pure, unit-tested)** — `src/domain/recap.ts`: `computeWeeklyRecap` over a
+      local **Monday** week window (injected `now`) → sessions, questions, accuracy, newly-mastered
+      (approx via `lastReviewedAt`), current + longest streak.
+- [x] **Recap display** — `WeeklyRecap.svelte`, a compact chip card on History (always visible).
 
 ### Cross-cutting
-- [ ] **i18n** — EN/FR for mastery labels, every region name already localized, each achievement's
-      title + description, and recap labels. Parity enforced by `messages.test.ts`.
-- [ ] **Tests** — unit tests for the mastery rollup (per-region + overall, threshold edges), the
-      achievements predicates (each badge locks/unlocks correctly), and the weekly window (boundary
-      cases); component tests that the meter, breakdown, badges, and recap render from a fixture.
+- [x] **i18n** — EN/FR under `progress.*` for mastery labels, all 14 badge titles + descriptions,
+      and recap labels; region names already localized. Parity green (`messages.test.ts`).
+- [x] **Tests** — unit tests for the mastery rollup (per-region + overall, threshold edges), the
+      achievements predicates (each badge at its boundary), and the weekly window (Monday/Sunday
+      boundaries); component tests for meter, breakdown, badges, and recap; wiring tests for the
+      once-only unlock + persistence. 321 tests green.
 
 ## Technical notes
 - **Country vs item mastery:** the meter counts countries but SR is per `mode:iso2`. Options: a country
@@ -132,3 +131,31 @@ streak helper first** or factor it into a shared module. Otherwise independent (
 - **2026-07-08 — PRD drafted from the retention brainstorm (owner picked all of Option C: mastery
   meter + per-region mastery + achievements + weekly recap). NOT built — awaiting the clarifying round
   and explicit build approval.**
+- **2026-07-09 — Clarifying round resolved with owner; explicit go-ahead given; built and completed.**
+  - **Decisions (Open Questions):**
+    1. **Denominator** — all countries (`countryCount()` = 195). "Learn the world."
+    2. **Country-mastery rule** — **lenient**: a country is mastered if *any* of its four modes is.
+    3. **Item bar** — `repetitions ≥ 2` **and** `dueAt` in the future (not overdue). A lapse resets
+       `repetitions → 0`, so it demotes back to "learning" automatically.
+    4. **Achievement persistence** — **persist unlock dates** (new `achievements` IDB store, DB v3) to
+       drive a one-time "unlocked!" banner. Earned badges are **sticky** (a badge stays earned even if
+       its live rollup later dips below the bar). Both Settings resets (`clearHistory`/`clearTraining`)
+       also clear the badge store; still-qualifying badges re-unlock on next load.
+    5. **Starter badges** — full list, **14** total: first-round, perfect-fixed, flawless-survival,
+       speedy (avg < 3 s over ≥ 5 Q), streak-7, streak-30, region-mastered, mastered-{europe, africa,
+       asia, americas, oceania}, century (100), world-mastered.
+    6. **Placement** — full breakdown + badges + recap on **History**; compact meter on **Home**.
+    7. **Region ordering** — least-complete first (to-do list).
+    8. **Weekly recap** — always visible on History; week starts **Monday, local time** (consistent
+       with Phase 15's local-day streak). "Newly mastered this week" is an accepted approximation
+       (mastered-now countries whose qualifying item's `lastReviewedAt` falls in the window).
+  - **New pure modules:** `domain/mastery.ts`, `domain/achievements.ts`, `domain/recap.ts`
+    (+ tests). **Persistence:** `achievements` store on both `IdbQuizStore` (v3, additive upgrade) and
+    `MemoryQuizStore`; wiring `loadMastery` / `loadWeeklyRecap` / `loadAchievements` in
+    `ui/stores/persistence.ts`. **UI:** `WorldMasteryMeter`, `RegionMasteryBreakdown`,
+    `AchievementsGrid`, `WeeklyRecap` + History/Home integration and a one-time unlock banner.
+  - **Verified:** 321 Vitest tests · `npm run check` 0 errors · `npm run lint` clean · manual
+    headless-Chrome check on 5180 (Home compact meter + History surfaces render from a seeded profile,
+    EN/FR, no console errors).
+  - **Note:** Playwright is not in this repo (per prior phases); the heavy-loop check was a headless
+    google-chrome-stable CDP drive that seeds IndexedDB and screenshots Home + History.

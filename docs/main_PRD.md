@@ -86,7 +86,7 @@ reinforce).
 |---|---|---|---|---|---|
 | 14 | Smart "Next up" recommendations | [phase-14-next-up-recommendations.md](phases/phase-14-next-up-recommendations.md) | 6, 7 | ✅ Done | 100% |
 | 15 | Daily streak & Daily Challenge | [phase-15-daily-streak-challenge.md](phases/phase-15-daily-streak-challenge.md) | 2, 6 | ✅ Done | 100% |
-| 16 | Progress & rewards (mastery, achievements, recap) | [phase-16-progress-and-rewards.md](phases/phase-16-progress-and-rewards.md) | 6, 7 (15 for streak) | ⬜ Not started | 0% |
+| 16 | Progress & rewards (mastery, achievements, recap) | [phase-16-progress-and-rewards.md](phases/phase-16-progress-and-rewards.md) | 6, 7 (15 for streak) | ✅ Done | 100% |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

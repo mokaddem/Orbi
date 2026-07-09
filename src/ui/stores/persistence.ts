@@ -12,24 +12,31 @@ import {
   DEFAULT_PREFS,
   MemoryQuizStore,
   clampPrefs,
+  getCountries,
   getCountry,
   openStore,
+  type AchievementUnlock,
   type DailyResult,
   type Prefs,
   type QuizStore,
   type SessionRecord,
 } from '../../data';
 import {
+  ACHIEVEMENTS,
   buildDailyChallenge,
+  computeMastery,
   computeStats,
   computeStreak,
+  computeWeeklyRecap,
   dominantTrainingMode,
+  evaluateAchievements,
   localDayKey,
   recommend,
   scheduleNext,
   selectTrainingItems,
   type DailyChallenge,
   type GameMode,
+  type MasteryResult,
   type QuestionResult,
   type Recommendation,
   type RegionResolver,
@@ -38,6 +45,7 @@ import {
   type StatsOverview,
   type StreakInfo,
   type TrainingItem,
+  type WeeklyRecap,
 } from '../../domain';
 import { locale, setLocale } from '../../i18n';
 
@@ -293,17 +301,118 @@ export async function loadStats(): Promise<StatsOverview> {
   return computeStats(await loadSessions());
 }
 
+/** The full country denominator for mastery, reduced to what the pure rollup needs. */
+function masteryCountries(): { iso2: string; region: string }[] {
+  return getCountries().map((c) => ({ iso2: c.iso2, region: c.region }));
+}
+
+/**
+ * Compute world + per-region mastery from persisted SR state (Phase 16). Denominator is all
+ * countries in the dataset ("learn the world"). Returns an all-unseen rollup before init.
+ */
+export async function loadMastery(now = Date.now()): Promise<MasteryResult> {
+  const srItems = store ? await store.getAllSRItems() : [];
+  return computeMastery(srItems, masteryCountries(), { now });
+}
+
+/** Compute this week's recap (Phase 16) from persisted sessions + SR state. */
+export async function loadWeeklyRecap(now = Date.now()): Promise<WeeklyRecap> {
+  if (!store) return computeWeeklyRecap([], { now });
+  const [sessions, srItems] = await Promise.all([store.getAllSessions(), store.getAllSRItems()]);
+  return computeWeeklyRecap(sessions, { now, srItems });
+}
+
+/** A badge's state for the UI: whether it's earned, when, and if it unlocked on this load. */
+export interface AchievementView {
+  id: string;
+  /** `true` once earned; earned badges stay earned even if their live backing later lapses. */
+  unlocked: boolean;
+  /** When it first unlocked (present for earned badges). */
+  unlockedAt?: number;
+  /** `true` only on the load where it first crossed the line — drives the one-time toast. */
+  justUnlocked: boolean;
+  /** For the per-continent badges, the M49 region key (for icon/label); else undefined. */
+  region?: string;
+}
+
+/**
+ * Evaluate the achievements catalog against current progress (Phase 16), persisting the
+ * unlock date of any badge earned for the first time and flagging it `justUnlocked` so the
+ * UI can celebrate it exactly once. Earned badges are sticky: a badge that once unlocked
+ * stays unlocked even if the live rollup later dips below its bar (it's a trophy, not a
+ * status). Returns all badges (locked + unlocked) in catalog order.
+ */
+export async function loadAchievements(now = Date.now()): Promise<AchievementView[]> {
+  const [sessions, srItems, persisted] = store
+    ? await Promise.all([store.getAllSessions(), store.getAllSRItems(), store.getAchievements()])
+    : [[] as SessionRecord[], [], [] as AchievementUnlock[]];
+
+  const mastery = computeMastery(srItems, masteryCountries(), { now });
+  const streak = computeStreak(
+    sessions.map((s) => localDayKey(s.startedAt)),
+    localDayKey(now),
+  );
+  const statuses = evaluateAchievements({
+    stats: computeStats(sessions),
+    mastery,
+    streak,
+    sessions,
+    now,
+  });
+
+  const unlockedAtById = new Map(persisted.map((p) => [p.id, p.unlockedAt]));
+  const regionById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.region]));
+  const newlyUnlocked: AchievementUnlock[] = [];
+
+  const views = statuses.map((st): AchievementView => {
+    const wasPersisted = unlockedAtById.has(st.id);
+    let unlockedAt = unlockedAtById.get(st.id);
+    let justUnlocked = false;
+    if (st.unlocked && !wasPersisted) {
+      unlockedAt = now;
+      justUnlocked = true;
+      newlyUnlocked.push({ id: st.id, unlockedAt: now });
+    }
+    return {
+      id: st.id,
+      unlocked: st.unlocked || wasPersisted,
+      unlockedAt,
+      justUnlocked,
+      region: regionById.get(st.id),
+    };
+  });
+
+  // Best-effort persist of first-time unlocks (mirrors saveSession's swallow-on-failure).
+  for (const u of newlyUnlocked) {
+    try {
+      await store?.putAchievement(u);
+    } catch {
+      // Storage became unwritable — the badge just won't be remembered across reloads.
+    }
+  }
+
+  return views;
+}
+
 /**
  * Erase all play history (leaves prefs and SR state intact). The Daily Challenge result is
  * cleared alongside it — the streak derives from history, so wiping history should reset the
- * daily "done today" state too, keeping the two coherent.
+ * daily "done today" state too, keeping the two coherent. Earned badges are also cleared:
+ * they'd otherwise be orphaned trophies, and any that still qualify from the surviving SR
+ * state simply re-unlock on the next {@link loadAchievements}.
  */
 export async function clearHistory(): Promise<void> {
   await store?.clearSessions();
   await store?.clearDailyResult();
+  await store?.clearAchievements();
 }
 
-/** Erase all SR/training state (leaves prefs and play history intact). */
+/**
+ * Erase all SR/training state (leaves prefs and play history intact). Earned badges are
+ * cleared for the same reason as {@link clearHistory} — orphan trophies are confusing, and
+ * still-qualifying badges (e.g. a streak backed by surviving history) re-unlock on next load.
+ */
 export async function clearTraining(): Promise<void> {
   await store?.clearSRItems();
+  await store?.clearAchievements();
 }
