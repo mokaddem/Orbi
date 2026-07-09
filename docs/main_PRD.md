@@ -111,7 +111,7 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | 19 | Region classification & bucketing | [phase-19-region-classification.md](phases/archive/phase-19-region-classification.md) | 1 (before 20; re-verify 14, 16) | ✅ Done | 100% |
 | 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/archive/phase-20-encyclopedia.md) | 1, 12 (19 first) | ✅ Done | 100% |
 | 21 | Country scope: disclaimer & definitions | [phase-21-country-scope.md](phases/archive/phase-21-country-scope.md) | 1 (20 for Stage B) | ✅ Done | 100% (Stage A; Stage B deferred) |
-| 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/phase-22-map-zoom-small-countries.md) | 4, 12 | 🟡 In progress | ~70% (visible micro-state dots + ⭐ target-first reveal shipped; pan/zoom deferred) |
+| 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/archive/phase-22-map-zoom-small-countries.md) | 4, 12 | ✅ Done | 100% (visible micro-state dots + ⭐ target-first reveal; interactive zoom → own future phase if needed) |
 | 23 | New mode: National languages | [phase-23-mode-languages.md](phases/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ⬜ Not started | 0% |
 | 24 | New mode: Capitals | [phase-24-mode-capitals.md](phases/phase-24-mode-capitals.md) | 2 (engine-generalization pilot) | ⬜ Not started | 0% |
 | 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |

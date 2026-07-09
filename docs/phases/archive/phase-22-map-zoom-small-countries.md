@@ -1,13 +1,15 @@
 # Phase 22 — Map zoom & small-country visibility/selection
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** ~70%
-· **Track:** v1.3 content, languages & new modes
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+(dots + target-first reveal; interactive zoom would be a separate future phase) · **Track:** v1.3
+content, languages & new modes
 
-> **Owner decision (2026-07-09):** ship a first increment of **visible micro-state dots + a
-> target-first reveal**, and **defer interactive pan/zoom** (OQ1–4) unless play shows it's still
-> needed. The three reported problems are addressed at region/world framing; the remaining gap is a
-> *comfortable* touch target in dense micro-state clusters on small phones, which only zoom/insets
-> would fully close — left as the deferred follow-up.
+> **Owner decision (2026-07-09):** the delivered scope is **visible micro-state dots + a target-first
+> reveal**, and the phase is closed **done-for-now**. The three reported problems are addressed at
+> region/world framing. Interactive **pan/zoom / insets** (OQ1–4) are **out of scope for this phase**;
+> the only remaining gap they'd close is a *comfortable* touch target in dense micro-state clusters on
+> small phones — if play shows that's needed, it becomes **its own future phase**, not a reopening of
+> this one.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
