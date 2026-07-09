@@ -1,4 +1,4 @@
-# Phase 24 — New game mode: Main industries
+# Phase 25 — New game mode: Main industries
 
 **Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
 · **Track:** v1.3 content, languages & new modes
@@ -24,14 +24,14 @@ automotive, mining, finance. Tests economic/geographic knowledge beyond names an
   be created and bundled.** This is the phase's central risk and effort, not the UI.
 - **The engine is country-centric and single-answer** (`Question.answer: Country`, one correct option,
   `itemKey = ${mode}:${iso2}`). Industries are **many-to-many** (a country has several; an industry
-  spans many countries), so — like languages (Phase 22) — this needs the shared "attribute-quiz"
+  spans many countries), so — like languages (Phase 23) — this needs the shared "attribute-quiz"
   generalization (answer/options not restricted to `Country`, possibly multi-select).
 - **Modes are a closed union** (`GameMode`) surfaced in `Play.svelte` + `ModeIcon` + `modes.*` /
   `play.prompt.*` i18n. Adding a mode touches all of these.
 
 ## Depends on
 Phase 2 (quiz engine) **and a new curated dataset (see Deliverables)**. Uses the shared attribute-quiz
-generalization from Phase 22/23. **Recommended to build last** in the v1.3 track — it has the least
+generalization from Phase 23/24. **Recommended to build last** in the v1.3 track — it has the least
 certain data story.
 
 ## Scope / Deliverables
@@ -59,7 +59,7 @@ certain data story.
   curation/normalisation is the bulk of the work and should be reviewed by the owner.
 - **"Main" needs a definition** — top exports vs. largest employers vs. GDP share vs. "what the country
   is known for." These disagree; pick one and state it in the copy so the quiz is defensible.
-- **Framing mirrors languages** (Phase 22): single-select "which is a main industry of X", multi-select
+- **Framing mirrors languages** (Phase 23): single-select "which is a main industry of X", multi-select
   "select all main industries of X", or "which country's main industries are …". Reuse whatever the
   languages/capitals phases settle for the attribute-quiz interaction.
 - **Coverage vs. effort** — curating all 195 to a good standard is significant. An MVP could cover only
@@ -74,7 +74,7 @@ certain data story.
    automotive/electronics/textiles)?
 3. **Coverage** — all 195 countries, or a curated subset of major economies for the MVP?
 4. **Definition of "main"** — exports, employment, GDP share, or reputation?
-5. **Framing** — single-select, multi-select, or industry→country? (Align with Phase 22's choice.)
+5. **Framing** — single-select, multi-select, or industry→country? (Align with Phase 23's choice.)
 6. **Localisation** — confirm the taxonomy is translated EN/FR/DE.
 7. **Mastery** — feed per-country mastery/achievements, or stay separate?
 

@@ -65,7 +65,7 @@ reference should reflect the final region grouping.
 - **Map choice matters for cost.** The bundled silhouettes are cheap and already loaded for icons; the
   full D3 map is richer but lazily loads the TopoJSON (as map game-modes do). A reasonable split:
   silhouettes on the index/region cards, a highlighted real map only on the region detail page.
-- **Country-page extras have dependencies:** capital needs the data added in Phase 23; neighbours need
+- **Country-page extras have dependencies:** capital needs the data added in Phase 24; neighbours need
   `world-countries`' `borders` (not yet in the dataset). Keep the MVP to **flag + region/sub-region**
   (the explicit ask) and note extras as extensible.
 - Keep it read-only and framework-light: no new state stores beyond routing; the accessors are pure.
@@ -74,7 +74,7 @@ reference should reflect the final region grouping.
 1. **Region map style** — cheap bundled **silhouette** (already available) vs. the **real D3 map with
    member countries highlighted** (richer, lazy TopoJSON load)? (Recommend: silhouette on cards, real
    highlighted map on region detail.)
-2. **Country-page fields** — MVP is flag + region + sub-region. Add capital (needs Phase 23), neighbours
+2. **Country-page fields** — MVP is flag + region + sub-region. Add capital (needs Phase 24), neighbours
    (needs `borders` data), area/population later? Keep MVP minimal?
 3. **Navigation & naming** — section label in EN/FR/DE ("Reference" / "Atlas" / "Encyclopedia" /
    "Encyclopédie"). A top-level nav entry, or reached from Home?

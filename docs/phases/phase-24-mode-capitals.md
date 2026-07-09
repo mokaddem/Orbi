@@ -1,4 +1,4 @@
-# Phase 23 — New game mode: Capitals
+# Phase 24 — New game mode: Capitals
 
 **Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
 · **Track:** v1.3 content, languages & new modes
@@ -34,7 +34,7 @@ one of the modes explicitly flagged for "later" in the original spec (main PRD N
 
 ## Depends on
 Phase 2 (quiz engine). **Recommended as the pilot** for the shared "attribute-quiz" generalization used
-by Phases 22 (languages) and 24 (industries): the `capital → country` direction needs none of it, and
+by Phases 23 (languages) and 25 (industries): the `capital → country` direction needs none of it, and
 `country → capital` introduces it in the cleanest, most contained way. Build capitals first.
 
 ## Scope / Deliverables

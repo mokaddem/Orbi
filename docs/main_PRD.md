@@ -101,8 +101,8 @@ new quiz modes. Each PRD **requires a clarifying-questions round with the owner 
 at a time, right before building each**. Mostly independent; suggested build order is top-to-bottom,
 with two sequencing notes: **17 (German) is recommended first** (later phases then just add a German
 block), and **19 (region buckets) is foundational** — it precedes the encyclopedia (20), and 14/16
-should be re-verified after. The three new modes (22–24) share an "attribute-quiz" engine
-generalization — the **first one built lands it** (23/capitals is the suggested pilot).
+should be re-verified after. The three new modes (23–25) share an "attribute-quiz" engine
+generalization — the **first one built lands it** (24/capitals is the suggested pilot).
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
@@ -111,9 +111,10 @@ generalization — the **first one built lands it** (23/capitals is the suggeste
 | 19 | Region classification & bucketing | [phase-19-region-classification.md](phases/phase-19-region-classification.md) | 1 (before 20; re-verify 14, 16) | ⬜ Not started | 0% |
 | 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/phase-20-encyclopedia.md) | 1, 12 (19 first) | ⬜ Not started | 0% |
 | 21 | Country scope: disclaimer & definitions | [phase-21-country-scope.md](phases/phase-21-country-scope.md) | 1 (20 for Stage B) | ⬜ Not started | 0% |
-| 22 | New mode: National languages | [phase-22-mode-languages.md](phases/phase-22-mode-languages.md) | 2 (shares engine w/ 23, 24) | ⬜ Not started | 0% |
-| 23 | New mode: Capitals | [phase-23-mode-capitals.md](phases/phase-23-mode-capitals.md) | 2 (engine-generalization pilot) | ⬜ Not started | 0% |
-| 24 | New mode: Main industries | [phase-24-mode-industries.md](phases/phase-24-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |
+| 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/phase-22-map-zoom-small-countries.md) | 4, 12 | ⬜ Not started | 0% |
+| 23 | New mode: National languages | [phase-23-mode-languages.md](phases/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ⬜ Not started | 0% |
+| 24 | New mode: Capitals | [phase-24-mode-capitals.md](phases/phase-24-mode-capitals.md) | 2 (engine-generalization pilot) | ⬜ Not started | 0% |
+| 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

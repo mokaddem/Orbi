@@ -1,4 +1,4 @@
-# Phase 22 — New game mode: National / official languages
+# Phase 23 — New game mode: National / official languages
 
 **Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
 · **Track:** v1.3 content, languages & new modes
@@ -33,8 +33,8 @@ German). Tests the association between a country and its official/national langu
   `modes.*` / `play.prompt.*` i18n. Adding a mode touches all of these.
 
 ## Depends on
-Phase 2 (quiz engine). **Shares an "attribute-quiz" engine generalization with Phases 23 (capitals) and
-24 (industries)** — whichever of the three is built first should land that shared work (see Technical
+Phase 2 (quiz engine). **Shares an "attribute-quiz" engine generalization with Phases 24 (capitals) and
+25 (industries)** — whichever of the three is built first should land that shared work (see Technical
 notes). Recommended order: capitals first (simplest), then languages, then industries.
 
 ## Scope / Deliverables

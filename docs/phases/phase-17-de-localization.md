@@ -102,7 +102,7 @@ phases just add a `de` block instead of a retroactive catch-up sweep.
 - Languages beyond EN/FR/DE.
 - Right-to-left support or locale-specific typography.
 - Translating **game content** that has no bundled translation source (e.g. capital-city names,
-  industry labels) — those are owned by their respective mode phases (22–24) and flagged there.
+  industry labels) — those are owned by their respective mode phases (23–25) and flagged there.
 
 ## Progress log
 - **2026-07-09 — PRD drafted from the owner's v1.3 improvement list. NOT built — awaiting the
