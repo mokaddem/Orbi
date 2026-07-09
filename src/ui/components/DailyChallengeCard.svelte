@@ -4,6 +4,8 @@
   import type { DailyChallenge, GameMode } from '../../domain';
   import type { DailyResult } from '../../data';
   import { pendingConfig, dailyToConfig } from '../stores/game';
+  import Icon from './Icon.svelte';
+  import Mascot from './Mascot.svelte';
   import ModeIcon from './ModeIcon.svelte';
   import RegionIcon from './RegionIcon.svelte';
 
@@ -34,7 +36,7 @@
 </script>
 
 <div class="daily" class:done data-testid="daily-card" data-done={done}>
-  <span class="eyebrow">{$t('daily.label')}</span>
+  <span class="eyebrow"><Icon name="calendar-check" size="0.95em" /> {$t('daily.label')}</span>
   <div class="body">
     <span class="icon" aria-hidden="true">
       {#if region}
@@ -51,6 +53,7 @@
         <span>{themeLabel}</span>
       </p>
     </div>
+    <Mascot pose="daily" size={54} />
   </div>
 
   {#if done}
@@ -81,6 +84,9 @@
   }
 
   .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -92,6 +98,11 @@
     display: flex;
     align-items: center;
     gap: 0.9rem;
+  }
+
+  /* Let the text take the middle so the daily mascot sits at the far right. */
+  .body .text {
+    flex: 1 1 auto;
   }
 
   .icon {

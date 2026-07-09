@@ -138,19 +138,20 @@
     <div class="tiles">
       <div class="tile">
         <span class="value">{s.sessionCount}</span>
-        <span class="label">{$t('history.stats.sessions')}</span>
+        <span class="label"><Icon name="play" size="0.9em" /> {$t('history.stats.sessions')}</span>
       </div>
       <div class="tile">
         <span class="value">{formatPercent(s.accuracy)}</span>
-        <span class="label">{$t('history.stats.accuracy')}</span>
+        <span class="label"><Icon name="target" size="0.9em" /> {$t('history.stats.accuracy')}</span
+        >
       </div>
       <div class="tile">
         <span class="value">{formatDuration(s.avgAnswerMs)}</span>
-        <span class="label">{$t('history.stats.avgTime')}</span>
+        <span class="label"><Icon name="bolt" size="0.9em" /> {$t('history.stats.avgTime')}</span>
       </div>
       <div class="tile">
         <span class="value">{formatDuration(s.totalPlayMs)}</span>
-        <span class="label">{$t('history.stats.playTime')}</span>
+        <span class="label"><Icon name="clock" size="0.9em" /> {$t('history.stats.playTime')}</span>
       </div>
     </div>
 
@@ -404,9 +405,16 @@
   }
 
   .tile .label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.8rem;
     color: var(--color-muted);
     text-align: center;
+  }
+
+  .tile .label :global(.icon) {
+    color: var(--color-accent);
   }
 
   /* Panels */
