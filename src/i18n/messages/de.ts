@@ -29,6 +29,7 @@ const de: typeof en = {
     train: 'Meine Fehler üben',
     trainCount: 'Meine Fehler üben ({count})',
     trainAll: 'Alle meine Fehler üben ({count})',
+    caughtUp: 'Alles erledigt — keine Fehler zum Wiederholen!',
     trainHint:
       'Beim Üben trainierst du die Länder, die du falsch hast — spiel ein paar Runden, um es aufzubauen.',
     streak: {

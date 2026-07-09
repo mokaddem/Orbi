@@ -23,6 +23,7 @@ const fr: typeof en = {
     train: 'Réviser mes erreurs',
     trainCount: 'Réviser mes erreurs ({count})',
     trainAll: 'Réviser toutes mes erreurs ({count})',
+    caughtUp: 'Vous êtes à jour — aucune erreur à revoir !',
     trainHint:
       'La révision cible les pays que vous manquez — jouez quelques parties pour la nourrir.',
     streak: {

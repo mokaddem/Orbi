@@ -1,6 +1,6 @@
 # Phase 18 — Playful visual layer (icons & imagery)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 40%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 70%
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -129,6 +129,16 @@ Phase 12 (visual polish & palette). Independent of the other v1.3 phases; it onl
   - Stage 1 surfaces: Home hero (wave mascot beside the title); `Nav` link icons (home/play/history/
     settings, text retained); Home action icons (custom/train); empty-state art — History (sleepy),
     Summary no-result (thinking), Summary perfect (celebrate).
-  - **Not yet placed:** the `relaxed` pose — there is no standalone "all caught up / nothing to train"
-    surface today (it's only a NextUpCard title). Flagged for the owner. Stages 2–3 and the budget/test
-    pass (cross-cutting) still pending.
+  - Stage 1 reviewed and approved by the owner. Two follow-ups agreed: proceed to Stage 2, and add an
+    "all caught up" state for the `relaxed` pose.
+- **2026-07-09 — "All caught up" state + Stage 2 built (fast loop green: 327 tests, 0 type errors,
+  lint clean).**
+  - **All caught up:** Home now shows a relaxed-globe status ("You're all caught up — no mistakes to
+    review!") when the player has progress but no training plan. New i18n key `home.caughtUp` in EN/FR/DE.
+  - **Stage 2 (emoji → inline SVG):** `AchievementsGrid` badges (🎯💯🛡️⚡🔥📅🗺️💎👑🏅 →
+    target/award/shield/bolt/flame/calendar/map/gem/crown/medal; continent badges keep `RegionIcon`);
+    `StreakIndicator` + Play in-game streak (🔥 → flame, accent when lit); `WorldMasteryMeter` (🌍 →
+    globe); History unlock banner (🎉 → party). Session-type chips (Fixed/Survival) gained
+    list-checks / heart icons. The NextUpCard "fresh" glyph was already an inline `RegionIcon` (no
+    change). Play lives (♥/♡) and the ✕ dismiss are plain text glyphs, left as-is.
+  - Remaining: Stage 3 (stat-tile icons + daily-card mascot) and the cross-cutting budget/test pass.

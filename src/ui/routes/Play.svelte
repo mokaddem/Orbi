@@ -25,6 +25,7 @@
   import SegmentedControl from '../components/SegmentedControl.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
+  import Icon from '../components/Icon.svelte';
 
   // Auto-advance timings (ms): a brief dwell on a correct answer, a longer one on a
   // wrong answer so the revealed country can be read. Fixed by design (not a setting).
@@ -254,7 +255,9 @@
           aria-pressed={type === 'fixed'}
           onclick={() => (type = 'fixed')}
         >
-          {$t('sessionType.fixed')}
+          <span class="opt-title"
+            ><Icon name="fixed" size="1.05em" /> {$t('sessionType.fixed')}</span
+          >
           <small>{$t('play.setup.fixedHint', { count: $prefs.fixedLength })}</small>
         </button>
         <button
@@ -264,7 +267,9 @@
           aria-pressed={type === 'survival'}
           onclick={() => (type = 'survival')}
         >
-          {$t('sessionType.survival')}
+          <span class="opt-title"
+            ><Icon name="survival" size="1.05em" /> {$t('sessionType.survival')}</span
+          >
           <small>{$t('play.setup.survivalHint', { lives: $prefs.survivalLives })}</small>
         </button>
       </div>
@@ -344,7 +349,10 @@
         <div class="score">
           <span>{$t('play.progress.score', { correct: s.correct, total: s.results.length })}</span>
           {#if s.streak > 1}
-            <span class="streak">🔥 {$t('play.progress.streak', { streak: s.streak })}</span>
+            <span class="streak"
+              ><Icon name="flame" size="0.95em" />
+              {$t('play.progress.streak', { streak: s.streak })}</span
+            >
           {/if}
           <button type="button" class="quit" onclick={quit}>{$t('play.quit')}</button>
         </div>
@@ -464,6 +472,12 @@
       border-color 0.12s ease,
       background 0.12s ease,
       box-shadow 0.12s ease;
+  }
+
+  .opt-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
   }
 
   .opt small {
@@ -656,6 +670,9 @@
   }
 
   .streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     color: var(--color-accent);
     font-weight: 700;
     animation: streak-pop 0.34s ease;

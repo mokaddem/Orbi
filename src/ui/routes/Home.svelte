@@ -33,6 +33,12 @@
   let daily = $state<DailyState | null>(null);
   let mastery = $state<MasteryResult | null>(null);
 
+  // "All caught up": the player has made some progress but has no mistakes queued to train
+  // (loadTrainingPlan returns null) — the positive complement to the "train all" button, shown
+  // with the relaxed globe. Gated on mastery so it never shows for a brand-new player.
+  const hasPlayed = $derived(!!mastery && mastery.overall.mastered + mastery.overall.learning > 0);
+  const allCaughtUp = $derived(hasPlayed && !plan);
+
   $effect(() => {
     if ($storageReady) {
       void loadRecommendations().then((r) => (recs = r));
@@ -90,6 +96,13 @@
     </div>
   {/if}
 
+  {#if allCaughtUp}
+    <div class="caught-up" role="status">
+      <Mascot pose="relaxed" size={60} />
+      <span>{$t('home.caughtUp')}</span>
+    </div>
+  {/if}
+
   <div class="actions">
     <a class="play-link" href="#/play">
       <Icon name="custom" size={16} />
@@ -142,6 +155,19 @@
   /* The compact world-mastery glance sits below the daily card. */
   .mastery-row {
     margin-top: 1rem;
+  }
+
+  /* "All caught up" status: relaxed globe on a soft accent tint. */
+  .caught-up {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 0.6rem 1rem;
+    background: var(--color-accent-weak);
+    border-radius: var(--radius);
+    color: var(--color-accent-strong);
+    font-weight: 700;
   }
 
   .actions {

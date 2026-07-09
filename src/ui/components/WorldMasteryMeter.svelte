@@ -2,6 +2,7 @@
   import { t } from '../../i18n';
   import { masteryFraction, type MasteryResult } from '../../domain';
   import { formatPercent } from '../format';
+  import Icon from './Icon.svelte';
 
   // World-mastery meter (Phase 16): "how much of the world have I learned". A segmented
   // progress bar — solid for mastered countries, a lighter band for those still in
@@ -18,7 +19,7 @@
 
 <div class="meter" class:compact data-testid="mastery-meter">
   <div class="head">
-    <span class="title"><span aria-hidden="true">🌍</span> {$t('progress.mastery.title')}</span>
+    <span class="title"><Icon name="globe" size="1.1em" />{$t('progress.mastery.title')}</span>
     <span class="pct">{pctLabel}</span>
   </div>
   <div
@@ -62,8 +63,15 @@
   }
 
   .title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-weight: 800;
     font-size: 1.05rem;
+  }
+
+  .title :global(.icon) {
+    color: var(--color-accent);
   }
 
   .compact .title {

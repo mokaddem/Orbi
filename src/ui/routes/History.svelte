@@ -19,6 +19,7 @@
     type AchievementView,
   } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
+  import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
   import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
   import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
@@ -115,7 +116,7 @@
     <!-- One-time "unlocked!" celebration for badges earned on this load. -->
     {#if justUnlocked.length > 0 && !unlockDismissed}
       <div class="unlock" role="status">
-        <span class="unlock-icon" aria-hidden="true">🎉</span>
+        <span class="unlock-icon" aria-hidden="true"><Icon name="party" size="1.4rem" /></span>
         <span class="unlock-text">
           {$t('progress.achievements.unlocked')}
           <strong>
@@ -347,8 +348,9 @@
   }
 
   .unlock-icon {
-    font-size: 1.4rem;
+    display: inline-flex;
     line-height: 1;
+    color: var(--color-accent);
   }
 
   .unlock-text {

@@ -21,6 +21,7 @@ const en = {
     train: 'Train my mistakes',
     trainCount: 'Train my mistakes ({count})',
     trainAll: 'Train all my mistakes ({count})',
+    caughtUp: "You're all caught up — no mistakes to review!",
     trainHint: 'Training drills the countries you get wrong — play a few games to build it up.',
     streak: {
       days: '{count}-day streak',

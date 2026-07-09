@@ -1,27 +1,30 @@
 <script lang="ts">
   import { t } from '../../i18n';
+  import Icon from './Icon.svelte';
   import RegionIcon from './RegionIcon.svelte';
+  import type { IconName } from './icons';
   import type { AchievementView } from '../stores/persistence';
 
   // Achievements grid (Phase 16): every badge, earned or locked. Earned badges are full
   // colour; locked ones are dimmed but still show their "how to earn" description, so the
   // grid doubles as a checklist. Continent badges use the region silhouette as their icon;
-  // the rest use an emoji. Presentational — evaluation + persistence happen upstream.
+  // the rest use an inline SVG glyph (Phase 18 — was emoji). Presentational — evaluation +
+  // persistence happen upstream.
   let { achievements }: { achievements: AchievementView[] } = $props();
 
   const earnedCount = $derived(achievements.filter((a) => a.unlocked).length);
 
-  /** Emoji icon for the non-continent badges (continent badges render a silhouette). */
-  const EMOJI: Record<string, string> = {
-    'first-round': '🎯',
-    'perfect-fixed': '💯',
-    'flawless-survival': '🛡️',
-    speedy: '⚡',
-    'streak-7': '🔥',
-    'streak-30': '📅',
-    'region-mastered': '🗺️',
-    century: '💎',
-    'world-mastered': '👑',
+  /** Inline-SVG glyph for the non-continent badges (continent badges render a silhouette). */
+  const ICON: Record<string, IconName> = {
+    'first-round': 'target',
+    'perfect-fixed': 'award',
+    'flawless-survival': 'shield',
+    speedy: 'bolt',
+    'streak-7': 'flame',
+    'streak-30': 'calendar',
+    'region-mastered': 'map',
+    century: 'gem',
+    'world-mastered': 'crown',
   };
 </script>
 
@@ -36,7 +39,7 @@
           {#if a.region}
             <RegionIcon region={a.region} />
           {:else}
-            <span class="emoji">{EMOJI[a.id] ?? '🏅'}</span>
+            <Icon name={ICON[a.id] ?? 'medal'} size="1.5rem" />
           {/if}
         </span>
         <div class="text">
@@ -98,11 +101,6 @@
     display: grid;
     place-items: center;
     color: var(--color-accent);
-  }
-
-  .emoji {
-    font-size: 1.5rem;
-    line-height: 1;
   }
 
   .text {

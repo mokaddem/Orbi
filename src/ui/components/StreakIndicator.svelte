@@ -1,5 +1,6 @@
 <script lang="ts">
   import { t } from '../../i18n';
+  import Icon from './Icon.svelte';
   import type { StreakInfo } from '../../domain';
 
   // Compact daily-streak strip (Phase 15). Presentational — given the computed StreakInfo
@@ -19,7 +20,9 @@
 </script>
 
 <div class="streak" class:active data-testid="streak-indicator">
-  <span class="flame" class:lit={active} aria-hidden="true">🔥</span>
+  <span class="flame" class:lit={active} aria-hidden="true"
+    ><Icon name="flame" size="1.4rem" /></span
+  >
   <div class="text">
     {#if active}
       <span class="count">{$t('home.streak.days', { count: streak.current })}</span>
@@ -46,14 +49,14 @@
   }
 
   .flame {
-    font-size: 1.4rem;
+    display: inline-flex;
     line-height: 1;
-    filter: grayscale(1);
-    opacity: 0.55;
+    color: var(--color-muted);
+    opacity: 0.6;
   }
 
   .flame.lit {
-    filter: none;
+    color: var(--color-accent);
     opacity: 1;
     animation: flame-pulse 1.8s ease-in-out infinite;
   }
