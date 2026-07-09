@@ -1,19 +1,23 @@
 // IndexedDB-backed store (Phase 6), via the tiny `idb` wrapper.
 //
-// Three object stores mirror the persisted data model: `sessions` (play history,
-// keyed by id, indexed by start time), `srItems` (SM-2 state, keyed by itemKey,
-// indexed by due date so Phase 7 can query what's due), and `prefs` (a single row).
-// Defining `srItems` now — even though scheduling lands in Phase 7 — avoids a schema
-// migration later.
+// Object stores mirror the persisted data model: `sessions` (play history, keyed by id,
+// indexed by start time), `srItems` (SM-2 state, keyed by itemKey, indexed by due date so
+// Phase 7 can query what's due), `prefs` (a single row), and `dailyChallenge` (Phase 15 —
+// the most recent Daily Challenge result, a single row). The `upgrade` callback creates
+// only the missing stores, so bumping the version to add `dailyChallenge` leaves existing
+// history / SR / prefs data intact.
 
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Prefs, QuizStore, SessionRecord, SRItem } from './types';
+import type { DailyResult, Prefs, QuizStore, SessionRecord, SRItem } from './types';
 
 const DB_NAME = 'geo-quiz';
-const DB_VERSION = 1;
+// v2 (Phase 15): add the `dailyChallenge` store. Existing stores are preserved on upgrade.
+const DB_VERSION = 2;
 
 /** The single prefs row lives under a fixed, out-of-line key. */
 const PREFS_KEY = 'app';
+/** The single Daily Challenge result row, likewise under a fixed key. */
+const DAILY_KEY = 'current';
 
 interface GeoQuizDB extends DBSchema {
   sessions: {
@@ -29,6 +33,10 @@ interface GeoQuizDB extends DBSchema {
   prefs: {
     key: string;
     value: Prefs;
+  };
+  dailyChallenge: {
+    key: string;
+    value: DailyResult;
   };
 }
 
@@ -51,6 +59,9 @@ export class IdbQuizStore implements QuizStore {
         }
         if (!db.objectStoreNames.contains('prefs')) {
           db.createObjectStore('prefs');
+        }
+        if (!db.objectStoreNames.contains('dailyChallenge')) {
+          db.createObjectStore('dailyChallenge');
         }
       },
     });
@@ -92,5 +103,17 @@ export class IdbQuizStore implements QuizStore {
 
   async clearSRItems(): Promise<void> {
     await this.db.clear('srItems');
+  }
+
+  async getDailyResult(): Promise<DailyResult | undefined> {
+    return this.db.get('dailyChallenge', DAILY_KEY);
+  }
+
+  async saveDailyResult(result: DailyResult): Promise<void> {
+    await this.db.put('dailyChallenge', result, DAILY_KEY);
+  }
+
+  async clearDailyResult(): Promise<void> {
+    await this.db.delete('dailyChallenge', DAILY_KEY);
   }
 }

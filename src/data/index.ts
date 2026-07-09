@@ -28,7 +28,7 @@ export {
   indexFeaturesByCountry,
 } from './geometry';
 
-export type { Prefs, QuizStore, SessionRecord, SRItem } from './persistence';
+export type { DailyResult, Prefs, QuizStore, SessionRecord, SRItem } from './persistence';
 export {
   DEFAULT_PREFS,
   PREFS_BOUNDS,

@@ -61,6 +61,15 @@ describe('summaryToRecord', () => {
     expect(filtered.regionFilter).toEqual({ region: 'Europe' });
   });
 
+  it('copies the region filter into a fresh object (no Svelte $state proxy leaks to IndexedDB)', () => {
+    // Recommendation-/daily-driven configs carry a filter sourced from a $state proxy;
+    // IndexedDB's structured clone rejects proxies, so the record must own a plain copy.
+    const src = { region: 'Europe', subregion: 'Eastern Europe' };
+    const rec = summaryToRecord(summary({ regionFilter: src }), 'c');
+    expect(rec.regionFilter).toEqual(src);
+    expect(rec.regionFilter).not.toBe(src);
+  });
+
   it('generates an id when none is supplied', () => {
     const rec = summaryToRecord(summary());
     expect(rec.id).toBeTruthy();

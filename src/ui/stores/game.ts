@@ -7,8 +7,11 @@
 
 import { writable } from 'svelte/store';
 import {
+  DAILY_CHOICES,
   QuizSession,
   filterCountries,
+  mulberry32,
+  type DailyChallenge,
   type GameMode,
   type Question,
   type QuestionResult,
@@ -34,9 +37,17 @@ export interface RunConfig {
   fixedLength?: number;
   lives?: number;
   choices?: number;
-  /** Test-only injection for deterministic runs; omitted in production. */
+  /**
+   * Seeded RNG for a deterministic run. Test-only for ordinary sessions, but the
+   * *production* path for the Daily Challenge (a date-seeded, reproducible round).
+   */
   rng?: Rng;
   now?: () => number;
+  /**
+   * Set on a Daily Challenge run to the local day-key it belongs to. Its presence marks the
+   * session as the daily so the Play route records the result on finish; absent otherwise.
+   */
+  dailyDate?: string;
 }
 
 /** What the player just answered — retained for the feedback / reveal view. */
@@ -202,5 +213,24 @@ export function recommendationToConfig(rec: Recommendation, prefs: Prefs): RunCo
     fixedLength: prefs.fixedLength,
     lives: prefs.survivalLives,
     choices: prefs.choicesPerQuestion,
+  };
+}
+
+/**
+ * Turn today's {@link DailyChallenge} into a launchable {@link RunConfig}. A normal fixed
+ * session, but with a **date-seeded** RNG so the questions, order, and distractors are
+ * identical every time the day's challenge is opened — and `dailyDate` set so Play records
+ * the result on finish. Length and option count are the daily's fixed constants (not prefs),
+ * keeping the day's challenge the same regardless of the player's gameplay settings.
+ */
+export function dailyToConfig(challenge: DailyChallenge): RunConfig {
+  return {
+    mode: challenge.mode,
+    type: 'fixed',
+    filter: challenge.filter,
+    fixedLength: challenge.length,
+    choices: DAILY_CHOICES,
+    rng: mulberry32(challenge.seed),
+    dailyDate: challenge.dateKey,
   };
 }

@@ -5,7 +5,7 @@
 // is lost on reload. `persistent` is `false` so the UI can warn the user. It doubles
 // as the unit-test double for anything that depends on a `QuizStore`.
 
-import type { Prefs, QuizStore, SessionRecord, SRItem } from './types';
+import type { DailyResult, Prefs, QuizStore, SessionRecord, SRItem } from './types';
 
 export class MemoryQuizStore implements QuizStore {
   readonly persistent = false;
@@ -13,6 +13,7 @@ export class MemoryQuizStore implements QuizStore {
   private sessions: SessionRecord[] = [];
   private srItems = new Map<string, SRItem>();
   private prefs: Prefs | undefined;
+  private daily: DailyResult | undefined;
 
   async addSession(record: SessionRecord): Promise<void> {
     this.sessions.push(record);
@@ -50,5 +51,17 @@ export class MemoryQuizStore implements QuizStore {
 
   async clearSRItems(): Promise<void> {
     this.srItems.clear();
+  }
+
+  async getDailyResult(): Promise<DailyResult | undefined> {
+    return this.daily ? { ...this.daily } : undefined;
+  }
+
+  async saveDailyResult(result: DailyResult): Promise<void> {
+    this.daily = { ...result };
+  }
+
+  async clearDailyResult(): Promise<void> {
+    this.daily = undefined;
   }
 }

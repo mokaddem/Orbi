@@ -19,7 +19,7 @@
     type RegionNode,
   } from '../../data';
   import { play, lastSummary, pendingConfig, type RunConfig } from '../stores/game';
-  import { prefs, saveSession, recordAnswer } from '../stores/persistence';
+  import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
   import SegmentedControl from '../components/SegmentedControl.svelte';
@@ -144,7 +144,21 @@
     if (finished) {
       const summary = play.summary();
       lastSummary.set(summary);
-      if (summary) void saveSession(summary);
+      if (summary) {
+        void saveSession(summary);
+        // If this was the Daily Challenge, record its result so Home shows "done today".
+        // It's still a normal session otherwise (feeds SR + history like any other run).
+        const dailyDate = get(play).config?.dailyDate;
+        if (dailyDate) {
+          void saveDailyResult({
+            date: dailyDate,
+            completed: true,
+            total: summary.total,
+            correct: summary.correct,
+            mode: summary.mode,
+          });
+        }
+      }
       push('/summary');
     }
   }

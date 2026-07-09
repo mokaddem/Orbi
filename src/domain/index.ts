@@ -83,3 +83,13 @@ export {
   DEFAULT_WEAK_SPOT_MAX_ACCURACY,
   recommend,
 } from './recommend';
+
+export { type StreakInfo, localDayKey, computeStreak } from './streak';
+
+export {
+  type DailyChallenge,
+  DAILY_LENGTH,
+  DAILY_CHOICES,
+  dailySeed,
+  buildDailyChallenge,
+} from './daily';

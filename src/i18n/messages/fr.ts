@@ -25,6 +25,21 @@ const fr: typeof en = {
     trainAll: 'Réviser toutes mes erreurs ({count})',
     trainHint:
       'La révision cible les pays que vous manquez — jouez quelques parties pour la nourrir.',
+    streak: {
+      days: 'Série de {count} jours',
+      playedToday: "Joué aujourd'hui ✓",
+      keepGoing: 'Jouez aujourd’hui pour continuer',
+      start: 'Lancez une série aujourd’hui',
+    },
+  },
+  daily: {
+    label: 'Défi du jour',
+    title: 'Le défi du jour',
+    world: 'Monde',
+    play: 'Jouer',
+    playAgain: 'Rejouer',
+    done: "Terminé pour aujourd'hui ✓",
+    score: 'Score : {correct}/{total}',
   },
   recommend: {
     label: 'À suivre',
