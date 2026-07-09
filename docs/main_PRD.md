@@ -35,6 +35,10 @@ This PRD is split into a **main PRD** (this file) and one **phase PRD** per phas
      add a dated note to its **Progress log**.
    - In this file: update the phase's **Status** and **Progress** cells in the Status Table.
 7. Only mark a phase ✅ Done when its **acceptance criteria** are met.
+8. **Archive the PRD once the phase is ✅ Done and merged** into the main integration branch:
+   move its file from `phases/` into `phases/archive/`, fix its back-link to the main PRD
+   (`../main_PRD.md` → `../../main_PRD.md`), and repoint the Status-Table link to
+   `phases/archive/…`. Keeping only in-flight PRDs in `phases/` makes the next open phase obvious.
 
 > Phases are ordered by dependency; prefer completing them in order. If a later phase is
 > genuinely unblocked and more valuable, it may be started early — note the deviation in
@@ -84,9 +88,9 @@ reinforce).
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 14 | Smart "Next up" recommendations | [phase-14-next-up-recommendations.md](phases/phase-14-next-up-recommendations.md) | 6, 7 | ✅ Done | 100% |
-| 15 | Daily streak & Daily Challenge | [phase-15-daily-streak-challenge.md](phases/phase-15-daily-streak-challenge.md) | 2, 6 | ✅ Done | 100% |
-| 16 | Progress & rewards (mastery, achievements, recap) | [phase-16-progress-and-rewards.md](phases/phase-16-progress-and-rewards.md) | 6, 7 (15 for streak) | ✅ Done | 100% |
+| 14 | Smart "Next up" recommendations | [phase-14-next-up-recommendations.md](phases/archive/phase-14-next-up-recommendations.md) | 6, 7 | ✅ Done | 100% |
+| 15 | Daily streak & Daily Challenge | [phase-15-daily-streak-challenge.md](phases/archive/phase-15-daily-streak-challenge.md) | 2, 6 | ✅ Done | 100% |
+| 16 | Progress & rewards (mastery, achievements, recap) | [phase-16-progress-and-rewards.md](phases/archive/phase-16-progress-and-rewards.md) | 6, 7 (15 for streak) | ✅ Done | 100% |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

@@ -1,6 +1,6 @@
 # Phase 16 — Progress & rewards
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.2 retention & engagement
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)

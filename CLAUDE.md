@@ -24,6 +24,10 @@ The project is built **phase by phase** against a PRD. Before doing any work:
 4. **Update status** when you finish or pause — in both places:
    - the phase PRD (header Status/Progress, deliverable checkboxes, dated Progress-log entry), and
    - the Status Table in `docs/main_PRD.md`.
+5. **Archive the PRD once the phase is ✅ Done and merged** into the main integration branch:
+   move its file into [`docs/phases/archive/`](docs/phases/archive/), fix its back-link to the
+   main PRD (`../main_PRD.md` → `../../main_PRD.md`), and repoint the Status-Table link to
+   `phases/archive/…`. Only in-flight PRDs stay in `docs/phases/`.
 
 Original feature spec (seed): [`docs/specs.md`](docs/specs.md).
 
