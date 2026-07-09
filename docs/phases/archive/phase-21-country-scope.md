@@ -1,6 +1,6 @@
 # Phase 21 — Country scope: disclaimer & (optional) switchable definitions
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 (Stage A shipped; Stage B deferred to its own future phase) · **Track:** v1.3 content, languages & new modes
 
 > **Owner decision (2026-07-09):** ship **Stage A** (disclaimer) only; **Stage B** (switchable
