@@ -1,6 +1,7 @@
 # Phase 18 — Playful visual layer (icons & imagery)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 70%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 100%
+(implementation complete & verified — awaiting owner review of Stages 2–3, then merge + archive)
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -43,21 +44,23 @@ offline-first PWA guarantee.
 Phase 12 (visual polish & palette). Independent of the other v1.3 phases; it only adds presentation.
 
 ## Scope / Deliverables
-- [ ] **Icon system** — a small, consistent set of inline-SVG icons (house style from `ModeIcon`:
-      24×24 viewBox, `currentColor`, `aria-hidden`), either hand-authored or sourced from one bundled
-      MIT icon set (Open Question). Applied to the agreed text-only spots.
-- [ ] **Spot illustrations** — a handful of lightweight decorative SVGs for the Home hero + the key
-      empty/celebration states, in one coherent style. Theme-aware via CSS vars, not baked colours.
-- [ ] **Achievements art** — give each badge (or badge tier) a glyph so the achievements grid reads
-      visually, not as a text list.
-- [ ] **Consistency pass** — a single place/pattern for icons (e.g. an `Icon.svelte` with a `name`
-      prop, or per-purpose components mirroring `ModeIcon`) so usage stays uniform and tree-shakeable.
-- [ ] **A11y** — decorative art is `aria-hidden`; any icon that carries meaning on its own gets an
-      accessible label. No icon becomes the *only* signifier of an action without a text label.
-- [ ] **Budget check** — confirm the added assets stay within an agreed bundle-size budget and don't
-      regress the PWA/offline build (`npm run build` + preview on :5181).
-- [ ] **Tests** — component tests that the new icons/illustrations render on their target screens;
-      existing component tests updated for the new markup.
+- [x] **Icon system** — `Icon.svelte` (24×24, `currentColor`, `aria-hidden`) over a generated registry
+      (`icons.ts` via `scripts/build-icons.mjs`, 28 Lucide/ISC glyphs copied inline; `lucide-static` is
+      a devDependency only). Applied to nav, actions, session chips, stat tiles, streak, mastery,
+      achievements, unlock, daily.
+- [x] **Spot illustrations** — `Mascot.svelte`, a six-pose globe (wave/celebrate/relaxed/sleepy/
+      thinking/daily) on the Home hero, the "all caught up" state, and the empty/celebration states
+      (History, Summary). Duotone via CSS vars, `currentColor` line.
+- [x] **Achievements art** — every badge now has an inline-SVG glyph (continent badges keep the region
+      silhouette); the grid reads visually, not as a text list.
+- [x] **Consistency pass** — one `Icon.svelte` (name prop → registry) + `Mascot.svelte` (pose prop);
+      `ModeIcon`/`RegionIcon` retained as domain glyphs. Only used icons are inlined (tree-shaken).
+- [x] **A11y** — decorative art is `aria-hidden` (default); every icon sits beside a text label; no
+      icon is the sole signifier of an action. No a11y regressions introduced.
+- [x] **Budget check** — +~4.7 KB gzip total (JS +4.4, CSS +0.28); no runtime icon dependency; no new
+      network requests for imagery. `npm run build` succeeds; prod build verified on the :5181 preview.
+- [x] **Tests** — `Icon.test.ts` + `Mascot.test.ts` (14 tests) cover rendering, a11y modes, sizing,
+      unique clip ids, and the daily calendar; existing component tests remain green (341 total).
 
 ## Technical notes
 - **Bundled, not fetched.** Everything must be inline SVG or a bundled asset — no remote images, no
@@ -142,3 +145,15 @@ Phase 12 (visual polish & palette). Independent of the other v1.3 phases; it onl
     list-checks / heart icons. The NextUpCard "fresh" glyph was already an inline `RegionIcon` (no
     change). Play lives (♥/♡) and the ✕ dismiss are plain text glyphs, left as-is.
   - Remaining: Stage 3 (stat-tile icons + daily-card mascot) and the cross-cutting budget/test pass.
+- **2026-07-09 — Stage 3 + cross-cutting pass done (all deliverables ticked).**
+  - **Stage 3:** History overview tiles gained accent icons (play/target/bolt/clock);
+    `DailyChallengeCard` gained a calendar-check eyebrow icon + the daily-pose mascot as spot art.
+  - **A11y:** audited all Icon/Mascot usages — all decorative (`aria-hidden`), all beside text, no
+    icon-only actions.
+  - **Bundle budget:** measured against `main` — +16.7 KB raw / **+4.4 KB gzip** JS, +0.28 KB gzip CSS
+    (~4.7 KB gzip total), well under the ~15 KB budget. `lucide-static` confirmed absent from `dist/`.
+    Prod build serves correctly on the :5181 preview (PWA precache intact, imagery all inline).
+  - **Tests:** added `Icon.test.ts` + `Mascot.test.ts` (14). Full fast loop green: **341 tests**,
+    svelte-check 0 errors, lint clean.
+  - **Status:** implementation complete and verified across dev + prod preview. Awaiting the owner's
+    review of Stages 2–3 before marking ✅ Done and merging to `main` + archiving.
