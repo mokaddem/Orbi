@@ -1,7 +1,6 @@
 # Phase 18 — Playful visual layer (icons & imagery)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 100%
-(implementation complete & verified — awaiting owner review of Stages 2–3, then merge + archive)
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -157,3 +156,6 @@ Phase 12 (visual polish & palette). Independent of the other v1.3 phases; it onl
     svelte-check 0 errors, lint clean.
   - **Status:** implementation complete and verified across dev + prod preview. Awaiting the owner's
     review of Stages 2–3 before marking ✅ Done and merging to `main` + archiving.
+- **2026-07-09 — Reviewed and approved by the owner; merged to `main` (fast-forward) and archived.**
+  Phase 18 ✅ Done. Left as-is by agreement: the `♥/♡` lives and `✕` dismiss (plain text glyphs) and
+  the "This week" recap chips (icon-less, to avoid clutter).
