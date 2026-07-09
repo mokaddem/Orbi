@@ -92,6 +92,29 @@ reinforce).
 | 15 | Daily streak & Daily Challenge | [phase-15-daily-streak-challenge.md](phases/archive/phase-15-daily-streak-challenge.md) | 2, 6 | ✅ Done | 100% |
 | 16 | Progress & rewards (mastery, achievements, recap) | [phase-16-progress-and-rewards.md](phases/archive/phase-16-progress-and-rewards.md) | 6, 7 (15 for streak) | ✅ Done | 100% |
 
+### v1.3 — Content, languages & new modes
+
+Owner-requested expansion after playing v1.2: a third UI language, a richer visual layer, a fix for
+lopsided region buckets, browsable reference content, an explicit stance on country scope, and three
+new quiz modes. Each PRD **requires a clarifying-questions round with the owner before implementation**
+(see the callout at the top of each file) — they were drafted from a feature list to be **discussed one
+at a time, right before building each**. Mostly independent; suggested build order is top-to-bottom,
+with two sequencing notes: **17 (German) is recommended first** (later phases then just add a German
+block), and **19 (region buckets) is foundational** — it precedes the encyclopedia (20), and 14/16
+should be re-verified after. The three new modes (22–24) share an "attribute-quiz" engine
+generalization — the **first one built lands it** (23/capitals is the suggested pilot).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 17 | German (DE) localization | [phase-17-de-localization.md](phases/phase-17-de-localization.md) | 8 | ⬜ Not started | 0% |
+| 18 | Playful visual layer (icons & imagery) | [phase-18-playful-visuals.md](phases/phase-18-playful-visuals.md) | 12 | ⬜ Not started | 0% |
+| 19 | Region classification & bucketing | [phase-19-region-classification.md](phases/phase-19-region-classification.md) | 1 (before 20; re-verify 14, 16) | ⬜ Not started | 0% |
+| 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/phase-20-encyclopedia.md) | 1, 12 (19 first) | ⬜ Not started | 0% |
+| 21 | Country scope: disclaimer & definitions | [phase-21-country-scope.md](phases/phase-21-country-scope.md) | 1 (20 for Stage B) | ⬜ Not started | 0% |
+| 22 | New mode: National languages | [phase-22-mode-languages.md](phases/phase-22-mode-languages.md) | 2 (shares engine w/ 23, 24) | ⬜ Not started | 0% |
+| 23 | New mode: Capitals | [phase-23-mode-capitals.md](phases/phase-23-mode-capitals.md) | 2 (engine-generalization pilot) | ⬜ Not started | 0% |
+| 24 | New mode: Main industries | [phase-24-mode-industries.md](phases/phase-24-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
