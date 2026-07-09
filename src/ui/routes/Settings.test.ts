@@ -113,4 +113,13 @@ describe('Settings — Data resets', () => {
     // A history clear must not touch training progress.
     expect(await hasTrainingData()).toBe(true);
   });
+
+  it('shows the country-scope disclaimer (Phase 21 Stage A)', () => {
+    render(Settings);
+    expect(screen.getByRole('heading', { name: 'Country scope' })).toBeInTheDocument();
+    // Accurately states the 195-state UN-members-+-observers baseline...
+    expect(screen.getByText(/195 widely-recognised sovereign states/)).toBeInTheDocument();
+    // ...and what it excludes, framed as non-political.
+    expect(screen.getByText(/not a political statement/)).toBeInTheDocument();
+  });
 });

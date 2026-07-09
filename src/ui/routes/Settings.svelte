@@ -13,6 +13,7 @@
   } from '../stores/persistence';
   import LanguageSwitcher from '../components/LanguageSwitcher.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
+  import CountryScopeNote from '../components/CountryScopeNote.svelte';
 
   const B = PREFS_BOUNDS;
 
@@ -134,6 +135,8 @@
       {$t('settings.data.resetTraining')}
     </button>
   </div>
+
+  <CountryScopeNote />
 </section>
 
 <ConfirmDialog

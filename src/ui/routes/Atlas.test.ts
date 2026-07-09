@@ -29,4 +29,9 @@ describe('Atlas index', () => {
     await fireEvent.input(input, { target: { value: 'zzzzz' } });
     expect(getByText(/No countries match/)).toBeInTheDocument();
   });
+
+  it('carries the country-scope disclaimer as a foot-note (Phase 21 Stage A)', () => {
+    const { getByRole } = render(Atlas);
+    expect(getByRole('heading', { name: 'Country scope' })).toBeInTheDocument();
+  });
 });

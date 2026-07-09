@@ -259,6 +259,13 @@ const fr: typeof en = {
       resetTrainingMessage:
         'Cela efface définitivement votre progression de révision. Cette action est irréversible.',
     },
+    scope: {
+      title: 'Pays pris en compte',
+      body: 'Cette application couvre les 195 États souverains largement reconnus : les 193 États membres de l’ONU ainsi que les deux États observateurs de l’ONU — le Saint-Siège (Cité du Vatican) et l’État de Palestine.',
+      excludes:
+        'Il s’agit d’une base pragmatique et largement admise, et non d’une prise de position politique. Certains lieux sont donc exclus : des États partiellement reconnus comme Taïwan et le Kosovo, et des territoires dépendants comme le Groenland, Porto Rico ou Hong Kong, administrés comme partie d’un autre pays.',
+      note: 'Les noms de pays, les drapeaux et les régions suivent tous cette même liste.',
+    },
   },
   storage: {
     unavailable:

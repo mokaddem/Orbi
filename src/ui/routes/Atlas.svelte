@@ -4,6 +4,7 @@
   import { getCountries, loadCountryFeatures, type CountryFeature } from '../../data';
   import Flag from '../components/Flag.svelte';
   import AtlasRegionGrid from '../components/AtlasRegionGrid.svelte';
+  import CountryScopeNote from '../components/CountryScopeNote.svelte';
   import { searchCountries, groupByInitial } from './atlas-search';
 
   // The Atlas index: browse regions (real-map cards) and every country (A–Z), or search
@@ -85,6 +86,8 @@
       {/each}
     {/if}
   </section>
+
+  <CountryScopeNote />
 </section>
 
 <style>

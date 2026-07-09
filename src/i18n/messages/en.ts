@@ -245,6 +245,13 @@ const en = {
       resetTrainingTitle: 'Reset training?',
       resetTrainingMessage: 'This permanently clears your training progress. This can’t be undone.',
     },
+    scope: {
+      title: 'Country scope',
+      body: 'This app covers the 195 widely-recognised sovereign states: the 193 UN member states plus the two UN observer states — the Holy See (Vatican City) and the State of Palestine.',
+      excludes:
+        'This is a pragmatic, widely-used baseline, not a political statement. Some places are therefore left out: partially-recognised states such as Taiwan and Kosovo, and dependent territories such as Greenland, Puerto Rico or Hong Kong that are governed as part of another country.',
+      note: 'Country names, flags and regions all follow this same list.',
+    },
   },
   storage: {
     unavailable: 'Storage is unavailable in this browser — your progress won’t be saved.',

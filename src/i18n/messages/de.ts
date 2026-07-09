@@ -259,6 +259,13 @@ const de: typeof en = {
       resetTrainingMessage:
         'Dies löscht dauerhaft deinen Übungsfortschritt. Das kann nicht rückgängig gemacht werden.',
     },
+    scope: {
+      title: 'Berücksichtigte Länder',
+      body: 'Diese App umfasst die 195 weithin anerkannten souveränen Staaten: die 193 UN-Mitgliedstaaten sowie die beiden UN-Beobachterstaaten — den Heiligen Stuhl (Vatikanstadt) und den Staat Palästina.',
+      excludes:
+        'Das ist eine pragmatische, weit verbreitete Grundlage und keine politische Aussage. Einige Gebiete bleiben daher außen vor: teilweise anerkannte Staaten wie Taiwan und der Kosovo sowie abhängige Gebiete wie Grönland, Puerto Rico oder Hongkong, die als Teil eines anderen Landes verwaltet werden.',
+      note: 'Ländernamen, Flaggen und Regionen folgen alle derselben Liste.',
+    },
   },
   storage: {
     unavailable:

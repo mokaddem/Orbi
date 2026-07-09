@@ -1,7 +1,11 @@
 # Phase 21 — Country scope: disclaimer & (optional) switchable definitions
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
-· **Track:** v1.3 content, languages & new modes
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+(Stage A shipped; Stage B deferred to its own future phase) · **Track:** v1.3 content, languages & new modes
+
+> **Owner decision (2026-07-09):** ship **Stage A** (disclaimer) only; **Stage B** (switchable
+> definitions) is deferred to a separate future phase. This file is the Stage-A record — if Stage B
+> is ever taken up, branch it into its own PRD.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -41,14 +45,16 @@ Phase 1 (data layer / scope definition). **Stage B's dispute explainers depend o
 ## Scope / Deliverables
 
 ### Stage A — disclaimer (the "start simple" deliverable)
-- [ ] **Author the disclaimer copy** (EN/FR, + DE with Phase 17): what definition is used (UN members +
-      the Palestine/Vatican observers), that it's a pragmatic, widely-recognised baseline — **not** a
-      political statement — and examples of what's excluded and why (Taiwan, Kosovo, dependent
-      territories).
-- [ ] **Surface it** — a "Country scope" / "About the data" section in Settings (and optionally linked
-      from the encyclopedia once Phase 20 exists). i18n keys with `messages.test.ts` parity.
-- [ ] **Document the rule** so the copy matches the code (reference `unMember` + `OBSERVERS` in
-      `build-data.mjs`), and keep it accurate if the dataset scope ever changes.
+- [x] **Author the disclaimer copy** (EN/FR/DE): definition in use (193 UN members + the Holy See and
+      State of Palestine observers = 195), framed as a pragmatic, widely-used baseline — **not** a
+      political statement — with examples of what's excluded and why (Taiwan, Kosovo, dependent
+      territories: Greenland, Puerto Rico, Hong Kong). New `settings.scope.{title,body,excludes,note}`
+      keys, parity enforced by `typeof en` + `messages.test.ts`.
+- [x] **Surface it** — a shared `CountryScopeNote.svelte` rendered as a "Country scope" section in
+      **Settings** and as a foot-note at the bottom of the **Atlas** index (Phase 20). No gameplay change.
+- [x] **Document the rule** so the copy matches the code — `CountryScopeNote.svelte` references the
+      `unMember` + `OBSERVERS={PS}` rule in `build-data.mjs` (the honest player-facing wording describes
+      the Holy See / Palestine as observer states, matching the 195 count).
 
 ### Stage B — switchable definitions (only on explicit owner opt-in; may become its own phase)
 - [ ] **Data model** — extend the dataset with the additional entities (Taiwan, Kosovo, …) plus a
@@ -102,3 +108,11 @@ Phase 1 (data layer / scope definition). **Stage B's dispute explainers depend o
 - **2026-07-09 — PRD drafted from the owner's v1.3 improvement list ("disclaimer for what is considered
   a country … start simple then expand"). Structured as Stage A (disclaimer) + optional Stage B
   (switchable definitions). NOT built — awaiting the clarifying round and explicit build approval.**
+- **2026-07-09 — Clarifying round + build (Stage A).** Owner's answers to the open questions:
+  Q1 scope → **Stage A only** now; Stage B (switchable definitions) deferred to its own future phase.
+  Q2/Q3 → N/A for Stage A. Q4 placement → **Settings + Atlas foot-note**. Q5 copy → approved as drafted
+  (no edits). Explicit "go" given. Implemented: new `settings.scope.*` i18n keys (EN/FR/DE); a shared
+  `CountryScopeNote.svelte`; rendered in `Settings.svelte` (new section) and at the foot of
+  `Atlas.svelte`; tests added to `Settings.test.ts` + `Atlas.test.ts`. Fast loop green (check 0 errors /
+  371 tests / lint clean) and a headless-Chrome pass on :5180 (Settings card + Atlas foot-note render,
+  copy accurate — Palestine & Vatican both in-scope). Stage-A acceptance criteria met.
