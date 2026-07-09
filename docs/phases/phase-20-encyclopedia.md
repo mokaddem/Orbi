@@ -1,7 +1,11 @@
 # Phase 20 — Encyclopedia (region & country info pages)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.3 content, languages & new modes
+
+> Built as the **Atlas** section. Fast loop green (check / 369 tests / lint) and a headless-Chrome
+> pass on :5180 (index, region, country, deep-links). Not yet committed/merged, so the PRD is **not
+> yet archived** — archive on merge to main.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -43,21 +47,22 @@ game-mode phases. **Soft prerequisite for Phase 21** if that phase adds per-enti
 reference should reflect the final region grouping.
 
 ## Scope / Deliverables
-- [ ] **Routes + nav entry** — add reference routes (e.g. `#/reference`, `#/reference/region/:region`,
-      `#/reference/country/:iso2`) to `routes.ts` and a `navLinks` entry with an i18n label.
-- [ ] **Index page** — list the regions (with `RegionIcon`) and their country counts, and a path to any
-      country (a full A–Z list and/or search — see Open Questions).
-- [ ] **Region detail** — the region's map (silhouette or highlighted real map — Open Question), its
-      sub-regions, and a grid of member countries (flag + localised name), each linking to its country
-      page. Show counts.
-- [ ] **Country detail** — a large flag, the localised country name, and its region + sub-region (both
-      localised, linking back to the region page). Optional extras gated on Open Questions.
-- [ ] **Deep-linking & offline** — pages are reachable by URL, survive reload, and work with no network
-      (all data/assets already bundled).
-- [ ] **i18n** — new `reference.*` message keys (EN/FR, and DE if Phase 17 is in); parity enforced by
-      `messages.test.ts`. Country/region names via the existing localised accessors.
-- [ ] **Tests** — data-driven rendering (a region lists its members; a country shows the right region),
-      route-param handling (unknown region/iso → graceful not-found), and i18n.
+- [x] **Routes + nav entry** — added `#/atlas`, `#/atlas/region/:region`, `#/atlas/country/:iso2` to
+      `routes.ts` and a top-level `navLinks` entry (`nav.atlas`, `map` icon).
+- [x] **Index page** — real-map region cards (Option 3, see below) with country counts + a full A–Z
+      country list, plus a name search box (matches EN/FR/DE, diacritic-insensitive).
+- [x] **Region detail** — a highlighted **real map in world context** (`AtlasMap`), the region's
+      sub-regions, and member countries (flag + localised name) grouped by sub-region, with counts.
+- [x] **Country detail** — a large flag, the localised country name, and its region + sub-region (both
+      localised, linking back to the region page). MVP fields only (flag + region/sub-region).
+- [x] **Deep-linking & offline** — pages are reachable by URL and render from the bundled dataset;
+      unknown region/iso fall back to a graceful not-found. Verified by loading each page directly.
+- [x] **i18n** — new `atlas.*` keys + `nav.atlas` in EN/FR/DE; parity enforced by `messages.test.ts`
+      and the `typeof en` typing of `fr`/`de`. Country/region names via `$localizedName` /
+      `$localizedRegion`.
+- [x] **Tests** — `atlas-search` (search/grouping), `Atlas` (A–Z + search), `AtlasRegion` (members
+      grouped, param decode, not-found), `AtlasCountry` (fields, case-insensitive iso, not-found),
+      `AtlasRegionGrid` (cards + counts + shared `<defs>`), `atlas-map` (projection). 23 tests.
 
 ## Technical notes
 - **Reuse `getRegionTree()`** as the backbone for both the index and region pages — it already produces
@@ -101,3 +106,25 @@ reference should reflect the final region grouping.
 - **2026-07-09 — PRD drafted from the owner's v1.3 improvement list (region pages with members + map;
   country pages with flag + region). NOT built — awaiting the clarifying round and explicit build
   approval.**
+- **2026-07-09 — Clarifying round resolved with the owner, then built after an explicit "go".**
+  - **Open-question answers:**
+    1. *Region map style* — owner asked for a glance-prototype of options 1 vs 3 (published as an
+       Artifact rendering real geometry). Chose **Option 3: real-map cards** on the index, with a
+       **world-context** highlighted real map on the region detail page.
+    2. *Country-page fields* — **MVP only** (flag + region + sub-region); capital/neighbours deferred.
+    3. *Naming & nav* — **"Atlas"** (EN/FR/DE), reached from a **top-level nav entry**.
+    4. *Search/filter* — **search box + A–Z list** (both).
+    5. *Play tie-in* — **not included** (owner de-selected the "practice this region" CTA); noted as a
+       future extension.
+  - **Implementation:** new routes/views `Atlas.svelte`, `AtlasRegion.svelte`, `AtlasCountry.svelte`;
+    components `AtlasMap.svelte` (world-context region highlight) and `AtlasRegionGrid.svelte` (world
+    projected once into `<defs>`, instanced per card via `<use>` + per-region CSS custom props, so 5
+    cards cost one set of paths); pure helpers `atlas-search.ts` (search/grouping) and `atlas-map.ts`
+    (projection). The game's `WorldMap.svelte` was left untouched.
+  - **Notes:** the Atlas map shows the 195 dataset countries (consistent with the game map), not the
+    extra grey context land the offline prototype drew. Index + region pages lazy-load the bundled
+    TopoJSON (the accepted cost of Option 3); the country page loads no geometry.
+  - **Verification:** `npm run check` clean; `npm run test` 369 passing (23 new); `npm run lint` clean;
+    headless-Chrome pass on :5180 for the index, a region (Europe), a country (France), and direct
+    deep-links. FR/DE copy relies on the shared localized accessors + parity-enforced catalogs.
+  - **Pending:** commit + merge to main, then archive this PRD and repoint the Status-Table link.

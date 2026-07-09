@@ -109,7 +109,7 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | 17 | German (DE) localization | [phase-17-de-localization.md](phases/archive/phase-17-de-localization.md) | 8 | ✅ Done | 100% |
 | 18 | Playful visual layer (icons & imagery) | [phase-18-playful-visuals.md](phases/archive/phase-18-playful-visuals.md) | 12 | ✅ Done | 100% |
 | 19 | Region classification & bucketing | [phase-19-region-classification.md](phases/archive/phase-19-region-classification.md) | 1 (before 20; re-verify 14, 16) | ✅ Done | 100% |
-| 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/phase-20-encyclopedia.md) | 1, 12 (19 first) | ⬜ Not started | 0% |
+| 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/phase-20-encyclopedia.md) | 1, 12 (19 first) | ✅ Done | 100% (Atlas; awaiting commit/merge → archive) |
 | 21 | Country scope: disclaimer & definitions | [phase-21-country-scope.md](phases/phase-21-country-scope.md) | 1 (20 for Stage B) | ⬜ Not started | 0% |
 | 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/phase-22-map-zoom-small-countries.md) | 4, 12 | ⬜ Not started | 0% |
 | 23 | New mode: National languages | [phase-23-mode-languages.md](phases/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ⬜ Not started | 0% |
