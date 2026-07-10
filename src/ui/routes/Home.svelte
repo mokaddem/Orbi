@@ -20,6 +20,7 @@
   import StreakIndicator from '../components/StreakIndicator.svelte';
   import DailyChallengeCard from '../components/DailyChallengeCard.svelte';
   import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
+  import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
 
   // The review hero (Phase 14, region-scoped in Phase 26): reads the player's own state and
   // surfaces what to review. When there are mistakes queued, the "Time to review" list offers
@@ -40,6 +41,12 @@
   const hasPlayed = $derived(!!mastery && mastery.overall.mastered + mastery.overall.learning > 0);
   const hasReviews = $derived(!!regionReviews && regionReviews.length > 0);
   const allCaughtUp = $derived(hasPlayed && !hasReviews);
+
+  // Tapping the compact mastery meter reveals the per-region breakdown (Phase 29). Collapsed
+  // by default; the data (`mastery.byRegion`) is already loaded, so this is pure disclosure.
+  // The reveal is a CSS animation (see .region-breakdown) so it's reduced-motion-friendly and
+  // needs no JS transition.
+  let regionsOpen = $state(false);
 
   $effect(() => {
     if ($storageReady) {
@@ -83,8 +90,23 @@
   {/if}
 
   {#if mastery}
-    <div class="mastery-row">
-      <WorldMasteryMeter {mastery} compact />
+    <div class="mastery-row" class:open={regionsOpen}>
+      <button
+        type="button"
+        class="mastery-toggle"
+        aria-expanded={regionsOpen}
+        aria-controls="home-region-breakdown"
+        aria-label={regionsOpen ? $t('home.mastery.hideRegions') : $t('home.mastery.showRegions')}
+        onclick={() => (regionsOpen = !regionsOpen)}
+      >
+        <WorldMasteryMeter {mastery} compact />
+        <span class="chev" aria-hidden="true"><Icon name="chevron-right" size={18} /></span>
+      </button>
+      {#if regionsOpen}
+        <div id="home-region-breakdown" class="region-breakdown">
+          <RegionMasteryBreakdown regions={mastery.byRegion} />
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -141,6 +163,81 @@
   /* The compact world-mastery glance sits below the daily card. */
   .mastery-row {
     margin-top: 1rem;
+  }
+
+  /* The whole compact meter is the disclosure trigger (Phase 29): a bare button reset so the
+     meter card shows through unchanged, with a chevron affordance and keyboard/focus support. */
+  .mastery-toggle {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    text-align: inherit;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    border-radius: var(--radius);
+  }
+
+  /* Chevron lives in the meter card's empty bottom-right corner (the sub-label is left-
+     aligned), so it never collides with the title/percentage row. Rotates a quarter-turn open. */
+  .mastery-toggle .chev {
+    position: absolute;
+    right: 0.9rem;
+    bottom: 0.62rem;
+    display: inline-flex;
+    color: var(--color-muted);
+    transition:
+      transform 0.18s ease,
+      color 0.12s ease;
+  }
+
+  .mastery-toggle:hover .chev {
+    color: var(--color-accent);
+  }
+
+  .mastery-row.open .chev {
+    transform: rotate(90deg);
+    color: var(--color-accent);
+  }
+
+  .mastery-toggle:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .region-breakdown {
+    margin-top: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    animation: region-reveal 0.2s ease;
+  }
+
+  @keyframes region-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mastery-toggle .chev {
+      transition: none;
+    }
+
+    .region-breakdown {
+      animation: none;
+    }
   }
 
   /* "All caught up" status: relaxed globe on a soft accent tint. */

@@ -1,11 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <circle cx="16" cy="16" r="15" fill="#2b6cb0" />
-  <g fill="none" stroke="#e6f0fa" stroke-width="1.4">
-    <circle cx="16" cy="16" r="15" />
-    <ellipse cx="16" cy="16" rx="6.5" ry="15" />
-    <ellipse cx="16" cy="16" rx="13" ry="15" />
-    <line x1="1" y1="16" x2="31" y2="16" />
-    <line x1="3.2" y1="9" x2="28.8" y2="9" />
-    <line x1="3.2" y1="23" x2="28.8" y2="23" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="25 21 70 70">
+  <!--
+    Orbi — the globe mascot (Phase 18), as the app favicon (Phase 29). Derived from
+    Mascot.svelte's "wave" face with the arms and ground shadow dropped so it reads at
+    16–32 px, and the app.css turquoise palette resolved to literal colours (no CSS vars /
+    currentColor). The outline is inked (#2a2320) rather than tonal so the globe holds its
+    shape on both light and dark browser-tab grounds. Transparent background: this is also
+    the source for the "any"-purpose PWA PNGs (see scripts/gen-icons.sh).
+  -->
+  <circle cx="60" cy="56" r="32" fill="#dbf3f1" stroke="#2a2320" stroke-width="3" />
+  <clipPath id="orbi-globe"><circle cx="60" cy="56" r="32" /></clipPath>
+  <g clip-path="url(#orbi-globe)">
+    <path d="M44 31 C37 32 35 40 41 43 C48 46 57 43 58 37 C59 31 51 30 44 31 Z" fill="#10a5a0" />
+    <path d="M29 52 C25 54 26 62 32 62 C38 62 40 54 36 50 C34 48 31 50 29 52 Z" fill="#10a5a0" />
+    <path d="M84 47 C79 45 75 50 78 55 C81 61 88 58 88 52 C88 48 87 48 84 47 Z" fill="#10a5a0" />
+    <path d="M52 76 C48 77 48 83 53 83 C58 83 59 77 55 76 Z" fill="#10a5a0" />
   </g>
+  <circle cx="44" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+  <circle cx="76" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+  <circle cx="51" cy="54" r="3" fill="#2a2320" />
+  <circle cx="69" cy="54" r="3" fill="#2a2320" />
+  <circle cx="52.1" cy="52.9" r="0.9" fill="#fff" />
+  <circle cx="70.1" cy="52.9" r="0.9" fill="#fff" />
+  <path d="M52 63 Q60 70 68 63" fill="none" stroke="#2a2320" stroke-width="2.4" stroke-linecap="round" />
 </svg>

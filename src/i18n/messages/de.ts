@@ -8,7 +8,7 @@ import type en from './en';
 
 const de: typeof en = {
   app: {
-    title: 'Geografie-Quiz',
+    title: 'Orbi',
   },
   common: {
     cancel: 'Abbrechen',
@@ -42,9 +42,9 @@ const de: typeof en = {
     industriesLabel: 'Hauptindustrien',
   },
   home: {
-    title: 'Geografie-Quiz',
+    title: 'Orbi',
     tagline: 'Lerne die Geografie der Welt mit Karten und Flaggen.',
-    demo: 'Willkommen — bereit, die Welt zu erkunden?',
+    demo: 'Hi, ich bin Orbi — bereit, die Welt zu erkunden?',
     play: 'Los geht’s',
     playCustom: 'Oder starte ein eigenes Spiel',
     train: 'Meine Fehler üben',
@@ -63,6 +63,10 @@ const de: typeof en = {
       playedToday: 'Heute gespielt ✓',
       keepGoing: 'Spiel heute, damit sie weiterläuft',
       start: 'Starte heute eine Serie',
+    },
+    mastery: {
+      showRegions: 'Aufschlüsselung nach Region anzeigen',
+      hideRegions: 'Aufschlüsselung nach Region ausblenden',
     },
   },
   daily: {

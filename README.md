@@ -1,9 +1,10 @@
-# Geography Quiz
+# Orbi
 
-Bilingual (EN / FR), offline-first web game for learning world geography via **map** and
-**flag** quizzes, with spaced-repetition training on the countries you get wrong. Fully
-client-side SPA — no backend; gameplay data is bundled statically and progress lives in the
-browser (IndexedDB).
+**Orbi** is a trilingual (EN / FR / DE), offline-first web game for learning world geography via
+**map** and **flag** quizzes (plus capitals, languages and industries), with spaced-repetition
+training on the countries you get wrong. Fully client-side SPA — no backend; gameplay data is
+bundled statically and progress lives in the browser (IndexedDB). *Orbi* is also the app's friendly
+globe mascot.
 
 See [`docs/main_PRD.md`](docs/main_PRD.md) for the full product spec, architecture, and the
 phase-by-phase plan.

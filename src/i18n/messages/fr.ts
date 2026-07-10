@@ -2,7 +2,7 @@ import type en from './en';
 
 const fr: typeof en = {
   app: {
-    title: 'Quiz de géographie',
+    title: 'Orbi',
   },
   common: {
     cancel: 'Annuler',
@@ -36,9 +36,9 @@ const fr: typeof en = {
     industriesLabel: 'Industries principales',
   },
   home: {
-    title: 'Quiz de géographie',
+    title: 'Orbi',
     tagline: 'Apprenez la géographie du monde avec des cartes et des drapeaux.',
-    demo: 'Bienvenue — prêt à explorer le monde ?',
+    demo: 'Salut, moi c’est Orbi — prêt à explorer le monde ?',
     play: 'Commencer à jouer',
     playCustom: 'Ou lancer une partie personnalisée',
     train: 'Réviser mes erreurs',
@@ -57,6 +57,10 @@ const fr: typeof en = {
       playedToday: "Joué aujourd'hui ✓",
       keepGoing: 'Jouez aujourd’hui pour continuer',
       start: 'Lancez une série aujourd’hui',
+    },
+    mastery: {
+      showRegions: 'Afficher le détail par région',
+      hideRegions: 'Masquer le détail par région',
     },
   },
   daily: {

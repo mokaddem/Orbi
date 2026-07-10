@@ -29,14 +29,14 @@ export default defineConfig(({ command, isPreview }) => ({
       // duplicate entry.
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
-        name: 'Geography Quiz',
-        short_name: 'Geo Quiz',
+        name: 'Orbi',
+        short_name: 'Orbi',
         description:
-          'Bilingual (EN/FR), offline-first game for learning world geography via map and flag quizzes.',
+          'Orbi — an offline-first game for learning world geography through maps, flags, capitals and more.',
         lang: 'en',
-        // Matches --color-accent / --color-bg in src/app.css.
-        theme_color: '#2b6cb0',
-        background_color: '#f7f9fc',
+        // Matches --color-accent / --color-bg in src/app.css (Playful turquoise theme).
+        theme_color: '#10a5a0',
+        background_color: '#fff6f1',
         display: 'standalone',
         orientation: 'any',
         // start_url and scope intentionally omitted: browsers derive them from the

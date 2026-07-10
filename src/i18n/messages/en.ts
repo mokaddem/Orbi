@@ -1,6 +1,6 @@
 const en = {
   app: {
-    title: 'Geography Quiz',
+    title: 'Orbi',
   },
   common: {
     cancel: 'Cancel',
@@ -34,9 +34,9 @@ const en = {
     industriesLabel: 'Main industries',
   },
   home: {
-    title: 'Geography Quiz',
+    title: 'Orbi',
     tagline: 'Learn world geography through maps and flags.',
-    demo: 'Welcome — ready to explore the world?',
+    demo: "Hi, I'm Orbi — ready to explore the world?",
     play: 'Start playing',
     playCustom: 'Or start a custom game',
     train: 'Train my mistakes',
@@ -54,6 +54,10 @@ const en = {
       playedToday: 'Played today ✓',
       keepGoing: 'Play today to keep it going',
       start: 'Start a streak today',
+    },
+    mastery: {
+      showRegions: 'Show per-region breakdown',
+      hideRegions: 'Hide per-region breakdown',
     },
   },
   daily: {

@@ -1,6 +1,6 @@
 # Phase 29 — Identity & Home polish (app name · mascot favicon · region-mastery breakdown)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.4 post-play feedback
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -64,37 +64,37 @@ independent and can land in any order or separately.
 
 ## Scope / Deliverables
 ### Stage A — app name
-- [ ] **Chosen name (owner decision).** Pick from a shortlist (see Open Questions) or the owner's own.
+- [x] **Chosen name (owner decision).** Pick from a shortlist (see Open Questions) or the owner's own.
       Constraints: short, pronounceable, works in EN/FR/DE, evokes globe/geography/learning, fits the
       friendly globe mascot, and a `short_name` that stays legible under a home-screen icon (~12 chars).
-- [ ] **Wire it everywhere** — `index.html` title + apple title, `manifest.name`/`short_name`
+- [x] **Wire it everywhere** — `index.html` title + apple title, `manifest.name`/`short_name`
       (`vite.config.ts`), and the on-screen title/tagline i18n (EN/FR/DE). Keep `<html lang>` and the
       description coherent. Decide whether the name is localized or a fixed brand across locales.
-- [ ] **Repo/docs touch-up (light)** — README/heading references if any; not a rename of the repo dir.
+- [x] **Repo/docs touch-up (light)** — README/heading references if any; not a rename of the repo dir.
 
 ### Stage B — mascot favicon & icons
-- [ ] **Static mascot favicon** — produce a standalone `favicon.svg` derived from the mascot (resolved
+- [x] **Static mascot favicon** — produce a standalone `favicon.svg` derived from the mascot (resolved
       colours, no CSS vars / `currentColor`, a single legible pose — likely `wave` or a neutral face),
       framed to read at 16–32px. Keep it crisp and offline (inline SVG, no external refs).
-- [ ] **Regenerate the PNG icon set** from the same mascot artwork: `pwa-192x192.png`,
+- [x] **Regenerate the PNG icon set** from the same mascot artwork: `pwa-192x192.png`,
       `pwa-512x512.png`, `apple-touch-icon.png`, and a **maskable** 512 with adequate safe-zone padding
       so it isn't clipped to a circle awkwardly.
-- [ ] **Manifest/head wiring** stays consistent (theme colours, `includeAssets`, purposes) — verify the
+- [x] **Manifest/head wiring** stays consistent (theme colours, `includeAssets`, purposes) — verify the
       PWA still installs with the new icons and the favicon shows in a browser tab.
 
 ### Stage C — Home region-mastery breakdown
-- [ ] **Disclosure on the Home meter** — make the compact `WorldMasteryMeter` expand/collapse to reveal
+- [x] **Disclosure on the Home meter** — make the compact `WorldMasteryMeter` expand/collapse to reveal
       `RegionMasteryBreakdown` fed from `mastery.byRegion`. Accessible: a real button/toggle with
       `aria-expanded`, keyboard operable, `prefers-reduced-motion`-friendly if animated.
-- [ ] **Reuse, don't duplicate** — feed the existing `RegionMasteryBreakdown` component; don't fork a
+- [x] **Reuse, don't duplicate** — feed the existing `RegionMasteryBreakdown` component; don't fork a
       Home-specific breakdown. Keep the meter presentational (state/toggle in `Home.svelte` or a thin
       wrapper).
-- [ ] **Tests** — component test for the toggle (collapsed by default, expands to show region rows,
+- [x] **Tests** — component test for the toggle (collapsed by default, expands to show region rows,
       aria state) and that Home renders the breakdown from `byRegion`.
 
 ### Cross-cutting
-- [ ] i18n parity (EN/FR/DE) for any new strings (name, "show/hide breakdown" labels).
-- [ ] Fast loop green; existing meter/mascot/manifest tests still pass.
+- [x] i18n parity (EN/FR/DE) for any new strings (name, "show/hide breakdown" labels).
+- [x] Fast loop green; existing meter/mascot/manifest tests still pass.
 
 ## Technical notes
 - **Name is mostly find-and-replace + a decision**, but it's spread across HTML, the Vite PWA manifest,
@@ -138,6 +138,36 @@ independent and can land in any order or separately.
 - New mastery computation or a different mastery definition (Phase 16 owns that).
 
 ## Progress log
+- **2026-07-10 — Built and verified (all three stages). Clarifying round resolved with the owner:**
+  - **Name → `Orbi`** (fixed brand across EN/FR/DE), chosen as the **mascot's name that doubles as the
+    app name** (resolves open Q1 + Q2 — the character *is* the brand). Owner shortlist iterated over
+    two extra rounds; "Orbi" (from orb/orbit — round, friendly, tri-lingual) picked over Globo/Terra/
+    Rondo. Deliberately avoided "Globi" (Swiss cartoon trademark).
+  - **Favicon → candidate B: smile + inked outline** (open Q3), globe-head only (arms/shadow dropped)
+    for 16–32 px legibility. Chosen from a live-SVG prototype comparing 2 expressions × 2 line
+    treatments at true tab sizes on light/dark grounds.
+  - **Home breakdown → collapsed by default, animated** (open Q5), top-level M49 regions (open Q6),
+    reusing `RegionMasteryBreakdown` fed from `mastery.byRegion` (no new computation/re-fetch).
+  - **Icon pipeline (open Q4): reused the existing `scripts/gen-icons.sh` (Inkscape).** Authored a
+    static `public/favicon.svg` (resolved turquoise, inked outline, transparent) + matching
+    `scripts/maskable-icon.svg` (Orbi on a padded accent-strong ground, inside the safe zone), then
+    regenerated the 192/512/maskable/apple-touch PNGs.
+  - **Wiring:** `index.html` (title/apple-title/description), `vite.config.ts` manifest
+    (`name`/`short_name`/`description`), and `app.title` + `home.title` in en/fr/de → `Orbi`; the
+    `home.demo` welcome line now names the mascot ("Hi, I'm Orbi …", trilingual); README H1 + intro.
+  - **Coherence fix (in scope):** `theme_color`/`background_color` in the manifest **and** `index.html`
+    still carried the pre-Playful blue `#2b6cb0`/`#f7f9fc`; realigned to turquoise `#10a5a0` / `#fff6f1`.
+  - **Stage C a11y:** the whole compact meter is a real `<button aria-expanded aria-controls>` with an
+    explicit `aria-label` and a rotating chevron; keyboard-operable and `focus-visible`. The reveal is a
+    **CSS keyframe** (not a Svelte JS transition) — reduced-motion-friendly *and* deterministic under
+    jsdom (Web Animations `element.animate` is absent there, which broke `transition:slide`).
+  - **New i18n:** `home.mastery.showRegions` / `hideRegions` (en/fr/de).
+  - **Verification:** `npm run check` (0 errors) · `npm run test` (453 pass, incl. a new Home disclosure
+    test: collapsed-by-default, expand→region rows + progressbars, aria state, collapse) · `npm run lint`
+    clean. Real-browser check on :5180 via CDP: title `Orbi`, meter renders, collapsed `aria-expanded=false`
+    (breakdown absent) → click → `aria-expanded=true`, label flips, **5 region rows** shown. Prod build +
+    :5181 preview install check: manifest (`name:"Orbi"`, `theme_color:#10a5a0`) + favicon.svg + all PNG
+    icons serve 200; icons render as the recognizable Orbi mascot.**
 - **2026-07-09 — PRD drafted from three light owner feedback items (app name; mascot favicon; Home
   mastery-bar per-region breakdown), bundled as one identity/Home-polish phase per the owner's
   preference for fewer PRDs. Grounded in: the hard-coded name across `index.html` / `vite.config.ts` /
