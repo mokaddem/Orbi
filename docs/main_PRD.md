@@ -114,7 +114,7 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/archive/phase-22-map-zoom-small-countries.md) | 4, 12 | ✅ Done | 100% (visible micro-state dots + ⭐ target-first reveal; interactive zoom → own future phase if needed) |
 | 23 | New mode: National languages | [phase-23-mode-languages.md](phases/archive/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ✅ Done | 100% (multi-select "select all"; all-or-nothing; curated EN/FR/DE names; capitals+languages folded into one combined "Extra knowledge" panel + achievements) |
 | 24 | New mode: Capitals | [phase-24-mode-capitals.md](phases/archive/phase-24-mode-capitals.md) | 2 (engine-generalization pilot) | ✅ Done | 100% (both directions + shared attribute-quiz engine for 23/25; Atlas capital entry + separate capital-mastery panel & achievements) |
-| 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ✅ Done | 100% (single-select "which is a main industry"; 20-category taxonomy EN/FR/DE; 142/195 curated; own mastery ladder) |
+| 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/archive/phase-25-mode-industries.md) | 2 + new curated dataset | ✅ Done | 100% (single-select "which is a main industry"; 20-category taxonomy EN/FR/DE; 142/195 curated; own mastery ladder) |
 
 ### v1.4 — Post-play feedback (from the owner's play session)
 
