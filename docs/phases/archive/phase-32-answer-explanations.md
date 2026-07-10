@@ -1,6 +1,6 @@
 # Phase 32 — Answer explanations ("why" fun facts)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.6 learning depth (explain the answer)
 
 > **Shipped (2026-07-10):** industries pilot — a "Did you know?" reveal on wrong industries answers,
