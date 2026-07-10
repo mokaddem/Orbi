@@ -269,3 +269,36 @@ export function practiceToConfig(
     choices: prefs.choicesPerQuestion,
   };
 }
+
+/**
+ * ISO alpha-2 codes to frame the map on for `cfg`, or `null` to fit the whole world.
+ *
+ * A region / sub-region `filter` (normal region play, the Daily Challenge) frames to that
+ * region directly. A region-scoped review or targeted-practice run carries **no** filter —
+ * its scope lives in the explicit `answerPoolIso` — so frame to the whole region(s) those
+ * countries belong to. Reviewing "Europe" then shows the Europe map (not the world), matching
+ * normal Europe play, while still asking only about the pooled countries. Framing to the full
+ * region rather than just the pooled codes keeps the board from zooming onto the handful of due
+ * countries (which would give the answer away in map-locate). Falls back to the whole world when
+ * neither is set, or when the pool's regions can't be resolved.
+ */
+export function focusIsosForConfig(
+  countries: readonly Country[],
+  cfg: RunConfig | null,
+): string[] | null {
+  if (!cfg) return null;
+  if (cfg.filter && (cfg.filter.region || cfg.filter.subregion)) {
+    return filterCountries(countries, cfg.filter).map((c) => c.iso2);
+  }
+  if (cfg.answerPoolIso && cfg.answerPoolIso.length) {
+    const byIso = new Map(countries.map((c) => [c.iso2, c]));
+    const regions = new Set<string>();
+    for (const iso of cfg.answerPoolIso) {
+      const region = byIso.get(iso)?.region;
+      if (region) regions.add(region);
+    }
+    if (regions.size === 0) return null;
+    return countries.filter((c) => regions.has(c.region)).map((c) => c.iso2);
+  }
+  return null;
+}

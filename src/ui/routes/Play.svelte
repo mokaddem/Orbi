@@ -4,7 +4,6 @@
   import { push } from 'svelte-spa-router';
   import { t, localizedName, localizedText, localizedRegion } from '../../i18n';
   import {
-    filterCountries,
     hasOptions,
     isMapMode,
     isMultiSelectMode,
@@ -13,7 +12,13 @@
     type SessionType,
   } from '../../domain';
   import { countryCount, getCountries, getRegionTree, type RegionNode } from '../../data';
-  import { play, lastSummary, pendingConfig, type RunConfig } from '../stores/game';
+  import {
+    play,
+    lastSummary,
+    pendingConfig,
+    focusIsosForConfig,
+    type RunConfig,
+  } from '../stores/game';
   import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
@@ -217,18 +222,17 @@
     return () => clearTimeout(id);
   });
 
-  // ISO codes to frame the map on, for a filtered map session. Memoized by config
-  // identity so it returns a *stable* array within a session — the config object is
-  // set once per session, so the map's projection is computed once, not per question.
+  // ISO codes to frame the map on, for a region-scoped map session. Memoized by config
+  // identity so it returns a *stable* array within a session — the config object is set
+  // once per session, so the map's projection is computed once, not per question. The
+  // scope selection (region filter *or* region-expanded answer pool) lives in
+  // `focusIsosForConfig` so it stays pure and unit-tested.
   let focusCfg: RunConfig | null = null;
   let focusIsos: string[] | null = null;
   function mapFocusIsos(cfg: RunConfig | null): string[] | null {
     if (cfg === focusCfg) return focusIsos;
     focusCfg = cfg;
-    focusIsos =
-      cfg && cfg.filter && (cfg.filter.region || cfg.filter.subregion)
-        ? filterCountries(getCountries(), cfg.filter).map((c) => c.iso2)
-        : null;
+    focusIsos = focusIsosForConfig(getCountries(), cfg);
     return focusIsos;
   }
 </script>

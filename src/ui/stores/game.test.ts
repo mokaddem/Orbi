@@ -1,7 +1,8 @@
 import { afterEach, describe, it, expect } from 'vitest';
 import { get } from 'svelte/store';
 import { mulberry32 } from '../../domain';
-import { play, lastSummary, pendingConfig, type RunConfig } from './game';
+import { getCountries } from '../../data';
+import { play, lastSummary, pendingConfig, focusIsosForConfig, type RunConfig } from './game';
 
 // A deterministic clock: each read advances by 1s so durations are monotonic/positive.
 function makeClock(): () => number {
@@ -193,5 +194,61 @@ describe('play store', () => {
     expect(view.status).toBe('idle');
     expect(view.question).toBeNull();
     expect(play.summary()).toBeNull();
+  });
+});
+
+describe('focusIsosForConfig — the map crop for a session', () => {
+  const countries = getCountries();
+  const isosIn = (region: string) =>
+    countries.filter((c) => c.region === region).map((c) => c.iso2);
+
+  it('returns null (whole world) when there is no scope', () => {
+    expect(focusIsosForConfig(countries, null)).toBeNull();
+    expect(focusIsosForConfig(countries, baseConfig())).toBeNull();
+  });
+
+  it('frames to a region filter (normal region play / daily)', () => {
+    const focus = focusIsosForConfig(countries, baseConfig({ filter: { region: 'Europe' } }));
+    expect(focus).not.toBeNull();
+    expect(new Set(focus)).toEqual(new Set(isosIn('Europe')));
+  });
+
+  it('frames to the sub-region when a sub-region filter is set', () => {
+    const subregion = countries.find((c) => c.region === 'Europe')!.subregion;
+    const focus = focusIsosForConfig(countries, baseConfig({ filter: { subregion } }));
+    expect(focus).not.toBeNull();
+    for (const iso of focus!) {
+      expect(countries.find((c) => c.iso2 === iso)!.subregion).toBe(subregion);
+    }
+  });
+
+  it('region-expands an answer pool: a Europe-only review frames to the whole Europe map', () => {
+    // A region-scoped review carries its scope as answerPoolIso (a handful of due European
+    // countries), *not* a filter — the map must still show all of Europe, not the world, and
+    // not just the two pooled countries.
+    const focus = focusIsosForConfig(
+      countries,
+      baseConfig({ type: 'training', answerPoolIso: ['FR', 'DE'] }),
+    );
+    expect(focus).not.toBeNull();
+    expect(new Set(focus)).toEqual(new Set(isosIn('Europe')));
+  });
+
+  it('region-expands across every region an answer pool touches (global "review everything")', () => {
+    const focus = focusIsosForConfig(
+      countries,
+      baseConfig({ type: 'training', answerPoolIso: ['FR', 'JP'] }),
+    );
+    const jpRegion = countries.find((c) => c.iso2 === 'JP')!.region;
+    expect(new Set(focus)).toEqual(new Set([...isosIn('Europe'), ...isosIn(jpRegion)]));
+  });
+
+  it('falls back to the whole world when the answer pool resolves to no known region', () => {
+    expect(
+      focusIsosForConfig(countries, baseConfig({ type: 'training', answerPoolIso: ['ZZ'] })),
+    ).toBeNull();
+    expect(
+      focusIsosForConfig(countries, baseConfig({ type: 'training', answerPoolIso: [] })),
+    ).toBeNull();
   });
 });
