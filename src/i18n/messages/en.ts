@@ -44,6 +44,11 @@ const en = {
     trainAll: 'Train all my mistakes ({count})',
     caughtUp: "You're all caught up — no mistakes to review!",
     trainHint: 'Training drills the countries you get wrong — play a few games to build it up.',
+    review: {
+      title: 'Time to review',
+      regionCount: '{count} to review',
+      everything: 'Review everything ({count})',
+    },
     streak: {
       days: '{count}-day streak',
       playedToday: 'Played today ✓',
@@ -64,13 +69,8 @@ const en = {
     label: 'Next up',
     due: {
       title: 'Time to review',
-      reason: '{count} due for review — weakest first.',
+      reason: '{count} to review in {region} — weakest first.',
       cta: 'Review',
-    },
-    weakSpot: {
-      title: 'Brush up on {region}',
-      reason: '{percent} correct there so far.',
-      cta: 'Practice',
     },
     fresh: {
       title: 'Ready to play',

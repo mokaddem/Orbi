@@ -53,6 +53,11 @@ const de: typeof en = {
     caughtUp: 'Alles erledigt — keine Fehler zum Wiederholen!',
     trainHint:
       'Beim Üben trainierst du die Länder, die du falsch hast — spiel ein paar Runden, um es aufzubauen.',
+    review: {
+      title: 'Zeit zum Wiederholen',
+      regionCount: '{count} zu wiederholen',
+      everything: 'Alles wiederholen ({count})',
+    },
     streak: {
       days: 'Serie von {count} Tagen',
       playedToday: 'Heute gespielt ✓',
@@ -73,13 +78,8 @@ const de: typeof en = {
     label: 'Als Nächstes',
     due: {
       title: 'Zeit zum Wiederholen',
-      reason: '{count} zur Wiederholung fällig — die schwächsten zuerst.',
+      reason: '{count} in {region} zu wiederholen — die schwächsten zuerst.',
       cta: 'Wiederholen',
-    },
-    weakSpot: {
-      title: '{region} auffrischen',
-      reason: 'Bisher {percent} richtig dort.',
-      cta: 'Üben',
     },
     fresh: {
       title: 'Bereit zum Spielen',

@@ -37,6 +37,7 @@ import {
   isLanguageQuizEligible,
   localDayKey,
   recommend,
+  reviewByRegion,
   scheduleNext,
   selectTrainingItems,
   type DailyChallenge,
@@ -46,6 +47,7 @@ import {
   type QuestionResult,
   type Recommendation,
   type RegionResolver,
+  type RegionReview,
   type SelectTrainingOptions,
   type SessionSummary,
   type StatsOverview,
@@ -231,6 +233,19 @@ export async function loadRecommendations(now = Date.now()): Promise<Recommendat
   if (!store) return recommend([], [], { now, regionOf });
   const [srItems, sessions] = await Promise.all([store.getAllSRItems(), store.getAllSessions()]);
   return recommend(srItems, sessions, { now, regionOf });
+}
+
+/**
+ * Group the player's trainable SR state by top-level region (Phase 26) so Home can offer a
+ * "review this region" list, most-urgent first — without foreign-region items polluting the
+ * session. Each region's pool is capped at {@link TRAINING_SESSION_MAX}. Empty before init or
+ * when nothing is worth reviewing. The global {@link loadTrainingPlan} remains the
+ * "review everything" escape hatch.
+ */
+export async function loadRegionReviews(now = Date.now()): Promise<RegionReview[]> {
+  if (!store) return [];
+  const srItems = await store.getAllSRItems();
+  return reviewByRegion(srItems, regionOf, { now, limit: TRAINING_SESSION_MAX });
 }
 
 /**

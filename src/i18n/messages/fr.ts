@@ -47,6 +47,11 @@ const fr: typeof en = {
     caughtUp: 'Vous êtes à jour — aucune erreur à revoir !',
     trainHint:
       'La révision cible les pays que vous manquez — jouez quelques parties pour la nourrir.',
+    review: {
+      title: "C'est l'heure de réviser",
+      regionCount: '{count} à réviser',
+      everything: 'Tout réviser ({count})',
+    },
     streak: {
       days: 'Série de {count} jours',
       playedToday: "Joué aujourd'hui ✓",
@@ -67,13 +72,8 @@ const fr: typeof en = {
     label: 'À suivre',
     due: {
       title: "C'est l'heure de réviser",
-      reason: '{count} à réviser — les plus fragiles d’abord.',
+      reason: '{count} à réviser en {region} — les plus fragiles d’abord.',
       cta: 'Réviser',
-    },
-    weakSpot: {
-      title: 'Renforcez : {region}',
-      reason: '{percent} de réussite jusqu’ici.',
-      cta: 'S’entraîner',
     },
     fresh: {
       title: 'Prêt à jouer',

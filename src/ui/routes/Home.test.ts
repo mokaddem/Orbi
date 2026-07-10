@@ -23,16 +23,16 @@ afterEach(() => {
   pendingConfig.set(null);
 });
 
-describe('Home route — Next up card + train-all link', () => {
-  // Runs first, before any SR items are seeded, so the store has nothing to train.
-  it('shows the fresh-start card and no train link on an empty profile', async () => {
+describe('Home route — review hero (Phase 26 region-scoped)', () => {
+  // Runs first, before any SR items are seeded, so the store has nothing to review.
+  it('shows the fresh-start card and no review list on an empty profile', async () => {
     render(Home);
     // The card always renders (never empty); with no data it is the fresh-start fallback.
     const card = await screen.findByTestId('next-up-card');
     expect(card).toHaveAttribute('data-kind', 'fresh-start');
     expect(screen.getByRole('heading', { name: 'Ready to play' })).toBeInTheDocument();
-    // With nothing to train, the "train all my mistakes" escape hatch is absent.
-    expect(screen.queryByRole('button', { name: /Train all my mistakes/ })).not.toBeInTheDocument();
+    // With nothing to review, neither a region row nor the "review everything" escape hatch shows.
+    expect(screen.queryByRole('button', { name: /Review everything/ })).not.toBeInTheDocument();
 
     // Phase 15: with no history the streak nudges a start, and the Daily Challenge is
     // present and not-yet-done.
@@ -42,8 +42,8 @@ describe('Home route — Next up card + train-all link', () => {
     expect(daily).toHaveAttribute('data-done', 'false');
   });
 
-  it('surfaces a due-review card and a train-all link once mistakes exist', async () => {
-    // Record a couple of missed map-highlight items — a miss is due immediately (interval 0).
+  it('surfaces a region-scoped review list once mistakes exist', async () => {
+    // Record a couple of missed map-highlight items in Europe — a miss is due immediately.
     await recordAnswer({
       itemKey: 'map-highlight:BG',
       countryIso2: 'BG',
@@ -59,17 +59,22 @@ describe('Home route — Next up card + train-all link', () => {
 
     render(Home);
 
-    // The card reflects the due reviews.
-    const card = await screen.findByTestId('next-up-card');
-    expect(card).toHaveAttribute('data-kind', 'due');
+    // The most-urgent region (Europe) is offered as a scoped review; clicking it stages a
+    // training run limited to that region's items — no foreign-region items leak in.
+    const europe = await screen.findByRole('button', { name: /Europe/ });
+    await fireEvent.click(europe);
 
-    // The train-all link loads asynchronously; wait for its count, then launch it.
-    const link = await screen.findByRole('button', { name: /Train all my mistakes \(\d+\)/ });
-    await fireEvent.click(link);
-
-    const cfg = get(pendingConfig);
+    let cfg = get(pendingConfig);
     expect(cfg).toMatchObject({ mode: 'map-highlight', type: 'training' });
     expect(cfg!.answerPoolIso?.slice().sort()).toEqual(['BG', 'RO']);
     expect(cfg!.fixedLength).toBe(2);
+
+    // The global "review everything" escape hatch remains one tap away.
+    pendingConfig.set(null);
+    const everything = await screen.findByRole('button', { name: /Review everything \(\d+\)/ });
+    await fireEvent.click(everything);
+    cfg = get(pendingConfig);
+    expect(cfg).toMatchObject({ mode: 'map-highlight', type: 'training' });
+    expect(cfg!.answerPoolIso?.slice().sort()).toEqual(['BG', 'RO']);
   });
 });

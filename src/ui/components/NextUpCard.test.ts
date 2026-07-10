@@ -22,10 +22,11 @@ beforeEach(() => {
 afterEach(() => setLocale('en'));
 
 describe('NextUpCard', () => {
-  it('renders a due-review recommendation and stages a training config on start', async () => {
+  it('renders a region-scoped due review and stages a training config on start', async () => {
     const rec: Recommendation = {
       kind: 'due',
       mode: 'flag-to-country',
+      regionKey: 'Europe',
       count: 2,
       run: { mode: 'flag-to-country', type: 'training', answerPoolIso: ['BG', 'RO'] },
     };
@@ -33,7 +34,7 @@ describe('NextUpCard', () => {
 
     expect(screen.getByTestId('next-up-card')).toHaveAttribute('data-kind', 'due');
     expect(screen.getByRole('heading')).toHaveTextContent('Time to review');
-    expect(screen.getByText('2 due for review — weakest first.')).toBeInTheDocument();
+    expect(screen.getByText('2 to review in Europe — weakest first.')).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole('button', { name: 'Review' }));
     expect(push).toHaveBeenCalledWith('/play');
@@ -42,37 +43,6 @@ describe('NextUpCard', () => {
       type: 'training',
       answerPoolIso: ['BG', 'RO'],
       fixedLength: 2,
-      choices: 4,
-    });
-  });
-
-  it('renders a weak-spot recommendation (localized region + percent) and stages a fixed config', async () => {
-    const rec: Recommendation = {
-      kind: 'weak-spot',
-      mode: 'map-highlight',
-      regionKey: 'Eastern Europe',
-      iconRegion: 'Europe',
-      count: 12,
-      accuracy: 0.4,
-      run: {
-        mode: 'map-highlight',
-        type: 'fixed',
-        filter: { region: 'Europe', subregion: 'Eastern Europe' },
-      },
-    };
-    render(NextUpCard, { rec });
-
-    expect(screen.getByRole('heading')).toHaveTextContent('Brush up on Eastern Europe');
-    expect(screen.getByText('40% correct there so far.')).toBeInTheDocument();
-
-    await fireEvent.click(screen.getByRole('button', { name: 'Practice' }));
-    expect(push).toHaveBeenCalledWith('/play');
-    expect(get(pendingConfig)).toEqual({
-      mode: 'map-highlight',
-      type: 'fixed',
-      filter: { region: 'Europe', subregion: 'Eastern Europe' },
-      fixedLength: 12,
-      lives: 5,
       choices: 4,
     });
   });
@@ -94,6 +64,7 @@ describe('NextUpCard', () => {
     const rec: Recommendation = {
       kind: 'due',
       mode: 'flag-to-country',
+      regionKey: 'Europe',
       count: 3,
       run: { mode: 'flag-to-country', type: 'training', answerPoolIso: ['BG', 'RO', 'FR'] },
     };

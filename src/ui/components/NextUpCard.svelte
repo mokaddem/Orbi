@@ -1,40 +1,31 @@
 <script lang="ts">
   import { push } from 'svelte-spa-router';
   import { t, localizedRegion } from '../../i18n';
-  import { formatPercent } from '../format';
   import type { Recommendation } from '../../domain';
   import { pendingConfig, recommendationToConfig } from '../stores/game';
   import { prefs } from '../stores/persistence';
-  import ModeIcon from './ModeIcon.svelte';
   import RegionIcon from './RegionIcon.svelte';
 
-  // The "Next up" card (Phase 14): renders the single top recommendation and starts it in
-  // one tap. Presentational + self-contained — given a `rec` it maps the kind to a title,
-  // reason, icon and CTA, then stages the right RunConfig (or routes to the setup screen
-  // for the fresh-start fallback). Used on Home and Summary.
+  // The "Next up" card (Phase 14; region-scoped in Phase 26): renders the single top
+  // recommendation and starts it in one tap. Presentational + self-contained — given a `rec`
+  // it maps the kind to a title, reason, icon and CTA, then stages the right RunConfig (or
+  // routes to the setup screen for the fresh-start fallback). Used on Home and Summary.
   let { rec }: { rec: Recommendation } = $props();
 
-  // Interpolation values the reason/title strings need, assembled per kind. Region names
-  // are localized here (the engine only carries the raw M49 key), percent is formatted.
+  // Interpolation values the reason/title strings need, assembled per kind. The region name
+  // is localized here (the engine only carries the raw M49 key).
   let params: Record<string, string | number> = $derived.by((): Record<string, string | number> => {
-    if (rec.kind === 'weak-spot') {
+    if (rec.kind === 'due') {
       return {
+        count: rec.count ?? 0,
         region: rec.regionKey ? $localizedRegion(rec.regionKey) : '',
-        percent: formatPercent(rec.accuracy ?? 0),
       };
     }
-    if (rec.kind === 'due') return { count: rec.count ?? 0 };
     return {};
   });
 
-  // Map the kind onto its i18n key stem (recommend.due / recommend.weakSpot / recommend.fresh).
-  const stem = $derived(
-    rec.kind === 'due'
-      ? 'recommend.due'
-      : rec.kind === 'weak-spot'
-        ? 'recommend.weakSpot'
-        : 'recommend.fresh',
-  );
+  // Map the kind onto its i18n key stem (recommend.due / recommend.fresh).
+  const stem = $derived(rec.kind === 'due' ? 'recommend.due' : 'recommend.fresh');
 
   function start(): void {
     const cfg = recommendationToConfig(rec, $prefs);
@@ -48,10 +39,8 @@
   <span class="eyebrow">{$t('recommend.label')}</span>
   <div class="body">
     <span class="icon" aria-hidden="true">
-      {#if rec.kind === 'due' && rec.mode}
-        <ModeIcon mode={rec.mode} />
-      {:else if rec.kind === 'weak-spot'}
-        <RegionIcon region={rec.iconRegion ?? 'World'} />
+      {#if rec.kind === 'due'}
+        <RegionIcon region={rec.regionKey ?? 'World'} />
       {:else}
         <RegionIcon region="World" />
       {/if}

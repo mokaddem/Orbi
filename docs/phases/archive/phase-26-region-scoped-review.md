@@ -1,6 +1,6 @@
 # Phase 26 — Region-scoped review ("time to review" by region)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.4 post-play feedback
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -58,24 +58,22 @@ settles; note the dependency and pick a unit that survives 19. Independent of th
 map work (22, 28).
 
 ## Scope / Deliverables
-- [ ] **Region-aware selection (domain, pure).** Extend training-item selection so a review pool can be
-      narrowed to a region (e.g. add an optional `region`/`regionOf` filter to `SelectTrainingOptions`,
-      or a small helper that groups `selectTrainingItems` output by resolved region). Keep it pure and
-      unit-tested; do not bake `regionOf` into the domain in a way that couples it to the dataset (inject
-      it, mirroring `recommend`).
-- [ ] **Per-region review offer (the "propose which region" ask).** Surface review **grouped by
-      region** — e.g. one entry per region with a due/missed count ("Europe — 12 to review"), ordered
-      most-due-first, each launching a training session scoped to that region. Decide the surface with
-      the owner (Next-up card variants, a dedicated "Review" screen/section, or a region picker on the
-      existing train-all button) — see Open Questions.
-- [ ] **Region-scoped launch.** Reuse the existing `answerPoolIso` training mechanism in
-      `game.ts` — a region-scoped review is just `selectTrainingItems(...)` filtered to that region's
-      ISO codes. No engine change beyond selection.
-- [ ] **Keep a "review everything" escape hatch** so the global behaviour is still one tap for players
-      who want it.
-- [ ] **i18n** — any new strings (region-review titles, counts) in EN/FR/DE with parity.
-- [ ] **Tests** — region filtering of the training pool; the per-region counts; that a region-scoped
-      session only asks about that region's items; recommendation ordering with the region dimension.
+- [x] **Region-aware selection (domain, pure).** New pure `reviewByRegion()` (`src/domain/review.ts`)
+      groups `selectTrainingItems` output by **top-level region**, picks each region's dominant mode,
+      caps its pool, and orders regions most-urgent-first. `regionOf` is injected (mirroring `recommend`),
+      so it stays decoupled from the dataset. Unit-tested (`review.test.ts`, 8 cases).
+- [x] **Per-region review offer (the "propose which region" ask).** New `ReviewByRegion.svelte`
+      "Time to review" list: one row per region with a to-review count ("Europe — 12 to review"),
+      ordered most-due-first, the top region pre-selected (accent primary), each launching a
+      region-scoped training session. **Surface chosen with the owner: the per-region list (option a).**
+- [x] **Region-scoped launch.** Reuses the existing `answerPoolIso` training mechanism — a region-scoped
+      review is `reviewByRegion(...)`'s per-region ISO pool handed to a training session. No engine change.
+- [x] **Keep a "review everything" escape hatch** — a footer row backed by the unchanged global
+      `loadTrainingPlan()`.
+- [x] **i18n** — `home.review.*` (title, `{count} to review`, `Review everything ({count})`) and a
+      region-scoped `recommend.due.reason` in EN/FR/DE with parity; `recommend.weakSpot` removed.
+- [x] **Tests** — `reviewByRegion` grouping/ordering/cap/scoping; region-scoped `recommend` (rewritten);
+      `ReviewByRegion.svelte` component test; `Home.test` rewritten for the list; `NextUpCard` updated.
 
 ## Technical notes
 - **This is mostly a *selection + surfacing* change, not an engine change.** The session engine already
@@ -130,5 +128,33 @@ map work (22, 28).
   (no region option), `recommend.ts` (global `due` rec, capped at 20), and `loadTrainingPlan` (global
   pool) — the `answerPoolIso` + `regionOf` machinery to scope review already exists. NOT built —
   awaiting the clarifying round and explicit build approval.**
+- **2026-07-10 — Clarifying round + build (approved by the owner: "Full unify, go ahead").**
+  Owner decisions on the open questions:
+  - **Surface (Q1):** per-region review **list** on Home ("Time to review"), most-urgent-first, top
+    region pre-selected, with a "Review everything" fallback.
+  - **Unit of region (Q2):** **top-level region** (5 continents). (Phase 19 is Done, so the scheme is final.)
+  - **Auto-propose (Q3):** **pre-select the most-due region** (top of list, styled primary), player can
+    pick any other.
+  - **Mode within a region (Q4):** keep the **dominant-mode auto-pick** per region.
+  - **weak-spot (Q5):** **UNIFY** (the one departure from the PRD default) — retired the separate
+    `weak-spot`/global `due` recommendations; `recommend()`'s top review is now **region-scoped** (the
+    most-urgent region's trainable items = due *or* missed), so Home *and* Summary are coherent and there
+    is a single region-aware entry point.
+  - **Sequencing (Q6):** moot — Phase 19 already Done.
+
+  Implemented: `reviewByRegion()` (`src/domain/review.ts`, pure + injected `regionOf`); `loadRegionReviews()`
+  (persistence, capped at `TRAINING_SESSION_MAX`); `ReviewByRegion.svelte` list wired into `Home.svelte`
+  (fresh-start `NextUpCard` kept for the empty case; standalone train-all button removed — its role moved
+  into the list's "Review everything" row); `recommend.ts` region-scoped + `NextUpCard.svelte` simplified;
+  i18n EN/FR/DE. **`loadTrainingPlan` (global escape hatch) unchanged**, and how World play records
+  mistakes is unchanged (out of scope, per the PRD).
+
+  **Verification:** fast loop green — `npm run test` (423 pass, incl. new `review`/`ReviewByRegion` +
+  rewritten `recommend`/`Home`/`NextUpCard`), `npm run check` (0 errors), `npm run lint` clean. Headless
+  Chrome on :5180 (ran in DE locale — a live DE-parity check): seeded a polluting 7-item Africa backlog +
+  a 3-item Europe set → Home showed **"Afrika · 7 zu wiederholen"** (pre-selected) then **"Europa · 3 zu
+  wiederholen"** then **"Alles wiederholen (7)"**; tapping **Europa** launched a **3-question** flag round
+  whose options were all European (Frankreich/Monaco/Belgien/Liechtenstein) — **no Africa items leaked in**.
+  Acceptance criteria met.
 </content>
 </invoke>
