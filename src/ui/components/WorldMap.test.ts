@@ -97,15 +97,17 @@ describe('WorldMap', () => {
     expect(path(container, 'BB')).toHaveAttribute('data-state', 'picked-wrong');
   });
 
-  it('leads the reveal with a target ring + name label (Phase 22)', () => {
+  it('leads a microstate reveal with a target ring + name label (Phase 22)', () => {
     const { container } = render(WorldMap, {
       features,
       interactive: true,
       disabled: true,
-      revealIso: 'CC', // the microstate target
+      revealIso: 'CC', // the microstate target — too small to see from its fill alone
       pickedIso: 'AA', // wrong pick (a large neighbour)
       revealLabel: 'Ccland',
     });
+    // A micro-state (one that would have an aim dot) gets the ring, since its green
+    // fill is invisible at that size.
     expect(container.querySelector('circle.reveal-ring')).toBeInTheDocument();
     const label = container.querySelector('text.reveal-label');
     expect(label).toBeInTheDocument();
@@ -114,6 +116,22 @@ describe('WorldMap', () => {
     // identified (rendered muted via CSS) so it reads as secondary context.
     expect(container.querySelector('circle[data-hit="dot"]')).not.toBeInTheDocument();
     expect(path(container, 'AA')).toHaveAttribute('data-state', 'picked-wrong');
+  });
+
+  it('reveals a normal-sized country with fill + label but no ring (owner feedback)', () => {
+    const { container } = render(WorldMap, {
+      features,
+      interactive: true,
+      disabled: true,
+      revealIso: 'AA', // large target — legible from its green fill, so no ring
+      revealLabel: 'Aaland',
+    });
+    // The country is coloured (reveal state) and labelled...
+    expect(path(container, 'AA')).toHaveAttribute('data-state', 'reveal');
+    const label = container.querySelector('text.reveal-label');
+    expect(label?.textContent).toBe('Aaland');
+    // ...but no circle is drawn on top: the ring is reserved for micro-states.
+    expect(container.querySelector('circle.reveal-ring')).not.toBeInTheDocument();
   });
 
   it('makes microstate aim dots visible in locate play', () => {

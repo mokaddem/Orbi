@@ -133,20 +133,26 @@
     return { cx: item.cx, cy: item.cy, r };
   });
 
-  // Target-first reveal (map-locate, once answered): a green ring + name label on the
-  // country the player was asked to locate, so a wrong answer teaches *where it is*
-  // (Phase 22) rather than drawing the eye to the wrong pick. Radius floors like the
-  // marker so a micro-state still gets a legible ring; the label is offset with a
-  // leader and flips side/clamps vertically to stay on the board.
+  // Target-first reveal (map-locate, once answered): a name label on the country the
+  // player was asked to locate, so a wrong answer teaches *where it is* (Phase 22)
+  // rather than drawing the eye to the wrong pick. The label is offset with a leader
+  // and flips side/clamps vertically to stay on the board.
+  //
+  // The ring is drawn *only for micro-states* — the countries small enough to get an
+  // aim dot (`area < SMALL_AREA`). A normal-sized country is already unmistakable from
+  // its green fill, so a ring on top just clutters it (owner feedback); the ring earns
+  // its place only where the fill is too small to see. Radius floors so that micro-state
+  // ring stays legible.
   const revealMarker = $derived.by(() => {
     if (!revealIso) return null;
     const item = rendered.find((r) => r.iso2 === revealIso);
     if (!item || !Number.isFinite(item.cx) || !Number.isFinite(item.cy)) return null;
+    const micro = item.area < SMALL_AREA;
     const r = Math.min(40, Math.max(11, Math.sqrt(item.area) * 0.9));
     const dir = item.cx < WIDTH * 0.72 ? 1 : -1;
     const lx = item.cx + dir * (r + 26);
     const ly = Math.max(24, item.cy - (r + 16));
-    return { cx: item.cx, cy: item.cy, r, lx, ly, anchor: dir > 0 ? 'start' : 'end' };
+    return { cx: item.cx, cy: item.cy, r, lx, ly, anchor: dir > 0 ? 'start' : 'end', micro };
   });
 
   type FillState = 'reveal' | 'picked-wrong' | 'highlight' | '';
@@ -224,7 +230,14 @@
             y2={revealMarker.ly}
           />
         {/if}
-        <circle class="reveal-ring" cx={revealMarker.cx} cy={revealMarker.cy} r={revealMarker.r} />
+        {#if revealMarker.micro}
+          <circle
+            class="reveal-ring"
+            cx={revealMarker.cx}
+            cy={revealMarker.cy}
+            r={revealMarker.r}
+          />
+        {/if}
         {#if revealLabel}
           <text
             class="reveal-label"
