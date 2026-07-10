@@ -22,10 +22,21 @@
   import RegionIcon from '../components/RegionIcon.svelte';
   import Icon from '../components/Icon.svelte';
 
-  // Auto-advance timings (ms): a brief dwell on a correct answer, a longer one on a
-  // wrong answer so the revealed country can be read. Fixed by design (not a setting).
+  // Auto-advance timings (ms): a brief dwell on a plain correct answer, a longer one
+  // whenever there's a reveal to read. Fixed by design (not a setting).
   const CORRECT_MS = 1500;
-  const WRONG_MS = 3000;
+  const REVEAL_MS = 4500;
+
+  // A reveal is shown — so linger for REVEAL_MS rather than CORRECT_MS — on any wrong
+  // answer, and also on a *correct* industries answer (which lists the country's full set
+  // of main industries, not just the one picked). Everything else advances quickly.
+  function dwellMs(
+    fb: { correct: boolean; question: { mode: GameMode } } | null | undefined,
+  ): number {
+    if (!fb) return CORRECT_MS;
+    const hasReveal = !fb.correct || fb.question.mode === 'country-to-industry';
+    return hasReveal ? REVEAL_MS : CORRECT_MS;
+  }
 
   // Setup selections.
   let mode = $state<GameMode>('flag-to-country');
@@ -202,8 +213,7 @@
   // quit, or unmount), so it can never double-advance.
   $effect(() => {
     if ($play.status !== 'answered') return;
-    const delay = $play.feedback?.correct ? CORRECT_MS : WRONG_MS;
-    const id = setTimeout(onContinue, delay);
+    const id = setTimeout(onContinue, dwellMs($play.feedback));
     return () => clearTimeout(id);
   });
 
@@ -473,22 +483,24 @@
           <p class="verdict">
             {fb.correct ? $t('play.feedback.correct') : $t('play.feedback.wrong')}
           </p>
-          {#if !fb.correct}
+          {#if fb.question.mode === 'country-to-industry'}
+            <!-- Industries always list the country's full set — on a correct answer too, so
+                 the player learns the others they weren't shown, not just the one they picked. -->
+            <p class="reveal">
+              {$t('play.feedback.revealIndustries', {
+                country: $localizedName(fb.question.answer),
+                industries: fb.question.answer.industries
+                  .map((i) => $localizedText(i.name))
+                  .join(', '),
+              })}
+            </p>
+          {:else if !fb.correct}
             {#if fb.question.mode === 'country-to-languages'}
               <p class="reveal">
                 {$t('play.feedback.revealLanguages', {
                   country: $localizedName(fb.question.answer),
                   languages: fb.question.answer.languages
                     .map((l) => $localizedText(l.name))
-                    .join(', '),
-                })}
-              </p>
-            {:else if fb.question.mode === 'country-to-industry'}
-              <p class="reveal">
-                {$t('play.feedback.revealIndustries', {
-                  country: $localizedName(fb.question.answer),
-                  industries: fb.question.answer.industries
-                    .map((i) => $localizedText(i.name))
                     .join(', '),
                 })}
               </p>
@@ -503,11 +515,7 @@
               </p>
             {/if}
           {/if}
-          <div
-            class="countdown"
-            style="--countdown-ms: {fb.correct ? CORRECT_MS : WRONG_MS}ms"
-            aria-hidden="true"
-          >
+          <div class="countdown" style="--countdown-ms: {dwellMs(fb)}ms" aria-hidden="true">
             <div class="countdown-fill"></div>
           </div>
         </div>

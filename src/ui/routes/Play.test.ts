@@ -12,9 +12,10 @@ function makeClock(): () => number {
   return () => (ms += 1000);
 }
 
-/** Feedback auto-advances after these delays (mirrors Play.svelte's constants). */
+/** Feedback auto-advances after these delays (mirrors Play.svelte's constants: CORRECT_MS
+ *  for a plain correct answer, REVEAL_MS whenever a reveal is shown — any wrong answer). */
 const CORRECT_MS = 1500;
-const WRONG_MS = 3000;
+const WRONG_MS = 4500;
 
 beforeEach(() => {
   setLocale('en');
