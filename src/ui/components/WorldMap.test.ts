@@ -154,6 +154,18 @@ describe('WorldMap', () => {
     expect(path(focused.container, 'AA').getAttribute('d')).toBe(dAll);
   });
 
+  it('draws with the chosen projection (Phase 28)', () => {
+    const base = render(WorldMap, { features }); // default: naturalEarth
+    const dDefault = path(base.container, 'BB').getAttribute('d');
+    base.unmount();
+
+    const mercator = render(WorldMap, { features, projection: 'mercator' });
+    // A different projection reprojects the same geometry to a different path...
+    expect(path(mercator.container, 'BB').getAttribute('d')).not.toBe(dDefault);
+    // ...while still drawing every country.
+    expect(mercator.container.querySelectorAll('path.country').length).toBe(3);
+  });
+
   it('adds a tappable fallback dot for microstates in locate mode only', async () => {
     const onpick = vi.fn();
     const { container, rerender } = render(WorldMap, { features, interactive: true, onpick });

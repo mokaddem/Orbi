@@ -1,6 +1,6 @@
 # Phase 28 — Selectable map projection (Settings)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.4 post-play feedback
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -47,22 +47,38 @@ they don't collide (recommend doing 22's reveal/zoom work aware of a swappable p
 this first as it's smaller). Independent of the review/practice phases (26, 27).
 
 ## Scope / Deliverables
-- [ ] **`mapProjection` preference** — a new enum pref (e.g. `'naturalEarth' | 'equalEarth' | 'mercator'
-      | 'equirectangular'` [+ `'orthographic'` if in scope]) with a sensible default (current:
-      `naturalEarth`), persisted and validated like the other prefs; migration-safe for existing stored
-      prefs (absent → default).
-- [ ] **Settings control** — a labelled selector (segmented control or dropdown) listing the offered
-      projections with localized names; changing it updates the pref immediately.
-- [ ] **`WorldMap.svelte` honours the pref** — resolve the pref to a D3 projection constructor and use
-      it in the memoized projection. Keep the **single projection pass** and `fitExtent` framing; ensure
-      centroids (marker + hit-dots) still come from the *same* projection so highlights/hits stay
-      aligned. Changing the pref re-projects (a config-level change, not per-question).
-- [ ] **Curated list only** — offer a short, vetted set that all fit the responsive `viewBox` board and
-      keep every in-scope country visible; don't expose the full d3-geo catalogue.
-- [ ] **i18n** — projection names + the Settings label in EN/FR/DE with parity.
-- [ ] **Tests** — pref default/validation/persistence; a WorldMap test that the chosen projection is
-      applied (e.g. distinct projected geometry / that a non-default pref changes output); existing
-      `WorldMap` / `map-framing` tests still green under the default.
+- [x] **`mapProjection` preference** — new enum pref `'naturalEarth' | 'equalEarth' | 'equirectangular'
+      | 'mercator'` (owner chose 4 planar, no orthographic), default `naturalEarth`, persisted and
+      validated like the other prefs. Migration-safe: absent → default via the `{ ...DEFAULT_PREFS,
+      ...stored }` merge, and `clampPrefs` guards a corrupted value with `isMapProjection`.
+      (`src/data/persistence/types.ts`.)
+- [x] **Settings control** — a labelled **dropdown** under a new **"Map"** heading listing the offered
+      projections with localized names; `onchange` calls `updatePrefs({ mapProjection })` immediately.
+      (`src/ui/routes/Settings.svelte`.)
+- [x] **`WorldMap.svelte` honours the pref** — new `projection` prop resolved via `projectionFor(name)`
+      in the memoized `$derived.by`; the **single projection pass** and `fitExtent` framing are kept, and
+      the marker + micro-state hit-dot centroids come from the *same* projection so highlights/hits stay
+      aligned. Threaded `MapBoard` → `Play` (`projection={$prefs.mapProjection}`).
+- [x] **Curated list only** — four vetted planar projections that all fit the 980×500 board and keep
+      every in-scope country visible; the full d3-geo catalogue is not exposed.
+- [x] **i18n** — `settings.map`, `settings.mapProjection`, and the four `settings.projection.*` names in
+      EN/FR/DE with parity.
+- [x] **Tests** — `types.test.ts` (default/guard/clamp coercion), `store.test.ts` round-trips a
+      non-default projection, `projection.test.ts` (distinct constructors + unknown→naturalEarth fallback),
+      and a `WorldMap` test that a non-default projection changes the projected `d`; existing `WorldMap` /
+      `map-framing` tests stay green under the default.
+
+### Owner decisions (clarifying round, 2026-07-10)
+- **Projections:** 4 planar — Natural Earth (default), Equal Earth, Equirectangular, Mercator. **No
+  orthographic globe** (deferred as the bigger lift it is).
+- **Control:** new **"Map"** heading in Settings + a **dropdown** of localized names.
+- **Preview:** a **small live preview** that re-projects as the pref changes (reuses the real
+  `MapBoard`, lazy-imported so d3-geo/geometry load only when Settings is opened).
+- **Scope:** **global** — one projection drives both map modes.
+
+### Live preview (added per owner's "small live preview" choice)
+- [x] A width-constrained, non-interactive whole-world `MapBoard` below the dropdown, re-deriving from
+      `$prefs.mapProjection`, so the chosen projection is visible without opening a map game.
 
 ## Technical notes
 - **Map a pref enum → constructor** in one small pure helper (`projectionFor(name): GeoProjection`),
@@ -113,4 +129,17 @@ this first as it's smaller). Independent of the review/practice phases (26, 27).
   projection also used for marker/hit-dot centroids), `map-framing.ts` (projection-agnostic MultiPoint
   fit), and the `Prefs` pattern in `Settings.svelte`. d3-geo already bundled, so extra projections are
   tree-shaken imports. NOT built — awaiting the clarifying round and explicit build approval.**
+- **2026-07-10 — Clarifying round with the owner (see *Owner decisions* above): 4 planar projections
+  (no globe), a "Map" heading + dropdown in Settings, a small live preview, global scope. Owner gave
+  explicit "go ahead".**
+- **2026-07-10 — Built & verified. Added the `mapProjection` pref (type + `MAP_PROJECTIONS` +
+  `isMapProjection` guard + `clampPrefs` coercion) and a pure `projectionFor()` helper
+  (`src/ui/components/projection.ts`); `WorldMap`/`MapBoard` gained a `projection` prop, `Play` passes
+  `$prefs.mapProjection`. Settings got the "Map" section (dropdown + lazy-loaded live preview). EN/FR/DE
+  strings added with parity. Tests: `types.test.ts`, `projection.test.ts`, a new WorldMap projection
+  test, and a non-default round-trip in `store.test.ts`. Fast loop green — `npm run check` (0 errors),
+  `npm run test` (446 passing), `npm run lint` clean. Manual headless-Chrome check on :5180: switching
+  the dropdown to Mercator re-projects the preview live (BR path changes), persists across reload, and a
+  map-highlight round then renders under Mercator with the highlight ring correctly positioned; no
+  console errors. **Phase ✅ Done.**
 </content>

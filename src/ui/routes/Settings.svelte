@@ -1,6 +1,7 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { t } from '../../i18n';
-  import { PREFS_BOUNDS } from '../../data';
+  import { PREFS_BOUNDS, MAP_PROJECTIONS, isMapProjection } from '../../data';
   import {
     prefs,
     updatePrefs,
@@ -23,6 +24,19 @@
       if (Number.isFinite(value)) updatePrefs({ [field]: value });
     };
   }
+
+  // Map projection (Phase 28): a curated dropdown + a small live preview. The preview
+  // reuses the real MapBoard so it matches gameplay exactly; lazy-imported (as Play does)
+  // so d3-geo + the geometry chunk load only when Settings is opened, not app-wide.
+  function onProjection(e: Event & { currentTarget: HTMLSelectElement }): void {
+    const value = e.currentTarget.value;
+    if (isMapProjection(value)) updatePrefs({ mapProjection: value });
+  }
+
+  let MapBoard = $state<typeof import('../components/MapBoard.svelte').default | null>(null);
+  onMount(() => {
+    void import('../components/MapBoard.svelte').then((m) => (MapBoard = m.default));
+  });
 
   // "Data" section — scoped, separately-confirmed resets (Phase 13). Each control
   // disables once its store is empty, giving immediate on-screen feedback with no toast.
@@ -103,6 +117,25 @@
   </div>
 
   <p class="hint">{$t('settings.hint')}</p>
+
+  <h2>{$t('settings.map')}</h2>
+
+  <div class="row">
+    <label class="label" for="pref-projection">{$t('settings.mapProjection')}</label>
+    <select id="pref-projection" value={$prefs.mapProjection} onchange={onProjection}>
+      {#each MAP_PROJECTIONS as p (p)}
+        <option value={p}>{$t(`settings.projection.${p}`)}</option>
+      {/each}
+    </select>
+  </div>
+
+  <div class="map-preview" aria-hidden="true">
+    {#if MapBoard}
+      <MapBoard projection={$prefs.mapProjection} />
+    {:else}
+      <div class="map-preview-placeholder"></div>
+    {/if}
+  </div>
 
   <h2>{$t('settings.data.title')}</h2>
 
@@ -196,6 +229,34 @@
   input[type='number']:focus {
     outline: none;
     border-color: var(--color-accent);
+  }
+
+  select {
+    padding: 0.4rem 0.55rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+
+  /* A small, non-interactive world thumbnail that re-projects as the pref changes,
+     so the chosen projection is visible without opening a map game. */
+  .map-preview {
+    max-width: 26rem;
+  }
+
+  .map-preview-placeholder {
+    aspect-ratio: 980 / 500;
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
   }
 
   .warning {

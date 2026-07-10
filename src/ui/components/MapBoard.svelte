@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { loadCountryFeatures, type CountryFeature } from '../../data';
+  import { loadCountryFeatures, type CountryFeature, type MapProjection } from '../../data';
   import { t } from '../../i18n';
   import WorldMap from './WorldMap.svelte';
 
@@ -14,6 +14,7 @@
     revealIso = null,
     revealLabel = null,
     focusIsos = null,
+    projection = 'naturalEarth',
     interactive = false,
     disabled = false,
     onpick,
@@ -23,6 +24,7 @@
     revealIso?: string | null;
     revealLabel?: string | null;
     focusIsos?: string[] | null;
+    projection?: MapProjection;
     interactive?: boolean;
     disabled?: boolean;
     onpick?: (iso2: string) => void;
@@ -48,6 +50,7 @@
     {revealIso}
     {revealLabel}
     {focusIsos}
+    {projection}
     {interactive}
     {disabled}
     {onpick}

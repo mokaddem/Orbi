@@ -87,12 +87,33 @@ export interface CustomSet {
   updatedAt: number;
 }
 
+/**
+ * Map projection offered for the map modes (Phase 28). All are planar D3-geo
+ * projections that fit the flat board via `fitExtent`; kept a small curated set so
+ * every in-scope country stays visible. `naturalEarth` is the historical default.
+ */
+export type MapProjection = 'naturalEarth' | 'equalEarth' | 'equirectangular' | 'mercator';
+
+/** The offered projections, in display order (drives the Settings dropdown). */
+export const MAP_PROJECTIONS = [
+  'naturalEarth',
+  'equalEarth',
+  'equirectangular',
+  'mercator',
+] as const satisfies readonly MapProjection[];
+
+/** Type guard so a corrupted/legacy stored value falls back to the default. */
+export function isMapProjection(value: unknown): value is MapProjection {
+  return typeof value === 'string' && (MAP_PROJECTIONS as readonly string[]).includes(value);
+}
+
 /** User-editable preferences, persisted and applied at startup. */
 export interface Prefs {
   language: Locale;
   survivalLives: number;
   fixedLength: number;
   choicesPerQuestion: number;
+  mapProjection: MapProjection;
 }
 
 /** Defaults applied on first run and merged over any partially-stored prefs. */
@@ -101,6 +122,7 @@ export const DEFAULT_PREFS: Prefs = {
   survivalLives: 3,
   fixedLength: 10,
   choicesPerQuestion: 4,
+  mapProjection: 'naturalEarth',
 };
 
 /** Bounds for the numeric prefs, shared by the Settings UI and validation. */
@@ -131,6 +153,10 @@ export function clampPrefs(prefs: Prefs): Prefs {
       PREFS_BOUNDS.choicesPerQuestion.min,
       PREFS_BOUNDS.choicesPerQuestion.max,
     ),
+    // Guard against a corrupted/legacy or absent value; absent → default via the merge.
+    mapProjection: isMapProjection(prefs.mapProjection)
+      ? prefs.mapProjection
+      : DEFAULT_PREFS.mapProjection,
   };
 }
 

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { geoNaturalEarth1, geoPath } from 'd3-geo';
+  import { geoPath } from 'd3-geo';
   import type { FeatureCollection } from 'geojson';
-  import type { CountryFeature } from '../../data';
+  import type { CountryFeature, MapProjection } from '../../data';
   import { t } from '../../i18n';
   import { focusFrame } from './map-framing';
+  import { projectionFor } from './projection';
 
   // Presentational D3-geo world map, shared by both map modes. It renders one SVG
   // path per country (joined geometry keyed by ISO alpha-2) and reports clicks back
@@ -22,6 +23,7 @@
     revealIso = null,
     revealLabel = null,
     focusIsos = null,
+    projection = 'naturalEarth',
     interactive = false,
     disabled = false,
     onpick,
@@ -46,6 +48,12 @@
      * reference (it doesn't change within a session) so the projection is memoized.
      */
     focusIsos?: string[] | null;
+    /**
+     * Which D3 projection to draw with (Phase 28, from the `mapProjection` pref). A
+     * config-level choice, not per-question — changing it re-projects once. Pass a
+     * *stable* value within a session so the projection stays memoized.
+     */
+    projection?: MapProjection;
     /** Whether clicks resolve to a pick (map-locate) vs. display-only (map-highlight). */
     interactive?: boolean;
     /** Locks interaction after an answer is submitted. */
@@ -70,8 +78,9 @@
     cy: number;
   }
 
-  // Project every country once. Recomputes only if `features` or `focusIsos` change
-  // (neither does during a session), so switching questions never re-runs the math.
+  // Project every country once. Recomputes only if `features`, `focusIsos`, or
+  // `projection` change (none does during a session), so switching questions never
+  // re-runs the math.
   // The projection is *fit* to the focused subset when one is given (zooming the
   // board into the active region) but still renders every country for context.
   //
@@ -86,14 +95,14 @@
     const fitTarget =
       frame ??
       ({ type: 'FeatureCollection', features: [...features.values()] } satisfies FeatureCollection);
-    const projection = geoNaturalEarth1().fitExtent(
+    const proj = projectionFor(projection).fitExtent(
       [
         [MARGIN, MARGIN],
         [WIDTH - MARGIN, HEIGHT - MARGIN],
       ],
       fitTarget,
     );
-    const path = geoPath(projection);
+    const path = geoPath(proj);
     const out: RenderedCountry[] = [];
     for (const [iso2, f] of features) {
       const d = path(f);

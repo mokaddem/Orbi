@@ -400,6 +400,14 @@ const en = {
     survivalLives: 'Lives in survival',
     choices: 'Answer choices per question',
     hint: 'Changes apply to your next game.',
+    map: 'Map',
+    mapProjection: 'Map projection',
+    projection: {
+      naturalEarth: 'Natural Earth',
+      equalEarth: 'Equal Earth',
+      equirectangular: 'Equirectangular',
+      mercator: 'Mercator',
+    },
     notPersisted: 'Storage is unavailable — settings and history won’t be saved.',
     data: {
       title: 'Data',

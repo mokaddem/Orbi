@@ -420,6 +420,14 @@ const fr: typeof en = {
     survivalLives: 'Vies en mode survie',
     choices: 'Choix de réponse par question',
     hint: 'Les changements s’appliquent à votre prochaine partie.',
+    map: 'Carte',
+    mapProjection: 'Projection de la carte',
+    projection: {
+      naturalEarth: 'Natural Earth',
+      equalEarth: 'Equal Earth',
+      equirectangular: 'Équirectangulaire',
+      mercator: 'Mercator',
+    },
     notPersisted:
       'Le stockage est indisponible — les paramètres et l’historique ne seront pas enregistrés.',
     data: {

@@ -23,7 +23,13 @@ beforeEach(() => {
   setLocale('en');
   push.mockClear();
   pendingConfig.set(null);
-  prefs.set({ language: 'en', survivalLives: 5, fixedLength: 12, choicesPerQuestion: 4 });
+  prefs.set({
+    language: 'en',
+    survivalLives: 5,
+    fixedLength: 12,
+    choicesPerQuestion: 4,
+    mapProjection: 'naturalEarth',
+  });
 });
 afterEach(() => setLocale('en'));
 

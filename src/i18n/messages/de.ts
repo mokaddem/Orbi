@@ -418,6 +418,14 @@ const de: typeof en = {
     survivalLives: 'Leben im Überlebensmodus',
     choices: 'Antwortmöglichkeiten pro Frage',
     hint: 'Änderungen gelten ab deiner nächsten Runde.',
+    map: 'Karte',
+    mapProjection: 'Kartenprojektion',
+    projection: {
+      naturalEarth: 'Natural Earth',
+      equalEarth: 'Equal Earth',
+      equirectangular: 'Äquirektangulär',
+      mercator: 'Mercator',
+    },
     notPersisted:
       'Der Speicher ist nicht verfügbar — Einstellungen und Verlauf werden nicht gesichert.',
     data: {

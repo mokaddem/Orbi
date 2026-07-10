@@ -418,6 +418,7 @@
               ? $localizedName(question.answer)
               : null}
             focusIsos={mapFocusIsos(cfg)}
+            projection={$prefs.mapProjection}
             onpick={onMapPick}
           />
         {:else}

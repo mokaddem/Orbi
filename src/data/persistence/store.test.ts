@@ -29,7 +29,13 @@ function record(over: Partial<SessionRecord> = {}): SessionRecord {
   };
 }
 
-const prefs: Prefs = { language: 'fr', survivalLives: 5, fixedLength: 20, choicesPerQuestion: 6 };
+const prefs: Prefs = {
+  language: 'fr',
+  survivalLives: 5,
+  fixedLength: 20,
+  choicesPerQuestion: 6,
+  mapProjection: 'equalEarth',
+};
 
 const srItem: SRItem = {
   itemKey: 'flag-to-country:BG',

@@ -39,6 +39,7 @@ export type {
   AchievementUnlock,
   CustomSet,
   DailyResult,
+  MapProjection,
   Prefs,
   QuizStore,
   SessionRecord,
@@ -46,8 +47,10 @@ export type {
 } from './persistence';
 export {
   DEFAULT_PREFS,
+  MAP_PROJECTIONS,
   PREFS_BOUNDS,
   clampPrefs,
+  isMapProjection,
   openStore,
   IdbQuizStore,
   MemoryQuizStore,
