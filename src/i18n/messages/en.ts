@@ -10,6 +10,7 @@ const en = {
     play: 'Play',
     atlas: 'Atlas',
     history: 'History',
+    progress: 'Progress',
     settings: 'Settings',
     primary: 'Primary navigation',
   },
@@ -207,7 +208,7 @@ const en = {
     newGame: 'New game',
   },
   history: {
-    title: 'History & stats',
+    title: 'History',
     loading: 'Loading your history…',
     empty: 'No sessions yet — play a game to start tracking your progress.',
     play: 'Play now',
@@ -234,6 +235,10 @@ const en = {
     clearConfirm: 'Delete all saved sessions? This cannot be undone.',
   },
   progress: {
+    title: 'Progress',
+    loading: 'Loading your progress…',
+    empty: 'No progress yet — play a game and your mastery will appear here.',
+    play: 'Play now',
     mastery: {
       title: 'World mastery',
       learned: '{mastered} of {total} countries learned',

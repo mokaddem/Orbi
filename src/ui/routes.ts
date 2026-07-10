@@ -5,6 +5,7 @@ import Play from './routes/Play.svelte';
 import Practice from './routes/Practice.svelte';
 import Summary from './routes/Summary.svelte';
 import History from './routes/History.svelte';
+import Progress from './routes/Progress.svelte';
 import Settings from './routes/Settings.svelte';
 import Atlas from './routes/Atlas.svelte';
 import AtlasRegion from './routes/AtlasRegion.svelte';
@@ -18,6 +19,7 @@ const routes: RouteDefinition = {
   '/practice': Practice,
   '/summary': Summary,
   '/history': History,
+  '/progress': Progress,
   '/atlas': Atlas,
   '/atlas/region/:region': AtlasRegion,
   '/atlas/country/:iso2': AtlasCountry,
@@ -31,6 +33,7 @@ export const navLinks: { href: string; labelKey: string; icon: IconName }[] = [
   { href: '#/play', labelKey: 'nav.play', icon: 'play' },
   { href: '#/atlas', labelKey: 'nav.atlas', icon: 'map' },
   { href: '#/history', labelKey: 'nav.history', icon: 'history' },
+  { href: '#/progress', labelKey: 'nav.progress', icon: 'trophy' },
   { href: '#/settings', labelKey: 'nav.settings', icon: 'settings' },
 ];
 

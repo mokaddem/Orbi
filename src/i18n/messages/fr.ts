@@ -12,6 +12,7 @@ const fr: typeof en = {
     play: 'Jouer',
     atlas: 'Atlas',
     history: 'Historique',
+    progress: 'Progrès',
     settings: 'Paramètres',
     primary: 'Navigation principale',
   },
@@ -212,7 +213,7 @@ const fr: typeof en = {
     newGame: 'Nouvelle partie',
   },
   history: {
-    title: 'Historique et statistiques',
+    title: 'Historique',
     loading: 'Chargement de votre historique…',
     empty: 'Aucune session pour l’instant — jouez une partie pour suivre votre progression.',
     play: 'Jouer maintenant',
@@ -239,6 +240,10 @@ const fr: typeof en = {
     clearConfirm: 'Supprimer toutes les sessions enregistrées ? Cette action est irréversible.',
   },
   progress: {
+    title: 'Progrès',
+    loading: 'Chargement de votre progression…',
+    empty: 'Aucune progression pour l’instant — jouez une partie et votre maîtrise apparaîtra ici.',
+    play: 'Jouer maintenant',
     mastery: {
       title: 'Maîtrise du monde',
       learned: '{mastered} pays sur {total} appris',

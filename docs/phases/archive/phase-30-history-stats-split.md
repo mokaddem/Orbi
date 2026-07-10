@@ -1,6 +1,6 @@
 # Phase 30 — Split "History & stats" into two pages (History · Progress)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.5 navigation & visual depth
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -50,22 +50,29 @@ with, Phase 29** (Home mastery breakdown) and **Phase 31** (visual sweep) so the
 consistently. No data-model change.
 
 ## Scope / Deliverables
-- [ ] **Decide the split** (Open Question 1) — which panels go on **History** (the activity log) vs.
-      **Progress** (learning/achievements). Working proposal:
-      - **Progress/Stats page:** overview tiles · This week · World mastery · Achievements · Extra
-        knowledge.
-      - **History page:** Sessions per day · Most-missed · Recent sessions.
-- [ ] **New route + page component** — add the second route to `routes.ts`, split `History.svelte`
-      into two route components (extract shared panels/loaders so nothing is duplicated).
-- [ ] **Navigation** — add the second primary-nav entry with a fitting icon; decide final nav order and
-      whether the count (6 entries) needs any responsive treatment.
-- [ ] **i18n (EN/FR/DE)** — new nav label + page title(s); keep existing `history.*` / `progress.*`
-      keys or regroup them coherently; parity across locales.
-- [ ] **Per-page empty states** — each page needs its own "nothing yet" copy (today one empty state
-      guards the whole route).
-- [ ] **Re-point inbound links** — nav and any deep links to `/history` route to the intended page.
-- [ ] **Tests** — update `History.test.ts` (now split); assert each page renders its own panels + empty
-      state; nav shows both entries.
+- [x] **Decide the split** (Open Question 1) — confirmed the working proposal as written:
+      - **Progress page (`#/progress`):** overview tiles · This week · World mastery · Achievements ·
+        Extra knowledge.
+      - **History page (`#/history`):** Sessions per day · Most-missed · Recent sessions.
+- [x] **New route + page component** — added `'/progress'` to `routes.ts` and a new
+      `routes/Progress.svelte`; `History.svelte` slimmed to the three activity panels. Each page has a
+      narrow `refresh()` loading only what it renders (History → sessions; Progress → sessions for the
+      tiles + the mastery/recap/achievement rollups).
+- [x] **Navigation** — added a sixth primary-nav entry (Progress, `trophy` icon); order is
+      Home · Play · Atlas · History · Progress · Settings. The header already `flex-wrap`s, so six entries
+      fit on one row at desktop width and wrap gracefully when narrower — no extra responsive treatment
+      needed.
+- [x] **i18n (EN/FR/DE)** — added `nav.progress` (Progress / Progrès / Fortschritt) and
+      `progress.title` / `progress.loading` / `progress.empty` / `progress.play`; retitled `history.title`
+      from "History & stats" → "History" (Historique / Verlauf). Kept the existing `history.stats.*`
+      keys as-is (now referenced from Progress) to minimise churn.
+- [x] **Per-page empty states** — each page has its own sleepy-mascot empty state with distinct copy
+      ("No sessions yet…" vs. "No progress yet…").
+- [x] **Re-point inbound links** — audited: the *only* inbound link to `#/history` was the nav entry
+      itself (Summary CTA → `#/play`; Home shows mastery inline). Nothing else to re-point.
+- [x] **Tests** — split `History.test.ts` (asserts timeline/most-missed/recent + its empty state, and
+      that learning panels never appear here); added `Progress.test.ts` (tiles + World mastery +
+      empty state + the capitals/languages Extra-knowledge reveal). 456 tests green.
 
 ## Technical notes
 - **Factor the loaders, don't fork them.** `refresh()` currently loads everything; give each page a
@@ -105,3 +112,18 @@ consistently. No data-model change.
   pages." Grounded in the single `/history` route + `History.svelte` carrying eight panels across two
   concerns (activity log vs. learning/progress). NOT built — awaiting the clarifying round and explicit
   build approval.**
+- **2026-07-10 — Clarifying round resolved with the owner (all recommended defaults):**
+  1. **Split** — working proposal *as written*: Progress = overview tiles · This week · World mastery ·
+     Achievements · Extra knowledge; History = Sessions per day · Most-missed · Recent sessions.
+  2. **Names/icons** — learning page = **Progress** (`trophy` icon), FR *Progrès* / DE *Fortschritt*;
+     History keeps its name and icon.
+  3. **Most-missed** — stays on **History** (pairs with the session log).
+  4. **Nav growth** — **six** top-level entries accepted (header flex-wraps; no icon-only breakpoint).
+  5. **Landing** — **no** new Summary link; kept a pure IA split (Summary owned by Phase 16).
+- **2026-07-10 — Built & verified. ✅ Done.** Added `routes/Progress.svelte` + `'/progress'` route and
+  a sixth nav entry; slimmed `History.svelte` to the three activity panels. i18n added across EN/FR/DE
+  (`nav.progress`, `progress.title/loading/empty/play`; `history.title` retitled). Split
+  `History.test.ts` and added `Progress.test.ts`. Fast loop green: **456 tests pass**, `check` 0
+  errors, `lint` clean. Manual headless-Chrome check on :5180 of both pages, populated and empty
+  (seeded IndexedDB via CDP) — correct panel split, six-entry nav on one row, distinct per-page empty
+  states, **no console/page errors**.

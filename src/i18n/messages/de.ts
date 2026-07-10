@@ -18,6 +18,7 @@ const de: typeof en = {
     play: 'Spielen',
     atlas: 'Atlas',
     history: 'Verlauf',
+    progress: 'Fortschritt',
     settings: 'Einstellungen',
     primary: 'Hauptnavigation',
   },
@@ -219,7 +220,7 @@ const de: typeof en = {
     newGame: 'Neues Spiel',
   },
   history: {
-    title: 'Verlauf & Statistiken',
+    title: 'Verlauf',
     loading: 'Dein Verlauf wird geladen…',
     empty: 'Noch keine Runden — spiel eine Partie, um deinen Fortschritt zu verfolgen.',
     play: 'Jetzt spielen',
@@ -246,6 +247,10 @@ const de: typeof en = {
     clearConfirm: 'Alle gespeicherten Runden löschen? Das kann nicht rückgängig gemacht werden.',
   },
   progress: {
+    title: 'Fortschritt',
+    loading: 'Dein Fortschritt wird geladen…',
+    empty: 'Noch kein Fortschritt — spiel eine Partie und dein Weltwissen erscheint hier.',
+    play: 'Jetzt spielen',
     mastery: {
       title: 'Weltwissen',
       learned: '{mastered} von {total} Ländern gemeistert',

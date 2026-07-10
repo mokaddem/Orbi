@@ -149,7 +149,7 @@ the final page structure (31 also best follows 29's identity work).
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 30 | Split "History & stats" into two pages (History · Progress) | [phase-30-history-stats-split.md](phases/phase-30-history-stats-split.md) | 6, 16, 23/24 | ⬜ Not started | 0% |
+| 30 | Split "History & stats" into two pages (History · Progress) | [phase-30-history-stats-split.md](phases/archive/phase-30-history-stats-split.md) | 6, 16, 23/24 | ✅ Done | 100% |
 | 31 | Full UI visual sweep (more icons, flags & maps) | [phase-31-ui-visual-sweep.md](phases/phase-31-ui-visual-sweep.md) | 12, 18 (after 29, 30) | ⬜ Not started | 0% |
 
 ### v1.6 — Learning depth (explain the answer)

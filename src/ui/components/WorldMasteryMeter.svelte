@@ -8,7 +8,7 @@
   // World-mastery meter (Phase 16): "how much of the world have I learned". A segmented
   // progress bar — solid for mastered countries, a lighter band for those still in
   // learning — plus a count. `compact` is the slimmer variant shown on Home; the full
-  // variant is a titled card on History. Presentational: given the computed rollup.
+  // variant is a titled card on the Progress page. Presentational: given the computed rollup.
   //
   // `titleKey` / `learnedKey` / `icon` default to the country-mastery labels but let the
   // same meter render the separate capital-mastery rollup (Phase 24).
