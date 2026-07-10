@@ -38,6 +38,7 @@ const de: typeof en = {
     regionLabel: 'Region',
     subregionLabel: 'Unterregion',
     capitalLabel: 'Hauptstadt',
+    languagesLabel: 'Sprachen',
   },
   home: {
     title: 'Geografie-Quiz',

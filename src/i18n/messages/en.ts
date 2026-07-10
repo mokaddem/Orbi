@@ -30,6 +30,7 @@ const en = {
     regionLabel: 'Region',
     subregionLabel: 'Sub-region',
     capitalLabel: 'Capital',
+    languagesLabel: 'Languages',
   },
   home: {
     title: 'Geography Quiz',

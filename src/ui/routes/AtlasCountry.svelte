@@ -40,6 +40,10 @@
             <dd>{$localizedText(country.capital)}</dd>
           </div>
           <div class="fact">
+            <dt>{$t('atlas.languagesLabel')}</dt>
+            <dd>{country.languages.map((lang) => $localizedText(lang.name)).join(', ')}</dd>
+          </div>
+          <div class="fact">
             <dt>{$t('atlas.regionLabel')}</dt>
             <dd>
               <a href="#/atlas/region/{encodeURIComponent(country.region)}">

@@ -32,6 +32,7 @@ const fr: typeof en = {
     regionLabel: 'Région',
     subregionLabel: 'Sous-région',
     capitalLabel: 'Capitale',
+    languagesLabel: 'Langues',
   },
   home: {
     title: 'Quiz de géographie',
