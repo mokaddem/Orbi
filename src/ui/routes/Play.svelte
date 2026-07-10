@@ -21,6 +21,7 @@
   } from '../stores/game';
   import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
+  import PageHero from '../components/PageHero.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
   import SegmentedControl from '../components/SegmentedControl.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
@@ -256,7 +257,7 @@
 
 {#if $play.status === 'idle'}
   <section class="setup">
-    <h1>{$t('play.title')}</h1>
+    <PageHero title={$t('play.title')} pose="wave" />
 
     <div class="field">
       <span class="legend">{$t('play.setup.chooseMode')}</span>

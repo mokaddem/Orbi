@@ -130,6 +130,12 @@ the final reveal surface once.
 - Answer-explanation content (Phase 32) and the icon/flag/map enrichment sweep (Phase 31).
 
 ## Progress log
+- **2026-07-10 — Follow-up: header Orbi on Play / Progress / History.** Owner noted these
+  populated pages still lacked the mascot. Added a shared `PageHero.svelte` (idle Orbi beside the
+  `<h1>`) to the **Play setup** screen (`wave`), **Progress** header (reactive: `proud` once anything
+  is mastered, else `wave`), and **History** header (`relaxed`, keeping the Clear-history button).
+  **Mid-game (Play questions) still left calm** by design — offered to add it there too. Verified via
+  headless-Chrome screenshots of all three; `test` (492) / `check` / `lint` green.
 - **2026-07-10 — Built & verified (approved).** Clarifying round resolved with the owner:
   **OQ1 intensity → Expressive** (idle breathe/blink baseline, bounce-in entrances, confetti + bounce on
   wins, wiggle/pop on unlocks & streaks); **OQ2 poses → `proud` + `encouraging` + `cheer`** (3 new, now 9

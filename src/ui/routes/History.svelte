@@ -6,6 +6,7 @@
   import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
   import MascotScene from '../components/MascotScene.svelte';
+  import PageHero from '../components/PageHero.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
 
@@ -67,7 +68,7 @@
 
 <section class="history">
   <div class="head">
-    <h1>{$t('history.title')}</h1>
+    <PageHero title={$t('history.title')} pose="relaxed" />
     {#if sessions.length > 0}
       <button type="button" class="clear" onclick={onClear}>{$t('history.clear')}</button>
     {/if}

@@ -23,6 +23,7 @@
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
   import MascotScene from '../components/MascotScene.svelte';
+  import PageHero from '../components/PageHero.svelte';
   import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
   import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
   import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
@@ -52,6 +53,9 @@
 
   // Country badges stay in the main grid; extra-topic badges (capitals/languages) move into
   // the combined panel so the main grid doesn't grow with every new mode.
+  // Header Orbi (Phase 33): proud once the player has mastered something, else a friendly wave.
+  const heroPose = $derived(mastery && mastery.overall.mastered > 0 ? 'proud' : 'wave');
+
   const countryAchievements = $derived(achievements.filter((a) => !a.topic));
   const extraAchievements = $derived(achievements.filter((a) => a.topic));
   // Badges that unlocked on this load — celebrated once via a dismissible banner.
@@ -84,7 +88,7 @@
 
 <section class="progress">
   <div class="head">
-    <h1>{$t('progress.title')}</h1>
+    <PageHero title={$t('progress.title')} pose={heroPose} />
   </div>
 
   {#if $storageReady && !$persistent}
