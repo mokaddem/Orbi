@@ -1,6 +1,6 @@
 # Phase 31 — Full UI visual sweep (more icons, flags & maps throughout)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.5 navigation & visual depth
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -137,4 +137,4 @@ page structure and identity rather than being redone.
   :5180, prod build shows no new chunk or bundle jump. **Known limitation:** on the AtlasCountry locator,
   micro-states (e.g. Tuvalu) are too small to show as a visible focus fill — the tinted region still
   locates them; a Phase-22-style marker dot could be a later refinement.
-  **Not yet committed/archived** — awaiting the owner's review of the result; archive on merge.
+  **Committed 2026-07-10 (8fcdeaa) after the owner's review; PRD archived to `phases/archive/`.**
