@@ -71,6 +71,48 @@ describe('country dataset', () => {
   });
 });
 
+describe('industries dataset (Phase 25)', () => {
+  const countries = getCountries();
+
+  it('every country has ≥1 industry or is a documented exception, and the split is exhaustive', () => {
+    const exceptions = new Set<string>(meta.industryExceptions);
+    for (const c of countries) {
+      if (c.industries.length === 0) {
+        expect(exceptions.has(c.iso2), `${c.iso2} has no industries but isn't in exceptions`).toBe(
+          true,
+        );
+      } else {
+        expect(exceptions.has(c.iso2), `${c.iso2} is covered but also listed as an exception`).toBe(
+          false,
+        );
+      }
+    }
+    const covered = countries.filter((c) => c.industries.length > 0).length;
+    expect(covered).toBe(meta.counts.withIndustries);
+    expect(covered + meta.industryExceptions.length).toBe(195);
+  });
+
+  it('gives every industry a kebab-case key and a complete localized name, unique per country', () => {
+    for (const c of countries) {
+      const keys = c.industries.map((i) => i.key);
+      expect(new Set(keys).size, `duplicate industry key in ${c.iso2}`).toBe(keys.length);
+      for (const ind of c.industries) {
+        expect(ind.key, `key shape for ${c.iso2}`).toMatch(/^[a-z][a-z-]*[a-z]$/);
+        expect(ind.name.en.length, `en name for ${c.iso2}:${ind.key}`).toBeGreaterThan(0);
+        expect(ind.name.fr.length, `fr name for ${c.iso2}:${ind.key}`).toBeGreaterThan(0);
+        expect(ind.name.de.length, `de name for ${c.iso2}:${ind.key}`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('uses a 20-category taxonomy over a quiz-sized pool of well-known economies', () => {
+    expect(meta.counts.industryTaxonomy).toBe(20);
+    // Guard against an accidentally-narrow dataset: the pool must stay large enough for a real
+    // quiz (owner chose "well-known economies", which landed at ~140). Exact number may shift.
+    expect(meta.counts.withIndustries).toBeGreaterThanOrEqual(100);
+  });
+});
+
 describe('flagUrl', () => {
   it('resolves a URL from a country or an ISO code', () => {
     const bg = getCountry('BG')!;

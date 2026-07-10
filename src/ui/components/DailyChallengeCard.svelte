@@ -27,6 +27,7 @@
     'capital-to-country': 'modes.capitalToCountry',
     'country-to-capital': 'modes.countryToCapital',
     'country-to-languages': 'modes.countryToLanguages',
+    'country-to-industry': 'modes.mainIndustries',
   };
 
   const region = $derived(challenge.filter?.region ?? null);

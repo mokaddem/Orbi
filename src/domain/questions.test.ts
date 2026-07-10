@@ -12,18 +12,28 @@ import {
   filterCountries,
   generateQuestions,
   hasOptions,
+  isIndustryQuizEligible,
   isLanguageQuizEligible,
   isMapMode,
   itemKey,
   languageOptionCount,
+  pickCorrectIndustry,
   selectDistractors,
+  selectIndustryDistractors,
   selectLanguageDistractors,
 } from './questions';
 import type { GameMode } from './types';
 
 /** A minimal synthetic country for deterministic, dataset-independent assertions. `langs`
- *  are ISO-639-3-ish codes; defaults to a single language unique to the country. */
-function mk(iso2: string, region: string, subregion: string, langs?: string[]): Country {
+ *  are ISO-639-3-ish codes; defaults to a single language unique to the country. `inds` are
+ *  industry taxonomy-ish keys; defaults to a single industry unique to the country. */
+function mk(
+  iso2: string,
+  region: string,
+  subregion: string,
+  langs?: string[],
+  inds?: string[],
+): Country {
   return {
     iso2,
     iso3: (iso2 + 'Z').toUpperCase(),
@@ -33,6 +43,10 @@ function mk(iso2: string, region: string, subregion: string, langs?: string[]): 
     languages: (langs ?? [iso2.toLowerCase()]).map((code) => ({
       code,
       name: { en: code, fr: code, de: code },
+    })),
+    industries: (inds ?? [`ind-${iso2.toLowerCase()}`]).map((key) => ({
+      key,
+      name: { en: key, fr: key, de: key },
     })),
     region,
     subregion,
@@ -348,6 +362,88 @@ describe('languages mode (country-to-languages)', () => {
     expect(q.attributeOptions).toHaveLength(6); // 1 correct + 5 distractors
     expect(checkAnswer(q, ['jpn'])).toBe(true);
     expect(checkAnswer(q, ['jpn', 'kor'])).toBe(false);
+  });
+});
+
+describe('industries mode (country-to-industry)', () => {
+  // Single-select attribute mode: one of the answer's industries is correct; distractors are
+  // taxonomy industries the country lacks, tiered by geography (like languages). Arranged so
+  // sub-region / region / world tiers are distinct, with one empty-industry (ineligible) state.
+  const I1 = mk('I1', 'Eur', 'West', ['nld'], ['oil-gas', 'tourism']); // the answer (2 industries)
+  const I2 = mk('I2', 'Eur', 'West', ['nld'], ['fishing']); // sub-region: one foreign industry
+  const I3 = mk('I3', 'Eur', 'North', ['swe'], ['automotive', 'mining']); // same region tier
+  const I4 = mk('I4', 'Eur', 'North', ['dan'], ['textiles']);
+  const I5 = mk('I5', 'Asia', 'East', ['jpn'], ['electronics']); // world tier
+  const I6 = mk('I6', 'Asia', 'East', ['kor'], ['finance']); // world tier
+  const NOIND = mk('NX', 'Eur', 'West', ['nld'], []); // no industries → ineligible
+  const IND_UNIVERSE = [I1, I2, I3, I4, I5, I6, NOIND];
+
+  it('isIndustryQuizEligible excludes countries with no curated industries', () => {
+    expect(isIndustryQuizEligible(I1)).toBe(true);
+    expect(isIndustryQuizEligible(NOIND)).toBe(false);
+    const eligible = eligibleAnswers('country-to-industry', IND_UNIVERSE).map((c) => c.iso2);
+    expect(eligible).toContain('I1');
+    expect(eligible).not.toContain('NX');
+    // NOIND is still allowed as a distractor source elsewhere — just never an answer.
+  });
+
+  it('selectIndustryDistractors never returns one of the answer’s industries, and dedups', () => {
+    const d = selectIndustryDistractors(I1, IND_UNIVERSE, 4, mulberry32(3)).map((i) => i.key);
+    for (const own of ['oil-gas', 'tourism']) expect(d).not.toContain(own);
+    expect(new Set(d).size).toBe(d.length);
+    expect(d.length).toBeLessThanOrEqual(4);
+  });
+
+  it('selectIndustryDistractors prefers nearer geography first', () => {
+    // Sub-region (West) offers exactly one foreign industry: fishing (I2). It wins at count 1.
+    const one = selectIndustryDistractors(I1, IND_UNIVERSE, 1, mulberry32(1));
+    expect(one[0].key).toBe('fishing');
+    // At count 4: sub-region (fishing) + the whole region tier (automotive/mining/textiles) fill
+    // it, before any world-tier industry (electronics/finance) is reached.
+    const four = selectIndustryDistractors(I1, IND_UNIVERSE, 4, mulberry32(1)).map((i) => i.key);
+    expect(new Set(four)).toEqual(new Set(['fishing', 'automotive', 'mining', 'textiles']));
+  });
+
+  it('pickCorrectIndustry returns one of the country’s own industries', () => {
+    for (let seed = 0; seed < 8; seed++) {
+      expect(['oil-gas', 'tourism']).toContain(pickCorrectIndustry(I1, mulberry32(seed)).key);
+    }
+  });
+
+  it('buildQuestion offers one real industry against foreign distractors (single-select)', () => {
+    const q = buildQuestion(
+      'country-to-industry',
+      I1,
+      IND_UNIVERSE,
+      DEFAULT_CHOICES,
+      mulberry32(7),
+    );
+    expect(q.options).toBeUndefined();
+    expect(q.correctOptionIds).toBeUndefined();
+    expect(q.itemKey).toBe('country-to-industry:I1');
+    expect(q.attributeOptions).toHaveLength(DEFAULT_CHOICES); // 1 correct + 3 distractors
+    // The correct option is one of the country's real industries.
+    expect(['oil-gas', 'tourism']).toContain(q.correctOptionId);
+    const ids = q.attributeOptions!.map((o) => o.id);
+    expect(new Set(ids).size).toBe(ids.length); // unique
+    expect(ids).toContain(q.correctOptionId);
+    // No distractor is one of the country's industries (the Phase 25 rule).
+    const distractors = ids.filter((id) => id !== q.correctOptionId);
+    for (const own of ['oil-gas', 'tourism']) expect(distractors).not.toContain(own);
+  });
+
+  it('checkAnswer grades the single picked industry id', () => {
+    const q = buildQuestion(
+      'country-to-industry',
+      I1,
+      IND_UNIVERSE,
+      DEFAULT_CHOICES,
+      mulberry32(2),
+    );
+    expect(checkAnswer(q, q.correctOptionId!)).toBe(true);
+    const wrong = q.attributeOptions!.find((o) => o.id !== q.correctOptionId)!;
+    expect(checkAnswer(q, wrong.id)).toBe(false);
+    expect(checkAnswer(q, null)).toBe(false);
   });
 });
 

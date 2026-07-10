@@ -43,6 +43,12 @@
             <dt>{$t('atlas.languagesLabel')}</dt>
             <dd>{country.languages.map((lang) => $localizedText(lang.name)).join(', ')}</dd>
           </div>
+          {#if country.industries.length}
+            <div class="fact">
+              <dt>{$t('atlas.industriesLabel')}</dt>
+              <dd>{country.industries.map((ind) => $localizedText(ind.name)).join(', ')}</dd>
+            </div>
+          {/if}
           <div class="fact">
             <dt>{$t('atlas.regionLabel')}</dt>
             <dd>

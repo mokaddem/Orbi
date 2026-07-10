@@ -39,6 +39,7 @@ const de: typeof en = {
     subregionLabel: 'Unterregion',
     capitalLabel: 'Hauptstadt',
     languagesLabel: 'Sprachen',
+    industriesLabel: 'Hauptindustrien',
   },
   home: {
     title: 'Geografie-Quiz',
@@ -94,6 +95,7 @@ const de: typeof en = {
     capitalToCountry: 'Hauptstadt → Land',
     countryToCapital: 'Land → Hauptstadt',
     countryToLanguages: 'Landessprachen',
+    mainIndustries: 'Hauptindustrien',
   },
   sessionType: {
     fixed: 'Fest',
@@ -122,6 +124,7 @@ const de: typeof en = {
       whichCountryOfCapital: 'Hauptstadt welches Landes ist das?',
       whichCapital: 'Was ist seine Hauptstadt?',
       whichLanguages: 'Wähle alle {count} hier gesprochenen Sprachen',
+      whichIndustry: 'Welche ist hier eine Hauptindustrie?',
     },
     multi: {
       submit: 'Bestätigen ({count})',
@@ -143,6 +146,7 @@ const de: typeof en = {
       wrong: 'Nicht ganz',
       reveal: 'Es ist {country}',
       revealLanguages: '{country}: {languages}',
+      revealIndustries: '{country}: {industries}',
     },
     quit: 'Beenden',
   },
@@ -205,6 +209,11 @@ const de: typeof en = {
       title: 'Sprachen',
       learned: 'Sprachen von {mastered} von {total} Ländern gemeistert',
       regionsTitle: 'Sprachen nach Region',
+    },
+    industryMastery: {
+      title: 'Industrien',
+      learned: 'Industrien von {mastered} von {total} Ländern gemeistert',
+      regionsTitle: 'Industrien nach Region',
     },
     extras: {
       title: 'Zusatzwissen',
@@ -308,6 +317,38 @@ const de: typeof en = {
         'languages-world': {
           title: 'Weltlinguist',
           desc: 'Meistere die Sprachen aller Länder der Welt.',
+        },
+        'industries-collector': {
+          title: 'Industrie-Spürnase',
+          desc: 'Meistere die Industrien von 25 Ländern.',
+        },
+        'industries-europe': {
+          title: 'Industrien Europas',
+          desc: 'Meistere die Industrien aller Länder Europas.',
+        },
+        'industries-africa': {
+          title: 'Industrien Afrikas',
+          desc: 'Meistere die Industrien aller Länder Afrikas.',
+        },
+        'industries-asia': {
+          title: 'Industrien Asiens',
+          desc: 'Meistere die Industrien aller Länder Asiens.',
+        },
+        'industries-americas': {
+          title: 'Industrien Amerikas',
+          desc: 'Meistere die Industrien aller Länder Amerikas.',
+        },
+        'industries-oceania': {
+          title: 'Industrien Ozeaniens',
+          desc: 'Meistere die Industrien aller Länder Ozeaniens.',
+        },
+        'industries-century': {
+          title: 'Industrie-Gelehrter',
+          desc: 'Meistere die Industrien von 100 Ländern.',
+        },
+        'industries-world': {
+          title: 'Weltindustrieller',
+          desc: 'Meistere die Industrien aller Länder der Welt.',
         },
       },
     },

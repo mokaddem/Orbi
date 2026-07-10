@@ -114,7 +114,7 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/archive/phase-22-map-zoom-small-countries.md) | 4, 12 | ✅ Done | 100% (visible micro-state dots + ⭐ target-first reveal; interactive zoom → own future phase if needed) |
 | 23 | New mode: National languages | [phase-23-mode-languages.md](phases/archive/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ✅ Done | 100% (multi-select "select all"; all-or-nothing; curated EN/FR/DE names; capitals+languages folded into one combined "Extra knowledge" panel + achievements) |
 | 24 | New mode: Capitals | [phase-24-mode-capitals.md](phases/archive/phase-24-mode-capitals.md) | 2 (engine-generalization pilot) | ✅ Done | 100% (both directions + shared attribute-quiz engine for 23/25; Atlas capital entry + separate capital-mastery panel & achievements) |
-| 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |
+| 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ✅ Done | 100% (single-select "which is a main industry"; 20-category taxonomy EN/FR/DE; 142/195 curated; own mastery ladder) |
 
 ### v1.4 — Post-play feedback (from the owner's play session)
 
@@ -151,6 +151,19 @@ the final page structure (31 also best follows 29's identity work).
 |---|---|---|---|---|---|
 | 30 | Split "History & stats" into two pages (History · Progress) | [phase-30-history-stats-split.md](phases/phase-30-history-stats-split.md) | 6, 16, 23/24 | ⬜ Not started | 0% |
 | 31 | Full UI visual sweep (more icons, flags & maps) | [phase-31-ui-visual-sweep.md](phases/phase-31-ui-visual-sweep.md) | 12, 18 (after 29, 30) | ⬜ Not started | 0% |
+
+### v1.6 — Learning depth (explain the answer)
+
+A round of owner feedback while approving the v1.3 industries mode: don't let a wrong answer be a dead
+end — reveal a short, memorable **"why the correct answer is true"** fact (e.g. missing *Oil & gas*
+for the UAE reveals its share of the country's economy). Content-heavy and cross-cutting (shared
+reveal surface, trilingual facts), so tracked as its own phase. As before, the PRD **requires a
+clarifying-questions round with the owner before implementation** (see the callout at the top of the
+file). **Industries (25) is the motivating first target**; it extends to other modes as coverage grows.
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 32 | Answer explanations ("why" fun facts) | [phase-32-answer-explanations.md](phases/phase-32-answer-explanations.md) | 2, 25 (pilot; grows to 23/24 + identity modes) | ⬜ Not started | 0% |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

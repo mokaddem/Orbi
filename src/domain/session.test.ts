@@ -12,6 +12,7 @@ function mk(iso2: string, region: string, subregion: string): Country {
     name: { en: iso2, fr: iso2, de: iso2 },
     capital: { en: `${iso2}-cap`, fr: `${iso2}-cap`, de: `${iso2}-cap` },
     languages: [{ code: iso2.toLowerCase(), name: { en: iso2, fr: iso2, de: iso2 } }],
+    industries: [{ key: `ind-${iso2.toLowerCase()}`, name: { en: iso2, fr: iso2, de: iso2 } }],
     region,
     subregion,
     flagAsset: `flags/${iso2.toLowerCase()}.svg`,

@@ -14,7 +14,8 @@ export type GameMode =
   | 'map-locate' // given a country name → click it on the map
   | 'capital-to-country' // see a capital city → pick the country (Phase 24)
   | 'country-to-capital' // see a country → pick its capital city (Phase 24)
-  | 'country-to-languages'; // see a country → select ALL its languages (Phase 23, multi-select)
+  | 'country-to-languages' // see a country → select ALL its languages (Phase 23, multi-select)
+  | 'country-to-industry'; // see a country → pick one of its main industries (Phase 25, single-select)
 
 /**
  * A non-country multiple-choice option — a localized *attribute value* the player picks
@@ -23,7 +24,10 @@ export type GameMode =
  * the owning country's ISO2) and `correctOptionId` on the question says which is right.
  */
 export interface AttributeOption {
-  /** Stable option id, unique within a question. Capitals: owning country's ISO2. Languages: ISO-639-3 code. */
+  /**
+   * Stable option id, unique within a question. Capitals: owning country's ISO2.
+   * Languages: ISO-639-3 code. Industries: taxonomy key (e.g. "oil-gas").
+   */
   id: string;
   /** The value shown on the option card, localized. */
   label: CountryName;

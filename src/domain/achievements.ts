@@ -37,7 +37,7 @@ export const CAPITALS_CENTURY_TARGET = EXTRA_CENTURY_TARGET;
 export const STREAK_BADGE_DAYS = { week: 7, month: 30 } as const;
 
 /** The non-country "extra knowledge" topics that each get a parallel badge ladder. */
-export type ExtraTopic = 'capitals' | 'languages';
+export type ExtraTopic = 'capitals' | 'languages' | 'industries';
 
 /** Everything a badge predicate may read. Rollups are precomputed; `sessions` is raw. */
 export interface AchievementContext {
@@ -48,6 +48,9 @@ export interface AchievementContext {
   /** Separate language-mastery rollup (Phase 23) — its own ladder, folded into the same
    *  combined "extra knowledge" surface as capitals, not into `mastery`. */
   languageMastery: MasteryResult;
+  /** Separate industry-mastery rollup (Phase 25) — its own ladder in the combined
+   *  "extra knowledge" surface, not folded into `mastery`. */
+  industryMastery: MasteryResult;
   streak: StreakInfo;
   sessions: readonly SessionRecord[];
   /** Evaluation time — carried for extensibility (time-of-day badges etc.); pure given it. */
@@ -167,6 +170,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // mastery. The UI groups these (via `topic`) into the combined "extra knowledge" surface.
   ...extraTopicBadges('capitals', (ctx) => ctx.capitalMastery),
   ...extraTopicBadges('languages', (ctx) => ctx.languageMastery),
+  ...extraTopicBadges('industries', (ctx) => ctx.industryMastery),
 ];
 
 /** All badge ids, in display order — handy for i18n parity checks and iteration. */

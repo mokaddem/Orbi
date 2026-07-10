@@ -40,6 +40,7 @@
     { mode: 'capital-to-country', labelKey: 'modes.capitalToCountry' },
     { mode: 'country-to-capital', labelKey: 'modes.countryToCapital' },
     { mode: 'country-to-languages', labelKey: 'modes.countryToLanguages' },
+    { mode: 'country-to-industry', labelKey: 'modes.mainIndustries' },
   ];
 
   // Region filter selections. Empty string means "no narrowing": no region → World
@@ -381,6 +382,9 @@
               count: question.correctOptionIds?.length ?? 0,
             })}
           </p>
+        {:else if cfg.mode === 'country-to-industry'}
+          <p class="prompt-name">{$localizedName(question.answer)}</p>
+          <p class="ask">{$t('play.prompt.whichIndustry')}</p>
         {:else}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">{$t('play.prompt.locate')}</p>
@@ -476,6 +480,15 @@
                   country: $localizedName(fb.question.answer),
                   languages: fb.question.answer.languages
                     .map((l) => $localizedText(l.name))
+                    .join(', '),
+                })}
+              </p>
+            {:else if fb.question.mode === 'country-to-industry'}
+              <p class="reveal">
+                {$t('play.feedback.revealIndustries', {
+                  country: $localizedName(fb.question.answer),
+                  industries: fb.question.answer.industries
+                    .map((i) => $localizedText(i.name))
                     .join(', '),
                 })}
               </p>

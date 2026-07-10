@@ -31,6 +31,7 @@ const en = {
     subregionLabel: 'Sub-region',
     capitalLabel: 'Capital',
     languagesLabel: 'Languages',
+    industriesLabel: 'Main industries',
   },
   home: {
     title: 'Geography Quiz',
@@ -85,6 +86,7 @@ const en = {
     capitalToCountry: 'Capital → Country',
     countryToCapital: 'Country → Capital',
     countryToLanguages: 'National languages',
+    mainIndustries: 'Main industries',
   },
   sessionType: {
     fixed: 'Fixed',
@@ -113,6 +115,7 @@ const en = {
       whichCountryOfCapital: "Which country's capital is this?",
       whichCapital: 'Which is its capital?',
       whichLanguages: 'Select all {count} languages spoken here',
+      whichIndustry: 'Which is a main industry here?',
     },
     multi: {
       submit: 'Submit ({count})',
@@ -134,6 +137,7 @@ const en = {
       wrong: 'Not quite',
       reveal: 'It’s {country}',
       revealLanguages: '{country}: {languages}',
+      revealIndustries: '{country}: {industries}',
     },
     quit: 'Quit',
   },
@@ -196,6 +200,11 @@ const en = {
       title: 'Languages',
       learned: '{mastered} of {total} countries’ languages learned',
       regionsTitle: 'Languages by region',
+    },
+    industryMastery: {
+      title: 'Industries',
+      learned: '{mastered} of {total} countries’ industries learned',
+      regionsTitle: 'Industries by region',
     },
     extras: {
       title: 'Extra knowledge',
@@ -293,6 +302,38 @@ const en = {
         'languages-world': {
           title: 'World linguist',
           desc: 'Master the languages of every country in the world.',
+        },
+        'industries-collector': {
+          title: 'Industry spotter',
+          desc: 'Master the industries of 25 countries.',
+        },
+        'industries-europe': {
+          title: 'Industries of Europe',
+          desc: 'Master the industries of every country in Europe.',
+        },
+        'industries-africa': {
+          title: 'Industries of Africa',
+          desc: 'Master the industries of every country in Africa.',
+        },
+        'industries-asia': {
+          title: 'Industries of Asia',
+          desc: 'Master the industries of every country in Asia.',
+        },
+        'industries-americas': {
+          title: 'Industries of the Americas',
+          desc: 'Master the industries of every country in the Americas.',
+        },
+        'industries-oceania': {
+          title: 'Industries of Oceania',
+          desc: 'Master the industries of every country in Oceania.',
+        },
+        'industries-century': {
+          title: 'Industry scholar',
+          desc: 'Master the industries of 100 countries.',
+        },
+        'industries-world': {
+          title: 'World industrialist',
+          desc: 'Master the industries of every country in the world.',
         },
       },
     },

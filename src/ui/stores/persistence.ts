@@ -25,6 +25,7 @@ import {
   ACHIEVEMENTS,
   CAPITAL_MODES,
   LANGUAGE_MODES,
+  INDUSTRY_MODES,
   buildDailyChallenge,
   computeMastery,
   computeStats,
@@ -32,6 +33,7 @@ import {
   computeWeeklyRecap,
   dominantTrainingMode,
   evaluateAchievements,
+  isIndustryQuizEligible,
   isLanguageQuizEligible,
   localDayKey,
   recommend,
@@ -323,6 +325,18 @@ function languageMasteryCountries(): { iso2: string; region: string }[] {
 }
 
 /**
+ * The denominator for **industry** mastery (Phase 25): only the countries the industries mode
+ * can ask about (a curated industry, i.e. not on the `KNOWN_NO_INDUSTRY` list). Excluding the
+ * uncovered micro-states keeps "learn every country's industries" reachable, exactly as for
+ * languages above.
+ */
+function industryMasteryCountries(): { iso2: string; region: string }[] {
+  return getCountries()
+    .filter(isIndustryQuizEligible)
+    .map((c) => ({ iso2: c.iso2, region: c.region }));
+}
+
+/**
  * Compute world + per-region mastery from persisted SR state (Phase 16). Denominator is all
  * countries in the dataset ("learn the world"). Returns an all-unseen rollup before init.
  */
@@ -349,6 +363,16 @@ export async function loadCapitalMastery(now = Date.now()): Promise<MasteryResul
 export async function loadLanguageMastery(now = Date.now()): Promise<MasteryResult> {
   const srItems = store ? await store.getAllSRItems() : [];
   return computeMastery(srItems, languageMasteryCountries(), { now, modes: LANGUAGE_MODES });
+}
+
+/**
+ * Compute the separate **industry** mastery rollup (Phase 25) from the industry-mode SR items
+ * only, over the industry-eligible country denominator. Kept distinct from country mastery
+ * (like capitals/languages) and surfaced in the combined "extra knowledge" view.
+ */
+export async function loadIndustryMastery(now = Date.now()): Promise<MasteryResult> {
+  const srItems = store ? await store.getAllSRItems() : [];
+  return computeMastery(srItems, industryMasteryCountries(), { now, modes: INDUSTRY_MODES });
 }
 
 /** Compute this week's recap (Phase 16) from persisted sessions + SR state. */
@@ -392,6 +416,10 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
     now,
     modes: LANGUAGE_MODES,
   });
+  const industryMastery = computeMastery(srItems, industryMasteryCountries(), {
+    now,
+    modes: INDUSTRY_MODES,
+  });
   const streak = computeStreak(
     sessions.map((s) => localDayKey(s.startedAt)),
     localDayKey(now),
@@ -401,6 +429,7 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
     mastery,
     capitalMastery,
     languageMastery,
+    industryMastery,
     streak,
     sessions,
     now,

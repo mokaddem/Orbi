@@ -74,6 +74,7 @@ function ctx(over: Partial<AchievementContext> = {}): AchievementContext {
     mastery: mastery(),
     capitalMastery: mastery(),
     languageMastery: mastery(),
+    industryMastery: mastery(),
     streak: streak(),
     sessions: [],
     now: NOW,

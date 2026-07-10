@@ -28,6 +28,7 @@ import { feature, merge } from 'topojson-client';
 import { geoNaturalEarth1, geoPath, geoCentroid } from 'd3-geo';
 import { CAPITAL_I18N } from './data/capitals-i18n.mjs';
 import { LANGUAGE_I18N } from './data/languages-i18n.mjs';
+import { INDUSTRY_TAXONOMY, COUNTRY_INDUSTRIES, KNOWN_NO_INDUSTRY } from './data/industries.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
@@ -366,8 +367,14 @@ const missingFlag = [];
 const missingGeometry = [];
 const missingCapital = [];
 const missingLanguages = [];
+/** In-scope countries with no curated industries that are NOT on the KNOWN_NO_INDUSTRY list. */
+const missingIndustries = [];
+/** `iso2:key` for any industry key not present in INDUSTRY_TAXONOMY (typo guard). */
+const badIndustryKeys = [];
 /** ISO-639-3 codes actually used, and the English name the source gives each (for i18n QA). */
 const languageEnByCode = new Map();
+/** Taxonomy keys assigned to ≥1 country, so a dead (unused) taxonomy entry fails the build. */
+const usedIndustryKeys = new Set();
 
 for (const c of inScope) {
   const iso2 = c.cca2;
@@ -407,6 +414,18 @@ for (const c of inScope) {
   });
   if (languages.length === 0) missingLanguages.push(iso2);
 
+  // Industries (Phase 25): curated taxonomy keys → localized names. No bundled source —
+  // COUNTRY_INDUSTRIES is hand-authored ("main" = reputation). Covered countries get ≥1;
+  // the rest are on the KNOWN_NO_INDUSTRY allow-list, enforced by the integrity checks below.
+  const industryKeys = COUNTRY_INDUSTRIES[iso2] ?? [];
+  const industries = industryKeys.map((key) => {
+    const name = INDUSTRY_TAXONOMY[key];
+    if (!name) badIndustryKeys.push(`${iso2}:${key}`);
+    else usedIndustryKeys.add(key);
+    return { key, name: name ?? { en: key, fr: key, de: key } };
+  });
+  if (industries.length === 0 && !KNOWN_NO_INDUSTRY.has(iso2)) missingIndustries.push(iso2);
+
   countries.push({
     iso2,
     iso3: c.cca3,
@@ -418,6 +437,7 @@ for (const c of inScope) {
     },
     capital,
     languages,
+    industries,
     region: c.region,
     subregion: playRegion(c), // Phase 19: regrouped play-region bucket (region left as-is)
     flagAsset: `flags/${iso2lower}.svg`,
@@ -457,12 +477,15 @@ const meta = {
     withGeometry: countries.length - missingGeometry.length,
     withCapital: countries.length - missingCapital.length,
     withLanguages: countries.length - missingLanguages.length,
+    withIndustries: countries.filter((c) => c.industries.length > 0).length,
     distinctLanguages: languageEnByCode.size,
+    industryTaxonomy: Object.keys(INDUSTRY_TAXONOMY).length,
   },
   geometryExceptions: missingGeometry,
   flagExceptions: missingFlag,
   capitalExceptions: missingCapital,
   languageExceptions: missingLanguages,
+  industryExceptions: [...KNOWN_NO_INDUSTRY].sort(),
 };
 writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`);
 
@@ -485,6 +508,33 @@ console.log(
   `[build-data] langs:    ${n - missingLanguages.length}/${n} with ≥1 language` +
     `  (${languageEnByCode.size} distinct)` +
     (missingLanguages.length ? `  MISSING: ${missingLanguages.join(', ')}` : ''),
+);
+
+// Phase 25 — industries coverage. No bundled source, so coverage is curated: report the
+// covered/excluded split (per region) so a narrow dataset can never pass silently.
+const withIndustries = countries.filter((c) => c.industries.length > 0);
+const perRegionCovered = {};
+const perRegionExcluded = {};
+for (const c of countries) {
+  const bucket = c.industries.length > 0 ? perRegionCovered : perRegionExcluded;
+  bucket[c.region] = (bucket[c.region] ?? 0) + 1;
+}
+console.log(
+  `[build-data] industry: ${withIndustries.length}/${n} covered (${Object.keys(INDUSTRY_TAXONOMY).length}-category taxonomy)`,
+);
+console.log(
+  `[build-data]   covered by region:  ` +
+    Object.entries(perRegionCovered)
+      .sort()
+      .map(([r, c]) => `${r} ${c}`)
+      .join(', '),
+);
+console.log(
+  `[build-data]   excluded (${KNOWN_NO_INDUSTRY.size}) by region: ` +
+    Object.entries(perRegionExcluded)
+      .sort()
+      .map(([r, c]) => `${r} ${c}`)
+      .join(', '),
 );
 
 const unexpectedGeometry = missingGeometry.filter((cc) => !KNOWN_NO_GEOMETRY.has(cc));
@@ -522,6 +572,19 @@ for (const [code, ov] of Object.entries(LANGUAGE_I18N)) {
   }
 }
 
+// Phase 25: keep the curated industries dataset exhaustive and honest.
+//  - unexpectedNoIndustry: an in-scope country in neither the map nor the allow-list (a gap).
+//  - staleNoIndustry: a KNOWN_NO_INDUSTRY entry that is out of scope or now HAS a curated entry.
+//  - industryOutOfScope: a COUNTRY_INDUSTRIES entry for a country not in scope.
+//  - badIndustryKeys: an industry key not in the taxonomy (collected during the build loop).
+//  - unusedIndustryKeys: a taxonomy category assigned to no country (a dead entry to prune).
+const unexpectedNoIndustry = missingIndustries.slice();
+const staleNoIndustry = [...KNOWN_NO_INDUSTRY].filter(
+  (cc) => !inScopeIso.has(cc) || COUNTRY_INDUSTRIES[cc] !== undefined,
+);
+const industryOutOfScope = Object.keys(COUNTRY_INDUSTRIES).filter((cc) => !inScopeIso.has(cc));
+const unusedIndustryKeys = Object.keys(INDUSTRY_TAXONOMY).filter((k) => !usedIndustryKeys.has(k));
+
 // Phase 19: every selectable play-region bucket must hold at least MIN_POOL countries,
 // so a region-filtered game never degenerates into cycling the same handful.
 const bucketSizes = new Map();
@@ -545,7 +608,12 @@ if (
   noopCapitalI18n.length ||
   missingLanguages.length ||
   staleLanguageI18n.length ||
-  noopLanguageI18n.length
+  noopLanguageI18n.length ||
+  unexpectedNoIndustry.length ||
+  staleNoIndustry.length ||
+  industryOutOfScope.length ||
+  badIndustryKeys.length ||
+  unusedIndustryKeys.length
 ) {
   console.error('[build-data] INTEGRITY CHECK FAILED:');
   if (missingFlag.length) console.error(`  - missing flags: ${missingFlag.join(', ')}`);
@@ -579,6 +647,24 @@ if (
   if (noopLanguageI18n.length)
     console.error(
       `  - LANGUAGE_I18N overrides identical to English (delete them): ${noopLanguageI18n.join(', ')}`,
+    );
+  if (unexpectedNoIndustry.length)
+    console.error(
+      `  - in-scope countries with no industries and not on KNOWN_NO_INDUSTRY: ${unexpectedNoIndustry.join(', ')}`,
+    );
+  if (staleNoIndustry.length)
+    console.error(
+      `  - KNOWN_NO_INDUSTRY entries out of scope or now covered: ${staleNoIndustry.join(', ')}`,
+    );
+  if (industryOutOfScope.length)
+    console.error(
+      `  - COUNTRY_INDUSTRIES entries for out-of-scope countries: ${industryOutOfScope.join(', ')}`,
+    );
+  if (badIndustryKeys.length)
+    console.error(`  - industry keys not in INDUSTRY_TAXONOMY: ${badIndustryKeys.join(', ')}`);
+  if (unusedIndustryKeys.length)
+    console.error(
+      `  - taxonomy categories assigned to no country (prune them): ${unusedIndustryKeys.join(', ')}`,
     );
   process.exit(1);
 }

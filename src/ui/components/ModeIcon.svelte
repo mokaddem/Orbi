@@ -45,6 +45,11 @@
     <path d="M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
     <path d="M7.5 12 10 7l2.5 5M8 10.5h4" />
     <path d="M14.5 12.5h3.5M16.25 9.5v.5" />
+  {:else if mode === 'country-to-industry'}
+    <!-- A factory: a saw-tooth roof and a smokestack — the country's main industries. -->
+    <path d="M3 20.5V12l4.5 2.7V12l4.5 2.7V12l4.5 2.7V20.5" />
+    <path d="M18.5 20.5V7h2.5v13.5" />
+    <path d="M2.5 20.5h19" />
   {:else}
     <!-- A crosshair / target: you must find the place yourself (locate). -->
     <circle cx="12" cy="12" r="7" />

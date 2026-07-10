@@ -1,6 +1,6 @@
 # Phase 25 — New game mode: Main industries
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -35,23 +35,25 @@ generalization from Phase 23/24. **Recommended to build last** in the v1.3 track
 certain data story.
 
 ## Scope / Deliverables
-- [ ] **Source & curate the industries dataset (the crux)** — choose a licensing-clean, offline source
-      and a **controlled taxonomy** of industry categories (so options are consistent and translatable),
-      then map each in-scope country to its main industries. Bundle as JSON in `src/data/generated/`
-      (or a hand-maintained source the build step copies). Candidate source: **CIA World Factbook**
-      "Economy — industries" field (public domain).
-- [ ] **Taxonomy + translations** — a finite set of ~15–30 industry categories (e.g. agriculture,
-      tourism, oil & gas, textiles, automotive, mining, electronics, finance, fishing, chemicals),
-      translated EN/FR/DE so they can be shown as options in any locale.
-- [ ] **Build-data integrity check** — every in-scope country maps to ≥ 1 taxonomy industry, or is on
-      an explicit, reviewed exclusion list (mirror the `KNOWN_NO_GEOMETRY` pattern).
-- [ ] **Engine (shared)** — the attribute-question generalization (answer/options beyond `Country`,
-      multi-select if chosen); pure + unit-tested; SR/history keyed per-country.
-- [ ] **Mode + UI** — new `GameMode` value(s); `Play.svelte` card + `ModeIcon` glyph; prompt + `modes.*`
-      strings (EN/FR/DE); render via `ChoiceGrid` (multi-select if chosen).
-- [ ] **Question generation & distractors** — plausible wrong industries the country is **not** known
-      for; never offer one of its real main industries as a distractor.
-- [ ] **Tests** — dataset integrity, generation, distractor rules, scoring, i18n parity.
+- [x] **Source & curate the industries dataset (the crux)** — hand-authored `scripts/data/industries.mjs`
+      (`INDUSTRY_TAXONOMY` + `COUNTRY_INDUSTRIES` + `KNOWN_NO_INDUSTRY`); `build-data.mjs` attaches an
+      `industries` field to each record. Sourced from the public-domain CIA World Factbook "Economy —
+      industries" field + general knowledge, normalised into our taxonomy. **142/195 covered.**
+- [x] **Taxonomy + translations** — 20 owner-approved categories, translated EN/FR/DE in `INDUSTRY_TAXONOMY`.
+- [x] **Build-data integrity check** — every in-scope country is in `COUNTRY_INDUSTRIES` (≥1 valid key) xor
+      `KNOWN_NO_INDUSTRY`; fails on gaps, contradictions, out-of-scope entries, bad/typo'd keys, and dead
+      (unused) taxonomy categories. Mirrors the `KNOWN_NO_GEOMETRY` pattern; counts + exclusions in `meta.json`;
+      coverage + per-region split logged.
+- [x] **Engine (shared)** — new single-select branch in `buildQuestion` (`isIndustryMode`), plus
+      `selectIndustryDistractors` / `pickCorrectIndustry` / `isIndustryQuizEligible`. Pure + unit-tested;
+      SR/history keyed per-country (`country-to-industry:${iso2}`).
+- [x] **Mode + UI** — `GameMode` `country-to-industry`; `Play.svelte` card + `ModeIcon` factory glyph; prompt +
+      `modes.mainIndustries` + reveal strings (EN/FR/DE); renders via the shared attribute `ChoiceGrid`.
+      Industries shown on the Atlas country page (standing convention).
+- [x] **Question generation & distractors** — one real industry is correct; distractors are taxonomy
+      industries the country lacks (geography-tiered), **never one of its real industries**.
+- [x] **Tests** — dataset integrity (`countries.test.ts`), generation/distractor/scoring/eligibility
+      (`questions.test.ts`), achievements + i18n parity all green (413 tests).
 
 ## Technical notes
 - **Controlled vocabulary, not free text.** Raw Factbook prose ("food processing, footwear, tourism…")
@@ -96,3 +98,42 @@ certain data story.
 - **2026-07-09 — PRD drafted from the owner's v1.3 improvement list ("main industries in countries").
   Flagged as the highest-risk mode (no bundled data source — needs a curated dataset). NOT built —
   awaiting the clarifying round and explicit build approval.**
+- **2026-07-10 — Clarifying round resolved with owner; explicit go given. Decisions:**
+  - **Q1 Data source** → hand-authored curated `scripts/data/industries.mjs` (facts aren't
+    copyrightable; reference public-domain CIA World Factbook "Economy — industries" + general
+    knowledge, normalised into our own taxonomy). Offline, redistributable.
+  - **Q2 Taxonomy** → **20 approved categories**: agriculture, fishing, mining (ores/minerals),
+    oil & gas, metals & steel, chemicals, textiles & apparel, food & beverages, automotive,
+    machinery & equipment, electronics, tourism, finance & banking, shipping & logistics,
+    construction materials (cement), pharmaceuticals, energy/power generation, IT & software,
+    aerospace & defence, timber & paper. Translated EN/FR/DE.
+  - **Q3 Coverage** → **~110–120 well-known countries**; smallest/hardest-to-source micro-states
+    excluded via a `KNOWN_NO_INDUSTRY` allow-list; log the excluded set + per-region counts.
+  - **Q4 "Main"** → **reputation** ("what the country is known for"); stated in on-screen copy.
+  - **Q5 Framing** → **single-select** "Which of these is a main industry of X?" (one correct card;
+    distractors are taxonomy industries the country is *not* known for — never a real one). Diverges
+    from languages' multi-select; mechanically mirrors the capitals attribute mode.
+  - **Q6 Localisation** → yes, taxonomy EN/FR/DE.
+  - **Q7 Mastery** → add `industries` as the **third "Extra knowledge" topic** (own ladder +
+    achievements, folded into the combined progress panel).
+  - Owner **waived the data-table review**. New mode value: `country-to-industry`; itemKey
+    `country-to-industry:${iso2}`; Atlas country page will show industries (standing convention).
+  - **Spun off** the wrong-answer "why" fun-fact idea into its own **Phase 32** (content-heavy /
+    cross-cutting) — see `phases/phase-32-answer-explanations.md`.
+- **2026-07-10 — Built & verified. ✅ Done.**
+  - **Data:** `scripts/data/industries.mjs` (20-category taxonomy EN/FR/DE + per-country map +
+    `KNOWN_NO_INDUSTRY`); `build-data.mjs` attaches `industries`, runs the exhaustive/honest integrity
+    checks, logs coverage. **142 covered / 53 excluded** (Africa 29, Americas 26, Asia 43, Europe 40,
+    Oceania 4). ⚠️ *This overshoots the ~110–120 estimate the owner picked — coverage was sourceable for
+    most non-micro states. Trimming is a one-line data edit if a tighter set is preferred; Oceania is a
+    thin pool (4) either way.*
+  - **Engine:** `country-to-industry` single-select attribute mode (mirrors capitals mechanically);
+    `selectIndustryDistractors` (never a real industry, geo-tiered), `pickCorrectIndustry`,
+    `isIndustryQuizEligible`; registered across `modes.ts` (`INDUSTRY_MODES`, `EXTRA_TOPICS` third topic).
+  - **UI/i18n:** Play mode card + factory `ModeIcon`/`icons.ts` glyph, prompt + reveal, `modes.mainIndustries`
+    and `progress.industryMastery` + 8 achievements in EN/FR/DE; industry mastery ladder folded into the
+    combined "extra knowledge" panel (`History.svelte`); Atlas country page shows industries.
+  - **Verification:** `npm run check` clean; **413 Vitest tests pass**; `npm run lint` clean; headless-Chrome
+    on :5180 confirmed the mode card, a live question (Armenia → Mining vs. distractors), the wrong-answer
+    reveal, and FR taxonomy rendering.
+  - **Follow-up:** ready to archive this PRD once committed to `main` (per the archive step).

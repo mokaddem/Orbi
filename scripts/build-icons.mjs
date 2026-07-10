@@ -44,6 +44,7 @@ const ICONS = {
   globe: 'globe',
   landmark: 'landmark', // capital-mastery meter + capital achievements (Phase 24)
   languages: 'languages', // language-mastery meter + language achievements (Phase 23)
+  factory: 'factory', // industry-mastery meter + industry achievements (Phase 25)
   // misc UI
   party: 'party-popper',
   check: 'check',

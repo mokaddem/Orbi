@@ -33,6 +33,7 @@ const fr: typeof en = {
     subregionLabel: 'Sous-région',
     capitalLabel: 'Capitale',
     languagesLabel: 'Langues',
+    industriesLabel: 'Industries principales',
   },
   home: {
     title: 'Quiz de géographie',
@@ -88,6 +89,7 @@ const fr: typeof en = {
     capitalToCountry: 'Capitale → Pays',
     countryToCapital: 'Pays → Capitale',
     countryToLanguages: 'Langues nationales',
+    mainIndustries: 'Industries principales',
   },
   sessionType: {
     fixed: 'Fixe',
@@ -116,6 +118,7 @@ const fr: typeof en = {
       whichCountryOfCapital: 'De quel pays est-ce la capitale ?',
       whichCapital: 'Quelle est sa capitale ?',
       whichLanguages: 'Sélectionnez les {count} langues parlées ici',
+      whichIndustry: 'Quelle est une industrie principale ici ?',
     },
     multi: {
       submit: 'Valider ({count})',
@@ -137,6 +140,7 @@ const fr: typeof en = {
       wrong: 'Pas tout à fait',
       reveal: 'C’est {country}',
       revealLanguages: '{country} : {languages}',
+      revealIndustries: '{country} : {industries}',
     },
     quit: 'Quitter',
   },
@@ -199,6 +203,11 @@ const fr: typeof en = {
       title: 'Langues',
       learned: 'Langues de {mastered} pays sur {total} apprises',
       regionsTitle: 'Langues par région',
+    },
+    industryMastery: {
+      title: 'Industries',
+      learned: 'Industries de {mastered} pays sur {total} apprises',
+      regionsTitle: 'Industries par région',
     },
     extras: {
       title: 'Connaissances complémentaires',
@@ -311,6 +320,38 @@ const fr: typeof en = {
         'languages-world': {
           title: 'Linguiste du monde',
           desc: 'Maîtrisez les langues de tous les pays du monde.',
+        },
+        'industries-collector': {
+          title: 'Observateur industriel',
+          desc: 'Maîtrisez les industries de 25 pays.',
+        },
+        'industries-europe': {
+          title: 'Industries d’Europe',
+          desc: 'Maîtrisez les industries de tous les pays d’Europe.',
+        },
+        'industries-africa': {
+          title: 'Industries d’Afrique',
+          desc: 'Maîtrisez les industries de tous les pays d’Afrique.',
+        },
+        'industries-asia': {
+          title: 'Industries d’Asie',
+          desc: 'Maîtrisez les industries de tous les pays d’Asie.',
+        },
+        'industries-americas': {
+          title: 'Industries des Amériques',
+          desc: 'Maîtrisez les industries de tous les pays des Amériques.',
+        },
+        'industries-oceania': {
+          title: 'Industries d’Océanie',
+          desc: 'Maîtrisez les industries de tous les pays d’Océanie.',
+        },
+        'industries-century': {
+          title: 'Érudit de l’industrie',
+          desc: 'Maîtrisez les industries de 100 pays.',
+        },
+        'industries-world': {
+          title: 'Industriel du monde',
+          desc: 'Maîtrisez les industries de tous les pays du monde.',
         },
       },
     },

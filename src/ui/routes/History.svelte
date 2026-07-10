@@ -13,6 +13,7 @@
     loadMastery,
     loadCapitalMastery,
     loadLanguageMastery,
+    loadIndustryMastery,
     loadWeeklyRecap,
     loadAchievements,
     clearHistory,
@@ -37,6 +38,7 @@
     'capital-to-country': 'modes.capitalToCountry',
     'country-to-capital': 'modes.countryToCapital',
     'country-to-languages': 'modes.countryToLanguages',
+    'country-to-industry': 'modes.mainIndustries',
   };
 
   /** Cap the timeline so many play-days stay legible; a note flags any truncation. */
@@ -51,6 +53,7 @@
   let mastery = $state<MasteryResult | null>(null);
   let capitalMastery = $state<MasteryResult | null>(null);
   let languageMastery = $state<MasteryResult | null>(null);
+  let industryMastery = $state<MasteryResult | null>(null);
   let recap = $state<WeeklyRecapData | null>(null);
   let achievements = $state<AchievementView[]>([]);
 
@@ -62,7 +65,8 @@
     !!m && m.overall.mastered + m.overall.learning > 0;
   const hasCapitalActivity = $derived(hasActivity(capitalMastery));
   const hasLanguageActivity = $derived(hasActivity(languageMastery));
-  const hasExtras = $derived(hasCapitalActivity || hasLanguageActivity);
+  const hasIndustryActivity = $derived(hasActivity(industryMastery));
+  const hasExtras = $derived(hasCapitalActivity || hasLanguageActivity || hasIndustryActivity);
 
   // Country badges stay in the main grid; extra-topic badges (capitals/languages) move into
   // the combined panel so the main grid doesn't grow with every new mode.
@@ -79,13 +83,15 @@
     stats = computeStats(sessions);
     // Progress surfaces (Phase 16): mastery + recap + achievements, computed from the same
     // persisted state. loadAchievements also persists any first-time unlocks.
-    [mastery, capitalMastery, languageMastery, recap, achievements] = await Promise.all([
-      loadMastery(),
-      loadCapitalMastery(),
-      loadLanguageMastery(),
-      loadWeeklyRecap(),
-      loadAchievements(),
-    ]);
+    [mastery, capitalMastery, languageMastery, industryMastery, recap, achievements] =
+      await Promise.all([
+        loadMastery(),
+        loadCapitalMastery(),
+        loadLanguageMastery(),
+        loadIndustryMastery(),
+        loadWeeklyRecap(),
+        loadAchievements(),
+      ]);
     loading = false;
   }
 
@@ -230,6 +236,15 @@
               learnedKey="progress.languageMastery.learned"
               regionsTitleKey="progress.languageMastery.regionsTitle"
               icon="languages"
+            />
+          {/if}
+          {#if industryMastery && hasIndustryActivity}
+            <ExtraMasteryTopic
+              mastery={industryMastery}
+              titleKey="progress.industryMastery.title"
+              learnedKey="progress.industryMastery.learned"
+              regionsTitleKey="progress.industryMastery.regionsTitle"
+              icon="factory"
             />
           {/if}
         </div>

@@ -4,10 +4,10 @@
 // engine (session.ts) draws answers one at a time via `buildQuestion`; the batch
 // `generateQuestions` is a convenience for callers that want a fixed list up front.
 
-import type { Country, CountryName, LanguageRef } from '../data/types';
+import type { Country, CountryName, IndustryRef, LanguageRef } from '../data/types';
 import type { AttributeOption, GameMode, Question, RegionFilter } from './types';
 import { type Rng, defaultRng, shuffle } from './rng';
-import { isAttributeMode, isMultiSelectMode } from './modes';
+import { isAttributeMode, isIndustryMode, isMultiSelectMode } from './modes';
 
 /** Default number of multiple-choice options per question (including the answer). */
 export const DEFAULT_CHOICES = 4;
@@ -25,6 +25,15 @@ export const MAX_QUIZ_LANGUAGES = 5;
 export function isLanguageQuizEligible(country: Country): boolean {
   const n = country.languages.length;
   return n >= 1 && n <= MAX_QUIZ_LANGUAGES;
+}
+
+/**
+ * Whether a country can be the *answer* in the industries mode (Phase 25): it has ≥ 1 curated
+ * industry. The ~50 micro / data-poor states on the build's `KNOWN_NO_INDUSTRY` list ship an
+ * empty list and are excluded as answers — but, like other modes, are still valid *distractors*.
+ */
+export function isIndustryQuizEligible(country: Country): boolean {
+  return country.industries.length >= 1;
 }
 
 /**
@@ -77,6 +86,7 @@ export function filterCountries(countries: readonly Country[], filter?: RegionFi
 export function eligibleAnswers(mode: GameMode, pool: readonly Country[]): Country[] {
   if (isMapMode(mode)) return pool.filter((c) => c.hasGeometry);
   if (mode === 'country-to-languages') return pool.filter(isLanguageQuizEligible);
+  if (mode === 'country-to-industry') return pool.filter(isIndustryQuizEligible);
   return pool.slice();
 }
 
@@ -150,6 +160,53 @@ export function selectLanguageDistractors(
   return chosen;
 }
 
+/**
+ * Pick `count` distractor industries for `answer` — taxonomy categories the country is **not**
+ * known for — tiered by geography like {@link selectLanguageDistractors}: industries of its
+ * sub-region first, then its region, then the wider world. Each distinct industry key is placed
+ * in its closest tier and shuffled within it. **Never returns one of the answer's own
+ * industries** (the Phase 25 rule), so a distractor is always a wrong answer. Returns fewer than
+ * `count` only if the universe cannot supply enough distinct foreign industries.
+ */
+export function selectIndustryDistractors(
+  answer: Country,
+  universe: readonly Country[],
+  count: number,
+  rng: Rng = defaultRng,
+): IndustryRef[] {
+  const own = new Set(answer.industries.map((i) => i.key));
+  // key → the industry and the closest geography tier it was seen in.
+  const best = new Map<string, { ref: IndustryRef; tier: number }>();
+  for (const c of universe) {
+    if (c.iso2 === answer.iso2) continue;
+    const tier = c.subregion === answer.subregion ? 0 : c.region === answer.region ? 1 : 2;
+    for (const ind of c.industries) {
+      if (own.has(ind.key)) continue;
+      const prev = best.get(ind.key);
+      if (!prev || tier < prev.tier) best.set(ind.key, { ref: ind, tier });
+    }
+  }
+
+  const buckets: IndustryRef[][] = [[], [], []];
+  for (const { ref, tier } of best.values()) buckets[tier].push(ref);
+
+  const chosen: IndustryRef[] = [];
+  for (const bucket of buckets) {
+    if (chosen.length >= count) break;
+    chosen.push(...shuffle(bucket, rng).slice(0, count - chosen.length));
+  }
+  return chosen;
+}
+
+/**
+ * Pick the single correct industry to show for `answer` in the single-select industries mode:
+ * one of its curated industries, chosen deterministically via `rng`. The country's other
+ * industries are simply not offered this round (and are excluded as distractors).
+ */
+export function pickCorrectIndustry(answer: Country, rng: Rng = defaultRng): IndustryRef {
+  return shuffle(answer.industries, rng)[0];
+}
+
 /** The localized attribute value a country carries for a single-select attribute mode. */
 function attributeOf(mode: GameMode, country: Country): CountryName {
   switch (mode) {
@@ -162,11 +219,13 @@ function attributeOf(mode: GameMode, country: Country): CountryName {
 
 /**
  * Build one question for `answer` in `mode`. Country-option modes get `choices` shuffled
- * country options including the answer. Single-select attribute modes (`country-to-capital`)
- * get `attributeOptions` + `correctOptionId`. Multi-select attribute modes
- * (`country-to-languages`) get `attributeOptions` (all the country's languages + foreign
- * distractors) + `correctOptionIds` (every one it speaks). `map-locate` gets neither (the map
- * is the input). Distractors are drawn from `universe` with geography tiering throughout.
+ * country options including the answer. Single-select attribute modes (`country-to-capital`,
+ * `country-to-industry`) get `attributeOptions` + `correctOptionId` — capitals map distractor
+ * *countries* to their capital; industries offer one real industry against taxonomy distractors
+ * the country lacks. Multi-select attribute modes (`country-to-languages`) get `attributeOptions`
+ * (all the country's languages + foreign distractors) + `correctOptionIds` (every one it speaks).
+ * `map-locate` gets neither (the map is the input). Distractors are drawn from `universe` with
+ * geography tiering throughout.
  */
 export function buildQuestion(
   mode: GameMode,
@@ -192,6 +251,17 @@ export function buildQuestion(
     }));
     question.attributeOptions = options;
     question.correctOptionIds = correct.map((l) => l.code);
+  } else if (isIndustryMode(mode)) {
+    // Industries: one of the country's real industries is the correct card; the rest are
+    // industries it is NOT known for. Single-select, `choices` options total.
+    const correct = pickCorrectIndustry(answer, rng);
+    const distractors = selectIndustryDistractors(answer, universe, Math.max(0, choices - 1), rng);
+    const options: AttributeOption[] = shuffle([correct, ...distractors], rng).map((i) => ({
+      id: i.key,
+      label: i.name,
+    }));
+    question.attributeOptions = options;
+    question.correctOptionId = correct.key;
   } else if (isAttributeMode(mode)) {
     const distractors = selectDistractors(answer, universe, Math.max(0, choices - 1), rng);
     const options: AttributeOption[] = shuffle([answer, ...distractors], rng).map((c) => ({

@@ -19,6 +19,7 @@ export const ALL_MODES: readonly GameMode[] = [
   'capital-to-country',
   'country-to-capital',
   'country-to-languages',
+  'country-to-industry',
 ];
 
 /**
@@ -41,11 +42,16 @@ export const MASTERY_MODES: readonly GameMode[] = [
  * `options`. The `capital-to-country` direction is *not* here — its answer and options are
  * countries; only the prompt is a capital string.
  */
-export const ATTRIBUTE_MODES: readonly GameMode[] = ['country-to-capital', 'country-to-languages'];
+export const ATTRIBUTE_MODES: readonly GameMode[] = [
+  'country-to-capital',
+  'country-to-languages',
+  'country-to-industry',
+];
 
 /**
  * Attribute modes where the player selects **several** options (all-or-nothing grading), so
  * the question carries `correctOptionIds`. `country-to-languages` (Phase 23) is the first.
+ * `country-to-industry` (Phase 25) is single-select, so it is deliberately *not* here.
  */
 export const MULTI_SELECT_MODES: readonly GameMode[] = ['country-to-languages'];
 
@@ -64,15 +70,23 @@ export const CAPITAL_MODES: readonly GameMode[] = ['capital-to-country', 'countr
 export const LANGUAGE_MODES: readonly GameMode[] = ['country-to-languages'];
 
 /**
- * The non-country "attribute" topics (Phase 23/24, and industries in Phase 25), each a
- * separate mastery ladder folded into one combined progress surface. Order is display order.
+ * The main-industries mode (Phase 25). Single-select "which is a main industry of X"; like
+ * capitals/languages it stays out of {@link MASTERY_MODES} and rolls up into its own tally,
+ * surfaced in the combined "extra knowledge" progress view.
+ */
+export const INDUSTRY_MODES: readonly GameMode[] = ['country-to-industry'];
+
+/**
+ * The non-country "attribute" topics (Phases 23–25), each a separate mastery ladder folded
+ * into one combined progress surface. Order is display order.
  */
 export const EXTRA_TOPICS: readonly {
-  key: 'capitals' | 'languages';
+  key: 'capitals' | 'languages' | 'industries';
   modes: readonly GameMode[];
 }[] = [
   { key: 'capitals', modes: CAPITAL_MODES },
   { key: 'languages', modes: LANGUAGE_MODES },
+  { key: 'industries', modes: INDUSTRY_MODES },
 ];
 
 /** Whether `mode` presents attribute-value options rather than country options. */
@@ -83,6 +97,11 @@ export function isAttributeMode(mode: GameMode): boolean {
 /** Whether `mode` asks the player to select several options at once (all-or-nothing). */
 export function isMultiSelectMode(mode: GameMode): boolean {
   return MULTI_SELECT_MODES.includes(mode);
+}
+
+/** Whether `mode` is the single-select main-industries mode (Phase 25). */
+export function isIndustryMode(mode: GameMode): boolean {
+  return INDUSTRY_MODES.includes(mode);
 }
 
 /** Whether `mode` contributes to per-country mastery / achievements. */

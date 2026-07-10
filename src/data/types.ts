@@ -21,6 +21,18 @@ export interface LanguageRef {
 }
 
 /**
+ * One main industry associated with a country (Phase 25, industries mode). Sourced from the
+ * hand-authored `industries.mjs` taxonomy — "main" means *reputation* (what the country is
+ * broadly known for economically), not a GDP/employment/export ranking.
+ */
+export interface IndustryRef {
+  /** Stable taxonomy key, kebab-case (e.g. "oil-gas"). The option id in the industries quiz. */
+  key: string;
+  /** The industry name, localized (from the curated taxonomy). */
+  name: CountryName;
+}
+
+/**
  * A single in-scope country (UN member or observer state), normalized from the
  * bundled sources by `scripts/build-data.mjs`.
  */
@@ -45,6 +57,12 @@ export interface Country {
    * defaulting to English where no exonym differs. Not a legal "official languages" claim.
    */
   languages: LanguageRef[];
+  /**
+   * Main industries the country is known for (Phase 25). Curated ("main" = reputation), not from
+   * any bundled source. Empty for the ~50 micro / data-poor states on the build's
+   * `KNOWN_NO_INDUSTRY` allow-list — those are excluded as answers in the industries mode.
+   */
+  industries: IndustryRef[];
   /** UN M49 region (Africa, Americas, Asia, Europe, Oceania). */
   region: string;
   /** UN M49 sub-region (e.g. "Eastern Europe"). */
