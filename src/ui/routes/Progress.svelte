@@ -22,6 +22,7 @@
   } from '../stores/persistence';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
+  import MascotScene from '../components/MascotScene.svelte';
   import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
   import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
   import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
@@ -94,7 +95,7 @@
     <p class="muted">{$t('progress.loading')}</p>
   {:else if !stats || sessions.length === 0}
     <div class="empty-state">
-      <Mascot pose="sleepy" size={116} />
+      <MascotScene pose="sleepy" size={116} />
       <p class="muted">{$t('progress.empty')}</p>
       <a class="cta" href="#/play">{$t('progress.play')}</a>
     </div>
@@ -103,7 +104,9 @@
     <!-- One-time "unlocked!" celebration for badges earned on this load. -->
     {#if justUnlocked.length > 0 && !unlockDismissed}
       <div class="unlock" role="status">
-        <span class="unlock-icon" aria-hidden="true"><Icon name="party" size="1.4rem" /></span>
+        <span class="unlock-mascot" aria-hidden="true">
+          <Mascot pose="proud" animate="wiggle" size={52} />
+        </span>
         <span class="unlock-text">
           {$t('progress.achievements.unlocked')}
           <strong>
@@ -290,9 +293,9 @@
     border-radius: var(--radius);
   }
 
-  .unlock-icon {
+  .unlock-mascot {
+    flex: 0 0 auto;
     display: inline-flex;
-    line-height: 1;
     color: var(--color-accent);
   }
 

@@ -1,6 +1,6 @@
 # Phase 33 — Graphic richness & delight (mascot, motion & illustration)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.7 character & delight
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -56,30 +56,32 @@ Phase 31** (visual sweep) and **Phase 32** (answer explanations) so it decorates
 the final reveal surface once.
 
 ## Scope / Deliverables
-- [ ] **Motion foundation (first deliverable)** — a small, documented pattern for animating Orbi
-      (e.g. an `animate`/`motion` prop on `Mascot`, or a thin wrapper) covering at least an **idle**
-      state (gentle breathe/blink) and an **entrance**; **fully disabled under `prefers-reduced-motion`**
-      (mascot falls back to the static pose). CSS/SVG only. Owner signs off on the *intensity* before it
-      spreads (Open Question 1).
-- [ ] **New poses** — draw the agreed set in the house style (candidates: `proud`/level-up,
-      `encouraging` after a rough result, `cheer`/confetti, plus any the owner names). Each is bespoke
-      SVG path work; the count is confirmed in Open Question 2. Extend `MascotPose` + `Mascot.test`.
-- [ ] **Reactive mascot** — a **pure** helper that maps context → pose (+ optional animation), e.g.
-      Summary picks `celebrate`/`proud` on a strong result and `encouraging` on a weak one; unit-tested.
-      Wire it into Summary (and any beats from OQ 5).
-- [ ] **Expressive placement** — add Orbi (right pose, right motion) at the agreed meaningful moments
-      (e.g. achievement-unlock banner, streak milestone, session start/finish), with a documented
-      **restraint rule** so it never nags. Withhold list matters as much as additions (OQ 5).
-- [ ] **Illustrative moments** — a small number of spot scenes (e.g. a richer perfect-score celebration,
-      a friendlier locked/empty state) composed from Orbi + existing shapes; no new asset pipeline. Bar
-      set in OQ 4.
-- [ ] **Consistency, a11y & perf** — one motion language; decorative (`aria-hidden`) unless labelled;
-      **no layout shift / no jank** (transform/opacity only); every animation off under
-      `prefers-reduced-motion`; offline; palette-driven. Optional in-app motion toggle per OQ 6.
-- [ ] **Tests / checks** — unit-test the pure pose-selection helper and new poses; component tests where a
-      pose/animation carries state; headless-Chrome screenshots (and a **reduced-motion** capture proving
-      the static fallback); `npm run test` / `check` / `lint` green; confirm no bundle jump (poses are a
-      few hundred bytes of inline SVG each).
+- [x] **Motion foundation (first deliverable)** — `Mascot.svelte` gained an `animate` prop
+      (`none` | `idle` | `bounce-in` | `cheer` | `wiggle`), CSS/SVG transforms only (breathe + blink,
+      entrance, celebratory bounce + confetti burst, proud wiggle). The idle loop pauses off-screen via a
+      lightweight `IntersectionObserver`. **Fully disabled under `prefers-reduced-motion`** (and the in-app
+      toggle) — the mascot renders as its exact static pose. Owner chose **Expressive** intensity (OQ 1).
+- [x] **New poses** — drew **`proud`** (star + confident stance), **`encouraging`** (warm closed-eye
+      smile + thumbs-up), **`cheer`** (arms up + richer confetti), in the house style over the shared globe
+      base. Extended `MascotPose` + `Mascot.test`. Count/set per OQ 2.
+- [x] **Reactive mascot** — pure `src/domain/mascot.ts`: `pickSummaryReaction` (cheer→proud→celebrate→
+      encouraging by accuracy), `isStreakMilestone`, `pickStreakReaction`; unit-tested. Wired into Summary.
+- [x] **Expressive placement** — Summary (reactive pose + motion + tone headline), Progress
+      achievement-unlock banner (proud + wiggle), Home streak-milestone beat (proud + wiggle), Home hero
+      (idle). **Withhold rule:** mid-game (Play) stays calm/text-only; one animated beat per surface (OQ 5).
+- [x] **Illustrative moments** — richer perfect-score scene on Summary (cheer + confetti + a fanned row of
+      the played flags) and a shared `MascotScene` (idle Orbi on a soft accent halo) warming the empty
+      Summary / History / Progress slates. Existing assets only, no new pipeline (OQ 4).
+- [x] **Consistency, a11y & perf** — one motion language (shared keyframes in `Mascot.svelte`); decorative
+      (`aria-hidden`) unless labelled; transform/opacity only (no layout shift); every animation off under
+      `prefers-reduced-motion`; offline; palette-driven. In-app **"Reduce animation"** toggle added to
+      Settings (OQ 6) → sets `data-reduce-motion` on the root; one global `app.css` rule neutralises all
+      animation app-wide.
+- [x] **Tests / checks** — unit-tested the pure helpers (`mascot.test.ts`) and new poses / `animate`
+      wiring (`Mascot.test.ts`); `npm run test` (492), `check`, `lint` all green. Headless-Chrome captures
+      of Home, Settings (toggle), Summary (empty / perfect-with-flag-fan / weak-encouraging), Progress
+      (unlock banner) **plus a reduced-motion capture** proving the static fallback. Verified the in-app
+      toggle sets the root attribute and collapses the hero's animation to ~0.001s. No bundle jump.
 
 ## Technical notes
 - **Extend, don't fork.** Add motion/poses to the existing `Mascot.svelte`; keep it a single character
@@ -128,6 +130,32 @@ the final reveal surface once.
 - Answer-explanation content (Phase 32) and the icon/flag/map enrichment sweep (Phase 31).
 
 ## Progress log
+- **2026-07-10 — Built & verified (approved).** Clarifying round resolved with the owner:
+  **OQ1 intensity → Expressive** (idle breathe/blink baseline, bounce-in entrances, confetti + bounce on
+  wins, wiggle/pop on unlocks & streaks); **OQ2 poses → `proud` + `encouraging` + `cheer`** (3 new, now 9
+  total); **OQ3/OQ5 placement → Summary result · Achievement-unlock banner · Streak milestone · Home hero**,
+  with mid-game (Play) deliberately left calm; **OQ4 illustration → a few spot scenes** (perfect-score flag
+  fan + a shared `MascotScene` halo on empty slates); **OQ6 → include an in-app "Reduce animation"
+  toggle** in Settings (alongside OS `prefers-reduced-motion`); **OQ7 sequencing** satisfied (31 & 32 done).
+  Owner said "include the toggle, go ahead."
+  - **Implemented:** motion foundation on `Mascot.svelte` (`animate` prop, CSS/SVG keyframes, blink via a
+    grouped `.eyes`, off-screen idle pause via `IntersectionObserver`, hard reduced-motion gate); 3 new
+    bespoke poses; pure `src/domain/mascot.ts` (`pickSummaryReaction` / `isStreakMilestone` /
+    `pickStreakReaction`, unit-tested) with the canonical `MascotPose`/`MascotMotion` types moved there and
+    re-exported from the component; reactive Summary (pose + motion + trilingual tone headline) with the
+    perfect-score flag-fan; new shared `MascotScene.svelte` on the empty Summary/History/Progress states;
+    proud-wiggle Orbi on the Progress unlock banner; proud-wiggle streak-milestone beat on Home; idle Home
+    hero; `reduceMotion` pref (data model + clamp + Settings toggle + root `data-reduce-motion` attribute +
+    one global `app.css` kill-rule); trilingual strings (EN/FR/DE) for the reaction headlines, streak
+    milestone, and the Settings motion section.
+  - **Verified:** `npm run test` (492 passing), `npm run check`, `npm run lint` all green; production build
+    clean with no bundle jump. Headless-Chrome (CDP on :5180) screenshots of Home, Settings, Summary
+    (empty / perfect → *"Flawless!"* cheer + 5-flag fan / weak → *"Keep at it…"* encouraging), and the
+    Progress achievement-unlock banner (proud Orbi); a **reduced-motion** capture confirms the cheer scene
+    renders as a fully-visible static frame (nothing stuck at the entrance's `opacity:0`); functional check
+    confirmed the in-app toggle sets `data-reduce-motion` and collapses the hero animation to ~0.001s.
+    (Not captured live: the streak-milestone banner needs a 3-day streak — its logic is unit-tested and it
+    reuses the verified proud/wiggle pose.)
 - **2026-07-10 — PRD drafted at the owner's request, spun out of the Phase 31 sweep. Origin: mid-Phase-31
   the owner asked to use the mascot more, "add more pictures," and "maybe add an animated mascot," noting
   the app's graphics are "still minimal — go a step above." Phase 31 was kept restrained (mascot only on

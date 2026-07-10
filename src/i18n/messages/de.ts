@@ -65,6 +65,8 @@ const de: typeof en = {
       playedToday: 'Heute gespielt ✓',
       keepGoing: 'Spiel heute, damit sie weiterläuft',
       start: 'Starte heute eine Serie',
+      milestoneTitle: 'Serie von {count} Tagen!',
+      milestoneBody: 'Du bist in Fahrt — bleib dran.',
     },
     mastery: {
       showRegions: 'Aufschlüsselung nach Region anzeigen',
@@ -216,6 +218,12 @@ const de: typeof en = {
     bestStreak: 'Beste Serie',
     missedTitle: 'Verpasst ({count})',
     noneMissed: 'Perfekt — nichts verpasst!',
+    reaction: {
+      perfect: 'Fehlerfrei!',
+      strong: 'Großartig gemacht!',
+      good: 'Gut gemacht!',
+      tryAgain: 'Dranbleiben — du schaffst das!',
+    },
     retry: 'Nochmal',
     train: 'Diese üben',
     trainThese: 'Übe die Länder, die du gerade verpasst hast',
@@ -430,6 +438,10 @@ const de: typeof en = {
     survivalLives: 'Leben im Überlebensmodus',
     choices: 'Antwortmöglichkeiten pro Frage',
     hint: 'Änderungen gelten ab deiner nächsten Runde.',
+    motion: 'Animationen',
+    reduceMotion: 'Animationen reduzieren',
+    reduceMotionHint:
+      'Schaltet Orbis Animationen und andere Bewegungen aus. Wird auch automatisch berücksichtigt, wenn dein Gerät reduzierte Bewegung anfordert.',
     map: 'Karte',
     mapProjection: 'Kartenprojektion',
     projection: {

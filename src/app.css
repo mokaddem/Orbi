@@ -93,3 +93,17 @@ button {
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* In-app "reduce animation" preference (Phase 33). When the toggle is on, the root gets
+   `data-reduce-motion` and every animation/transition is collapsed to ~instant app-wide —
+   the same effect the OS `prefers-reduced-motion` media queries produce per-component, but
+   user-controllable. Near-zero (not `none`) so animation fill-mode end-states still apply,
+   leaving elements in their finished, visible frame. */
+:root[data-reduce-motion] *,
+:root[data-reduce-motion] *::before,
+:root[data-reduce-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

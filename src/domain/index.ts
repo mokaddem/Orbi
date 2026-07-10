@@ -158,3 +158,13 @@ export {
   removeFromPractice,
   practiceEligibility,
 } from './practice';
+
+export {
+  type MascotPose,
+  type MascotMotion,
+  type MascotReaction,
+  type SummaryReactionInput,
+  pickSummaryReaction,
+  isStreakMilestone,
+  pickStreakReaction,
+} from './mascot';

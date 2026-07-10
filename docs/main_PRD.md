@@ -178,7 +178,7 @@ decorates the final structure and reveal surface once.
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 33 | Graphic richness & delight (mascot, motion & illustration) | [phase-33-graphic-richness.md](phases/phase-33-graphic-richness.md) | 12, 18, 29 (16/15 for reactive beats; after 31, 32) | ⬜ Not started | 0% |
+| 33 | Graphic richness & delight (mascot, motion & illustration) | [phase-33-graphic-richness.md](phases/phase-33-graphic-richness.md) | 12, 18, 29 (16/15 for reactive beats; after 31, 32) | ✅ Done | 100% (Expressive motion foundation; 3 new poses — proud/encouraging/cheer; reactive Summary + streak/achievement beats + Home hero; perfect-score flag-fan & MascotScene empty states; in-app "Reduce animation" toggle) |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

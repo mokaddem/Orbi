@@ -3,7 +3,17 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import Mascot, { type MascotPose } from './Mascot.svelte';
 
-const POSES: MascotPose[] = ['wave', 'celebrate', 'relaxed', 'sleepy', 'thinking', 'daily'];
+const POSES: MascotPose[] = [
+  'wave',
+  'celebrate',
+  'relaxed',
+  'sleepy',
+  'thinking',
+  'daily',
+  'proud',
+  'encouraging',
+  'cheer',
+];
 
 describe('Mascot', () => {
   it.each(POSES)('renders the globe body for pose "%s"', (pose) => {
@@ -39,5 +49,26 @@ describe('Mascot', () => {
     const { container } = render(Mascot, { pose: 'daily' });
     // The held calendar is the only <rect> in the artwork.
     expect(container.querySelector('svg.mascot rect')).toBeInTheDocument();
+  });
+
+  it('draws confetti in the cheer pose', () => {
+    const { container } = render(Mascot, { pose: 'cheer' });
+    expect(container.querySelectorAll('svg.mascot .confetti').length).toBeGreaterThan(0);
+  });
+
+  it('is static (no motion class) by default', () => {
+    const { container } = render(Mascot, { pose: 'wave' });
+    const svg = container.querySelector('svg.mascot');
+    expect(svg?.getAttribute('class')).not.toMatch(/\banim-/);
+  });
+
+  it.each([
+    ['idle', 'anim-idle'],
+    ['bounce-in', 'anim-bounce-in'],
+    ['cheer', 'anim-cheer'],
+    ['wiggle', 'anim-wiggle'],
+  ] as const)('applies the %s motion class when animate="%s"', (animate, cls) => {
+    const { container } = render(Mascot, { pose: 'cheer', animate });
+    expect(container.querySelector('svg.mascot')).toHaveClass(cls);
   });
 });

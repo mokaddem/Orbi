@@ -56,6 +56,8 @@ const en = {
       playedToday: 'Played today ✓',
       keepGoing: 'Play today to keep it going',
       start: 'Start a streak today',
+      milestoneTitle: '{count}-day streak!',
+      milestoneBody: 'You’re on a roll — keep it going.',
     },
     mastery: {
       showRegions: 'Show per-region breakdown',
@@ -204,6 +206,12 @@ const en = {
     bestStreak: 'Best streak',
     missedTitle: 'Missed ({count})',
     noneMissed: 'Perfect — nothing missed!',
+    reaction: {
+      perfect: 'Flawless!',
+      strong: 'Great work!',
+      good: 'Nicely done!',
+      tryAgain: 'Keep at it — you’ve got this!',
+    },
     retry: 'Retry',
     train: 'Train these',
     trainThese: 'Drill the countries you just missed',
@@ -412,6 +420,10 @@ const en = {
     survivalLives: 'Lives in survival',
     choices: 'Answer choices per question',
     hint: 'Changes apply to your next game.',
+    motion: 'Motion',
+    reduceMotion: 'Reduce animation',
+    reduceMotionHint:
+      'Turns off Orbi’s animations and other motion. Also honoured automatically if your device requests reduced motion.',
     map: 'Map',
     mapProjection: 'Map projection',
     projection: {

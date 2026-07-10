@@ -114,6 +114,8 @@ export interface Prefs {
   fixedLength: number;
   choicesPerQuestion: number;
   mapProjection: MapProjection;
+  /** Force the static (no-animation) presentation regardless of the OS setting (Phase 33). */
+  reduceMotion: boolean;
 }
 
 /** Defaults applied on first run and merged over any partially-stored prefs. */
@@ -123,6 +125,7 @@ export const DEFAULT_PREFS: Prefs = {
   fixedLength: 10,
   choicesPerQuestion: 4,
   mapProjection: 'naturalEarth',
+  reduceMotion: false,
 };
 
 /** Bounds for the numeric prefs, shared by the Settings UI and validation. */
@@ -157,6 +160,8 @@ export function clampPrefs(prefs: Prefs): Prefs {
     mapProjection: isMapProjection(prefs.mapProjection)
       ? prefs.mapProjection
       : DEFAULT_PREFS.mapProjection,
+    // Coerce any legacy/absent value to a real boolean.
+    reduceMotion: !!prefs.reduceMotion,
   };
 }
 

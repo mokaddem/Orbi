@@ -5,7 +5,7 @@
   import { formatPercent } from '../format';
   import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
-  import Mascot from '../components/Mascot.svelte';
+  import MascotScene from '../components/MascotScene.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
 
@@ -81,7 +81,7 @@
     <p class="muted">{$t('history.loading')}</p>
   {:else if !stats || sessions.length === 0}
     <div class="empty-state">
-      <Mascot pose="sleepy" size={116} />
+      <MascotScene pose="sleepy" size={116} />
       <p class="muted">{$t('history.empty')}</p>
       <a class="cta" href="#/play">{$t('history.play')}</a>
     </div>

@@ -23,6 +23,7 @@ beforeEach(() => {
     fixedLength: 12,
     choicesPerQuestion: 4,
     mapProjection: 'naturalEarth',
+    reduceMotion: false,
   });
 });
 afterEach(() => setLocale('en'));

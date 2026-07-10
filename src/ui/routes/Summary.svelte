@@ -4,10 +4,12 @@
   import { formatDuration, formatPercent } from '../format';
   import { play, lastSummary, pendingConfig } from '../stores/game';
   import { loadRecommendations, prefs, storageReady } from '../stores/persistence';
-  import type { Recommendation } from '../../domain';
+  import { pickSummaryReaction, type MascotPose, type Recommendation } from '../../domain';
+  import { getCountry, type Country } from '../../data';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
+  import MascotScene from '../components/MascotScene.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
@@ -21,6 +23,28 @@
   $effect(() => {
     if ($storageReady) void loadRecommendations().then((r) => (recs = r));
   });
+
+  // Orbi's reaction to the result (Phase 33): the pose/motion come from a pure helper; the
+  // matching headline is looked up here. Only the four finished-session poses appear.
+  const REACTION_HEADLINE: Partial<Record<MascotPose, string>> = {
+    cheer: 'summary.reaction.perfect',
+    proud: 'summary.reaction.strong',
+    celebrate: 'summary.reaction.good',
+    encouraging: 'summary.reaction.tryAgain',
+  };
+
+  // A small fan of flags from the just-played countries — the illustrative flourish on a
+  // flawless run. Distinct, in play order, capped so it stays a garnish, not a list.
+  function sessionFlags(results: { countryIso2: string }[], limit = 5): Country[] {
+    const flags: Country[] = [];
+    for (const r of results) {
+      if (flags.length >= limit) break;
+      if (flags.some((c) => c.iso2 === r.countryIso2)) continue;
+      const c = getCountry(r.countryIso2);
+      if (c) flags.push(c);
+    }
+    return flags;
+  }
 
   const MODE_LABEL: Record<string, string> = {
     'flag-to-country': 'modes.flagToCountry',
@@ -91,13 +115,14 @@
 
   {#if !$lastSummary}
     <div class="empty-state">
-      <Mascot pose="thinking" size={116} />
+      <MascotScene pose="thinking" size={116} />
       <p class="empty">{$t('summary.empty')}</p>
       <a class="cta" href="#/play">{$t('summary.playNow')}</a>
     </div>
   {:else}
     {@const s = $lastSummary}
     {@const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region ?? null}
+    {@const reaction = pickSummaryReaction({ accuracy: s.accuracy, total: s.total })}
     <p class="meta">
       <span class="meta-ico" aria-hidden="true"><ModeIcon mode={s.mode} /></span>
       <span>{$t(MODE_LABEL[s.mode] ?? s.mode)}</span>
@@ -113,6 +138,15 @@
         </span>
       {/if}
     </p>
+
+    <!-- Reactive Orbi (Phase 33): pose + motion chosen from how the run went. Decorative —
+         the headline carries the meaning for assistive tech. -->
+    <div class="result-hero">
+      <Mascot pose={reaction.pose} animate={reaction.animate} size={104} />
+      {#if REACTION_HEADLINE[reaction.pose]}
+        <p class="result-headline">{$t(REACTION_HEADLINE[reaction.pose] as string)}</p>
+      {/if}
+    </div>
 
     <div class="stats">
       <div class="stat">
@@ -139,9 +173,18 @@
 
     <div class="missed">
       {#if s.missed.length === 0}
+        {@const flags = sessionFlags(s.results)}
         <div class="perfect-state">
-          <Mascot pose="celebrate" size={104} />
           <p class="perfect">{$t('summary.noneMissed')}</p>
+          {#if flags.length > 1}
+            <div class="flag-fan" aria-hidden="true">
+              {#each flags as country, i (country.iso2)}
+                <span class="fan-flag" style="--i: {i - (flags.length - 1) / 2}">
+                  <Flag {country} />
+                </span>
+              {/each}
+            </div>
+          {/if}
         </div>
       {:else}
         <h2>{$t('summary.missedTitle', { count: s.missed.length })}</h2>
@@ -298,18 +341,56 @@
     color: var(--color-muted);
   }
 
+  /* Reactive result hero: Orbi above a one-line reaction to the score. */
+  .result-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+    margin-top: -0.25rem;
+  }
+
+  .result-headline {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-accent-strong);
+  }
+
   .perfect-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     padding: 0.5rem 0;
   }
 
   .perfect {
     color: var(--color-correct);
     font-weight: 600;
+  }
+
+  /* A gently-fanned row of flags from the just-played countries — a flourish on a flawless
+     run, composed from bundled assets (no new artwork). Each flag tilts by its offset `--i`
+     from centre; the fan flattens under reduced motion (see below). */
+  .flag-fan {
+    display: flex;
+    justify-content: center;
+    padding: 0.35rem 0 0.2rem;
+  }
+
+  .fan-flag {
+    width: 46px;
+    margin: 0 -5px;
+    transform: rotate(calc(var(--i) * 8deg));
+    transform-origin: bottom center;
+    filter: drop-shadow(0 2px 2px rgb(42 35 32 / 12%));
+  }
+
+  .fan-flag :global(.flag) {
+    border-radius: 4px;
   }
 
   .missed-list {

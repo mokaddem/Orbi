@@ -118,6 +118,20 @@
 
   <p class="hint">{$t('settings.hint')}</p>
 
+  <h2>{$t('settings.motion')}</h2>
+
+  <div class="row">
+    <label class="label" for="pref-reduce-motion">{$t('settings.reduceMotion')}</label>
+    <input
+      id="pref-reduce-motion"
+      type="checkbox"
+      checked={$prefs.reduceMotion}
+      onchange={(e) => updatePrefs({ reduceMotion: e.currentTarget.checked })}
+    />
+  </div>
+
+  <p class="hint">{$t('settings.reduceMotionHint')}</p>
+
   <h2>{$t('settings.map')}</h2>
 
   <div class="row">
@@ -243,6 +257,13 @@
   select:focus {
     outline: none;
     border-color: var(--color-accent);
+  }
+
+  input[type='checkbox'] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--color-accent);
+    cursor: pointer;
   }
 
   /* A small, non-interactive world thumbnail that re-projects as the pref changes,

@@ -4,7 +4,7 @@
   import routes from './ui/routes';
   import Nav from './ui/components/Nav.svelte';
   import { t } from './i18n';
-  import { initPersistence, persistent, storageReady } from './ui/stores/persistence';
+  import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
 
   onMount(() => {
     void initPersistence();
@@ -13,6 +13,13 @@
   // Keep the browser tab title localized; re-runs whenever the locale changes.
   $effect(() => {
     document.title = $t('app.title');
+  });
+
+  // In-app "reduce animation" toggle (Phase 33): mirror the pref onto the root element so a
+  // single global CSS rule (see app.css) can neutralise every animation/transition app-wide,
+  // in addition to the OS `prefers-reduced-motion` each component already honours.
+  $effect(() => {
+    document.documentElement.toggleAttribute('data-reduce-motion', $prefs.reduceMotion);
   });
 </script>
 

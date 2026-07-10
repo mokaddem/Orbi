@@ -7,6 +7,7 @@ const base: Prefs = {
   fixedLength: 10,
   choicesPerQuestion: 4,
   mapProjection: 'naturalEarth',
+  reduceMotion: false,
 };
 
 describe('mapProjection pref (Phase 28)', () => {

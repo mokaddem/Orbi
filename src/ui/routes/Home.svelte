@@ -11,7 +11,14 @@
     type DailyState,
     type TrainingPlan,
   } from '../stores/persistence';
-  import type { MasteryResult, Recommendation, RegionReview, StreakInfo } from '../../domain';
+  import {
+    isStreakMilestone,
+    pickStreakReaction,
+    type MasteryResult,
+    type Recommendation,
+    type RegionReview,
+    type StreakInfo,
+  } from '../../domain';
   import Demo from '../components/Demo.svelte';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
@@ -42,6 +49,12 @@
   const hasReviews = $derived(!!regionReviews && regionReviews.length > 0);
   const allCaughtUp = $derived(hasPlayed && !hasReviews);
 
+  // Streak milestone (Phase 33): once today's play lands on a milestone run (3, 7, … days),
+  // Orbi pops in a proud reaction — a one-time celebration alongside the streak pill.
+  const streakMilestone = $derived(
+    !!streak && streak.playedToday && isStreakMilestone(streak.current),
+  );
+
   // Tapping the compact mastery meter reveals the per-region breakdown (Phase 29). Collapsed
   // by default; the data (`mastery.byRegion`) is already loaded, so this is pure disclosure.
   // The reveal is a CSS animation (see .region-breakdown) so it's reduced-motion-friendly and
@@ -62,7 +75,7 @@
 
 <section class="home">
   <header class="home-header">
-    <Mascot pose="wave" size={84} />
+    <Mascot pose="wave" size={84} animate="idle" />
     <div class="home-heading">
       <h1>{$t('home.title')}</h1>
       <p class="tagline">{$t('home.tagline')}</p>
@@ -72,6 +85,17 @@
   {#if streak}
     <div class="streak-row">
       <StreakIndicator {streak} />
+    </div>
+  {/if}
+
+  {#if streak && streakMilestone}
+    {@const reaction = pickStreakReaction(streak.current)}
+    <div class="streak-milestone" role="status">
+      <Mascot pose={reaction.pose} animate={reaction.animate} size={64} />
+      <div class="milestone-text">
+        <strong>{$t('home.streak.milestoneTitle', { count: streak.current })}</strong>
+        <span>{$t('home.streak.milestoneBody')}</span>
+      </div>
     </div>
   {/if}
 
@@ -112,7 +136,7 @@
 
   {#if allCaughtUp}
     <div class="caught-up" role="status">
-      <Mascot pose="relaxed" size={60} />
+      <Mascot pose="relaxed" size={60} animate="bounce-in" />
       <span>{$t('home.caughtUp')}</span>
     </div>
   {/if}
@@ -153,6 +177,34 @@
   /* A block row so the inline streak pill sits left-aligned with controlled spacing. */
   .streak-row {
     margin: 0.25rem 0 0;
+  }
+
+  /* Milestone celebration: proud Orbi beside a short cheer, on a soft accent tint. */
+  .streak-milestone {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.6rem;
+    padding: 0.6rem 1rem;
+    background: var(--color-accent-weak);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius);
+  }
+
+  .milestone-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .milestone-text strong {
+    color: var(--color-accent-strong);
+    font-size: 1.05rem;
+  }
+
+  .milestone-text span {
+    color: var(--color-muted);
+    font-size: 0.85rem;
   }
 
   /* Separate the Daily Challenge card from the Next-up card above it. */
