@@ -39,7 +39,7 @@ const fr: typeof en = {
   },
   home: {
     title: 'Orbi',
-    tagline: 'Apprenez la géographie du monde avec des cartes et des drapeaux.',
+    tagline: 'Apprenez la géographie du monde avec des cartes, des drapeaux et plus encore.',
     demo: 'Salut, moi c’est Orbi — prêt à explorer le monde ?',
     play: 'Commencer à jouer',
     playCustom: 'Ou lancer une partie personnalisée',

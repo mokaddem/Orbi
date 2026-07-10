@@ -37,7 +37,7 @@ const en = {
   },
   home: {
     title: 'Orbi',
-    tagline: 'Learn world geography through maps and flags.',
+    tagline: 'Learn world geography through maps, flags and more.',
     demo: "Hi, I'm Orbi — ready to explore the world?",
     play: 'Start playing',
     playCustom: 'Or start a custom game',
