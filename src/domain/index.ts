@@ -150,3 +150,11 @@ export {
 } from './achievements';
 
 export { type WeeklyRecap, type RecapOptions, localWeekStart, computeWeeklyRecap } from './recap';
+
+export {
+  type PracticeEligibility,
+  togglePractice,
+  addToPractice,
+  removeFromPractice,
+  practiceEligibility,
+} from './practice';

@@ -131,7 +131,7 @@ pain; **27 (targeted practice)** is the biggest new capability; **28/29** are po
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
 | 26 | Region-scoped review ("time to review" by region) | [phase-26-region-scoped-review.md](phases/archive/phase-26-region-scoped-review.md) | 7, 14 (re-verify after 19) | ✅ Done | 100% (per-region "Time to review" list, top region pre-selected; weak-spot unified into region-scoped SR review) |
-| 27 | Targeted practice (custom country & attribute session builder) | [phase-27-targeted-practice.md](phases/phase-27-targeted-practice.md) | 2, 5 (grows with 23–25) | ⬜ Not started | 0% |
+| 27 | Targeted practice (custom country & attribute session builder) | [phase-27-targeted-practice.md](phases/archive/phase-27-targeted-practice.md) | 2, 5 (grows with 23–25) | ✅ Done | 100% (dedicated #/practice screen: baseline country picker + all-8-mode picker w/ coverage note; save & name sets; normal sessions) |
 | 28 | Selectable map projection (Settings) | [phase-28-map-projection.md](phases/phase-28-map-projection.md) | 4, 12 (coordinate w/ 22) | ⬜ Not started | 0% |
 | 29 | Identity & Home polish (app name · mascot favicon · region-mastery breakdown) | [phase-29-identity-home-polish.md](phases/phase-29-identity-home-polish.md) | 9, 16, 18 | ⬜ Not started | 0% |
 

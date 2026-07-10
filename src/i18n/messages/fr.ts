@@ -109,6 +109,7 @@ const fr: typeof en = {
       fixedHint: '{count} questions',
       survivalHint: '{lives} vies',
       start: 'Commencer',
+      targetedPractice: 'Entraînement ciblé',
     },
     prompt: {
       whichCountry: 'Quel est ce pays ?',
@@ -143,6 +144,52 @@ const fr: typeof en = {
       revealIndustries: '{country} : {industries}',
     },
     quit: 'Quitter',
+  },
+  practice: {
+    title: 'Entraînement ciblé',
+    intro: 'Choisis les pays à réviser, sélectionne un mode et ne joue que ceux-là.',
+    savedSets: {
+      title: 'Ensembles enregistrés',
+      empty:
+        'Aucun ensemble enregistré — composes-en un ci-dessous et enregistre-le pour y rejouer.',
+      count: '{count} pays',
+      play: 'Jouer',
+      edit: 'Modifier',
+      delete: 'Supprimer',
+      deleteTitle: 'Supprimer l’ensemble ?',
+      deleteMessage: 'Supprimer « {name} » ? Action irréversible.',
+    },
+    picker: {
+      title: 'Choisir des pays',
+      searchPlaceholder: 'Rechercher des pays…',
+      searchLabel: 'Rechercher des pays',
+      all: 'Tout',
+      none: 'Aucun',
+      chosen: '{count} sélectionné(s)',
+      clearAll: 'Tout effacer',
+      noResults: 'Aucun pays ne correspond à « {query} ».',
+    },
+    mode: {
+      title: 'Choisir un mode',
+      coverage:
+        '{eligible} sur {total} peuvent être révisés dans ce mode — les autres sont ignorés.',
+      coverageNone: 'Aucun des pays sélectionnés ne peut être révisé dans ce mode.',
+    },
+    type: {
+      title: 'Choisir un format',
+    },
+    save: {
+      title: 'Enregistrer cet ensemble',
+      nameLabel: 'Nom de l’ensemble',
+      namePlaceholder: 'ex. Drapeaux des Balkans',
+      save: 'Enregistrer',
+      update: 'Mettre à jour',
+      saved: 'Enregistré ✓',
+    },
+    editing: 'Modification de « {name} »',
+    newSet: 'Nouvel ensemble',
+    start: 'Commencer',
+    startHint: 'Choisis au moins un pays pour commencer.',
   },
   summary: {
     title: 'Résumé de la session',

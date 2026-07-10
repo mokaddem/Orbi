@@ -2,6 +2,7 @@
 
 export type {
   AchievementUnlock,
+  CustomSet,
   DailyResult,
   Prefs,
   QuizStore,

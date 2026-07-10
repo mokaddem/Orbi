@@ -324,6 +324,11 @@
     </div>
 
     <button type="button" class="start" onclick={startGame}>{$t('play.setup.start')}</button>
+
+    <a class="practice-link" href="#/practice">
+      <Icon name="target" size={15} />
+      <span>{$t('play.setup.targetedPractice')}</span>
+    </a>
   </section>
 {:else}
   {@const view = $play}
@@ -694,6 +699,25 @@
   .start:active {
     transform: translateY(2px);
     box-shadow: var(--shadow-chunky-press);
+  }
+
+  /* Discreet secondary entry into the targeted-practice builder. */
+  .practice-link {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: -0.6rem;
+    color: var(--color-muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.12s ease;
+  }
+
+  .practice-link:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
   }
 
   /* Multi-select submit (country-to-languages) */

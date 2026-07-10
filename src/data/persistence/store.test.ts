@@ -6,6 +6,7 @@ import {
   MemoryQuizStore,
   openStore,
   type AchievementUnlock,
+  type CustomSet,
   type DailyResult,
   type Prefs,
   type QuizStore,
@@ -149,6 +150,74 @@ function contractTests(name: string, makeStore: () => Promise<QuizStore>): void 
       // A training/history reset must not silently wipe earned badges.
       expect((await store.getAchievements()).map((a) => a.id)).toEqual(['first-round']);
     });
+
+    it('round-trips custom sets (last write wins per id), deletes and clears them', async () => {
+      expect(await store.getCustomSets()).toEqual([]);
+      const balkans: CustomSet = {
+        id: 'set1',
+        name: 'Balkan flags',
+        iso2: ['RS', 'HR', 'AL'],
+        createdAt: 1000,
+        updatedAt: 1000,
+      };
+      const capitals: CustomSet = {
+        id: 'set2',
+        name: 'Tricky capitals',
+        iso2: ['KZ', 'MM'],
+        createdAt: 2000,
+        updatedAt: 2000,
+      };
+      await store.putCustomSet(balkans);
+      await store.putCustomSet(capitals);
+      expect((await store.getCustomSets()).map((s) => s.id).sort()).toEqual(['set1', 'set2']);
+
+      // Re-putting the same id updates in place (rename + new members) rather than duplicating.
+      await store.putCustomSet({ ...balkans, name: 'Balkans', iso2: ['RS', 'HR', 'AL', 'BA'] });
+      const sets = await store.getCustomSets();
+      expect(sets).toHaveLength(2);
+      const updated = sets.find((s) => s.id === 'set1');
+      expect(updated?.name).toBe('Balkans');
+      expect(updated?.iso2).toEqual(['RS', 'HR', 'AL', 'BA']);
+
+      await store.deleteCustomSet('set1');
+      expect((await store.getCustomSets()).map((s) => s.id)).toEqual(['set2']);
+
+      await store.clearCustomSets();
+      expect(await store.getCustomSets()).toEqual([]);
+    });
+
+    it('keeps custom sets isolated from the mutation returned by getCustomSets', async () => {
+      await store.putCustomSet({
+        id: 'set1',
+        name: 'X',
+        iso2: ['RS', 'HR'],
+        createdAt: 1,
+        updatedAt: 1,
+      });
+      const fetched = await store.getCustomSets();
+      fetched[0].iso2.push('MUTATED');
+      // The store's backing row must not have absorbed the caller's mutation.
+      expect((await store.getCustomSets())[0].iso2).toEqual(['RS', 'HR']);
+    });
+
+    it('keeps custom sets separate from SR and history resets', async () => {
+      await store.addSession(record({ id: 's1' }));
+      await store.putSRItem(srItem);
+      await store.putCustomSet({
+        id: 'set1',
+        name: 'Kept',
+        iso2: ['RS'],
+        createdAt: 1,
+        updatedAt: 1,
+      });
+
+      await store.clearSRItems();
+      await store.clearSessions();
+      await store.clearAchievements();
+
+      // Saved sets are authored content, not progress — the resets must leave them intact.
+      expect((await store.getCustomSets()).map((s) => s.name)).toEqual(['Kept']);
+    });
   });
 }
 
@@ -165,11 +234,19 @@ describe('IdbQuizStore persistence', () => {
     const first = await IdbQuizStore.open();
     await first.addSession(record({ id: 'kept' }));
     await first.savePrefs(prefs);
+    await first.putCustomSet({
+      id: 'set1',
+      name: 'Kept',
+      iso2: ['RS', 'HR'],
+      createdAt: 1,
+      updatedAt: 1,
+    });
 
     // A new instance over the same DB name sees the previously written data.
     const second = await IdbQuizStore.open();
     expect((await second.getAllSessions()).map((s) => s.id)).toEqual(['kept']);
     expect(await second.getPrefs()).toEqual(prefs);
+    expect((await second.getCustomSets()).map((s) => s.name)).toEqual(['Kept']);
   });
 });
 

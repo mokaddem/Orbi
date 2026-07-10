@@ -115,6 +115,7 @@ const de: typeof en = {
       fixedHint: '{count} Fragen',
       survivalHint: '{lives} Leben',
       start: 'Start',
+      targetedPractice: 'Gezieltes Üben',
     },
     prompt: {
       whichCountry: 'Welches Land ist das?',
@@ -149,6 +150,53 @@ const de: typeof en = {
       revealIndustries: '{country}: {industries}',
     },
     quit: 'Beenden',
+  },
+  practice: {
+    title: 'Gezieltes Üben',
+    intro:
+      'Wähle gezielt die Länder zum Üben, entscheide dich für einen Modus und spiele nur diese.',
+    savedSets: {
+      title: 'Gespeicherte Sätze',
+      empty:
+        'Noch keine gespeicherten Sätze — stelle unten einen zusammen und speichere ihn zum Wiederspielen.',
+      count: '{count} Länder',
+      play: 'Spielen',
+      edit: 'Bearbeiten',
+      delete: 'Löschen',
+      deleteTitle: 'Satz löschen?',
+      deleteMessage: '„{name}“ löschen? Das kann nicht rückgängig gemacht werden.',
+    },
+    picker: {
+      title: 'Länder auswählen',
+      searchPlaceholder: 'Länder suchen…',
+      searchLabel: 'Länder suchen',
+      all: 'Alle',
+      none: 'Keine',
+      chosen: '{count} ausgewählt',
+      clearAll: 'Alle entfernen',
+      noResults: 'Keine Länder passen zu „{query}“.',
+    },
+    mode: {
+      title: 'Modus wählen',
+      coverage:
+        '{eligible} von {total} können in diesem Modus geübt werden — die übrigen werden übersprungen.',
+      coverageNone: 'Keines der ausgewählten Länder kann in diesem Modus geübt werden.',
+    },
+    type: {
+      title: 'Format wählen',
+    },
+    save: {
+      title: 'Diesen Satz speichern',
+      nameLabel: 'Satzname',
+      namePlaceholder: 'z. B. Flaggen des Balkans',
+      save: 'Satz speichern',
+      update: 'Satz aktualisieren',
+      saved: 'Gespeichert ✓',
+    },
+    editing: '„{name}“ wird bearbeitet',
+    newSet: 'Neuer Satz',
+    start: 'Üben starten',
+    startHint: 'Wähle mindestens ein Land, um zu starten.',
   },
   summary: {
     title: 'Zusammenfassung der Runde',

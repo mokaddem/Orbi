@@ -244,3 +244,28 @@ export function dailyToConfig(challenge: DailyChallenge): RunConfig {
     dailyDate: challenge.dateKey,
   };
 }
+
+/**
+ * Build a launchable {@link RunConfig} for a targeted-practice run (Phase 27): a player-picked
+ * country set drilled in a single chosen `mode`. Like training, it carries an explicit
+ * `answerPoolIso` — pass the codes already narrowed to those the mode can ask about
+ * (`practiceEligibility`) so the session length matches what's actually drilled. A **fixed**
+ * run drills each eligible country once (`fixedLength = eligibleIso.length`); a **survival**
+ * run uses the player's configured lives. Distractors still tier against the whole world.
+ */
+export function practiceToConfig(
+  mode: GameMode,
+  type: SessionType,
+  eligibleIso: readonly string[],
+  prefs: Prefs,
+): RunConfig {
+  const answerPoolIso = [...eligibleIso];
+  return {
+    mode,
+    type,
+    answerPoolIso,
+    fixedLength: type === 'survival' ? prefs.fixedLength : answerPoolIso.length,
+    lives: prefs.survivalLives,
+    choices: prefs.choicesPerQuestion,
+  };
+}

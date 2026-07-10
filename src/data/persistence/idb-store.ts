@@ -11,6 +11,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type {
   AchievementUnlock,
+  CustomSet,
   DailyResult,
   Prefs,
   QuizStore,
@@ -19,9 +20,10 @@ import type {
 } from './types';
 
 const DB_NAME = 'geo-quiz';
-// v2 (Phase 15): add `dailyChallenge`. v3 (Phase 16): add `achievements`. Upgrades are
-// additive (only missing stores are created), so existing data is preserved across bumps.
-const DB_VERSION = 3;
+// v2 (Phase 15): add `dailyChallenge`. v3 (Phase 16): add `achievements`. v4 (Phase 27):
+// add `customSets`. Upgrades are additive (only missing stores are created), so existing
+// data is preserved across bumps.
+const DB_VERSION = 4;
 
 /** The single prefs row lives under a fixed, out-of-line key. */
 const PREFS_KEY = 'app';
@@ -51,6 +53,10 @@ interface GeoQuizDB extends DBSchema {
     key: string;
     value: AchievementUnlock;
   };
+  customSets: {
+    key: string;
+    value: CustomSet;
+  };
 }
 
 export class IdbQuizStore implements QuizStore {
@@ -78,6 +84,9 @@ export class IdbQuizStore implements QuizStore {
         }
         if (!db.objectStoreNames.contains('achievements')) {
           db.createObjectStore('achievements', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('customSets')) {
+          db.createObjectStore('customSets', { keyPath: 'id' });
         }
       },
     });
@@ -143,5 +152,21 @@ export class IdbQuizStore implements QuizStore {
 
   async clearAchievements(): Promise<void> {
     await this.db.clear('achievements');
+  }
+
+  async getCustomSets(): Promise<CustomSet[]> {
+    return this.db.getAll('customSets');
+  }
+
+  async putCustomSet(set: CustomSet): Promise<void> {
+    await this.db.put('customSets', set);
+  }
+
+  async deleteCustomSet(id: string): Promise<void> {
+    await this.db.delete('customSets', id);
+  }
+
+  async clearCustomSets(): Promise<void> {
+    await this.db.clear('customSets');
   }
 }

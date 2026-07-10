@@ -7,6 +7,7 @@
 
 import type {
   AchievementUnlock,
+  CustomSet,
   DailyResult,
   Prefs,
   QuizStore,
@@ -22,6 +23,7 @@ export class MemoryQuizStore implements QuizStore {
   private prefs: Prefs | undefined;
   private daily: DailyResult | undefined;
   private achievements = new Map<string, AchievementUnlock>();
+  private customSets = new Map<string, CustomSet>();
 
   async addSession(record: SessionRecord): Promise<void> {
     this.sessions.push(record);
@@ -83,5 +85,22 @@ export class MemoryQuizStore implements QuizStore {
 
   async clearAchievements(): Promise<void> {
     this.achievements.clear();
+  }
+
+  async getCustomSets(): Promise<CustomSet[]> {
+    // Deep-copy so callers can't mutate our backing rows (iso2 is a nested array).
+    return [...this.customSets.values()].map((s) => ({ ...s, iso2: [...s.iso2] }));
+  }
+
+  async putCustomSet(set: CustomSet): Promise<void> {
+    this.customSets.set(set.id, { ...set, iso2: [...set.iso2] });
+  }
+
+  async deleteCustomSet(id: string): Promise<void> {
+    this.customSets.delete(id);
+  }
+
+  async clearCustomSets(): Promise<void> {
+    this.customSets.clear();
   }
 }

@@ -54,6 +54,9 @@ const ICONS = {
   sparkles: 'sparkles',
   'chevron-right': 'chevron-right',
   reset: 'rotate-ccw',
+  search: 'search', // targeted-practice country picker (Phase 27)
+  plus: 'plus', // "New set" in targeted practice (Phase 27)
+  trash: 'trash-2', // delete a saved custom set (Phase 27)
 };
 
 /** Pull the inner markup out of a Lucide <svg> wrapper and compact whitespace. */

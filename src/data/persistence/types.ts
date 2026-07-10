@@ -70,6 +70,23 @@ export interface AchievementUnlock {
   unlockedAt: number;
 }
 
+/**
+ * A player-authored country set for targeted practice (Phase 27). Stores *only* the
+ * countries — the mode is chosen at play time, so one set ("these 8 Balkans") is reusable
+ * across modes (flags today, capitals tomorrow). Persisted as authored content (like prefs),
+ * so it survives the History/Training progress resets.
+ */
+export interface CustomSet {
+  /** Unique id (UUID when available, else a time-based fallback). */
+  id: string;
+  /** Player-given name, e.g. "Balkan flags". */
+  name: string;
+  /** ISO alpha-2 codes in the set, deduped. Order is insertion order. */
+  iso2: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
 /** User-editable preferences, persisted and applied at startup. */
 export interface Prefs {
   language: Locale;
@@ -153,4 +170,11 @@ export interface QuizStore {
   putAchievement(unlock: AchievementUnlock): Promise<void>;
   /** Erase all earned badges (cleared alongside a full progress reset). */
   clearAchievements(): Promise<void>;
+
+  // Custom targeted-practice sets (Phase 27 — one row per named country set)
+  getCustomSets(): Promise<CustomSet[]>;
+  putCustomSet(set: CustomSet): Promise<void>;
+  deleteCustomSet(id: string): Promise<void>;
+  /** Erase all saved sets (not part of the progress resets; exposed for completeness). */
+  clearCustomSets(): Promise<void>;
 }

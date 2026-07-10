@@ -16,6 +16,7 @@ import {
   getCountry,
   openStore,
   type AchievementUnlock,
+  type CustomSet,
   type DailyResult,
   type Prefs,
   type QuizStore,
@@ -305,6 +306,59 @@ export async function saveDailyResult(result: DailyResult): Promise<void> {
 /** All persisted sessions (ascending by start time). Empty before init. */
 export async function loadSessions(): Promise<SessionRecord[]> {
   return store ? store.getAllSessions() : [];
+}
+
+/**
+ * Saved targeted-practice sets (Phase 27), newest-updated first. Empty before init or on the
+ * in-memory fallback (which doesn't survive a reload). Read by the Practice route.
+ */
+export async function loadCustomSets(): Promise<CustomSet[]> {
+  if (!store) return [];
+  try {
+    const sets = await store.getCustomSets();
+    return sets.sort((a, b) => b.updatedAt - a.updatedAt);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Create (no `id`) or update (existing `id`) a saved set. Plain-copies the ISO array before
+ * persisting — it may arrive as a Svelte `$state` proxy, which IndexedDB's structured clone
+ * rejects (DataCloneError), silently dropping the write. Preserves the original `createdAt` on
+ * update. Returns the persisted row, or `null` if storage is unavailable / the write failed.
+ */
+export async function saveCustomSet(
+  input: { id?: string; name: string; iso2: readonly string[] },
+  now = Date.now(),
+): Promise<CustomSet | null> {
+  if (!store) return null;
+  const existing = input.id
+    ? (await store.getCustomSets()).find((s) => s.id === input.id)
+    : undefined;
+  const set: CustomSet = {
+    id: input.id ?? newId(),
+    name: input.name,
+    iso2: [...input.iso2],
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  };
+  try {
+    await store.putCustomSet(set);
+    return set;
+  } catch {
+    return null;
+  }
+}
+
+/** Delete a saved set by id. No-op if storage is unavailable. */
+export async function deleteCustomSet(id: string): Promise<void> {
+  if (!store) return;
+  try {
+    await store.deleteCustomSet(id);
+  } catch {
+    // Storage became unwritable — the set simply stays.
+  }
 }
 
 /** Whether any play history exists — drives the "Clear history" control's enabled state. */
