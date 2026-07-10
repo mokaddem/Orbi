@@ -29,6 +29,7 @@ import { geoNaturalEarth1, geoPath, geoCentroid } from 'd3-geo';
 import { CAPITAL_I18N } from './data/capitals-i18n.mjs';
 import { LANGUAGE_I18N } from './data/languages-i18n.mjs';
 import { INDUSTRY_TAXONOMY, COUNTRY_INDUSTRIES, KNOWN_NO_INDUSTRY } from './data/industries.mjs';
+import { INDUSTRY_FACTS } from './data/industry-facts.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
@@ -375,6 +376,9 @@ const badIndustryKeys = [];
 const languageEnByCode = new Map();
 /** Taxonomy keys assigned to ≥1 country, so a dead (unused) taxonomy entry fails the build. */
 const usedIndustryKeys = new Set();
+/** Phase 32: (country, industry) pairs that carry a curated "why" fun fact, and the covered set. */
+let factPairs = 0;
+const factCountries = new Set();
 
 for (const c of inScope) {
   const iso2 = c.cca2;
@@ -418,13 +422,24 @@ for (const c of inScope) {
   // COUNTRY_INDUSTRIES is hand-authored ("main" = reputation). Covered countries get ≥1;
   // the rest are on the KNOWN_NO_INDUSTRY allow-list, enforced by the integrity checks below.
   const industryKeys = COUNTRY_INDUSTRIES[iso2] ?? [];
+  const industryFacts = INDUSTRY_FACTS[iso2] ?? {};
   const industries = industryKeys.map((key) => {
     const name = INDUSTRY_TAXONOMY[key];
     if (!name) badIndustryKeys.push(`${iso2}:${key}`);
     else usedIndustryKeys.add(key);
-    return { key, name: name ?? { en: key, fr: key, de: key } };
+    // Phase 32: attach the curated "why" fun fact for this (country, industry) pair, if any.
+    const fact = industryFacts[key];
+    return fact
+      ? { key, name: name ?? { en: key, fr: key, de: key }, fact }
+      : { key, name: name ?? { en: key, fr: key, de: key } };
   });
   if (industries.length === 0 && !KNOWN_NO_INDUSTRY.has(iso2)) missingIndustries.push(iso2);
+  for (const ind of industries) {
+    if (ind.fact) {
+      factPairs += 1;
+      factCountries.add(iso2);
+    }
+  }
 
   countries.push({
     iso2,
@@ -480,6 +495,8 @@ const meta = {
     withIndustries: countries.filter((c) => c.industries.length > 0).length,
     distinctLanguages: languageEnByCode.size,
     industryTaxonomy: Object.keys(INDUSTRY_TAXONOMY).length,
+    industryFactPairs: factPairs,
+    withIndustryFacts: factCountries.size,
   },
   geometryExceptions: missingGeometry,
   flagExceptions: missingFlag,
@@ -537,6 +554,14 @@ console.log(
       .join(', '),
 );
 
+// Phase 32 — "why" fun-fact coverage. A subset by design (silent-omit elsewhere), so this is
+// informational, not a gate: report how many (country, industry) pairs carry a fact.
+const totalIndustryPairs = withIndustries.reduce((s, c) => s + c.industries.length, 0);
+console.log(
+  `[build-data] facts:    ${factPairs}/${totalIndustryPairs} (country, industry) pairs ` +
+    `across ${factCountries.size} countries have a "why" fun fact`,
+);
+
 const unexpectedGeometry = missingGeometry.filter((cc) => !KNOWN_NO_GEOMETRY.has(cc));
 const staleExceptions = [...KNOWN_NO_GEOMETRY].filter((cc) => !missingGeometry.includes(cc));
 
@@ -585,6 +610,31 @@ const staleNoIndustry = [...KNOWN_NO_INDUSTRY].filter(
 const industryOutOfScope = Object.keys(COUNTRY_INDUSTRIES).filter((cc) => !inScopeIso.has(cc));
 const unusedIndustryKeys = Object.keys(INDUSTRY_TAXONOMY).filter((k) => !usedIndustryKeys.has(k));
 
+// Phase 32: keep the curated INDUSTRY_FACTS store honest (coverage is a subset by design, so
+// unlike industries there is NO exhaustiveness check — a missing fact just omits the blurb):
+//  - factOutOfScope: a fact keyed to an iso2 that is not in scope.
+//  - factForMissingIndustry: a fact keyed to a (country, industry) pair the country doesn't have
+//    (a stale/typo key that could never surface, since the quiz only shows the country's own).
+//  - factIncompleteLang: a fact missing a non-empty en / fr / de (trilingual parity is required).
+const factOutOfScope = [];
+const factForMissingIndustry = [];
+const factIncompleteLang = [];
+for (const [iso2, byKey] of Object.entries(INDUSTRY_FACTS)) {
+  if (!inScopeIso.has(iso2)) {
+    factOutOfScope.push(iso2);
+    continue;
+  }
+  const owned = new Set(COUNTRY_INDUSTRIES[iso2] ?? []);
+  for (const [key, tr] of Object.entries(byKey)) {
+    if (!owned.has(key)) {
+      factForMissingIndustry.push(`${iso2}:${key}`);
+      continue;
+    }
+    if (!tr?.en?.trim() || !tr?.fr?.trim() || !tr?.de?.trim())
+      factIncompleteLang.push(`${iso2}:${key}`);
+  }
+}
+
 // Phase 19: every selectable play-region bucket must hold at least MIN_POOL countries,
 // so a region-filtered game never degenerates into cycling the same handful.
 const bucketSizes = new Map();
@@ -613,7 +663,10 @@ if (
   staleNoIndustry.length ||
   industryOutOfScope.length ||
   badIndustryKeys.length ||
-  unusedIndustryKeys.length
+  unusedIndustryKeys.length ||
+  factOutOfScope.length ||
+  factForMissingIndustry.length ||
+  factIncompleteLang.length
 ) {
   console.error('[build-data] INTEGRITY CHECK FAILED:');
   if (missingFlag.length) console.error(`  - missing flags: ${missingFlag.join(', ')}`);
@@ -665,6 +718,18 @@ if (
   if (unusedIndustryKeys.length)
     console.error(
       `  - taxonomy categories assigned to no country (prune them): ${unusedIndustryKeys.join(', ')}`,
+    );
+  if (factOutOfScope.length)
+    console.error(
+      `  - INDUSTRY_FACTS entries for out-of-scope countries: ${factOutOfScope.join(', ')}`,
+    );
+  if (factForMissingIndustry.length)
+    console.error(
+      `  - INDUSTRY_FACTS keyed to industries the country doesn't have: ${factForMissingIndustry.join(', ')}`,
+    );
+  if (factIncompleteLang.length)
+    console.error(
+      `  - INDUSTRY_FACTS entries missing an en/fr/de string: ${factIncompleteLang.join(', ')}`,
     );
   process.exit(1);
 }

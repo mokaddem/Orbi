@@ -146,6 +146,7 @@ const en = {
       reveal: 'It’s {country}',
       revealLanguages: '{country}: {languages}',
       revealIndustries: '{country}: {industries}',
+      didYouKnow: 'Did you know?',
     },
     quit: 'Quit',
   },

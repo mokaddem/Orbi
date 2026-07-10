@@ -1,7 +1,12 @@
 # Phase 32 — Answer explanations ("why" fun facts)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.6 learning depth (explain the answer)
+
+> **Shipped (2026-07-10):** industries pilot — a "Did you know?" reveal on wrong industries answers,
+> backed by a curated trilingual fact store (224 (country, industry) pairs across the 58 priority
+> economies; "Option A"). Wrong-answers-only, durable phrasing, full EN/FR/DE parity, graceful
+> silent-omit for the uncovered long tail. Atlas tie-in and other modes deferred as follow-ups.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -48,20 +53,25 @@ identity modes as coverage grows. Buildable incrementally — land the mechanism
 first, widen coverage later.
 
 ## Scope / Deliverables
-- [ ] **Fact dataset (the crux)** — a bundled, hand-authored, trilingual (EN/FR/DE) fact store keyed
-      by item (`iso2` and, for attribute modes, the attribute value/key). Licensing-clean (facts
-      aren't copyrightable; reference public-domain/general-knowledge sources). Lives alongside the
-      other curated sources in `scripts/data/` and is assembled by `build-data.mjs`.
-- [ ] **Coverage policy + integrity check** — decide which items must have a fact vs. an explicit
-      "no fact yet" fallback; mirror the `KNOWN_NO_GEOMETRY` allow-list pattern so gaps are explicit,
-      not silent. Missing a fact must degrade gracefully (reveal simply omits the blurb).
-- [ ] **Reveal UI** — an explanation slot in `Play.svelte`'s feedback area, shown on wrong answers
-      (and optionally on correct — see Open Questions). Unobtrusive, dismissible, doesn't block the
-      "next question" flow. Reuse the playful visual language (Phase 18).
-- [ ] **i18n** — all shipped fact strings present in EN/FR/DE with placeholder parity; any UI chrome
-      strings ("Did you know?") localised too.
-- [ ] **Tests** — dataset integrity (fact keys resolve to real items; no stale keys), reveal renders
-      the right fact for the answered item, graceful fallback when absent, i18n parity.
+- [x] **Fact dataset (the crux)** — `scripts/data/industry-facts.mjs`: a bundled, hand-authored,
+      trilingual (EN/FR/DE) fact store keyed by `iso2 → industryKey → { en, fr, de }`. Facts aren't
+      copyrightable; authored from general knowledge / public-domain references. Assembled onto each
+      `IndustryRef` (optional `fact?`) by `build-data.mjs`. **224 (country, industry) pairs across
+      the 58 priority economies ("Option A": full facts for the covered set).**
+- [x] **Coverage policy + integrity check** — a *subset by design* (silent-omit for the long tail),
+      so — unlike industries — there is **no exhaustiveness gate**. The build instead fails on a fact
+      for an out-of-scope country, a fact keyed to an industry the country doesn't carry (stale/typo),
+      or a fact missing an en/fr/de string; coverage (`224/446 pairs, 58 countries`) is logged.
+      Missing facts degrade gracefully (the reveal simply omits the blurb).
+- [x] **Reveal UI** — a "Did you know?" slot in `Play.svelte`'s feedback area, shown **only on wrong
+      industries answers**, explaining why the *correct* industry (`correctOptionId`) fits the country.
+      A calm turquoise (`--color-accent-weak`) callout with a 💡 glyph, set apart from the red "wrong"
+      state; doesn't block auto-advance. Reuses the Phase-18 visual language.
+- [x] **i18n** — all shipped facts present in EN/FR/DE (build-enforced completeness); the chrome
+      string `play.feedback.didYouKnow` added to all three catalogs (covered by the parity test).
+- [x] **Tests** — data tests in `countries.test.ts` (facts attach only to real industries, full
+      trilingual completeness, coverage matches meta, long tail stays uncovered); `Play.test.ts`
+      component tests (a wrong industries answer shows the fact when curated, omits it otherwise).
 
 ## Technical notes
 - **Fact key granularity** — for identity/capital modes, `iso2` suffices; for industries/languages,
@@ -104,3 +114,23 @@ first, widen coverage later.
   answer, reveal a fun "why the correct answer is true" fact (e.g. UAE → oil & gas share of GDP).
   Spun out of Phase 25 because the trilingual fact content is significant and cross-cutting. NOT
   built — awaiting the clarifying round and explicit build approval.**
+- **2026-07-10 — Clarifying round resolved with the owner, then built and shipped.**
+  Owner decisions on the open questions:
+  - **Q2 coverage** → **Industries only (pilot)**, with **"Option A"**: full facts for the ~58
+    most-recognisable economies (every industry each carries), silent-omit for the rest.
+  - **Q1 trigger** → **wrong answers only** (keeps the correct-answer flow fast).
+  - **Q3 figures** → **durable phrasing; a figure only with a stated year** (avoid staleness).
+  - **Q6 localisation** → **full EN/FR/DE parity** for every shipped fact.
+  - Defaults accepted for the rest: **Q4** silent-omit when no fact exists; **Q5** one crisp
+    "Did you know?" sentence in the playful style; **Q7** quiz-reveal only — **Atlas country-page
+    tie-in deferred** to a follow-up (noted against the "Atlas reflects country data" convention).
+  Implementation: new `scripts/data/industry-facts.mjs` (224 pairs / 58 countries, EN/FR/DE);
+  `IndustryRef.fact?` added to `src/data/types.ts`; `build-data.mjs` attaches facts + adds
+  fact-integrity checks and coverage logging (`meta.counts.industryFactPairs` / `withIndustryFacts`);
+  `Play.svelte` renders the "Did you know?" callout on wrong industries answers; `didYouKnow` string
+  in en/fr/de. **Verified:** `npm run check` / `test` (472 passing incl. new data + component tests)
+  / `lint` all green; headless-Chrome capture on :5180 of the reveal in **EN and FR** (label,
+  accents, guillemets render; fact matches the correct green option; no overflow). Note: the
+  long-running dev server was serving stale pre-fact data (Vite didn't HMR the generated JSON) — it
+  was restarted so the live check ran against the regenerated dataset. **Grows later** to
+  capitals/languages/identity modes and the Atlas page.**

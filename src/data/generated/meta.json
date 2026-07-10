@@ -13,7 +13,9 @@
     "withLanguages": 195,
     "withIndustries": 142,
     "distinctLanguages": 139,
-    "industryTaxonomy": 20
+    "industryTaxonomy": 20,
+    "industryFactPairs": 224,
+    "withIndustryFacts": 58
   },
   "geometryExceptions": [
     "TV"

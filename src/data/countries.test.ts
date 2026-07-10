@@ -113,6 +113,47 @@ describe('industries dataset (Phase 25)', () => {
   });
 });
 
+describe('industry "why" facts (Phase 32)', () => {
+  const countries = getCountries();
+  const withFact = countries.flatMap((c) =>
+    c.industries.filter((i) => i.fact).map((i) => ({ iso2: c.iso2, ind: i })),
+  );
+
+  it('ships a fact only attached to a real industry the country carries, fully trilingual', () => {
+    for (const { iso2, ind } of withFact) {
+      // A fact is only ever attached to an industry the country actually has (so the quiz can
+      // surface it), and must be complete in all three UI languages (parity is a hard rule).
+      expect(ind.fact!.en.trim().length, `en fact for ${iso2}:${ind.key}`).toBeGreaterThan(0);
+      expect(ind.fact!.fr.trim().length, `fr fact for ${iso2}:${ind.key}`).toBeGreaterThan(0);
+      expect(ind.fact!.de.trim().length, `de fact for ${iso2}:${ind.key}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('matches the coverage recorded in meta (pilot: full facts for the priority countries)', () => {
+    const factCountries = new Set(withFact.map((f) => f.iso2));
+    expect(withFact.length).toBe(meta.counts.industryFactPairs);
+    expect(factCountries.size).toBe(meta.counts.withIndustryFacts);
+    // A covered country has a fact for *every* industry it carries (Option A), so no covered
+    // country is left half-annotated.
+    for (const iso2 of factCountries) {
+      const c = countries.find((x) => x.iso2 === iso2)!;
+      expect(
+        c.industries.every((i) => i.fact),
+        `${iso2} is fact-covered but some industries lack a fact`,
+      ).toBe(true);
+    }
+  });
+
+  it('leaves the long tail uncovered (facts are a subset by design, degrading gracefully)', () => {
+    // Sanity: the pilot covers a real subset — some industries-bearing countries carry no fact,
+    // which the reveal simply omits. Guards against an accidental "all or nothing" regression.
+    const industryCountries = countries.filter((c) => c.industries.length > 0);
+    const uncovered = industryCountries.filter((c) => c.industries.every((i) => !i.fact));
+    expect(uncovered.length).toBeGreaterThan(0);
+    expect(meta.counts.withIndustryFacts).toBeGreaterThanOrEqual(40);
+  });
+});
+
 describe('flagUrl', () => {
   it('resolves a URL from a country or an ISO code', () => {
     const bg = getCountry('BG')!;

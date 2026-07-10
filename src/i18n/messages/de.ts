@@ -155,6 +155,7 @@ const de: typeof en = {
       reveal: 'Es ist {country}',
       revealLanguages: '{country}: {languages}',
       revealIndustries: '{country}: {industries}',
+      didYouKnow: 'Schon gewusst?',
     },
     quit: 'Beenden',
   },

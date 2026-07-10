@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Play from './Play.svelte';
 import { play, lastSummary, pendingConfig } from '../stores/game';
-import { mulberry32 } from '../../domain';
+import { mulberry32, type Question } from '../../domain';
 import { setLocale } from '../../i18n';
 
 function makeClock(): () => number {
@@ -236,6 +236,80 @@ describe('Play route', () => {
     if (q.correctOptionIds!.length > 1) {
       expect(container.querySelector('.reveal')).not.toBeNull();
     }
+  });
+
+  it('country-to-industry: a wrong answer reveals the "why" fun fact for the correct industry', async () => {
+    // Search seeds for a question whose correct industry carries a curated fact (the priority
+    // countries all do). Deterministic: the loop starts from a fixed seed and picks the first hit.
+    let container: HTMLElement | null = null;
+    let q: Question | null = null;
+    let fact: string | undefined;
+    for (let seed = 0; seed < 200; seed++) {
+      play.reset();
+      pendingConfig.set({
+        mode: 'country-to-industry',
+        type: 'fixed',
+        fixedLength: 3,
+        rng: mulberry32(seed),
+        now: makeClock(),
+      });
+      const r = render(Play);
+      const question = get(play).question!;
+      const correct = question.answer.industries.find((i) => i.key === question.correctOptionId);
+      if (correct?.fact) {
+        container = r.container;
+        q = question;
+        fact = correct.fact.en;
+        break;
+      }
+      r.unmount();
+    }
+    expect(fact, 'no covered (country, industry) pairing found in 200 seeds').toBeTruthy();
+
+    // Pick a distractor (any option that is not the correct one) → graded wrong.
+    const wrong = q!.attributeOptions!.find((o) => o.id !== q!.correctOptionId)!;
+    await fireEvent.click(container!.querySelector(`button[data-id="${wrong.id}"]`)!);
+    expect(get(play).feedback!.correct).toBe(false);
+
+    // The reveal shows the "Did you know?" callout with the correct industry's fact.
+    const dyk = container!.querySelector('.did-you-know');
+    expect(dyk).not.toBeNull();
+    expect(dyk!.textContent).toContain('Did you know?');
+    expect(dyk!.textContent).toContain(fact!);
+  });
+
+  it('country-to-industry: a wrong answer omits the callout when no fact is curated', async () => {
+    // Find a pairing whose correct industry has NO fact (the uncovered long tail) → graceful omit.
+    let container: HTMLElement | null = null;
+    let q: Question | null = null;
+    for (let seed = 0; seed < 200; seed++) {
+      play.reset();
+      pendingConfig.set({
+        mode: 'country-to-industry',
+        type: 'fixed',
+        fixedLength: 3,
+        rng: mulberry32(seed),
+        now: makeClock(),
+      });
+      const r = render(Play);
+      const question = get(play).question!;
+      const correct = question.answer.industries.find((i) => i.key === question.correctOptionId);
+      if (correct && !correct.fact) {
+        container = r.container;
+        q = question;
+        break;
+      }
+      r.unmount();
+    }
+    expect(q, 'no uncovered pairing found in 200 seeds').not.toBeNull();
+
+    const wrong = q!.attributeOptions!.find((o) => o.id !== q!.correctOptionId)!;
+    await fireEvent.click(container!.querySelector(`button[data-id="${wrong.id}"]`)!);
+    expect(get(play).feedback!.correct).toBe(false);
+
+    // The industries list still reveals, but there is no "Did you know?" callout.
+    expect(container!.querySelector('.reveal')).not.toBeNull();
+    expect(container!.querySelector('.did-you-know')).toBeNull();
   });
 
   it('auto-starts a staged config and plays a fixed session end-to-end via the timer', async () => {

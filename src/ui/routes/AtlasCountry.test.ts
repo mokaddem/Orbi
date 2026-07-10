@@ -34,6 +34,24 @@ describe('AtlasCountry', () => {
     expect(getByRole('status')).toBeInTheDocument();
   });
 
+  it('surfaces the industries "why" fun facts for a covered country (Phase 32)', () => {
+    const { container } = render(AtlasCountry, { params: { iso2: 'FR' } });
+
+    const section = container.querySelector('.did-you-know');
+    expect(section).not.toBeNull();
+    expect(section!.textContent).toContain('Did you know?');
+    // France is fact-covered: one line per industry, each with the industry name + its fact.
+    expect(section!.querySelectorAll('li').length).toBe(5);
+    expect(section!.textContent).toContain('Airbus'); // from the aerospace-defence fact
+  });
+
+  it('omits the fun-facts section for a country with industries but no curated facts', () => {
+    // Bhutan carries industries (energy, tourism, agriculture) but is outside the priority set,
+    // so no facts are authored — the section must not render (graceful, per silent-omit policy).
+    const { container } = render(AtlasCountry, { params: { iso2: 'BT' } });
+    expect(container.querySelector('.did-you-know')).toBeNull();
+  });
+
   it('renders a graceful not-found for an unknown ISO', () => {
     const { getByText, getByRole } = render(AtlasCountry, { params: { iso2: 'ZZ' } });
     expect(getByText(/couldn.t find that country/i)).toBeInTheDocument();

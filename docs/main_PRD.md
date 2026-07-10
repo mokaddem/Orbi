@@ -163,7 +163,7 @@ file). **Industries (25) is the motivating first target**; it extends to other m
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 32 | Answer explanations ("why" fun facts) | [phase-32-answer-explanations.md](phases/phase-32-answer-explanations.md) | 2, 25 (pilot; grows to 23/24 + identity modes) | ⬜ Not started | 0% |
+| 32 | Answer explanations ("why" fun facts) | [phase-32-answer-explanations.md](phases/phase-32-answer-explanations.md) | 2, 25 (pilot; grows to 23/24 + identity modes) | ✅ Done | 100% (industries pilot: "Did you know?" on wrong answers; curated trilingual fact store — 224 pairs / 58 priority countries; Atlas tie-in & other modes deferred) |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

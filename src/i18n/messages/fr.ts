@@ -149,6 +149,7 @@ const fr: typeof en = {
       reveal: 'C’est {country}',
       revealLanguages: '{country} : {languages}',
       revealIndustries: '{country} : {industries}',
+      didYouKnow: 'Le saviez-vous ?',
     },
     quit: 'Quitter',
   },

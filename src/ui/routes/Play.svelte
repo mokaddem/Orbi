@@ -539,6 +539,22 @@
                   .join(', '),
               })}
             </p>
+            <!-- Phase 32: on a wrong answer, explain *why* the correct industry is one the
+                 country is known for. Shown only when a curated fact exists for that pairing. -->
+            {#if !fb.correct}
+              {@const correctIndustry = fb.question.answer.industries.find(
+                (i) => i.key === fb.question.correctOptionId,
+              )}
+              {#if correctIndustry?.fact}
+                <p class="did-you-know">
+                  <span class="dyk-icon" aria-hidden="true">💡</span>
+                  <span>
+                    <span class="dyk-label">{$t('play.feedback.didYouKnow')}</span>
+                    {$localizedText(correctIndustry.fact)}
+                  </span>
+                </p>
+              {/if}
+            {/if}
           {:else if !fb.correct}
             {#if fb.question.mode === 'country-to-languages'}
               <p class="reveal">
@@ -1006,6 +1022,33 @@
   .reveal {
     margin: 0;
     color: var(--color-text);
+  }
+
+  /* Phase 32: "Did you know?" fun-fact callout on a wrong industries answer. A calm turquoise
+     card so the learning moment reads apart from the red "wrong" state around it. */
+  .did-you-know {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    background: var(--color-accent-weak);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    line-height: 1.4;
+  }
+
+  .dyk-icon {
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+
+  .dyk-label {
+    font-weight: 700;
+    color: var(--color-accent-strong);
+    margin-right: 0.15rem;
   }
 
   .countdown {

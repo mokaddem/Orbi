@@ -84,6 +84,25 @@
       </div>
     </div>
 
+    {#if country.industries.some((ind) => ind.fact)}
+      <!-- Phase 32: the industries mode's "why" fun facts also surface here, per the
+           "Atlas reflects country data" convention — one line per fact-bearing industry. -->
+      <section class="did-you-know" aria-labelledby="dyk-heading">
+        <h2 id="dyk-heading">
+          <Icon name="sparkles" size={16} />
+          {$t('play.feedback.didYouKnow')}
+        </h2>
+        <ul>
+          {#each country.industries.filter((ind) => ind.fact) as ind (ind.key)}
+            <li>
+              <span class="topic">{$localizedText(ind.name)}</span>
+              <span>{$localizedText(ind.fact!)}</span>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+
     {#if features}
       <AtlasMap
         {features}
@@ -173,6 +192,47 @@
     margin: 0;
     font-weight: 700;
     font-size: 1.1rem;
+  }
+
+  .did-you-know {
+    padding: 1.25rem 1.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+
+  .did-you-know h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.85rem;
+    font-size: 1.15rem;
+  }
+
+  .did-you-know h2 :global(.icon) {
+    color: var(--color-accent);
+  }
+
+  .did-you-know ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .did-you-know li {
+    padding-left: 0.85rem;
+    border-left: 3px solid var(--color-accent-weak);
+    line-height: 1.45;
+  }
+
+  .did-you-know .topic {
+    font-weight: 700;
+    color: var(--color-accent-strong);
+    margin-right: 0.3rem;
   }
 
   .map-status {

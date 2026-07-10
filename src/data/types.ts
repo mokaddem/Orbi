@@ -30,6 +30,13 @@ export interface IndustryRef {
   key: string;
   /** The industry name, localized (from the curated taxonomy). */
   name: CountryName;
+  /**
+   * Optional "why" fun fact (Phase 32) — a short, localized sentence explaining why this is a
+   * main industry of the country, shown on a wrong industries answer. Curated and bundled
+   * (`industry-facts.mjs`); present only for the covered (country, industry) pairs, absent
+   * otherwise (the reveal simply omits the blurb).
+   */
+  fact?: CountryName;
 }
 
 /**
