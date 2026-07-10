@@ -124,9 +124,9 @@ certain data story.
   - **Data:** `scripts/data/industries.mjs` (20-category taxonomy EN/FR/DE + per-country map +
     `KNOWN_NO_INDUSTRY`); `build-data.mjs` attaches `industries`, runs the exhaustive/honest integrity
     checks, logs coverage. **142 covered / 53 excluded** (Africa 29, Americas 26, Asia 43, Europe 40,
-    Oceania 4). ⚠️ *This overshoots the ~110–120 estimate the owner picked — coverage was sourceable for
-    most non-micro states. Trimming is a one-line data edit if a tighter set is preferred; Oceania is a
-    thin pool (4) either way.*
+    Oceania 4). *This runs above the ~110–120 estimate the owner picked, because a defensible
+    reputation-industry was sourceable for nearly every non-micro state. **Owner reviewed and accepted
+    the 142-country coverage on 2026-07-10 — no trim.** Oceania is a thin pool (4) inherently.*
   - **Engine:** `country-to-industry` single-select attribute mode (mirrors capitals mechanically);
     `selectIndustryDistractors` (never a real industry, geo-tiered), `pickCorrectIndustry`,
     `isIndustryQuizEligible`; registered across `modes.ts` (`INDUSTRY_MODES`, `EXTRA_TOPICS` third topic).
