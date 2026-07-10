@@ -6,7 +6,10 @@
   import { loadRecommendations, prefs, storageReady } from '../stores/persistence';
   import type { Recommendation } from '../../domain';
   import Flag from '../components/Flag.svelte';
+  import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
+  import ModeIcon from '../components/ModeIcon.svelte';
+  import RegionIcon from '../components/RegionIcon.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
 
   // A forward-looking "Next up" suggestion, computed from the player's overall state
@@ -27,6 +30,7 @@
     'capital-to-country': 'modes.capitalToCountry',
     'country-to-capital': 'modes.countryToCapital',
     'country-to-languages': 'modes.countryToLanguages',
+    'country-to-industry': 'modes.mainIndustries',
   };
 
   function retry(): void {
@@ -95,25 +99,39 @@
     {@const s = $lastSummary}
     {@const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region ?? null}
     <p class="meta">
-      {$t(MODE_LABEL[s.mode] ?? s.mode)} · {$t(`sessionType.${s.type}`)}{regionKey
-        ? ` · ${$localizedRegion(regionKey)}`
-        : ''}
+      <span class="meta-ico" aria-hidden="true"><ModeIcon mode={s.mode} /></span>
+      <span>{$t(MODE_LABEL[s.mode] ?? s.mode)}</span>
+      <span class="dot" aria-hidden="true">·</span>
+      <span>{$t(`sessionType.${s.type}`)}</span>
+      {#if regionKey}
+        <span class="dot" aria-hidden="true">·</span>
+        <span class="meta-region">
+          <span class="meta-region-ico" aria-hidden="true"
+            ><RegionIcon region={s.regionFilter?.region ?? ''} /></span
+          >
+          {$localizedRegion(regionKey)}
+        </span>
+      {/if}
     </p>
 
     <div class="stats">
       <div class="stat">
+        <span class="stat-ico" aria-hidden="true"><Icon name="trophy" size={18} /></span>
         <span class="value">{s.correct}/{s.total}</span>
         <span class="label">{$t('summary.score')}</span>
       </div>
       <div class="stat">
+        <span class="stat-ico" aria-hidden="true"><Icon name="target" size={18} /></span>
         <span class="value">{formatPercent(s.accuracy)}</span>
         <span class="label">{$t('summary.accuracy')}</span>
       </div>
       <div class="stat">
+        <span class="stat-ico" aria-hidden="true"><Icon name="clock" size={18} /></span>
         <span class="value">{formatDuration(s.durationMs)}</span>
         <span class="label">{$t('summary.time')}</span>
       </div>
       <div class="stat">
+        <span class="stat-ico" aria-hidden="true"><Icon name="flame" size={18} /></span>
         <span class="value">{s.bestStreak}</span>
         <span class="label">{$t('summary.bestStreak')}</span>
       </div>
@@ -143,7 +161,10 @@
     {/if}
 
     <div class="actions">
-      <button type="button" class="primary" onclick={retry}>{$t('summary.retry')}</button>
+      <button type="button" class="primary" onclick={retry}>
+        <Icon name="repeat" size="1em" />
+        {$t('summary.retry')}
+      </button>
       <button
         type="button"
         class="secondary"
@@ -151,9 +172,13 @@
         disabled={s.missed.length === 0}
         title={s.missed.length === 0 ? $t('summary.trainNone') : $t('summary.trainThese')}
       >
+        <Icon name="train" size="1em" />
         {$t('summary.train')}
       </button>
-      <button type="button" class="ghost" onclick={newGame}>{$t('summary.newGame')}</button>
+      <button type="button" class="ghost" onclick={newGame}>
+        <Icon name="play" size="1em" />
+        {$t('summary.newGame')}
+      </button>
     </div>
   {/if}
 </section>
@@ -208,8 +233,36 @@
 
   .meta {
     margin: -0.5rem 0 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
     color: var(--color-muted);
     font-weight: 600;
+  }
+
+  .meta-ico {
+    display: inline-flex;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: var(--color-accent);
+  }
+
+  .meta-region {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .meta-region-ico {
+    display: inline-flex;
+    width: 1.35rem;
+    height: 1.35rem;
+    color: var(--color-accent);
+  }
+
+  .dot {
+    opacity: 0.6;
   }
 
   .stats {
@@ -228,6 +281,11 @@
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
+  }
+
+  .stat-ico {
+    display: inline-flex;
+    color: var(--color-accent);
   }
 
   .stat .value {
@@ -290,6 +348,9 @@
   }
 
   .actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     padding: 0.55rem 1.3rem;
     border-radius: var(--radius);
     font-weight: 700;

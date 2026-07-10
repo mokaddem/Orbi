@@ -6,6 +6,8 @@
   import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
   import Mascot from '../components/Mascot.svelte';
+  import ModeIcon from '../components/ModeIcon.svelte';
+  import RegionIcon from '../components/RegionIcon.svelte';
 
   const MODE_LABEL: Record<string, string> = {
     'flag-to-country': 'modes.flagToCountry',
@@ -142,11 +144,21 @@
         {#each recent as r (r.id)}
           {@const regionKey = r.regionFilter?.subregion ?? r.regionFilter?.region ?? null}
           <li>
+            <span class="recent-mode-ico" aria-hidden="true"><ModeIcon mode={r.mode} /></span>
             <span class="recent-date">{formatDate(r.finishedAt, $locale)}</span>
             <span class="recent-mode">
               {$t(MODE_LABEL[r.mode] ?? r.mode)}
-              <small>
-                {$t(`sessionType.${r.type}`)}{regionKey ? ` · ${$localizedRegion(regionKey)}` : ''}
+              <small class="recent-sub">
+                <span>{$t(`sessionType.${r.type}`)}</span>
+                {#if regionKey}
+                  <span class="dot" aria-hidden="true">·</span>
+                  <span class="recent-region">
+                    <span class="recent-region-ico" aria-hidden="true"
+                      ><RegionIcon region={r.regionFilter?.region ?? ''} /></span
+                    >
+                    {$localizedRegion(regionKey)}
+                  </span>
+                {/if}
               </small>
             </span>
             <span class="recent-score">
@@ -355,10 +367,41 @@
 
   .recent-list li {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto auto 1fr auto;
     align-items: center;
     gap: 0.75rem;
     padding: 0.55rem 0.2rem;
+  }
+
+  .recent-mode-ico {
+    display: inline-flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--color-accent);
+  }
+
+  .recent-sub {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .recent-sub .dot {
+    opacity: 0.6;
+  }
+
+  .recent-region {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+  }
+
+  .recent-region-ico {
+    display: inline-flex;
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-muted);
   }
 
   .recent-list li + li {

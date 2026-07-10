@@ -303,4 +303,68 @@ describe('Play route', () => {
       vi.useRealTimers();
     }
   });
+
+  it('renders survival lives as heart glyphs, dimming one per wrong answer', async () => {
+    pendingConfig.set({
+      mode: 'map-highlight',
+      type: 'survival',
+      lives: 3,
+      rng: mulberry32(3),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+    expect(get(play).status).toBe('playing');
+
+    // Three hearts, none lost yet.
+    expect(container.querySelectorAll('.lives .heart').length).toBe(3);
+    expect(container.querySelectorAll('.lives .heart.lost').length).toBe(0);
+
+    // A wrong answer costs a life → one dimmed heart.
+    const q = get(play).question!;
+    const wrong = q.options!.find((o) => o.iso2 !== q.answer.iso2)!;
+    await fireEvent.click(container.querySelector(`button[data-id="${wrong.iso2}"]`)!);
+    expect(container.querySelectorAll('.lives .heart.lost').length).toBe(1);
+  });
+
+  it('shows the correct country flag in the wrong-answer reveal (map-highlight)', async () => {
+    pendingConfig.set({
+      mode: 'map-highlight',
+      type: 'fixed',
+      fixedLength: 3,
+      rng: mulberry32(3),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+
+    const q = get(play).question!;
+    const wrong = q.options!.find((o) => o.iso2 !== q.answer.iso2)!;
+    await fireEvent.click(container.querySelector(`button[data-id="${wrong.iso2}"]`)!);
+    expect(get(play).status).toBe('answered');
+    // The reveal carries the correct country's flag beside the name.
+    expect(container.querySelector('.reveal-line .reveal-flag img')).toBeInTheDocument();
+  });
+
+  it('anchors an attribute-mode prompt with the country flag (country-to-capital)', () => {
+    pendingConfig.set({
+      mode: 'country-to-capital',
+      type: 'fixed',
+      fixedLength: 3,
+      rng: mulberry32(8),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+    expect(container.querySelector('.prompt .prompt-country-flag img')).toBeInTheDocument();
+  });
+
+  it('does not add a prompt flag to country-to-flag (it would leak the answer)', () => {
+    pendingConfig.set({
+      mode: 'country-to-flag',
+      type: 'fixed',
+      fixedLength: 3,
+      rng: mulberry32(8),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+    expect(container.querySelector('.prompt-country-flag')).toBeNull();
+  });
 });

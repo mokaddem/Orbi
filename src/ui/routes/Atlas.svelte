@@ -3,6 +3,7 @@
   import { t, localizedName } from '../../i18n';
   import { getCountries, loadCountryFeatures, type CountryFeature } from '../../data';
   import Flag from '../components/Flag.svelte';
+  import Icon from '../components/Icon.svelte';
   import AtlasRegionGrid from '../components/AtlasRegionGrid.svelte';
   import CountryScopeNote from '../components/CountryScopeNote.svelte';
   import { searchCountries, groupByInitial } from './atlas-search';
@@ -39,6 +40,7 @@
   </header>
 
   <div class="search">
+    <span class="search-icon" aria-hidden="true"><Icon name="search" size={18} /></span>
     <input
       type="search"
       bind:value={query}
@@ -112,14 +114,32 @@
     color: var(--color-muted);
   }
 
+  .search {
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    color: var(--color-muted);
+    pointer-events: none;
+  }
+
   .search input {
     width: 100%;
-    padding: 0.65rem 0.9rem;
+    padding: 0.65rem 0.9rem 0.65rem 2.5rem;
     font: inherit;
     color: var(--color-text);
     background: var(--color-surface);
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
+  }
+
+  .search:focus-within .search-icon {
+    color: var(--color-accent);
   }
 
   .search input:focus-visible {

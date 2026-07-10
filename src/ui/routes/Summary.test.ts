@@ -83,3 +83,25 @@ describe('Summary route — Train these', () => {
     expect(cfg!.answerPoolIso?.slice().sort()).toEqual(['BG', 'FR', 'RO']);
   });
 });
+
+describe('Summary route — visual sweep imagery', () => {
+  it('adds a mode glyph + region silhouette to the meta line and icons to the stat tiles', () => {
+    lastSummary.set(
+      summary({ mode: 'map-highlight', regionFilter: { region: 'Europe' }, missed: [bg] }),
+    );
+    const { container } = render(Summary);
+
+    expect(container.querySelector('.meta .mode-icon')).toBeInTheDocument();
+    expect(container.querySelector('.meta .region-icon')).toBeInTheDocument();
+    // Score / accuracy / time / best-streak each carry an icon.
+    expect(container.querySelectorAll('.stats .stat .icon').length).toBe(4);
+  });
+
+  it('keeps the action-button accessible names despite the added icons', () => {
+    lastSummary.set(summary({ mode: 'map-highlight', missed: [bg] }));
+    render(Summary);
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Train these' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New game' })).toBeInTheDocument();
+  });
+});

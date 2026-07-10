@@ -22,6 +22,18 @@ describe('AtlasCountry', () => {
     expect(getByRole('heading', { level: 1, name: 'France' })).toBeInTheDocument();
   });
 
+  it('labels each fact with a glyph and shows the locator-map area (Phase 31)', () => {
+    const { container, getByRole } = render(AtlasCountry, { params: { iso2: 'FR' } });
+
+    // Capital / Languages / Region / Sub-region (+ Industries if any) each get a leading icon.
+    expect(container.querySelectorAll('.fact dt .icon').length).toBeGreaterThanOrEqual(4);
+    // The flag stays the only element named for the country (the locator map has its own label),
+    // so the reference-page a11y name is unambiguous.
+    expect(getByRole('img', { name: 'France' })).toBeInTheDocument();
+    // Geometry loads lazily; the locator area renders its status region either way.
+    expect(getByRole('status')).toBeInTheDocument();
+  });
+
   it('renders a graceful not-found for an unknown ISO', () => {
     const { getByText, getByRole } = render(AtlasCountry, { params: { iso2: 'ZZ' } });
     expect(getByText(/couldn.t find that country/i)).toBeInTheDocument();

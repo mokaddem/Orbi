@@ -2,6 +2,7 @@
   import { t } from '../../i18n';
   import type { WeeklyRecap } from '../../domain';
   import { formatPercent } from '../format';
+  import Icon from './Icon.svelte';
 
   // Weekly recap (Phase 16): a compact "this week" summary — sessions, accuracy, questions,
   // newly-mastered countries, and the current day-streak. Falls back to a nudge when the
@@ -17,23 +18,23 @@
   {:else}
     <dl class="chips">
       <div class="chip">
-        <dt>{$t('progress.recap.sessions')}</dt>
+        <dt><Icon name="play" size={13} /> {$t('progress.recap.sessions')}</dt>
         <dd>{recap.sessions}</dd>
       </div>
       <div class="chip">
-        <dt>{$t('progress.recap.accuracy')}</dt>
+        <dt><Icon name="target" size={13} /> {$t('progress.recap.accuracy')}</dt>
         <dd>{formatPercent(recap.accuracy)}</dd>
       </div>
       <div class="chip">
-        <dt>{$t('progress.recap.questions')}</dt>
+        <dt><Icon name="check" size={13} /> {$t('progress.recap.questions')}</dt>
         <dd>{recap.questions}</dd>
       </div>
       <div class="chip">
-        <dt>{$t('progress.recap.mastered')}</dt>
+        <dt><Icon name="sparkles" size={13} /> {$t('progress.recap.mastered')}</dt>
         <dd>+{recap.masteredThisWeek}</dd>
       </div>
       <div class="chip">
-        <dt>{$t('progress.recap.streak')}</dt>
+        <dt><Icon name="flame" size={13} /> {$t('progress.recap.streak')}</dt>
         <dd>{recap.currentStreak}</dd>
       </div>
     </dl>
@@ -65,9 +66,17 @@
   }
 
   .chip dt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
     font-size: 0.72rem;
     color: var(--color-muted);
     text-align: center;
+  }
+
+  .chip dt :global(.icon) {
+    color: var(--color-accent);
   }
 
   .chip dd {

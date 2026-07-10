@@ -43,5 +43,7 @@ describe('WeeklyRecap', () => {
     expect(screen.getByText('85%')).toBeInTheDocument();
     expect(screen.getByText('+6')).toBeInTheDocument();
     expect(screen.getByText('40')).toBeInTheDocument();
+    // Each of the five chips carries a leading icon (Phase 31 visual sweep).
+    expect(el.querySelectorAll('.chip .icon').length).toBe(5);
   });
 });

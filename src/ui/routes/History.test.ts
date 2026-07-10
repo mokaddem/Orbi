@@ -59,4 +59,14 @@ describe('History route (activity log)', () => {
     expect(screen.queryByText('World mastery')).not.toBeInTheDocument();
     expect(screen.queryByText('Accuracy')).not.toBeInTheDocument();
   });
+
+  it('shows a mode glyph and a region silhouette on recent-session rows', async () => {
+    await saveSession(summary({ mode: 'map-highlight', regionFilter: { region: 'Europe' } }));
+    const { container } = render(History);
+
+    // Wait for the async load to render the recent list, then check the row imagery.
+    await screen.findByText('Recent sessions', {}, { timeout: 3000 });
+    expect(container.querySelector('.recent-list .mode-icon')).toBeInTheDocument();
+    expect(container.querySelector('.recent-list .region-icon')).toBeInTheDocument();
+  });
 });

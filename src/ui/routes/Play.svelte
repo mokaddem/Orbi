@@ -59,6 +59,23 @@
     { mode: 'country-to-industry', labelKey: 'modes.mainIndustries' },
   ];
 
+  // Country-centric modes where a wrong-answer reveal benefits from the correct country's
+  // flag beside the name — the flag wasn't the question here (unlike the flag↔country modes,
+  // where showing it would be redundant with the prompt/answer).
+  const REVEAL_FLAG_MODES: GameMode[] = [
+    'map-highlight',
+    'map-locate',
+    'capital-to-country',
+    'country-to-capital',
+  ];
+  // Attribute modes prompted by a country name: anchor the prompt with the country's flag.
+  // The answer is a capital / language / industry, so the flag never gives it away.
+  const PROMPT_FLAG_MODES: GameMode[] = [
+    'country-to-capital',
+    'country-to-languages',
+    'country-to-industry',
+  ];
+
   // Region filter selections. Empty string means "no narrowing": no region → World
   // (all countries); no sub-region → the whole selected region.
   const regionTree = getRegionTree();
@@ -356,11 +373,24 @@
             </span>
           </div>
         {:else}
-          <div class="lives" aria-label={$t('play.progress.lives')}>
+          <div
+            class="lives"
+            aria-label={$t('play.progress.livesRemaining', {
+              remaining: s.livesRemaining,
+              total: lives,
+            })}
+          >
             {#each Array.from({ length: lives }, (_, i) => i) as i (i)}
-              <span class="heart" class:lost={i >= s.livesRemaining}
-                >{i < s.livesRemaining ? '♥' : '♡'}</span
+              <svg
+                class="heart"
+                class:lost={i >= s.livesRemaining}
+                viewBox="0 0 24 24"
+                aria-hidden="true"
               >
+                <path
+                  d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+                />
+              </svg>
             {/each}
             <span class="answered">{$t('play.progress.answered', { count: s.results.length })}</span
             >
@@ -380,6 +410,11 @@
       </header>
 
       <div class="prompt">
+        {#if PROMPT_FLAG_MODES.includes(cfg.mode)}
+          <!-- Anchor the country name with its flag (capitals / languages / industries):
+               the answer is an attribute, so the flag is a study aid, not a giveaway. -->
+          <div class="prompt-country-flag"><Flag country={question.answer} /></div>
+        {/if}
         {#if cfg.mode === 'flag-to-country'}
           <div class="prompt-flag"><Flag country={question.answer} /></div>
           <p class="ask">{$t('play.prompt.whichCountry')}</p>
@@ -515,14 +550,19 @@
                 })}
               </p>
             {:else}
-              <p class="reveal">
-                {$t('play.feedback.reveal', {
-                  country:
-                    fb.question.mode === 'country-to-capital'
-                      ? $localizedText(fb.question.answer.capital)
-                      : $localizedName(fb.question.answer),
-                })}
-              </p>
+              <div class="reveal-line">
+                {#if REVEAL_FLAG_MODES.includes(fb.question.mode)}
+                  <span class="reveal-flag"><Flag country={fb.question.answer} /></span>
+                {/if}
+                <p class="reveal">
+                  {$t('play.feedback.reveal', {
+                    country:
+                      fb.question.mode === 'country-to-capital'
+                        ? $localizedText(fb.question.answer.capital)
+                        : $localizedName(fb.question.answer),
+                  })}
+                </p>
+              </div>
             {/if}
           {/if}
           <div class="countdown" style="--countdown-ms: {dwellMs(fb)}ms" aria-hidden="true">
@@ -799,13 +839,24 @@
   .lives {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    font-size: 1.3rem;
+    gap: 0.35rem;
     color: var(--color-wrong);
+  }
+
+  .heart {
+    width: 1.6rem;
+    height: 1.6rem;
+    fill: currentColor;
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 12%));
+    transition:
+      transform 0.2s ease,
+      color 0.2s ease;
   }
 
   .heart.lost {
     color: var(--color-border);
+    filter: none;
+    transform: scale(0.82);
   }
 
   .lives .answered {
@@ -878,6 +929,11 @@
     max-width: 260px;
   }
 
+  /* Smaller anchor flag above the country name in capital/language/industry prompts. */
+  .prompt-country-flag {
+    width: 132px;
+  }
+
   .prompt-name {
     margin: 0;
     font-size: 1.8rem;
@@ -935,6 +991,18 @@
     color: var(--color-wrong);
   }
 
+  .reveal-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .reveal-flag {
+    flex: 0 0 auto;
+    width: 52px;
+  }
+
   .reveal {
     margin: 0;
     color: var(--color-text);
@@ -976,7 +1044,8 @@
 
     .opt,
     .region-opt,
-    .start {
+    .start,
+    .heart {
       transition: none;
     }
 
