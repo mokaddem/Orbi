@@ -1,6 +1,6 @@
 # Phase 33 — Graphic richness & delight (mascot, motion & illustration)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.7 character & delight
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
