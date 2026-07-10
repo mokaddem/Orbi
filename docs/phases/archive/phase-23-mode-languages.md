@@ -1,6 +1,6 @@
 # Phase 23 — New game mode: National / official languages
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v1.3 content, languages & new modes
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -38,22 +38,30 @@ Phase 2 (quiz engine). **Shares an "attribute-quiz" engine generalization with P
 notes). Recommended order: capitals first (simplest), then languages, then industries.
 
 ## Scope / Deliverables
-- [ ] **Dataset** — extend `build-data.mjs` + the `Country` type to include `languages` (code +
-      English name; localised names per Open Question). Add an integrity check that every in-scope
-      country has ≥ 1 language.
-- [ ] **Engine generalization (shared)** — introduce an "attribute question" abstraction so the answer
-      and options aren't restricted to `Country` (needed unless we pick only the `language→country`
-      framing). Keep it pure and unit-tested; SR/history keys stay per-country (`${mode}:${iso2}`).
-- [ ] **Mode + UI** — new `GameMode` value(s); a `Play.svelte` mode card + a `ModeIcon` glyph; prompt
-      and `modes.*` strings (EN/FR + DE); render via `ChoiceGrid` (extend for multi-select if chosen).
-- [ ] **Question generation & distractors** — plausible wrong languages (e.g. from neighbouring
-      countries / same region) that the country does **not** actually speak; never offer a real
-      language of the country as a distractor.
-- [ ] **Scoring** — define correctness for the chosen framing (esp. multi-select: all-or-nothing vs.
-      partial credit) and how it records a `QuestionResult`.
-- [ ] **Progress integration** — decide how this mode feeds mastery/achievements (Phase 16), which
-      currently assume the four country-identification modes.
-- [ ] **Tests** — generation, distractor rules, scoring (incl. multi-select edge cases), i18n parity.
+- [x] **Dataset** — extended `build-data.mjs` + the `Country` type with `languages: LanguageRef[]`
+      (ISO-639-3 code + localised name). Curated FR/DE names in `scripts/data/languages-i18n.mjs`
+      (English default + overrides where the exonym differs; owner-review banner). Integrity checks:
+      every in-scope country has ≥ 1 language (195/195), plus honesty guards on the curated map
+      (no stale codes, no no-op overrides).
+- [x] **Engine generalization (shared)** — extended the Phase-24 attribute-question abstraction with a
+      **multi-select** shape: `Question.correctOptionIds` + `MULTI_SELECT_MODES`/`isMultiSelectMode`,
+      `checkAnswer`/`session.submit` accept a `string[]` and grade **all-or-nothing**. Pure +
+      unit-tested; SR/history/itemKey stay per-country (`country-to-languages:${iso2}`).
+- [x] **Mode + UI** — new `GameMode` `country-to-languages`; a `Play.svelte` mode card + a `ModeIcon`
+      glyph (speech bubble); prompt + `modes.*` / `play.multi.*` / feedback strings (EN/FR/DE); a
+      **multi-select `ChoiceGrid`** variant (toggle → Submit) with a distinct reveal.
+- [x] **Question generation & distractors** — bespoke `selectLanguageDistractors`: geography-tiered
+      languages the country does **not** speak (never a real one). Option count adapts (6–8);
+      countries with > 5 languages are excluded as answers (3 dropped: Namibia/South Africa/Zimbabwe).
+- [x] **Scoring** — **all-or-nothing** (owner-agreed): the picked set must equal the correct set
+      exactly → boolean `QuestionResult.correct`, so SR/history need no special-casing.
+- [x] **Progress integration** — kept **separate from country mastery** (like capitals) and folded
+      with capitals into one combined **"Extra knowledge"** History panel (compact per-topic meter,
+      expandable regions) + a parallel language achievement ladder grouped there via a `topic` tag —
+      the owner's "fold both together" design (industries slot in next).
+- [x] **Tests** — generation, distractor rules (no real language; tiering), all-or-nothing scoring
+      (over/under/empty/order), option-count cap, multi-select `ChoiceGrid`, Play in-game flow,
+      mastery/achievement separation, combined-panel appearance, trainability, i18n parity.
 
 ## Technical notes
 - **Framing is the crux** (Open Question 1):
@@ -100,3 +108,33 @@ notes). Recommended order: capitals first (simplest), then languages, then indus
 - **2026-07-09 — PRD drafted from the owner's v1.3 improvement list ("national languages for each
   country, e.g. Belgium has 3"). NOT built — awaiting the clarifying round and explicit build
   approval.**
+- **2026-07-10 — Clarifying round resolved with the owner, then built (explicit "All good. Go ahead!").**
+  - **Open questions answered:** (1) Framing — **B, multi-select "select all"** (faithful to
+    "Belgium has 3"); ships one mode, `country-to-languages`. (2) Language scope — **use the
+    `world-countries` set as-is**, worded as "languages spoken in" (not a legal "official" claim).
+    (3) Localised names — **curated EN/FR/DE map** (`scripts/data/languages-i18n.mjs`, English default
+    + exonym overrides), flagged for owner translation review. (4) Distractors — bespoke
+    **geography-tiered "confusable languages"** the country doesn't speak. (5) Scoring/SR —
+    **all-or-nothing** (boolean result → SR unchanged). (6) Mastery — **kept separate** from country
+    mastery and, per the owner's ask, **folded together with capitals** (and future industries) into
+    one combined "Extra knowledge" surface instead of each getting its own panel.
+  - **Engine (extends the Phase-24 attribute engine):** `Question.correctOptionIds` (a correct *set*);
+    `MULTI_SELECT_MODES` / `isMultiSelectMode`; `checkAnswer` + `session.submit` accept `string[]` and
+    grade exact-set equality; `selectLanguageDistractors` (tiered foreign languages, never a spoken
+    one); `languageOptionCount` (6–8, ≥ 3 distractors); `isLanguageQuizEligible` / `MAX_QUIZ_LANGUAGES`
+    (≤ 5 → drops Namibia/South Africa/Zimbabwe, whose 9/11/15-language lists are unwieldy + fuzziest).
+  - **Combined "extra knowledge" surface:** the standalone capital panel became one panel holding a
+    compact `WorldMasteryMeter` per active topic (capitals, languages), each expandable to its region
+    breakdown (`ExtraMasteryTopic.svelte`); the achievement catalog gained a topic-parametrized ladder
+    (`extraTopicBadges`, `topic` field) so capitals keep their ids and languages mirror them, rendered
+    grouped inside the panel — the main achievements grid stays country/skill/habit only. Language
+    mastery uses the **language-eligible** denominator (192) so 100% is reachable.
+  - **Verification:** fast loop green — `npm run test` (**403 pass**, incl. new questions/achievements/
+    ChoiceGrid/Play/History/training cases), `npm run check` (0 errors), `npm run lint` clean,
+    `npm run build` OK (195/195 languages integrity, 139 distinct). Real `--screenshot` confirms the
+    7th "National languages" mode card + glyph on setup; the multi-select in-game flow, all-or-nothing
+    grading, and the combined History panel (capitals + languages) are verified by component tests
+    (interactive headless Chrome is blocked in this sandbox — only self-exiting `--screenshot` runs).
+  - **Owner review pending (non-blocking):** the seeded FR/DE names in `languages-i18n.mjs` — English
+    default is used wherever no confident exonym was added; French language labels are capitalised as
+    display labels (strict French would lower-case them).

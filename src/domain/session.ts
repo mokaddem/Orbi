@@ -152,9 +152,10 @@ export class QuizSession {
   /**
    * Grade the active question, record a {@link QuestionResult} (with timing), update
    * score / streak / lives, and finish the session if an end condition is met.
-   * `pick` may be a `Country`, an ISO code, or `null` (no answer → incorrect).
+   * `pick` may be a `Country`, an ISO code, a `string[]` (multi-select option ids), or
+   * `null` (no answer → incorrect).
    */
-  submit(pick: Country | string | null | undefined): QuestionResult {
+  submit(pick: Country | string | string[] | null | undefined): QuestionResult {
     const question = this.s.current;
     if (!question) {
       throw new Error('QuizSession.submit(): no active question — call next() first');

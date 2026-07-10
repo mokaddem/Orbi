@@ -7,6 +7,7 @@
     filterCountries,
     hasOptions,
     isMapMode,
+    isMultiSelectMode,
     type GameMode,
     type RegionFilter,
     type SessionType,
@@ -38,6 +39,7 @@
     { mode: 'map-locate', labelKey: 'modes.mapLocate' },
     { mode: 'capital-to-country', labelKey: 'modes.capitalToCountry' },
     { mode: 'country-to-capital', labelKey: 'modes.countryToCapital' },
+    { mode: 'country-to-languages', labelKey: 'modes.countryToLanguages' },
   ];
 
   // Region filter selections. Empty string means "no narrowing": no region → World
@@ -134,6 +136,27 @@
 
   function onPick(id: string): void {
     const result = play.answer(id);
+    if (result) void recordAnswer(result);
+  }
+
+  // Multi-select (country-to-languages): the player toggles several options, then submits.
+  // Selection is local to the current question and cleared whenever the question changes.
+  let selected = $state<string[]>([]);
+  let selectionKey: string | null = null;
+  $effect(() => {
+    const key = $play.status === 'playing' ? ($play.question?.itemKey ?? null) : selectionKey;
+    if (key !== selectionKey) {
+      selectionKey = key;
+      selected = [];
+    }
+  });
+
+  function toggleSelect(id: string): void {
+    selected = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
+  }
+
+  function submitMulti(): void {
+    const result = play.answer([...selected]);
     if (result) void recordAnswer(result);
   }
 
@@ -351,6 +374,13 @@
         {:else if cfg.mode === 'country-to-capital'}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">{$t('play.prompt.whichCapital')}</p>
+        {:else if cfg.mode === 'country-to-languages'}
+          <p class="prompt-name">{$localizedName(question.answer)}</p>
+          <p class="ask">
+            {$t('play.prompt.whichLanguages', {
+              count: question.correctOptionIds?.length ?? 0,
+            })}
+          </p>
         {:else}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">{$t('play.prompt.locate')}</p>
@@ -401,14 +431,36 @@
           id: o.id,
           label: $localizedText(o.label),
         }))}
-        <ChoiceGrid
-          options={attrOptions}
-          variant="name"
-          {answered}
-          correctId={question.correctOptionId ?? null}
-          pickedId={view.feedback?.pickedIso ?? null}
-          onpick={onPick}
-        />
+        {#if isMultiSelectMode(cfg.mode)}
+          <ChoiceGrid
+            options={attrOptions}
+            variant="name"
+            multiSelect
+            {answered}
+            selectedIds={answered ? (view.feedback?.pickedIds ?? []) : selected}
+            correctIds={question.correctOptionIds ?? null}
+            onpick={toggleSelect}
+          />
+          {#if !answered}
+            <button
+              type="button"
+              class="submit-multi"
+              disabled={selected.length === 0}
+              onclick={submitMulti}
+            >
+              {$t('play.multi.submit', { count: selected.length })}
+            </button>
+          {/if}
+        {:else}
+          <ChoiceGrid
+            options={attrOptions}
+            variant="name"
+            {answered}
+            correctId={question.correctOptionId ?? null}
+            pickedId={view.feedback?.pickedIso ?? null}
+            onpick={onPick}
+          />
+        {/if}
       {/if}
 
       {#if answered && view.feedback}
@@ -418,14 +470,25 @@
             {fb.correct ? $t('play.feedback.correct') : $t('play.feedback.wrong')}
           </p>
           {#if !fb.correct}
-            <p class="reveal">
-              {$t('play.feedback.reveal', {
-                country:
-                  fb.question.mode === 'country-to-capital'
-                    ? $localizedText(fb.question.answer.capital)
-                    : $localizedName(fb.question.answer),
-              })}
-            </p>
+            {#if fb.question.mode === 'country-to-languages'}
+              <p class="reveal">
+                {$t('play.feedback.revealLanguages', {
+                  country: $localizedName(fb.question.answer),
+                  languages: fb.question.answer.languages
+                    .map((l) => $localizedText(l.name))
+                    .join(', '),
+                })}
+              </p>
+            {:else}
+              <p class="reveal">
+                {$t('play.feedback.reveal', {
+                  country:
+                    fb.question.mode === 'country-to-capital'
+                      ? $localizedText(fb.question.answer.capital)
+                      : $localizedName(fb.question.answer),
+                })}
+              </p>
+            {/if}
           {/if}
           <div
             class="countdown"
@@ -610,6 +673,36 @@
   .start:active {
     transform: translateY(2px);
     box-shadow: var(--shadow-chunky-press);
+  }
+
+  /* Multi-select submit (country-to-languages) */
+  .submit-multi {
+    align-self: center;
+    margin-top: 0.25rem;
+    padding: 0.6rem 1.8rem;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    border: 0;
+    border-radius: var(--radius);
+    font-weight: 800;
+    box-shadow: var(--shadow-chunky);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease,
+      opacity 0.12s ease;
+  }
+
+  .submit-multi:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+
+  .submit-multi:not(:disabled):active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
+  }
+
+  .submit-multi:disabled {
+    opacity: 0.5;
   }
 
   /* Game */

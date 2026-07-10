@@ -53,7 +53,10 @@ export interface RunConfig {
 /** What the player just answered — retained for the feedback / reveal view. */
 export interface AnsweredFeedback {
   question: Question;
+  /** Single-select pick (an ISO code / option id), or `null` for no answer / multi-select. */
   pickedIso: string | null;
+  /** Multi-select picks (option ids), or `null` for single-select modes. */
+  pickedIds: string[] | null;
   correct: boolean;
 }
 
@@ -129,21 +132,28 @@ function createPlayStore() {
     },
 
     /**
-     * Grade the current question with `pickedIso` (or `null` for no answer). Returns the
+     * Grade the current question with `pick`: an ISO code / option id (single-select),
+     * a `string[]` of option ids (multi-select), or `null` for no answer. Returns the
      * {@link QuestionResult} so the caller can feed it to spaced-repetition, or `null`
      * if there was no active question.
      */
-    answer(pickedIso: string | null): QuestionResult | null {
+    answer(pick: string | string[] | null): QuestionResult | null {
       if (!session) return null;
       const question = session.state.current;
       if (!question) return null;
-      const result = session.submit(pickedIso);
+      const result = session.submit(pick);
+      const isMulti = Array.isArray(pick);
       set({
         status: 'answered',
         config,
         state: snapshot(),
         question,
-        feedback: { question, pickedIso, correct: result.correct },
+        feedback: {
+          question,
+          pickedIso: isMulti ? null : (pick ?? null),
+          pickedIds: isMulti ? pick : null,
+          correct: result.correct,
+        },
       });
       return result;
     },

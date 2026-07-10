@@ -92,6 +92,7 @@ const de: typeof en = {
     mapLocate: 'Auf der Karte finden',
     capitalToCountry: 'Hauptstadt → Land',
     countryToCapital: 'Land → Hauptstadt',
+    countryToLanguages: 'Landessprachen',
   },
   sessionType: {
     fixed: 'Fest',
@@ -119,6 +120,10 @@ const de: typeof en = {
       locate: 'Finde es auf der Karte',
       whichCountryOfCapital: 'Hauptstadt welches Landes ist das?',
       whichCapital: 'Was ist seine Hauptstadt?',
+      whichLanguages: 'Wähle alle {count} hier gesprochenen Sprachen',
+    },
+    multi: {
+      submit: 'Bestätigen ({count})',
     },
     map: {
       loading: 'Karte wird geladen…',
@@ -136,6 +141,7 @@ const de: typeof en = {
       correct: 'Richtig!',
       wrong: 'Nicht ganz',
       reveal: 'Es ist {country}',
+      revealLanguages: '{country}: {languages}',
     },
     quit: 'Beenden',
   },
@@ -190,9 +196,21 @@ const de: typeof en = {
       regionCount: '{mastered}/{total}',
     },
     capitalMastery: {
-      title: 'Hauptstädte-Wissen',
+      title: 'Hauptstädte',
       learned: '{mastered} von {total} Hauptstädten gemeistert',
       regionsTitle: 'Hauptstädte nach Region',
+    },
+    languageMastery: {
+      title: 'Sprachen',
+      learned: 'Sprachen von {mastered} von {total} Ländern gemeistert',
+      regionsTitle: 'Sprachen nach Region',
+    },
+    extras: {
+      title: 'Zusatzwissen',
+      subtitle: 'Getrennt vom Länder-Wissen erfasst.',
+      badgesTitle: 'Abzeichen',
+      showRegions: 'Nach Region',
+      hideRegions: 'Regionen ausblenden',
     },
     achievements: {
       title: 'Erfolge',
@@ -257,6 +275,38 @@ const de: typeof en = {
         'capitals-world': {
           title: 'Hauptstadt-Meister',
           desc: 'Meistere alle Hauptstädte der Welt.',
+        },
+        'languages-collector': {
+          title: 'Angehender Polyglott',
+          desc: 'Meistere die Sprachen von 25 Ländern.',
+        },
+        'languages-europe': {
+          title: 'Sprachen Europas',
+          desc: 'Meistere die Sprachen aller Länder Europas.',
+        },
+        'languages-africa': {
+          title: 'Sprachen Afrikas',
+          desc: 'Meistere die Sprachen aller Länder Afrikas.',
+        },
+        'languages-asia': {
+          title: 'Sprachen Asiens',
+          desc: 'Meistere die Sprachen aller Länder Asiens.',
+        },
+        'languages-americas': {
+          title: 'Sprachen Amerikas',
+          desc: 'Meistere die Sprachen aller Länder Amerikas.',
+        },
+        'languages-oceania': {
+          title: 'Sprachen Ozeaniens',
+          desc: 'Meistere die Sprachen aller Länder Ozeaniens.',
+        },
+        'languages-century': {
+          title: 'Sprachen-Gelehrter',
+          desc: 'Meistere die Sprachen von 100 Ländern.',
+        },
+        'languages-world': {
+          title: 'Weltlinguist',
+          desc: 'Meistere die Sprachen aller Länder der Welt.',
         },
       },
     },

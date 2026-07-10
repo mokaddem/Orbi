@@ -14,6 +14,7 @@ function country(iso2: string, en: string, fr: string, de: string, region = 'Eur
     numericId: '0',
     name: { en, fr, de },
     capital: { en: `${en} City`, fr: `${en} City`, de: `${en} City` },
+    languages: [{ code: iso2.toLowerCase(), name: { en, fr, de } }],
     region,
     subregion: region,
     flagAsset: `flags/${iso2.toLowerCase()}.svg`,

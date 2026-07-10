@@ -112,7 +112,7 @@ generalization — the **first one built lands it** (24/capitals is the suggeste
 | 20 | Encyclopedia (region & country info) | [phase-20-encyclopedia.md](phases/archive/phase-20-encyclopedia.md) | 1, 12 (19 first) | ✅ Done | 100% |
 | 21 | Country scope: disclaimer & definitions | [phase-21-country-scope.md](phases/archive/phase-21-country-scope.md) | 1 (20 for Stage B) | ✅ Done | 100% (Stage A; Stage B deferred) |
 | 22 | Map zoom & small-country visibility | [phase-22-map-zoom-small-countries.md](phases/archive/phase-22-map-zoom-small-countries.md) | 4, 12 | ✅ Done | 100% (visible micro-state dots + ⭐ target-first reveal; interactive zoom → own future phase if needed) |
-| 23 | New mode: National languages | [phase-23-mode-languages.md](phases/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ⬜ Not started | 0% |
+| 23 | New mode: National languages | [phase-23-mode-languages.md](phases/archive/phase-23-mode-languages.md) | 2 (shares engine w/ 24, 25) | ✅ Done | 100% (multi-select "select all"; all-or-nothing; curated EN/FR/DE names; capitals+languages folded into one combined "Extra knowledge" panel + achievements) |
 | 24 | New mode: Capitals | [phase-24-mode-capitals.md](phases/archive/phase-24-mode-capitals.md) | 2 (engine-generalization pilot) | ✅ Done | 100% (both directions + shared attribute-quiz engine for 23/25; Atlas capital entry + separate capital-mastery panel & achievements) |
 | 25 | New mode: Main industries | [phase-25-mode-industries.md](phases/phase-25-mode-industries.md) | 2 + new curated dataset | ⬜ Not started | 0% |
 

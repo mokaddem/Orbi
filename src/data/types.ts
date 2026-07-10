@@ -9,6 +9,18 @@ export interface CountryName {
 }
 
 /**
+ * One language associated with a country (Phase 23, national-languages mode). The source
+ * (`world-countries`) conflates official / national / widely-spoken to varying degrees, so
+ * this is treated as "a language spoken in / associated with the country", not a legal claim.
+ */
+export interface LanguageRef {
+  /** ISO 639-3 code, lowercase (e.g. "nld"). Stable option id in the languages quiz. */
+  code: string;
+  /** The language name, localized. English from the source; FR/DE from the curated override. */
+  name: CountryName;
+}
+
+/**
  * A single in-scope country (UN member or observer state), normalized from the
  * bundled sources by `scripts/build-data.mjs`.
  */
@@ -27,6 +39,12 @@ export interface Country {
    * defaulting to English where no exonym differs. Added in Phase 24 (capitals modes).
    */
   capital: CountryName;
+  /**
+   * Languages spoken in / associated with the country, in the source's order (Phase 23).
+   * Every in-scope country has ≥ 1. Localized names via the curated `languages-i18n` map,
+   * defaulting to English where no exonym differs. Not a legal "official languages" claim.
+   */
+  languages: LanguageRef[];
   /** UN M49 region (Africa, Americas, Asia, Europe, Oceania). */
   region: string;
   /** UN M49 sub-region (e.g. "Eastern Europe"). */

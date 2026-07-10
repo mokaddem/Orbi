@@ -73,6 +73,7 @@ function ctx(over: Partial<AchievementContext> = {}): AchievementContext {
     stats: stats(),
     mastery: mastery(),
     capitalMastery: mastery(),
+    languageMastery: mastery(),
     streak: streak(),
     sessions: [],
     now: NOW,
@@ -266,5 +267,41 @@ describe('badge predicates', () => {
     expect(
       unlocked('capitals-world', ctx({ capitalMastery: mastery({ mastered: 194, total: 195 }) })),
     ).toBe(false);
+  });
+
+  // Languages (Phase 23) — a parallel ladder driven by languageMastery, isolated from the
+  // country and capital rollups (the "keep separate, folded into the extras view" decision).
+  it('language badges read languageMastery, never country or capital mastery', () => {
+    const others = ctx({
+      mastery: mastery({ mastered: 195, total: 195 }),
+      capitalMastery: mastery({ mastered: 195, total: 195 }),
+    });
+    expect(unlocked('languages-collector', others)).toBe(false);
+    expect(unlocked('languages-world', others)).toBe(false);
+    // …and full language mastery must not unlock the country or capital badges.
+    const languageOnly = ctx({ languageMastery: mastery({ mastered: 192, total: 192 }) });
+    expect(unlocked('century', languageOnly)).toBe(false);
+    expect(unlocked('capitals-world', languageOnly)).toBe(false);
+  });
+
+  it('languages-collector / languages-century: at the 25 / 100 thresholds', () => {
+    expect(
+      unlocked('languages-collector', ctx({ languageMastery: mastery({ mastered: 24 }) })),
+    ).toBe(false);
+    expect(
+      unlocked('languages-collector', ctx({ languageMastery: mastery({ mastered: 25 }) })),
+    ).toBe(true);
+    expect(
+      unlocked('languages-century', ctx({ languageMastery: mastery({ mastered: 100 }) })),
+    ).toBe(true);
+  });
+
+  it('languages-<continent> / languages-world: unlock on full mastery of that scope', () => {
+    const europeDone = ctx({ languageMastery: mastery({}, [region('Europe', 45, 45)]) });
+    expect(unlocked('languages-europe', europeDone)).toBe(true);
+    expect(unlocked('languages-asia', europeDone)).toBe(false);
+    expect(
+      unlocked('languages-world', ctx({ languageMastery: mastery({ mastered: 192, total: 192 }) })),
+    ).toBe(true);
   });
 });

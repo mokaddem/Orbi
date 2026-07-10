@@ -27,6 +27,7 @@ import { dirname, join, resolve } from 'node:path';
 import { feature, merge } from 'topojson-client';
 import { geoNaturalEarth1, geoPath, geoCentroid } from 'd3-geo';
 import { CAPITAL_I18N } from './data/capitals-i18n.mjs';
+import { LANGUAGE_I18N } from './data/languages-i18n.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..');
@@ -364,6 +365,9 @@ const countries = [];
 const missingFlag = [];
 const missingGeometry = [];
 const missingCapital = [];
+const missingLanguages = [];
+/** ISO-639-3 codes actually used, and the English name the source gives each (for i18n QA). */
+const languageEnByCode = new Map();
 
 for (const c of inScope) {
   const iso2 = c.cca2;
@@ -388,6 +392,21 @@ for (const c of inScope) {
     de: CAPITAL_I18N[iso2]?.de ?? capitalEn ?? '',
   };
 
+  // Languages (Phase 23): ISO-639-3 code → localized name. English from world-countries;
+  // FR/DE from the curated LANGUAGE_I18N override, defaulting to English where none differs.
+  const languages = Object.entries(c.languages ?? {}).map(([code, en]) => {
+    languageEnByCode.set(code, en);
+    return {
+      code,
+      name: {
+        en,
+        fr: LANGUAGE_I18N[code]?.fr ?? en,
+        de: LANGUAGE_I18N[code]?.de ?? en,
+      },
+    };
+  });
+  if (languages.length === 0) missingLanguages.push(iso2);
+
   countries.push({
     iso2,
     iso3: c.cca3,
@@ -398,6 +417,7 @@ for (const c of inScope) {
       de: NAME_OVERRIDES[iso2]?.de ?? c.translations.deu?.common ?? c.name.common,
     },
     capital,
+    languages,
     region: c.region,
     subregion: playRegion(c), // Phase 19: regrouped play-region bucket (region left as-is)
     flagAsset: `flags/${iso2lower}.svg`,
@@ -436,10 +456,13 @@ const meta = {
     withFlag: countries.length - missingFlag.length,
     withGeometry: countries.length - missingGeometry.length,
     withCapital: countries.length - missingCapital.length,
+    withLanguages: countries.length - missingLanguages.length,
+    distinctLanguages: languageEnByCode.size,
   },
   geometryExceptions: missingGeometry,
   flagExceptions: missingFlag,
   capitalExceptions: missingCapital,
+  languageExceptions: missingLanguages,
 };
 writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`);
 
@@ -457,6 +480,11 @@ console.log(
 console.log(
   `[build-data] capitals: ${n - missingCapital.length}/${n}` +
     (missingCapital.length ? `  MISSING: ${missingCapital.join(', ')}` : ''),
+);
+console.log(
+  `[build-data] langs:    ${n - missingLanguages.length}/${n} with ≥1 language` +
+    `  (${languageEnByCode.size} distinct)` +
+    (missingLanguages.length ? `  MISSING: ${missingLanguages.join(', ')}` : ''),
 );
 
 const unexpectedGeometry = missingGeometry.filter((cc) => !KNOWN_NO_GEOMETRY.has(cc));
@@ -476,6 +504,21 @@ for (const [iso, ov] of Object.entries(CAPITAL_I18N)) {
   const en = capitalEnByIso.get(iso);
   for (const loc of ['fr', 'de']) {
     if (ov[loc] !== undefined && ov[loc] === en) noopCapitalI18n.push(`${iso}.${loc}`);
+  }
+}
+
+// Same honesty checks for the curated LANGUAGE_I18N map: fail on an entry for a language
+// code not present in the dataset, or an override that just repeats the English name.
+const staleLanguageI18n = [];
+const noopLanguageI18n = [];
+for (const [code, ov] of Object.entries(LANGUAGE_I18N)) {
+  const en = languageEnByCode.get(code);
+  if (en === undefined) {
+    staleLanguageI18n.push(code);
+    continue;
+  }
+  for (const loc of ['fr', 'de']) {
+    if (ov[loc] !== undefined && ov[loc] === en) noopLanguageI18n.push(`${code}.${loc}`);
   }
 }
 
@@ -499,7 +542,10 @@ if (
   tooSmall.length ||
   missingCapital.length ||
   staleCapitalI18n.length ||
-  noopCapitalI18n.length
+  noopCapitalI18n.length ||
+  missingLanguages.length ||
+  staleLanguageI18n.length ||
+  noopLanguageI18n.length
 ) {
   console.error('[build-data] INTEGRITY CHECK FAILED:');
   if (missingFlag.length) console.error(`  - missing flags: ${missingFlag.join(', ')}`);
@@ -523,6 +569,16 @@ if (
   if (noopCapitalI18n.length)
     console.error(
       `  - CAPITAL_I18N overrides identical to English (delete them): ${noopCapitalI18n.join(', ')}`,
+    );
+  if (missingLanguages.length)
+    console.error(`  - countries with no language: ${missingLanguages.join(', ')}`);
+  if (staleLanguageI18n.length)
+    console.error(
+      `  - LANGUAGE_I18N entries for unused language codes: ${staleLanguageI18n.join(', ')}`,
+    );
+  if (noopLanguageI18n.length)
+    console.error(
+      `  - LANGUAGE_I18N overrides identical to English (delete them): ${noopLanguageI18n.join(', ')}`,
     );
   process.exit(1);
 }

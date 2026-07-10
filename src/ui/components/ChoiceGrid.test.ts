@@ -99,6 +99,54 @@ describe('ChoiceGrid', () => {
     expect(container.querySelectorAll('img.flag').length).toBe(4);
   });
 
+  // Multi-select (country-to-languages): toggling instead of instant grading, and a richer
+  // reveal — correctly-picked, wrongly-picked, and missed-correct are each marked distinctly.
+  const langOptions = (): ChoiceOption[] => [
+    { id: 'nld', label: 'Dutch' },
+    { id: 'fra', label: 'French' },
+    { id: 'deu', label: 'German' },
+    { id: 'dan', label: 'Danish' },
+    { id: 'pol', label: 'Polish' },
+    { id: 'swe', label: 'Swedish' },
+  ];
+
+  it('multi-select: toggles reflect selectedIds, and onpick is called per tap (no grading)', async () => {
+    const onpick = vi.fn();
+    const { container } = render(ChoiceGrid, {
+      options: langOptions(),
+      variant: 'name',
+      multiSelect: true,
+      selectedIds: ['nld', 'fra'],
+      onpick,
+    });
+    // Selected options are marked; unselected are neutral.
+    expect(button(container, 'nld')).toHaveAttribute('data-state', 'selected');
+    expect(button(container, 'fra')).toHaveAttribute('data-state', 'selected');
+    expect(button(container, 'deu')).toHaveAttribute('data-state', '');
+    expect(button(container, 'nld')).toHaveAttribute('aria-pressed', 'true');
+    // A tap forwards the id (the parent owns the set); the grid does not submit.
+    await fireEvent.click(button(container, 'deu'));
+    expect(onpick).toHaveBeenCalledWith('deu');
+  });
+
+  it('multi-select reveal: correct-picked, wrong-picked, and missed-correct are distinct', () => {
+    const { container } = render(ChoiceGrid, {
+      options: langOptions(),
+      variant: 'name',
+      multiSelect: true,
+      answered: true,
+      // Player picked nld (correct), dan (wrong); missed deu; the correct set is nld+fra+deu.
+      selectedIds: ['nld', 'dan'],
+      correctIds: ['nld', 'fra', 'deu'],
+      onpick: vi.fn(),
+    });
+    expect(button(container, 'nld')).toHaveAttribute('data-state', 'correct'); // correctly picked
+    expect(button(container, 'dan')).toHaveAttribute('data-state', 'wrong'); // wrongly picked
+    expect(button(container, 'fra')).toHaveAttribute('data-state', 'missed'); // should've picked
+    expect(button(container, 'deu')).toHaveAttribute('data-state', 'missed');
+    expect(button(container, 'pol')).toHaveAttribute('data-state', 'muted'); // correctly left out
+  });
+
   it('shows flags (not names) in the "flag" variant until answered, then reveals names', () => {
     const { container, rerender } = render(ChoiceGrid, {
       options: countryOptions(),

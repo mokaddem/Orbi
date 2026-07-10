@@ -25,12 +25,19 @@ export const SPEEDY_MIN_QUESTIONS = 5;
 export const SPEEDY_MAX_AVG_MS = 3_000;
 /** The "century" badge target — countries mastered. */
 export const CENTURY_TARGET = 100;
-/** The "capital collector" badge target — capitals mastered. */
-export const CAPITALS_COLLECTOR_TARGET = 25;
-/** The "capital century" badge target — capitals mastered. */
-export const CAPITALS_CENTURY_TARGET = 100;
+/** The "collector" badge target for an extra topic (capitals / languages) — items mastered. */
+export const EXTRA_COLLECTOR_TARGET = 25;
+/** The "scholar/century" badge target for an extra topic — items mastered. */
+export const EXTRA_CENTURY_TARGET = 100;
+/** @deprecated kept as aliases; extra topics now share {@link EXTRA_COLLECTOR_TARGET}. */
+export const CAPITALS_COLLECTOR_TARGET = EXTRA_COLLECTOR_TARGET;
+/** @deprecated kept as aliases; extra topics now share {@link EXTRA_CENTURY_TARGET}. */
+export const CAPITALS_CENTURY_TARGET = EXTRA_CENTURY_TARGET;
 /** Day thresholds for the streak badges. */
 export const STREAK_BADGE_DAYS = { week: 7, month: 30 } as const;
+
+/** The non-country "extra knowledge" topics that each get a parallel badge ladder. */
+export type ExtraTopic = 'capitals' | 'languages';
 
 /** Everything a badge predicate may read. Rollups are precomputed; `sessions` is raw. */
 export interface AchievementContext {
@@ -38,16 +45,21 @@ export interface AchievementContext {
   mastery: MasteryResult;
   /** Separate capital-mastery rollup (Phase 24) — its own ladder, not folded into `mastery`. */
   capitalMastery: MasteryResult;
+  /** Separate language-mastery rollup (Phase 23) — its own ladder, folded into the same
+   *  combined "extra knowledge" surface as capitals, not into `mastery`. */
+  languageMastery: MasteryResult;
   streak: StreakInfo;
   sessions: readonly SessionRecord[];
   /** Evaluation time — carried for extensibility (time-of-day badges etc.); pure given it. */
   now: number;
 }
 
-/** One badge definition. `region` is set only for the per-continent badges. */
+/** One badge definition. `region` is set only for the per-continent badges; `topic` only for
+ *  the extra-knowledge badges (capitals / languages), which the UI groups out of the main grid. */
 export interface AchievementDef {
   id: string;
   region?: (typeof CONTINENTS)[number];
+  topic?: ExtraTopic;
   predicate: (ctx: AchievementContext) => boolean;
 }
 
@@ -70,9 +82,47 @@ function regionComplete(mastery: MasteryResult, region: string): boolean {
 }
 
 /**
- * The badge catalog, in display order. Grouped getting-started → skill → habit → mastery.
- * Every predicate is pure over its context, so a fixture that makes it true unlocks the
- * badge and nothing else does.
+ * The parallel badge ladder for an extra-knowledge topic (capitals, languages, later
+ * industries), over that topic's own mastery rollup: a collector tier, one per continent, a
+ * scholar/century tier, and a master-all tier. Capitals keep their historical `capitals-*`
+ * ids (so earned badges stay earned); languages mirror them as `languages-*`.
+ */
+function extraTopicBadges(
+  topic: ExtraTopic,
+  get: (ctx: AchievementContext) => MasteryResult,
+): AchievementDef[] {
+  return [
+    {
+      id: `${topic}-collector`,
+      topic,
+      predicate: (ctx) => get(ctx).overall.mastered >= EXTRA_COLLECTOR_TARGET,
+    },
+    ...CONTINENTS.map((region): AchievementDef => ({
+      id: `${topic}-${region.toLowerCase()}`,
+      topic,
+      region,
+      predicate: (ctx) => regionComplete(get(ctx), region),
+    })),
+    {
+      id: `${topic}-century`,
+      topic,
+      predicate: (ctx) => get(ctx).overall.mastered >= EXTRA_CENTURY_TARGET,
+    },
+    {
+      id: `${topic}-world`,
+      topic,
+      predicate: (ctx) => {
+        const o = get(ctx).overall;
+        return o.total > 0 && o.mastered === o.total;
+      },
+    },
+  ];
+}
+
+/**
+ * The badge catalog, in display order. Grouped getting-started → skill → habit → mastery →
+ * extra-knowledge topics. Every predicate is pure over its context, so a fixture that makes
+ * it true unlocks the badge and nothing else does.
  */
 export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // Getting started
@@ -112,27 +162,11 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
     predicate: ({ mastery }) =>
       mastery.overall.total > 0 && mastery.overall.mastered === mastery.overall.total,
   },
-  // Capitals (Phase 24) — a separate ladder over the capital-mastery rollup, so learning
-  // capitals earns its own badges without touching the country-mastery ones above.
-  {
-    id: 'capitals-collector',
-    predicate: ({ capitalMastery }) => capitalMastery.overall.mastered >= CAPITALS_COLLECTOR_TARGET,
-  },
-  ...CONTINENTS.map((region): AchievementDef => ({
-    id: `capitals-${region.toLowerCase()}`,
-    region,
-    predicate: ({ capitalMastery }) => regionComplete(capitalMastery, region),
-  })),
-  {
-    id: 'capitals-century',
-    predicate: ({ capitalMastery }) => capitalMastery.overall.mastered >= CAPITALS_CENTURY_TARGET,
-  },
-  {
-    id: 'capitals-world',
-    predicate: ({ capitalMastery }) =>
-      capitalMastery.overall.total > 0 &&
-      capitalMastery.overall.mastered === capitalMastery.overall.total,
-  },
+  // Extra-knowledge topics (Phase 24 capitals, Phase 23 languages) — separate ladders over
+  // their own rollups, so learning them earns their own badges without touching country
+  // mastery. The UI groups these (via `topic`) into the combined "extra knowledge" surface.
+  ...extraTopicBadges('capitals', (ctx) => ctx.capitalMastery),
+  ...extraTopicBadges('languages', (ctx) => ctx.languageMastery),
 ];
 
 /** All badge ids, in display order — handy for i18n parity checks and iteration. */

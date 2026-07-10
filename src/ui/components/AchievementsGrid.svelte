@@ -30,6 +30,10 @@
     'capitals-collector': 'landmark',
     'capitals-century': 'gem',
     'capitals-world': 'crown',
+    // Languages (Phase 23) — same pattern: per-continent badges render the silhouette.
+    'languages-collector': 'languages',
+    'languages-century': 'gem',
+    'languages-world': 'crown',
   };
 </script>
 

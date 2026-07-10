@@ -13,7 +13,8 @@ export type GameMode =
   | 'map-highlight' // a country is highlighted on the map → pick its name
   | 'map-locate' // given a country name → click it on the map
   | 'capital-to-country' // see a capital city → pick the country (Phase 24)
-  | 'country-to-capital'; // see a country → pick its capital city (Phase 24)
+  | 'country-to-capital' // see a country → pick its capital city (Phase 24)
+  | 'country-to-languages'; // see a country → select ALL its languages (Phase 23, multi-select)
 
 /**
  * A non-country multiple-choice option — a localized *attribute value* the player picks
@@ -22,7 +23,7 @@ export type GameMode =
  * the owning country's ISO2) and `correctOptionId` on the question says which is right.
  */
 export interface AttributeOption {
-  /** Stable option id, unique within a question. For capitals: the owning country's ISO2. */
+  /** Stable option id, unique within a question. Capitals: owning country's ISO2. Languages: ISO-639-3 code. */
   id: string;
   /** The value shown on the option card, localized. */
   label: CountryName;
@@ -50,12 +51,18 @@ export interface Question {
   /** Country options (country-identification modes and `capital-to-country`). */
   options?: Country[];
   /**
-   * Attribute-value options (attribute modes like `country-to-capital`). Present instead
-   * of `options`; the correct one is identified by {@link correctOptionId}.
+   * Attribute-value options (attribute modes like `country-to-capital` / `country-to-languages`).
+   * Present instead of `options`; the correct one(s) are {@link correctOptionId} (single-select)
+   * or {@link correctOptionIds} (multi-select).
    */
   attributeOptions?: AttributeOption[];
-  /** For attribute modes: the id of the correct {@link AttributeOption}. */
+  /** Single-select attribute modes: the id of the one correct {@link AttributeOption}. */
   correctOptionId?: string;
+  /**
+   * Multi-select attribute modes (`country-to-languages`): the ids of *all* correct options.
+   * Grading is all-or-nothing — the picked set must equal this set exactly.
+   */
+  correctOptionIds?: string[];
 }
 
 /**

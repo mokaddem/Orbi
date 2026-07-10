@@ -9,11 +9,14 @@
     "countries": 195,
     "withFlag": 195,
     "withGeometry": 194,
-    "withCapital": 195
+    "withCapital": 195,
+    "withLanguages": 195,
+    "distinctLanguages": 139
   },
   "geometryExceptions": [
     "TV"
   ],
   "flagExceptions": [],
-  "capitalExceptions": []
+  "capitalExceptions": [],
+  "languageExceptions": []
 }

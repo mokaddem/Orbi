@@ -40,6 +40,11 @@
     <path d="M12 3.5 3.5 8h17z" />
     <path d="M6 8v9M12 8v9M18 8v9" />
     <path d="M3.5 17.5h17M3 20.5h18" />
+  {:else if mode === 'country-to-languages'}
+    <!-- A speech bubble with a language mark: select the country's spoken languages. -->
+    <path d="M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
+    <path d="M7.5 12 10 7l2.5 5M8 10.5h4" />
+    <path d="M14.5 12.5h3.5M16.25 9.5v.5" />
   {:else}
     <!-- A crosshair / target: you must find the place yourself (locate). -->
     <circle cx="12" cy="12" r="7" />

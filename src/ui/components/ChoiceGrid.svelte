@@ -11,32 +11,57 @@
   let {
     options,
     variant,
+    multiSelect = false,
     answered = false,
     correctId = null,
     pickedId = null,
+    selectedIds = [],
+    correctIds = null,
     onpick,
   }: {
     options: ChoiceOption[];
     /**
      * How each option renders:
      *  - 'name'      → text-only buttons (`flag-to-country`, `capital-to-country`, and
-     *                  attribute modes like `country-to-capital`).
+     *                  attribute modes like `country-to-capital` / `country-to-languages`).
      *  - 'name-flag' → a small flag thumbnail beside the name (`map-highlight`: the
      *                  prompt is the map, so the flag is a helpful extra cue).
      *  - 'flag'      → flag buttons, names revealed once answered (`country-to-flag`).
      */
     variant: 'name' | 'name-flag' | 'flag';
+    /**
+     * Multi-select mode (`country-to-languages`): options toggle instead of grading on click.
+     * The caller owns the {@link selectedIds} set and a Submit control; grading uses
+     * {@link correctIds}. `onpick` toggles an id here rather than submitting an answer.
+     */
+    multiSelect?: boolean;
     answered?: boolean;
-    /** id of the correct option; highlighted green once `answered`. */
+    /** Single-select: id of the correct option; highlighted green once `answered`. */
     correctId?: string | null;
-    /** id of the option the player chose; marked red if wrong. */
+    /** Single-select: id of the option the player chose; marked red if wrong. */
     pickedId?: string | null;
+    /** Multi-select: the currently-toggled option ids (also the final picks once `answered`). */
+    selectedIds?: string[];
+    /** Multi-select: ids of all correct options, for the reveal once `answered`. */
+    correctIds?: string[] | null;
     onpick: (id: string) => void;
   } = $props();
 
-  type OptionState = '' | 'correct' | 'wrong' | 'muted';
+  type OptionState = '' | 'selected' | 'correct' | 'wrong' | 'missed' | 'muted';
+
+  const selectedSet = $derived(new Set(selectedIds));
+  const correctSet = $derived(new Set(correctIds ?? []));
 
   function stateFor(o: ChoiceOption): OptionState {
+    if (multiSelect) {
+      if (!answered) return selectedSet.has(o.id) ? 'selected' : '';
+      const isCorrect = correctSet.has(o.id);
+      const wasPicked = selectedSet.has(o.id);
+      if (isCorrect && wasPicked) return 'correct'; // correctly selected
+      if (isCorrect && !wasPicked) return 'missed'; // should have been selected
+      if (!isCorrect && wasPicked) return 'wrong'; // wrongly selected
+      return 'muted';
+    }
     if (!answered) return '';
     if (o.id === correctId) return 'correct';
     if (o.id === pickedId) return 'wrong';
@@ -59,7 +84,7 @@
       data-id={option.id}
       data-state={st}
       disabled={answered}
-      aria-pressed={option.id === pickedId}
+      aria-pressed={multiSelect ? selectedSet.has(option.id) : option.id === pickedId}
       onclick={() => !answered && onpick(option.id)}
     >
       {#if variant === 'flag' && option.country}
@@ -118,6 +143,13 @@
     cursor: default;
   }
 
+  /* Multi-select: a toggled-but-not-yet-submitted option. */
+  .choice.selected {
+    border-color: var(--color-accent);
+    background: var(--color-accent-weak);
+    box-shadow: var(--ring-selected);
+  }
+
   .choice.correct {
     border-color: var(--color-correct);
     background: var(--color-correct-bg);
@@ -141,6 +173,13 @@
     border-color: var(--color-wrong);
     background: var(--color-wrong-bg);
     color: var(--color-wrong);
+  }
+
+  /* Multi-select reveal: a correct option the player failed to select (dashed, not red). */
+  .choice.missed {
+    border-style: dashed;
+    border-color: var(--color-correct);
+    color: var(--color-correct);
   }
 
   .choice.muted {

@@ -112,6 +112,14 @@ describe('computeWeeklyRecap', () => {
     expect(computeWeeklyRecap([], { now, srItems }).masteredThisWeek).toBe(1);
   });
 
+  it('ignores capital & language mastery — country mastery only (kept separate)', () => {
+    const srItems = [
+      sr('capital-to-country:FR', weekStart + DAY),
+      sr('country-to-languages:JP', weekStart + 2 * DAY),
+    ];
+    expect(computeWeeklyRecap([], { now, srItems }).masteredThisWeek).toBe(0);
+  });
+
   it('reports the streak over all history, not just this week', () => {
     // Three consecutive local days ending today → current streak 3.
     const sessions = [session(now - 2 * DAY, 1, 1), session(now - DAY, 1, 1), session(now, 1, 1)];

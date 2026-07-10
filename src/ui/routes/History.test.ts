@@ -54,13 +54,13 @@ describe('History route', () => {
     expect(screen.getByText('France')).toBeInTheDocument();
     expect(screen.getByText('Sessions per day')).toBeInTheDocument();
     expect(screen.getByText('Recent sessions')).toBeInTheDocument();
-    // No capitals played → the capital-mastery panel stays hidden.
-    expect(screen.queryByText('Capital mastery')).not.toBeInTheDocument();
+    // No capitals / languages played → the combined "extra knowledge" panel stays hidden.
+    expect(screen.queryByText('Extra knowledge')).not.toBeInTheDocument();
   });
 
-  it('reveals the capital-mastery panel once a capital mode has been played', async () => {
+  it('reveals the combined extra-knowledge panel with a Capitals meter once capitals are played', async () => {
     await saveSession(summary());
-    // A capital-mode answer creates capital SR state, which drives the separate panel.
+    // A capital-mode answer creates capital SR state, which drives the combined panel.
     await recordAnswer({
       itemKey: 'capital-to-country:FR',
       countryIso2: 'FR',
@@ -69,11 +69,23 @@ describe('History route', () => {
     });
     render(History);
 
-    // The title renders twice (panel heading + meter head), so match all occurrences.
-    expect(
-      (await screen.findAllByText('Capital mastery', {}, { timeout: 3000 })).length,
-    ).toBeGreaterThan(0);
-    // World mastery is always present; the capital panel is the new, separate one.
+    expect(await screen.findByText('Extra knowledge', {}, { timeout: 3000 })).toBeInTheDocument();
+    // The capitals topic meter appears inside it; country "World mastery" is always present.
+    expect(screen.getAllByText('Capitals').length).toBeGreaterThan(0);
     expect(screen.getAllByText('World mastery').length).toBeGreaterThan(0);
+  });
+
+  it('adds a Languages meter to the extra-knowledge panel once the languages mode is played', async () => {
+    await saveSession(summary());
+    await recordAnswer({
+      itemKey: 'country-to-languages:FR',
+      countryIso2: 'FR',
+      correct: true,
+      answerMs: 700,
+    });
+    render(History);
+
+    expect(await screen.findByText('Extra knowledge', {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(screen.getAllByText('Languages').length).toBeGreaterThan(0);
   });
 });

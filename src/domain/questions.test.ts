@@ -4,6 +4,7 @@ import { getCountries } from '../data';
 import { mulberry32 } from './rng';
 import {
   DEFAULT_CHOICES,
+  MAX_QUIZ_LANGUAGES,
   buildQuestion,
   checkAnswer,
   drawAnswerSequence,
@@ -11,20 +12,28 @@ import {
   filterCountries,
   generateQuestions,
   hasOptions,
+  isLanguageQuizEligible,
   isMapMode,
   itemKey,
+  languageOptionCount,
   selectDistractors,
+  selectLanguageDistractors,
 } from './questions';
 import type { GameMode } from './types';
 
-/** A minimal synthetic country for deterministic, dataset-independent assertions. */
-function mk(iso2: string, region: string, subregion: string): Country {
+/** A minimal synthetic country for deterministic, dataset-independent assertions. `langs`
+ *  are ISO-639-3-ish codes; defaults to a single language unique to the country. */
+function mk(iso2: string, region: string, subregion: string, langs?: string[]): Country {
   return {
     iso2,
     iso3: (iso2 + 'Z').toUpperCase(),
     numericId: '000',
     name: { en: iso2, fr: iso2, de: iso2 },
     capital: { en: `${iso2}-cap`, fr: `${iso2}-cap`, de: `${iso2}-cap` },
+    languages: (langs ?? [iso2.toLowerCase()]).map((code) => ({
+      code,
+      name: { en: code, fr: code, de: code },
+    })),
     region,
     subregion,
     flagAsset: `flags/${iso2.toLowerCase()}.svg`,
@@ -224,6 +233,121 @@ describe('buildQuestion — attribute modes (country-to-capital)', () => {
     expect(checkAnswer(q, wrong.id)).toBe(false);
     expect(checkAnswer(q, null)).toBe(false);
     expect(checkAnswer(q, undefined)).toBe(false);
+  });
+});
+
+describe('languages mode (country-to-languages)', () => {
+  // A universe with shared + multiple languages, arranged so the geography tiers are distinct.
+  // L1 (the "Belgium") speaks 3; its sub-region has one foreign language (cat), its region a
+  // few more (swe/fin/dan), and the rest of the world others. BIG is isolated + ineligible.
+  const L1 = mk('L1', 'Eur', 'West', ['nld', 'fra', 'deu']); // 3 languages (the answer)
+  const L2 = mk('L2', 'Eur', 'West', ['nld', 'cat']); // sub-region: shares Dutch, adds Catalan
+  const L3 = mk('L3', 'Eur', 'North', ['swe', 'fin']); // same region, other sub-region
+  const L4 = mk('L4', 'Eur', 'North', ['dan']);
+  const L5 = mk('L5', 'Asia', 'East', ['jpn']); // world tier
+  const L6 = mk('L6', 'Asia', 'East', ['kor']); // world tier
+  const BIG = mk('BG', 'Isl', 'Isl', ['a', 'b', 'c', 'd', 'e', 'f']); // 6 langs → ineligible
+  const LANG_UNIVERSE = [L1, L2, L3, L4, L5, L6, BIG];
+
+  it('isLanguageQuizEligible excludes countries with too many languages', () => {
+    expect(isLanguageQuizEligible(L1)).toBe(true); // 3 ≤ MAX
+    expect(
+      isLanguageQuizEligible(
+        mk(
+          'X',
+          'r',
+          's',
+          Array.from({ length: MAX_QUIZ_LANGUAGES }, (_, i) => `l${i}`),
+        ),
+      ),
+    ).toBe(true);
+    expect(isLanguageQuizEligible(BIG)).toBe(false); // 6 > MAX (5)
+    // eligibleAnswers applies the same filter for the mode.
+    const eligible = eligibleAnswers('country-to-languages', LANG_UNIVERSE).map((c) => c.iso2);
+    expect(eligible).not.toContain('BG');
+    expect(eligible).toContain('L1');
+  });
+
+  it('languageOptionCount clamps the grid to 6–8 with ≥3 distractors', () => {
+    expect(languageOptionCount(1)).toBe(6);
+    expect(languageOptionCount(3)).toBe(6);
+    expect(languageOptionCount(4)).toBe(7);
+    expect(languageOptionCount(5)).toBe(8);
+    for (let k = 1; k <= 5; k++) expect(languageOptionCount(k) - k).toBeGreaterThanOrEqual(3);
+  });
+
+  it('selectLanguageDistractors never returns a language the country speaks, and dedups', () => {
+    const d = selectLanguageDistractors(L1, LANG_UNIVERSE, 4, mulberry32(3));
+    const codes = d.map((l) => l.code);
+    // None of Belgium's own languages appear as a distractor.
+    for (const spoken of ['nld', 'fra', 'deu']) expect(codes).not.toContain(spoken);
+    expect(new Set(codes).size).toBe(codes.length); // no duplicates
+    expect(d.length).toBeLessThanOrEqual(4);
+  });
+
+  it('selectLanguageDistractors prefers nearer geography first', () => {
+    // Sub-region (West) offers exactly one foreign language: Catalan (L2). It wins at count 1.
+    const one = selectLanguageDistractors(L1, LANG_UNIVERSE, 1, mulberry32(1));
+    expect(one[0].code).toBe('cat');
+    // At count 4: the sub-region lang + the whole region tier (swe/fin/dan) fill it, before
+    // any world-tier language (jpn/kor/a…f) is reached.
+    const four = selectLanguageDistractors(L1, LANG_UNIVERSE, 4, mulberry32(1)).map((l) => l.code);
+    expect(new Set(four)).toEqual(new Set(['cat', 'swe', 'fin', 'dan']));
+  });
+
+  it('buildQuestion marks every spoken language correct and fills foreign distractors', () => {
+    const q = buildQuestion(
+      'country-to-languages',
+      L1,
+      LANG_UNIVERSE,
+      DEFAULT_CHOICES,
+      mulberry32(7),
+    );
+    expect(q.options).toBeUndefined();
+    expect(q.correctOptionId).toBeUndefined();
+    expect(q.itemKey).toBe('country-to-languages:L1');
+    // All three of the country's languages are the correct set.
+    expect(new Set(q.correctOptionIds)).toEqual(new Set(['nld', 'fra', 'deu']));
+    // Total options = languageOptionCount(3) = 6, ids unique, correct set ⊆ options.
+    expect(q.attributeOptions).toHaveLength(languageOptionCount(3));
+    const ids = q.attributeOptions!.map((o) => o.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const c of q.correctOptionIds!) expect(ids).toContain(c);
+    // No distractor is one of the country's languages.
+    const distractors = ids.filter((id) => !q.correctOptionIds!.includes(id));
+    for (const spoken of ['nld', 'fra', 'deu']) expect(distractors).not.toContain(spoken);
+  });
+
+  it('checkAnswer grades multi-select all-or-nothing, order-independent', () => {
+    const q = buildQuestion(
+      'country-to-languages',
+      L1,
+      LANG_UNIVERSE,
+      DEFAULT_CHOICES,
+      mulberry32(2),
+    );
+    expect(checkAnswer(q, ['nld', 'fra', 'deu'])).toBe(true);
+    expect(checkAnswer(q, ['deu', 'nld', 'fra'])).toBe(true); // order doesn't matter
+    expect(checkAnswer(q, ['nld', 'fra'])).toBe(false); // missing one
+    const extra = q.attributeOptions!.find((o) => !q.correctOptionIds!.includes(o.id))!.id;
+    expect(checkAnswer(q, ['nld', 'fra', 'deu', extra])).toBe(false); // an extra wrong pick
+    expect(checkAnswer(q, [])).toBe(false); // empty
+    expect(checkAnswer(q, 'nld')).toBe(false); // a single string isn't a valid multi pick
+    expect(checkAnswer(q, null)).toBe(false);
+  });
+
+  it('single-language countries still work end-to-end', () => {
+    const q = buildQuestion(
+      'country-to-languages',
+      L5,
+      LANG_UNIVERSE,
+      DEFAULT_CHOICES,
+      mulberry32(9),
+    );
+    expect(q.correctOptionIds).toEqual(['jpn']);
+    expect(q.attributeOptions).toHaveLength(6); // 1 correct + 5 distractors
+    expect(checkAnswer(q, ['jpn'])).toBe(true);
+    expect(checkAnswer(q, ['jpn', 'kor'])).toBe(false);
   });
 });
 

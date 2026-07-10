@@ -16,6 +16,7 @@
 
 import type { SessionRecord, SRItem } from '../data/persistence/types';
 import { isItemMastered } from './mastery';
+import { MASTERY_MODES } from './modes';
 import { computeStreak, localDayKey } from './streak';
 import { parseItemKey } from './training';
 
@@ -60,12 +61,14 @@ export function localWeekStart(ts: number): number {
 
 /** Countries mastered at `now` whose latest mastered-item review falls within [from, to]. */
 function masteredWithin(srItems: readonly SRItem[], from: number, to: number, now: number): number {
-  // Latest review time among a country's *mastered* items, keyed by iso2.
+  // Latest review time among a country's *mastered* items, keyed by iso2. Only the country-
+  // identification modes count — capitals and languages are kept separate from country mastery
+  // (their own rollups), so they must not inflate this "newly mastered countries" number.
   const latest = new Map<string, number>();
   for (const item of srItems) {
     if (!isItemMastered(item, now)) continue;
     const parsed = parseItemKey(item.itemKey);
-    if (!parsed) continue;
+    if (!parsed || !MASTERY_MODES.includes(parsed.mode)) continue;
     const ts = item.lastReviewedAt ?? 0;
     const prev = latest.get(parsed.iso2);
     if (prev === undefined || ts > prev) latest.set(parsed.iso2, ts);

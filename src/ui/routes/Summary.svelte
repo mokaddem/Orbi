@@ -26,6 +26,7 @@
     'map-locate': 'modes.mapLocate',
     'capital-to-country': 'modes.capitalToCountry',
     'country-to-capital': 'modes.countryToCapital',
+    'country-to-languages': 'modes.countryToLanguages',
   };
 
   function retry(): void {

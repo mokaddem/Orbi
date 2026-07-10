@@ -83,6 +83,7 @@ const en = {
     mapLocate: 'Locate on the map',
     capitalToCountry: 'Capital → Country',
     countryToCapital: 'Country → Capital',
+    countryToLanguages: 'National languages',
   },
   sessionType: {
     fixed: 'Fixed',
@@ -110,6 +111,10 @@ const en = {
       locate: 'Find it on the map',
       whichCountryOfCapital: "Which country's capital is this?",
       whichCapital: 'Which is its capital?',
+      whichLanguages: 'Select all {count} languages spoken here',
+    },
+    multi: {
+      submit: 'Submit ({count})',
     },
     map: {
       loading: 'Loading map…',
@@ -127,6 +132,7 @@ const en = {
       correct: 'Correct!',
       wrong: 'Not quite',
       reveal: 'It’s {country}',
+      revealLanguages: '{country}: {languages}',
     },
     quit: 'Quit',
   },
@@ -181,9 +187,21 @@ const en = {
       regionCount: '{mastered}/{total}',
     },
     capitalMastery: {
-      title: 'Capital mastery',
+      title: 'Capitals',
       learned: '{mastered} of {total} capitals learned',
       regionsTitle: 'Capitals by region',
+    },
+    languageMastery: {
+      title: 'Languages',
+      learned: '{mastered} of {total} countries’ languages learned',
+      regionsTitle: 'Languages by region',
+    },
+    extras: {
+      title: 'Extra knowledge',
+      subtitle: 'Tracked separately from country mastery.',
+      badgesTitle: 'Badges',
+      showRegions: 'By region',
+      hideRegions: 'Hide regions',
     },
     achievements: {
       title: 'Achievements',
@@ -243,6 +261,38 @@ const en = {
         },
         'capitals-century': { title: 'Capital scholar', desc: 'Master 100 capitals.' },
         'capitals-world': { title: 'Capital master', desc: 'Master every capital in the world.' },
+        'languages-collector': {
+          title: 'Polyglot in training',
+          desc: 'Master the languages of 25 countries.',
+        },
+        'languages-europe': {
+          title: 'Languages of Europe',
+          desc: 'Master the languages of every country in Europe.',
+        },
+        'languages-africa': {
+          title: 'Languages of Africa',
+          desc: 'Master the languages of every country in Africa.',
+        },
+        'languages-asia': {
+          title: 'Languages of Asia',
+          desc: 'Master the languages of every country in Asia.',
+        },
+        'languages-americas': {
+          title: 'Languages of the Americas',
+          desc: 'Master the languages of every country in the Americas.',
+        },
+        'languages-oceania': {
+          title: 'Languages of Oceania',
+          desc: 'Master the languages of every country in Oceania.',
+        },
+        'languages-century': {
+          title: 'Language scholar',
+          desc: 'Master the languages of 100 countries.',
+        },
+        'languages-world': {
+          title: 'World linguist',
+          desc: 'Master the languages of every country in the world.',
+        },
       },
     },
     recap: {

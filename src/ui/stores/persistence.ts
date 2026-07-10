@@ -24,6 +24,7 @@ import {
 import {
   ACHIEVEMENTS,
   CAPITAL_MODES,
+  LANGUAGE_MODES,
   buildDailyChallenge,
   computeMastery,
   computeStats,
@@ -31,11 +32,13 @@ import {
   computeWeeklyRecap,
   dominantTrainingMode,
   evaluateAchievements,
+  isLanguageQuizEligible,
   localDayKey,
   recommend,
   scheduleNext,
   selectTrainingItems,
   type DailyChallenge,
+  type ExtraTopic,
   type GameMode,
   type MasteryResult,
   type QuestionResult,
@@ -308,6 +311,18 @@ function masteryCountries(): { iso2: string; region: string }[] {
 }
 
 /**
+ * The denominator for **language** mastery: only the countries the languages mode can ask
+ * about (few enough languages). Excluding the handful with unwieldy language lists keeps
+ * "learn every country's languages" actually reachable (they're never askable, so they'd
+ * otherwise sit permanently unseen and cap the meter below 100%).
+ */
+function languageMasteryCountries(): { iso2: string; region: string }[] {
+  return getCountries()
+    .filter(isLanguageQuizEligible)
+    .map((c) => ({ iso2: c.iso2, region: c.region }));
+}
+
+/**
  * Compute world + per-region mastery from persisted SR state (Phase 16). Denominator is all
  * countries in the dataset ("learn the world"). Returns an all-unseen rollup before init.
  */
@@ -324,6 +339,16 @@ export async function loadMastery(now = Date.now()): Promise<MasteryResult> {
 export async function loadCapitalMastery(now = Date.now()): Promise<MasteryResult> {
   const srItems = store ? await store.getAllSRItems() : [];
   return computeMastery(srItems, masteryCountries(), { now, modes: CAPITAL_MODES });
+}
+
+/**
+ * Compute the separate **language** mastery rollup (Phase 23) from the language-mode SR items
+ * only, over the language-eligible country denominator. Kept distinct from country mastery
+ * (like capitals) and surfaced in the combined "extra knowledge" view.
+ */
+export async function loadLanguageMastery(now = Date.now()): Promise<MasteryResult> {
+  const srItems = store ? await store.getAllSRItems() : [];
+  return computeMastery(srItems, languageMasteryCountries(), { now, modes: LANGUAGE_MODES });
 }
 
 /** Compute this week's recap (Phase 16) from persisted sessions + SR state. */
@@ -344,6 +369,8 @@ export interface AchievementView {
   justUnlocked: boolean;
   /** For the per-continent badges, the M49 region key (for icon/label); else undefined. */
   region?: string;
+  /** For extra-knowledge badges (capitals / languages), the topic; groups them out of the main grid. */
+  topic?: ExtraTopic;
 }
 
 /**
@@ -361,6 +388,10 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
   const countries = masteryCountries();
   const mastery = computeMastery(srItems, countries, { now });
   const capitalMastery = computeMastery(srItems, countries, { now, modes: CAPITAL_MODES });
+  const languageMastery = computeMastery(srItems, languageMasteryCountries(), {
+    now,
+    modes: LANGUAGE_MODES,
+  });
   const streak = computeStreak(
     sessions.map((s) => localDayKey(s.startedAt)),
     localDayKey(now),
@@ -369,6 +400,7 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
     stats: computeStats(sessions),
     mastery,
     capitalMastery,
+    languageMastery,
     streak,
     sessions,
     now,
@@ -376,6 +408,7 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
 
   const unlockedAtById = new Map(persisted.map((p) => [p.id, p.unlockedAt]));
   const regionById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.region]));
+  const topicById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.topic]));
   const newlyUnlocked: AchievementUnlock[] = [];
 
   const views = statuses.map((st): AchievementView => {
@@ -393,6 +426,7 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
       unlockedAt,
       justUnlocked,
       region: regionById.get(st.id),
+      topic: topicById.get(st.id),
     };
   });
 

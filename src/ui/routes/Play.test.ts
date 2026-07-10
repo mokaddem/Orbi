@@ -43,7 +43,7 @@ describe('Play route', () => {
     expect(screen.getByText(/Question 1 \/ 10/)).toBeInTheDocument();
   });
 
-  it('offers all six modes on the setup screen', () => {
+  it('offers all seven modes on the setup screen', () => {
     render(Play);
     expect(screen.getByText('Flag → Country')).toBeInTheDocument();
     expect(screen.getByText('Country → Flag')).toBeInTheDocument();
@@ -51,6 +51,7 @@ describe('Play route', () => {
     expect(screen.getByText('Locate on the map')).toBeInTheDocument();
     expect(screen.getByText('Capital → Country')).toBeInTheDocument();
     expect(screen.getByText('Country → Capital')).toBeInTheDocument();
+    expect(screen.getByText('National languages')).toBeInTheDocument();
   });
 
   it('offers the region filter as buttons (few options) and starts a region-filtered session', async () => {
@@ -180,6 +181,60 @@ describe('Play route', () => {
     await fireEvent.click(correct);
     expect(get(play).status).toBe('answered');
     expect(get(play).feedback!.correct).toBe(true);
+  });
+
+  it('plays country-to-languages: multi-select toggles, then Submit grades all-or-nothing', async () => {
+    pendingConfig.set({
+      mode: 'country-to-languages',
+      type: 'fixed',
+      fixedLength: 3,
+      rng: mulberry32(11),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+
+    expect(get(play).status).toBe('playing');
+    const q = get(play).question!;
+    // Prompt names the country and asks for all its languages; options are language cards.
+    expect(container.querySelector('.prompt-name')!.textContent).toBe(q.answer.name.en);
+    expect(screen.getByText(/Select all .* languages spoken here/)).toBeInTheDocument();
+
+    // Submit is disabled until at least one option is toggled.
+    const submit = () => container.querySelector('.submit-multi') as HTMLButtonElement;
+    expect(submit()).toBeDisabled();
+
+    // Toggle every correct language, then submit → graded correct all-or-nothing.
+    for (const code of q.correctOptionIds!) {
+      await fireEvent.click(container.querySelector(`button[data-id="${code}"]`)!);
+    }
+    expect(submit()).not.toBeDisabled();
+    await fireEvent.click(submit());
+
+    expect(get(play).status).toBe('answered');
+    expect(get(play).feedback!.correct).toBe(true);
+    expect(get(play).feedback!.pickedIds!.sort()).toEqual([...q.correctOptionIds!].sort());
+  });
+
+  it('country-to-languages: an incomplete selection grades wrong and reveals the full set', async () => {
+    pendingConfig.set({
+      mode: 'country-to-languages',
+      type: 'fixed',
+      fixedLength: 3,
+      rng: mulberry32(11),
+      now: makeClock(),
+    });
+    const { container } = render(Play);
+    const q = get(play).question!;
+
+    // Pick only the first correct language (a country may have several) → an incomplete set.
+    await fireEvent.click(container.querySelector(`button[data-id="${q.correctOptionIds![0]}"]`)!);
+    await fireEvent.click(container.querySelector('.submit-multi')!);
+
+    expect(get(play).feedback!.correct).toBe(q.correctOptionIds!.length === 1);
+    // On a miss the reveal lists the country's languages.
+    if (q.correctOptionIds!.length > 1) {
+      expect(container.querySelector('.reveal')).not.toBeNull();
+    }
   });
 
   it('auto-starts a staged config and plays a fixed session end-to-end via the timer', async () => {

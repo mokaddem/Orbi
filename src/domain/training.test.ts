@@ -33,6 +33,13 @@ describe('parseItemKey', () => {
     });
   });
 
+  it('accepts the languages mode so it is trainable (Phase 23)', () => {
+    expect(parseItemKey('country-to-languages:BE')).toEqual({
+      mode: 'country-to-languages',
+      iso2: 'BE',
+    });
+  });
+
   it('rejects malformed or unknown-mode keys', () => {
     expect(parseItemKey('BG')).toBeNull();
     expect(parseItemKey(':BG')).toBeNull();

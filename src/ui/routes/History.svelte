@@ -12,6 +12,7 @@
     loadSessions,
     loadMastery,
     loadCapitalMastery,
+    loadLanguageMastery,
     loadWeeklyRecap,
     loadAchievements,
     clearHistory,
@@ -24,6 +25,7 @@
   import Mascot from '../components/Mascot.svelte';
   import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
   import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
+  import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
   import AchievementsGrid from '../components/AchievementsGrid.svelte';
   import WeeklyRecap from '../components/WeeklyRecap.svelte';
 
@@ -34,6 +36,7 @@
     'map-locate': 'modes.mapLocate',
     'capital-to-country': 'modes.capitalToCountry',
     'country-to-capital': 'modes.countryToCapital',
+    'country-to-languages': 'modes.countryToLanguages',
   };
 
   /** Cap the timeline so many play-days stay legible; a note flags any truncation. */
@@ -47,13 +50,24 @@
   let stats = $state<StatsOverview | null>(null);
   let mastery = $state<MasteryResult | null>(null);
   let capitalMastery = $state<MasteryResult | null>(null);
+  let languageMastery = $state<MasteryResult | null>(null);
   let recap = $state<WeeklyRecapData | null>(null);
   let achievements = $state<AchievementView[]>([]);
-  // The capital-mastery panel appears only once the player has played capitals at all, so it
-  // doesn't clutter the page for players who never touch the mode.
-  const hasCapitalActivity = $derived(
-    !!capitalMastery && capitalMastery.overall.mastered + capitalMastery.overall.learning > 0,
-  );
+
+  // Combined "extra knowledge" surface (Phase 23): capitals + languages (+ industries later)
+  // each get a compact meter, but only once that topic has been played, so they never clutter
+  // the page for a player who sticks to country identification. A topic is "active" once any
+  // of its items is in learning or mastered.
+  const hasActivity = (m: MasteryResult | null): boolean =>
+    !!m && m.overall.mastered + m.overall.learning > 0;
+  const hasCapitalActivity = $derived(hasActivity(capitalMastery));
+  const hasLanguageActivity = $derived(hasActivity(languageMastery));
+  const hasExtras = $derived(hasCapitalActivity || hasLanguageActivity);
+
+  // Country badges stay in the main grid; extra-topic badges (capitals/languages) move into
+  // the combined panel so the main grid doesn't grow with every new mode.
+  const countryAchievements = $derived(achievements.filter((a) => !a.topic));
+  const extraAchievements = $derived(achievements.filter((a) => a.topic));
   let loading = $state(true);
   // Badges that unlocked on this load — celebrated once via a dismissible banner.
   let unlockDismissed = $state(false);
@@ -65,9 +79,10 @@
     stats = computeStats(sessions);
     // Progress surfaces (Phase 16): mastery + recap + achievements, computed from the same
     // persisted state. loadAchievements also persists any first-time unlocks.
-    [mastery, capitalMastery, recap, achievements] = await Promise.all([
+    [mastery, capitalMastery, languageMastery, recap, achievements] = await Promise.all([
       loadMastery(),
       loadCapitalMastery(),
+      loadLanguageMastery(),
       loadWeeklyRecap(),
       loadAchievements(),
     ]);
@@ -183,26 +198,45 @@
       </div>
     {/if}
 
-    <!-- Capital mastery (Phase 24) — a separate rollup, shown once capitals have been played -->
-    {#if capitalMastery && hasCapitalActivity}
+    <!-- Achievements (country / skill / habit — extra-topic badges live in the panel below) -->
+    {#if countryAchievements.length > 0}
       <div class="panel">
-        <h2>{$t('progress.capitalMastery.title')}</h2>
-        <WorldMasteryMeter
-          mastery={capitalMastery}
-          titleKey="progress.capitalMastery.title"
-          learnedKey="progress.capitalMastery.learned"
-          icon="landmark"
-        />
-        <h3 class="subhead">{$t('progress.capitalMastery.regionsTitle')}</h3>
-        <RegionMasteryBreakdown regions={capitalMastery.byRegion} />
+        <h2>{$t('progress.achievements.title')}</h2>
+        <AchievementsGrid achievements={countryAchievements} />
       </div>
     {/if}
 
-    <!-- Achievements -->
-    {#if achievements.length > 0}
+    <!-- Combined "extra knowledge" panel (Phase 23/24): capitals + languages (+ industries
+         later) folded into one surface, each shown only once played. Kept separate from and
+         smaller than the primary country-mastery panel above. -->
+    {#if hasExtras}
       <div class="panel">
-        <h2>{$t('progress.achievements.title')}</h2>
-        <AchievementsGrid {achievements} />
+        <h2>{$t('progress.extras.title')}</h2>
+        <p class="panel-sub">{$t('progress.extras.subtitle')}</p>
+        <div class="topics">
+          {#if capitalMastery && hasCapitalActivity}
+            <ExtraMasteryTopic
+              mastery={capitalMastery}
+              titleKey="progress.capitalMastery.title"
+              learnedKey="progress.capitalMastery.learned"
+              regionsTitleKey="progress.capitalMastery.regionsTitle"
+              icon="landmark"
+            />
+          {/if}
+          {#if languageMastery && hasLanguageActivity}
+            <ExtraMasteryTopic
+              mastery={languageMastery}
+              titleKey="progress.languageMastery.title"
+              learnedKey="progress.languageMastery.learned"
+              regionsTitleKey="progress.languageMastery.regionsTitle"
+              icon="languages"
+            />
+          {/if}
+        </div>
+        {#if extraAchievements.length > 0}
+          <h3 class="subhead">{$t('progress.extras.badgesTitle')}</h3>
+          <AchievementsGrid achievements={extraAchievements} />
+        {/if}
       </div>
     {/if}
 
@@ -403,6 +437,19 @@
     margin: 0.25rem 0 0;
     font-size: 0.9rem;
     color: var(--color-muted);
+  }
+
+  /* Combined extra-knowledge panel */
+  .panel-sub {
+    margin: -0.25rem 0 0.25rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  .topics {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   /* Overview tiles */

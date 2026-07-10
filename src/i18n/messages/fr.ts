@@ -86,6 +86,7 @@ const fr: typeof en = {
     mapLocate: 'Localiser sur la carte',
     capitalToCountry: 'Capitale → Pays',
     countryToCapital: 'Pays → Capitale',
+    countryToLanguages: 'Langues nationales',
   },
   sessionType: {
     fixed: 'Fixe',
@@ -113,6 +114,10 @@ const fr: typeof en = {
       locate: 'Trouvez-le sur la carte',
       whichCountryOfCapital: 'De quel pays est-ce la capitale ?',
       whichCapital: 'Quelle est sa capitale ?',
+      whichLanguages: 'Sélectionnez les {count} langues parlées ici',
+    },
+    multi: {
+      submit: 'Valider ({count})',
     },
     map: {
       loading: 'Chargement de la carte…',
@@ -130,6 +135,7 @@ const fr: typeof en = {
       correct: 'Correct !',
       wrong: 'Pas tout à fait',
       reveal: 'C’est {country}',
+      revealLanguages: '{country} : {languages}',
     },
     quit: 'Quitter',
   },
@@ -184,9 +190,21 @@ const fr: typeof en = {
       regionCount: '{mastered}/{total}',
     },
     capitalMastery: {
-      title: 'Maîtrise des capitales',
+      title: 'Capitales',
       learned: '{mastered} capitales sur {total} apprises',
       regionsTitle: 'Capitales par région',
+    },
+    languageMastery: {
+      title: 'Langues',
+      learned: 'Langues de {mastered} pays sur {total} apprises',
+      regionsTitle: 'Langues par région',
+    },
+    extras: {
+      title: 'Connaissances complémentaires',
+      subtitle: 'Suivies séparément de la maîtrise des pays.',
+      badgesTitle: 'Badges',
+      showRegions: 'Par région',
+      hideRegions: 'Masquer les régions',
     },
     achievements: {
       title: 'Réussites',
@@ -260,6 +278,38 @@ const fr: typeof en = {
         'capitals-world': {
           title: 'Maître des capitales',
           desc: 'Maîtrisez toutes les capitales du monde.',
+        },
+        'languages-collector': {
+          title: 'Polyglotte en herbe',
+          desc: 'Maîtrisez les langues de 25 pays.',
+        },
+        'languages-europe': {
+          title: 'Langues d’Europe',
+          desc: 'Maîtrisez les langues de tous les pays d’Europe.',
+        },
+        'languages-africa': {
+          title: 'Langues d’Afrique',
+          desc: 'Maîtrisez les langues de tous les pays d’Afrique.',
+        },
+        'languages-asia': {
+          title: 'Langues d’Asie',
+          desc: 'Maîtrisez les langues de tous les pays d’Asie.',
+        },
+        'languages-americas': {
+          title: 'Langues des Amériques',
+          desc: 'Maîtrisez les langues de tous les pays des Amériques.',
+        },
+        'languages-oceania': {
+          title: 'Langues d’Océanie',
+          desc: 'Maîtrisez les langues de tous les pays d’Océanie.',
+        },
+        'languages-century': {
+          title: 'Érudit des langues',
+          desc: 'Maîtrisez les langues de 100 pays.',
+        },
+        'languages-world': {
+          title: 'Linguiste du monde',
+          desc: 'Maîtrisez les langues de tous les pays du monde.',
         },
       },
     },

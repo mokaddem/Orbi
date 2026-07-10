@@ -13,6 +13,32 @@
       "fr": "Kaboul",
       "de": "Kabul"
     },
+    "languages": [
+      {
+        "code": "prs",
+        "name": {
+          "en": "Dari",
+          "fr": "Dari",
+          "de": "Dari"
+        }
+      },
+      {
+        "code": "pus",
+        "name": {
+          "en": "Pashto",
+          "fr": "Pachto",
+          "de": "Paschtu"
+        }
+      },
+      {
+        "code": "tuk",
+        "name": {
+          "en": "Turkmen",
+          "fr": "Turkmène",
+          "de": "Turkmenisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/af.svg",
@@ -32,6 +58,16 @@
       "fr": "Tirana",
       "de": "Tirana"
     },
+    "languages": [
+      {
+        "code": "sqi",
+        "name": {
+          "en": "Albanian",
+          "fr": "Albanais",
+          "de": "Albanisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/al.svg",
@@ -51,6 +87,16 @@
       "fr": "Alger",
       "de": "Algier"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/dz.svg",
@@ -70,6 +116,16 @@
       "fr": "Andorre-la-Vieille",
       "de": "Andorra la Vella"
     },
+    "languages": [
+      {
+        "code": "cat",
+        "name": {
+          "en": "Catalan",
+          "fr": "Catalan",
+          "de": "Katalanisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/ad.svg",
@@ -89,6 +145,16 @@
       "fr": "Luanda",
       "de": "Luanda"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ao.svg",
@@ -108,6 +174,16 @@
       "fr": "Saint John's",
       "de": "Saint John's"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/ag.svg",
@@ -127,6 +203,24 @@
       "fr": "Buenos Aires",
       "de": "Buenos Aires"
     },
+    "languages": [
+      {
+        "code": "grn",
+        "name": {
+          "en": "Guaraní",
+          "fr": "Guaraní",
+          "de": "Guaraní"
+        }
+      },
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/ar.svg",
@@ -146,6 +240,16 @@
       "fr": "Erevan",
       "de": "Eriwan"
     },
+    "languages": [
+      {
+        "code": "hye",
+        "name": {
+          "en": "Armenian",
+          "fr": "Arménien",
+          "de": "Armenisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/am.svg",
@@ -165,6 +269,16 @@
       "fr": "Canberra",
       "de": "Canberra"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/au.svg",
@@ -184,6 +298,16 @@
       "fr": "Vienne",
       "de": "Wien"
     },
+    "languages": [
+      {
+        "code": "bar",
+        "name": {
+          "en": "Austro-Bavarian German",
+          "fr": "Austro-Bavarian German",
+          "de": "Austro-Bavarian German"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/at.svg",
@@ -203,6 +327,24 @@
       "fr": "Bakou",
       "de": "Baku"
     },
+    "languages": [
+      {
+        "code": "aze",
+        "name": {
+          "en": "Azerbaijani",
+          "fr": "Azéri",
+          "de": "Aserbaidschanisch"
+        }
+      },
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/az.svg",
@@ -222,6 +364,16 @@
       "fr": "Nassau",
       "de": "Nassau"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/bs.svg",
@@ -241,6 +393,16 @@
       "fr": "Manama",
       "de": "Manama"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/bh.svg",
@@ -260,6 +422,16 @@
       "fr": "Dhaka",
       "de": "Dhaka"
     },
+    "languages": [
+      {
+        "code": "ben",
+        "name": {
+          "en": "Bengali",
+          "fr": "Bengali",
+          "de": "Bengalisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/bd.svg",
@@ -279,6 +451,16 @@
       "fr": "Bridgetown",
       "de": "Bridgetown"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/bb.svg",
@@ -298,6 +480,24 @@
       "fr": "Minsk",
       "de": "Minsk"
     },
+    "languages": [
+      {
+        "code": "bel",
+        "name": {
+          "en": "Belarusian",
+          "fr": "Biélorusse",
+          "de": "Belarussisch"
+        }
+      },
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/by.svg",
@@ -317,6 +517,32 @@
       "fr": "Bruxelles",
       "de": "Brüssel"
     },
+    "languages": [
+      {
+        "code": "deu",
+        "name": {
+          "en": "German",
+          "fr": "Allemand",
+          "de": "Deutsch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "nld",
+        "name": {
+          "en": "Dutch",
+          "fr": "Néerlandais",
+          "de": "Niederländisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/be.svg",
@@ -336,6 +562,32 @@
       "fr": "Belmopan",
       "de": "Belmopan"
     },
+    "languages": [
+      {
+        "code": "bjz",
+        "name": {
+          "en": "Belizean Creole",
+          "fr": "Belizean Creole",
+          "de": "Belizean Creole"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/bz.svg",
@@ -355,6 +607,16 @@
       "fr": "Porto-Novo",
       "de": "Porto-Novo"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/bj.svg",
@@ -374,6 +636,16 @@
       "fr": "Thimphu",
       "de": "Thimphu"
     },
+    "languages": [
+      {
+        "code": "dzo",
+        "name": {
+          "en": "Dzongkha",
+          "fr": "Dzongkha",
+          "de": "Dzongkha"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/bt.svg",
@@ -393,6 +665,40 @@
       "fr": "Sucre",
       "de": "Sucre"
     },
+    "languages": [
+      {
+        "code": "aym",
+        "name": {
+          "en": "Aymara",
+          "fr": "Aymara",
+          "de": "Aymara"
+        }
+      },
+      {
+        "code": "grn",
+        "name": {
+          "en": "Guaraní",
+          "fr": "Guaraní",
+          "de": "Guaraní"
+        }
+      },
+      {
+        "code": "que",
+        "name": {
+          "en": "Quechua",
+          "fr": "Quechua",
+          "de": "Quechua"
+        }
+      },
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/bo.svg",
@@ -412,6 +718,32 @@
       "fr": "Sarajevo",
       "de": "Sarajevo"
     },
+    "languages": [
+      {
+        "code": "bos",
+        "name": {
+          "en": "Bosnian",
+          "fr": "Bosnien",
+          "de": "Bosnisch"
+        }
+      },
+      {
+        "code": "hrv",
+        "name": {
+          "en": "Croatian",
+          "fr": "Croate",
+          "de": "Kroatisch"
+        }
+      },
+      {
+        "code": "srp",
+        "name": {
+          "en": "Serbian",
+          "fr": "Serbe",
+          "de": "Serbisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/ba.svg",
@@ -431,6 +763,24 @@
       "fr": "Gaborone",
       "de": "Gaborone"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "tsn",
+        "name": {
+          "en": "Tswana",
+          "fr": "Tswana",
+          "de": "Tswana"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/bw.svg",
@@ -450,6 +800,16 @@
       "fr": "Brasília",
       "de": "Brasília"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/br.svg",
@@ -469,6 +829,16 @@
       "fr": "Bandar Seri Begawan",
       "de": "Bandar Seri Begawan"
     },
+    "languages": [
+      {
+        "code": "msa",
+        "name": {
+          "en": "Malay",
+          "fr": "Malais",
+          "de": "Malaiisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/bn.svg",
@@ -488,6 +858,16 @@
       "fr": "Sofia",
       "de": "Sofia"
     },
+    "languages": [
+      {
+        "code": "bul",
+        "name": {
+          "en": "Bulgarian",
+          "fr": "Bulgare",
+          "de": "Bulgarisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/bg.svg",
@@ -507,6 +887,16 @@
       "fr": "Ouagadougou",
       "de": "Ouagadougou"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/bf.svg",
@@ -526,6 +916,24 @@
       "fr": "Gitega",
       "de": "Gitega"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "run",
+        "name": {
+          "en": "Kirundi",
+          "fr": "Kirundi",
+          "de": "Kirundi"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/bi.svg",
@@ -545,6 +953,16 @@
       "fr": "Phnom Penh",
       "de": "Phnom Penh"
     },
+    "languages": [
+      {
+        "code": "khm",
+        "name": {
+          "en": "Khmer",
+          "fr": "Khmer",
+          "de": "Khmer"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/kh.svg",
@@ -564,6 +982,24 @@
       "fr": "Yaoundé",
       "de": "Yaoundé"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cm.svg",
@@ -583,6 +1019,24 @@
       "fr": "Ottawa",
       "de": "Ottawa"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/ca.svg",
@@ -602,6 +1056,16 @@
       "fr": "Praia",
       "de": "Praia"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/cv.svg",
@@ -621,6 +1085,24 @@
       "fr": "Bangui",
       "de": "Bangui"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "sag",
+        "name": {
+          "en": "Sango",
+          "fr": "Sango",
+          "de": "Sango"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cf.svg",
@@ -640,6 +1122,24 @@
       "fr": "N'Djamena",
       "de": "N'Djamena"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/td.svg",
@@ -659,6 +1159,16 @@
       "fr": "Santiago",
       "de": "Santiago"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/cl.svg",
@@ -678,6 +1188,16 @@
       "fr": "Pékin",
       "de": "Peking"
     },
+    "languages": [
+      {
+        "code": "zho",
+        "name": {
+          "en": "Chinese",
+          "fr": "Chinois",
+          "de": "Chinesisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/cn.svg",
@@ -697,6 +1217,16 @@
       "fr": "Bogotá",
       "de": "Bogotá"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/co.svg",
@@ -716,6 +1246,32 @@
       "fr": "Moroni",
       "de": "Moroni"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "zdj",
+        "name": {
+          "en": "Comorian",
+          "fr": "Comorian",
+          "de": "Comorian"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/km.svg",
@@ -735,6 +1291,16 @@
       "fr": "San José",
       "de": "San José"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/cr.svg",
@@ -754,6 +1320,16 @@
       "fr": "Zagreb",
       "de": "Zagreb"
     },
+    "languages": [
+      {
+        "code": "hrv",
+        "name": {
+          "en": "Croatian",
+          "fr": "Croate",
+          "de": "Kroatisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/hr.svg",
@@ -773,6 +1349,16 @@
       "fr": "La Havane",
       "de": "Havanna"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/cu.svg",
@@ -792,6 +1378,24 @@
       "fr": "Nicosie",
       "de": "Nikosia"
     },
+    "languages": [
+      {
+        "code": "ell",
+        "name": {
+          "en": "Greek",
+          "fr": "Grec",
+          "de": "Griechisch"
+        }
+      },
+      {
+        "code": "tur",
+        "name": {
+          "en": "Turkish",
+          "fr": "Turc",
+          "de": "Türkisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/cy.svg",
@@ -811,6 +1415,24 @@
       "fr": "Prague",
       "de": "Prag"
     },
+    "languages": [
+      {
+        "code": "ces",
+        "name": {
+          "en": "Czech",
+          "fr": "Tchèque",
+          "de": "Tschechisch"
+        }
+      },
+      {
+        "code": "slk",
+        "name": {
+          "en": "Slovak",
+          "fr": "Slovaque",
+          "de": "Slowakisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/cz.svg",
@@ -830,6 +1452,16 @@
       "fr": "Copenhague",
       "de": "Kopenhagen"
     },
+    "languages": [
+      {
+        "code": "dan",
+        "name": {
+          "en": "Danish",
+          "fr": "Danois",
+          "de": "Dänisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/dk.svg",
@@ -849,6 +1481,24 @@
       "fr": "Djibouti",
       "de": "Dschibuti"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/dj.svg",
@@ -868,6 +1518,16 @@
       "fr": "Roseau",
       "de": "Roseau"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/dm.svg",
@@ -887,6 +1547,16 @@
       "fr": "Saint-Domingue",
       "de": "Santo Domingo"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/do.svg",
@@ -906,6 +1576,48 @@
       "fr": "Kinshasa",
       "de": "Kinshasa"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "kon",
+        "name": {
+          "en": "Kikongo",
+          "fr": "Kikongo",
+          "de": "Kikongo"
+        }
+      },
+      {
+        "code": "lin",
+        "name": {
+          "en": "Lingala",
+          "fr": "Lingala",
+          "de": "Lingala"
+        }
+      },
+      {
+        "code": "lua",
+        "name": {
+          "en": "Tshiluba",
+          "fr": "Tshiluba",
+          "de": "Tshiluba"
+        }
+      },
+      {
+        "code": "swa",
+        "name": {
+          "en": "Swahili",
+          "fr": "Swahili",
+          "de": "Suaheli"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cd.svg",
@@ -925,6 +1637,16 @@
       "fr": "Quito",
       "de": "Quito"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/ec.svg",
@@ -944,6 +1666,16 @@
       "fr": "Le Caire",
       "de": "Kairo"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/eg.svg",
@@ -963,6 +1695,16 @@
       "fr": "San Salvador",
       "de": "San Salvador"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/sv.svg",
@@ -982,6 +1724,32 @@
       "fr": "Malabo",
       "de": "Malabo"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      },
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/gq.svg",
@@ -1001,6 +1769,32 @@
       "fr": "Asmara",
       "de": "Asmara"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "tir",
+        "name": {
+          "en": "Tigrinya",
+          "fr": "Tigrinya",
+          "de": "Tigrinya"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/er.svg",
@@ -1020,6 +1814,16 @@
       "fr": "Tallinn",
       "de": "Tallinn"
     },
+    "languages": [
+      {
+        "code": "est",
+        "name": {
+          "en": "Estonian",
+          "fr": "Estonien",
+          "de": "Estnisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/ee.svg",
@@ -1039,6 +1843,24 @@
       "fr": "Lobamba",
       "de": "Lobamba"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "ssw",
+        "name": {
+          "en": "Swazi",
+          "fr": "Swazi",
+          "de": "Swazi"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/sz.svg",
@@ -1058,6 +1880,16 @@
       "fr": "Addis-Abeba",
       "de": "Addis Abeba"
     },
+    "languages": [
+      {
+        "code": "amh",
+        "name": {
+          "en": "Amharic",
+          "fr": "Amharique",
+          "de": "Amharisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/et.svg",
@@ -1077,6 +1909,32 @@
       "fr": "Suva",
       "de": "Suva"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fij",
+        "name": {
+          "en": "Fijian",
+          "fr": "Fidjien",
+          "de": "Fidschianisch"
+        }
+      },
+      {
+        "code": "hif",
+        "name": {
+          "en": "Fiji Hindi",
+          "fr": "Fiji Hindi",
+          "de": "Fiji Hindi"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/fj.svg",
@@ -1096,6 +1954,24 @@
       "fr": "Helsinki",
       "de": "Helsinki"
     },
+    "languages": [
+      {
+        "code": "fin",
+        "name": {
+          "en": "Finnish",
+          "fr": "Finnois",
+          "de": "Finnisch"
+        }
+      },
+      {
+        "code": "swe",
+        "name": {
+          "en": "Swedish",
+          "fr": "Suédois",
+          "de": "Schwedisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/fi.svg",
@@ -1115,6 +1991,16 @@
       "fr": "Paris",
       "de": "Paris"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/fr.svg",
@@ -1134,6 +2020,16 @@
       "fr": "Libreville",
       "de": "Libreville"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ga.svg",
@@ -1153,6 +2049,16 @@
       "fr": "Banjul",
       "de": "Banjul"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/gm.svg",
@@ -1172,6 +2078,16 @@
       "fr": "Tbilissi",
       "de": "Tiflis"
     },
+    "languages": [
+      {
+        "code": "kat",
+        "name": {
+          "en": "Georgian",
+          "fr": "Géorgien",
+          "de": "Georgisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/ge.svg",
@@ -1191,6 +2107,16 @@
       "fr": "Berlin",
       "de": "Berlin"
     },
+    "languages": [
+      {
+        "code": "deu",
+        "name": {
+          "en": "German",
+          "fr": "Allemand",
+          "de": "Deutsch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/de.svg",
@@ -1210,6 +2136,16 @@
       "fr": "Accra",
       "de": "Accra"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/gh.svg",
@@ -1229,6 +2165,16 @@
       "fr": "Athènes",
       "de": "Athen"
     },
+    "languages": [
+      {
+        "code": "ell",
+        "name": {
+          "en": "Greek",
+          "fr": "Grec",
+          "de": "Griechisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/gr.svg",
@@ -1248,6 +2194,16 @@
       "fr": "St. George's",
       "de": "St. George's"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/gd.svg",
@@ -1267,6 +2223,16 @@
       "fr": "Guatemala",
       "de": "Guatemala-Stadt"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/gt.svg",
@@ -1286,6 +2252,16 @@
       "fr": "Conakry",
       "de": "Conakry"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/gn.svg",
@@ -1305,6 +2281,24 @@
       "fr": "Bissau",
       "de": "Bissau"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      },
+      {
+        "code": "pov",
+        "name": {
+          "en": "Upper Guinea Creole",
+          "fr": "Upper Guinea Creole",
+          "de": "Upper Guinea Creole"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/gw.svg",
@@ -1324,6 +2318,16 @@
       "fr": "Georgetown",
       "de": "Georgetown"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/gy.svg",
@@ -1343,6 +2347,24 @@
       "fr": "Port-au-Prince",
       "de": "Port-au-Prince"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "hat",
+        "name": {
+          "en": "Haitian Creole",
+          "fr": "Créole haïtien",
+          "de": "Haitian Creole"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/ht.svg",
@@ -1362,6 +2384,16 @@
       "fr": "Tegucigalpa",
       "de": "Tegucigalpa"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/hn.svg",
@@ -1381,6 +2413,16 @@
       "fr": "Budapest",
       "de": "Budapest"
     },
+    "languages": [
+      {
+        "code": "hun",
+        "name": {
+          "en": "Hungarian",
+          "fr": "Hongrois",
+          "de": "Ungarisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/hu.svg",
@@ -1400,6 +2442,16 @@
       "fr": "Reykjavik",
       "de": "Reykjavik"
     },
+    "languages": [
+      {
+        "code": "isl",
+        "name": {
+          "en": "Icelandic",
+          "fr": "Islandais",
+          "de": "Isländisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/is.svg",
@@ -1419,6 +2471,32 @@
       "fr": "New Delhi",
       "de": "Neu-Delhi"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "hin",
+        "name": {
+          "en": "Hindi",
+          "fr": "Hindi",
+          "de": "Hindi"
+        }
+      },
+      {
+        "code": "tam",
+        "name": {
+          "en": "Tamil",
+          "fr": "Tamoul",
+          "de": "Tamil"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/in.svg",
@@ -1438,6 +2516,16 @@
       "fr": "Jakarta",
       "de": "Jakarta"
     },
+    "languages": [
+      {
+        "code": "ind",
+        "name": {
+          "en": "Indonesian",
+          "fr": "Indonésien",
+          "de": "Indonesisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/id.svg",
@@ -1457,6 +2545,16 @@
       "fr": "Téhéran",
       "de": "Teheran"
     },
+    "languages": [
+      {
+        "code": "fas",
+        "name": {
+          "en": "Persian (Farsi)",
+          "fr": "Persan",
+          "de": "Persisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/ir.svg",
@@ -1476,6 +2574,32 @@
       "fr": "Bagdad",
       "de": "Bagdad"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "arc",
+        "name": {
+          "en": "Aramaic",
+          "fr": "Aramaic",
+          "de": "Aramaic"
+        }
+      },
+      {
+        "code": "ckb",
+        "name": {
+          "en": "Sorani",
+          "fr": "Sorani",
+          "de": "Sorani"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/iq.svg",
@@ -1495,6 +2619,24 @@
       "fr": "Dublin",
       "de": "Dublin"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "gle",
+        "name": {
+          "en": "Irish",
+          "fr": "Irlandais",
+          "de": "Irisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/ie.svg",
@@ -1514,6 +2656,24 @@
       "fr": "Jérusalem",
       "de": "Jerusalem"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "heb",
+        "name": {
+          "en": "Hebrew",
+          "fr": "Hébreu",
+          "de": "Hebräisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/il.svg",
@@ -1533,6 +2693,16 @@
       "fr": "Rome",
       "de": "Rom"
     },
+    "languages": [
+      {
+        "code": "ita",
+        "name": {
+          "en": "Italian",
+          "fr": "Italien",
+          "de": "Italienisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/it.svg",
@@ -1552,6 +2722,16 @@
       "fr": "Yamoussoukro",
       "de": "Yamoussoukro"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/ci.svg",
@@ -1571,6 +2751,24 @@
       "fr": "Kingston",
       "de": "Kingston"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "jam",
+        "name": {
+          "en": "Jamaican Patois",
+          "fr": "Jamaican Patois",
+          "de": "Jamaican Patois"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/jm.svg",
@@ -1590,6 +2788,16 @@
       "fr": "Tokyo",
       "de": "Tokio"
     },
+    "languages": [
+      {
+        "code": "jpn",
+        "name": {
+          "en": "Japanese",
+          "fr": "Japonais",
+          "de": "Japanisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/jp.svg",
@@ -1609,6 +2817,16 @@
       "fr": "Amman",
       "de": "Amman"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/jo.svg",
@@ -1628,6 +2846,24 @@
       "fr": "Astana",
       "de": "Astana"
     },
+    "languages": [
+      {
+        "code": "kaz",
+        "name": {
+          "en": "Kazakh",
+          "fr": "Kazakh",
+          "de": "Kasachisch"
+        }
+      },
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kz.svg",
@@ -1647,6 +2883,24 @@
       "fr": "Nairobi",
       "de": "Nairobi"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "swa",
+        "name": {
+          "en": "Swahili",
+          "fr": "Swahili",
+          "de": "Suaheli"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/ke.svg",
@@ -1666,6 +2920,24 @@
       "fr": "South Tarawa",
       "de": "South Tarawa"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "gil",
+        "name": {
+          "en": "Gilbertese",
+          "fr": "Gilbertese",
+          "de": "Gilbertese"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/ki.svg",
@@ -1685,6 +2957,16 @@
       "fr": "Koweït",
       "de": "Kuwait-Stadt"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/kw.svg",
@@ -1704,6 +2986,24 @@
       "fr": "Bichkek",
       "de": "Bischkek"
     },
+    "languages": [
+      {
+        "code": "kir",
+        "name": {
+          "en": "Kyrgyz",
+          "fr": "Kirghize",
+          "de": "Kirgisisch"
+        }
+      },
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kg.svg",
@@ -1723,6 +3023,16 @@
       "fr": "Vientiane",
       "de": "Vientiane"
     },
+    "languages": [
+      {
+        "code": "lao",
+        "name": {
+          "en": "Lao",
+          "fr": "Lao",
+          "de": "Laotisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/la.svg",
@@ -1742,6 +3052,16 @@
       "fr": "Riga",
       "de": "Riga"
     },
+    "languages": [
+      {
+        "code": "lav",
+        "name": {
+          "en": "Latvian",
+          "fr": "Letton",
+          "de": "Lettisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/lv.svg",
@@ -1761,6 +3081,24 @@
       "fr": "Beyrouth",
       "de": "Beirut"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/lb.svg",
@@ -1780,6 +3118,24 @@
       "fr": "Maseru",
       "de": "Maseru"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "sot",
+        "name": {
+          "en": "Sotho",
+          "fr": "Sotho",
+          "de": "Sotho"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/ls.svg",
@@ -1799,6 +3155,16 @@
       "fr": "Monrovia",
       "de": "Monrovia"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/lr.svg",
@@ -1818,6 +3184,16 @@
       "fr": "Tripoli",
       "de": "Tripolis"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ly.svg",
@@ -1837,6 +3213,16 @@
       "fr": "Vaduz",
       "de": "Vaduz"
     },
+    "languages": [
+      {
+        "code": "deu",
+        "name": {
+          "en": "German",
+          "fr": "Allemand",
+          "de": "Deutsch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/li.svg",
@@ -1856,6 +3242,16 @@
       "fr": "Vilnius",
       "de": "Vilnius"
     },
+    "languages": [
+      {
+        "code": "lit",
+        "name": {
+          "en": "Lithuanian",
+          "fr": "Lituanien",
+          "de": "Litauisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/lt.svg",
@@ -1875,6 +3271,32 @@
       "fr": "Luxembourg",
       "de": "Luxemburg"
     },
+    "languages": [
+      {
+        "code": "deu",
+        "name": {
+          "en": "German",
+          "fr": "Allemand",
+          "de": "Deutsch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "ltz",
+        "name": {
+          "en": "Luxembourgish",
+          "fr": "Luxembourgeois",
+          "de": "Luxemburgisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/lu.svg",
@@ -1894,6 +3316,24 @@
       "fr": "Antananarivo",
       "de": "Antananarivo"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "mlg",
+        "name": {
+          "en": "Malagasy",
+          "fr": "Malgache",
+          "de": "Malagassisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mg.svg",
@@ -1913,6 +3353,24 @@
       "fr": "Lilongwe",
       "de": "Lilongwe"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "nya",
+        "name": {
+          "en": "Chewa",
+          "fr": "Chewa",
+          "de": "Chewa"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mw.svg",
@@ -1932,6 +3390,24 @@
       "fr": "Kuala Lumpur",
       "de": "Kuala Lumpur"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "msa",
+        "name": {
+          "en": "Malay",
+          "fr": "Malais",
+          "de": "Malaiisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/my.svg",
@@ -1951,6 +3427,16 @@
       "fr": "Malé",
       "de": "Malé"
     },
+    "languages": [
+      {
+        "code": "div",
+        "name": {
+          "en": "Maldivian",
+          "fr": "Maldivian",
+          "de": "Maldivian"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/mv.svg",
@@ -1970,6 +3456,16 @@
       "fr": "Bamako",
       "de": "Bamako"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/ml.svg",
@@ -1989,6 +3485,24 @@
       "fr": "La Valette",
       "de": "Valletta"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "mlt",
+        "name": {
+          "en": "Maltese",
+          "fr": "Maltais",
+          "de": "Maltesisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/mt.svg",
@@ -2008,6 +3522,24 @@
       "fr": "Majuro",
       "de": "Majuro"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "mah",
+        "name": {
+          "en": "Marshallese",
+          "fr": "Marshallese",
+          "de": "Marshallese"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/mh.svg",
@@ -2027,6 +3559,16 @@
       "fr": "Nouakchott",
       "de": "Nouakchott"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/mr.svg",
@@ -2046,6 +3588,32 @@
       "fr": "Port Louis",
       "de": "Port Louis"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "mfe",
+        "name": {
+          "en": "Mauritian Creole",
+          "fr": "Mauritian Creole",
+          "de": "Mauritian Creole"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mu.svg",
@@ -2065,6 +3633,16 @@
       "fr": "Mexico",
       "de": "Mexiko-Stadt"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/mx.svg",
@@ -2084,6 +3662,16 @@
       "fr": "Palikir",
       "de": "Palikir"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/fm.svg",
@@ -2103,6 +3691,16 @@
       "fr": "Chișinău",
       "de": "Chișinău"
     },
+    "languages": [
+      {
+        "code": "ron",
+        "name": {
+          "en": "Moldavian",
+          "fr": "Roumain",
+          "de": "Rumänisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/md.svg",
@@ -2122,6 +3720,16 @@
       "fr": "Monaco",
       "de": "Monaco"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/mc.svg",
@@ -2141,6 +3749,16 @@
       "fr": "Oulan-Bator",
       "de": "Ulan-Bator"
     },
+    "languages": [
+      {
+        "code": "mon",
+        "name": {
+          "en": "Mongolian",
+          "fr": "Mongol",
+          "de": "Mongolisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/mn.svg",
@@ -2160,6 +3778,16 @@
       "fr": "Podgorica",
       "de": "Podgorica"
     },
+    "languages": [
+      {
+        "code": "cnr",
+        "name": {
+          "en": "Montenegrin",
+          "fr": "Monténégrin",
+          "de": "Montenegrinisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/me.svg",
@@ -2179,6 +3807,24 @@
       "fr": "Rabat",
       "de": "Rabat"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "ber",
+        "name": {
+          "en": "Berber",
+          "fr": "Berbère",
+          "de": "Berberisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ma.svg",
@@ -2198,6 +3844,16 @@
       "fr": "Maputo",
       "de": "Maputo"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/mz.svg",
@@ -2217,6 +3873,16 @@
       "fr": "Naypyidaw",
       "de": "Naypyidaw"
     },
+    "languages": [
+      {
+        "code": "mya",
+        "name": {
+          "en": "Burmese",
+          "fr": "Birman",
+          "de": "Birmanisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/mm.svg",
@@ -2236,6 +3902,80 @@
       "fr": "Windhoek",
       "de": "Windhoek"
     },
+    "languages": [
+      {
+        "code": "afr",
+        "name": {
+          "en": "Afrikaans",
+          "fr": "Afrikaans",
+          "de": "Afrikaans"
+        }
+      },
+      {
+        "code": "deu",
+        "name": {
+          "en": "German",
+          "fr": "Allemand",
+          "de": "Deutsch"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "her",
+        "name": {
+          "en": "Herero",
+          "fr": "Herero",
+          "de": "Herero"
+        }
+      },
+      {
+        "code": "hgm",
+        "name": {
+          "en": "Khoekhoe",
+          "fr": "Khoekhoe",
+          "de": "Khoekhoe"
+        }
+      },
+      {
+        "code": "kwn",
+        "name": {
+          "en": "Kwangali",
+          "fr": "Kwangali",
+          "de": "Kwangali"
+        }
+      },
+      {
+        "code": "loz",
+        "name": {
+          "en": "Lozi",
+          "fr": "Lozi",
+          "de": "Lozi"
+        }
+      },
+      {
+        "code": "ndo",
+        "name": {
+          "en": "Ndonga",
+          "fr": "Ndonga",
+          "de": "Ndonga"
+        }
+      },
+      {
+        "code": "tsn",
+        "name": {
+          "en": "Tswana",
+          "fr": "Tswana",
+          "de": "Tswana"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/na.svg",
@@ -2255,6 +3995,24 @@
       "fr": "Yaren",
       "de": "Yaren"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "nau",
+        "name": {
+          "en": "Nauru",
+          "fr": "Nauru",
+          "de": "Nauru"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/nr.svg",
@@ -2274,6 +4032,16 @@
       "fr": "Katmandou",
       "de": "Kathmandu"
     },
+    "languages": [
+      {
+        "code": "nep",
+        "name": {
+          "en": "Nepali",
+          "fr": "Népalais",
+          "de": "Nepalesisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/np.svg",
@@ -2293,6 +4061,16 @@
       "fr": "Amsterdam",
       "de": "Amsterdam"
     },
+    "languages": [
+      {
+        "code": "nld",
+        "name": {
+          "en": "Dutch",
+          "fr": "Néerlandais",
+          "de": "Niederländisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/nl.svg",
@@ -2312,6 +4090,32 @@
       "fr": "Wellington",
       "de": "Wellington"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "mri",
+        "name": {
+          "en": "Māori",
+          "fr": "Māori",
+          "de": "Māori"
+        }
+      },
+      {
+        "code": "nzs",
+        "name": {
+          "en": "New Zealand Sign Language",
+          "fr": "New Zealand Sign Language",
+          "de": "New Zealand Sign Language"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/nz.svg",
@@ -2331,6 +4135,16 @@
       "fr": "Managua",
       "de": "Managua"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/ni.svg",
@@ -2350,6 +4164,16 @@
       "fr": "Niamey",
       "de": "Niamey"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/ne.svg",
@@ -2369,6 +4193,16 @@
       "fr": "Abuja",
       "de": "Abuja"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/ng.svg",
@@ -2388,6 +4222,16 @@
       "fr": "Pyongyang",
       "de": "Pjöngjang"
     },
+    "languages": [
+      {
+        "code": "kor",
+        "name": {
+          "en": "Korean",
+          "fr": "Coréen",
+          "de": "Koreanisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kp.svg",
@@ -2407,6 +4251,16 @@
       "fr": "Skopje",
       "de": "Skopje"
     },
+    "languages": [
+      {
+        "code": "mkd",
+        "name": {
+          "en": "Macedonian",
+          "fr": "Macédonien",
+          "de": "Mazedonisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/mk.svg",
@@ -2426,6 +4280,32 @@
       "fr": "Oslo",
       "de": "Oslo"
     },
+    "languages": [
+      {
+        "code": "nno",
+        "name": {
+          "en": "Norwegian Nynorsk",
+          "fr": "Norwegian Nynorsk",
+          "de": "Norwegian Nynorsk"
+        }
+      },
+      {
+        "code": "nob",
+        "name": {
+          "en": "Norwegian Bokmål",
+          "fr": "Norwegian Bokmål",
+          "de": "Norwegian Bokmål"
+        }
+      },
+      {
+        "code": "smi",
+        "name": {
+          "en": "Sami",
+          "fr": "Sami",
+          "de": "Sami"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/no.svg",
@@ -2445,6 +4325,16 @@
       "fr": "Mascate",
       "de": "Maskat"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/om.svg",
@@ -2464,6 +4354,24 @@
       "fr": "Islamabad",
       "de": "Islamabad"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "urd",
+        "name": {
+          "en": "Urdu",
+          "fr": "Ourdou",
+          "de": "Urdu"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/pk.svg",
@@ -2483,6 +4391,24 @@
       "fr": "Ngerulmud",
       "de": "Ngerulmud"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "pau",
+        "name": {
+          "en": "Palauan",
+          "fr": "Palauan",
+          "de": "Palauan"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/pw.svg",
@@ -2502,6 +4428,16 @@
       "fr": "Ramallah",
       "de": "Ramallah"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/ps.svg",
@@ -2521,6 +4457,16 @@
       "fr": "Panama",
       "de": "Panama-Stadt"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/pa.svg",
@@ -2540,6 +4486,32 @@
       "fr": "Port Moresby",
       "de": "Port Moresby"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "hmo",
+        "name": {
+          "en": "Hiri Motu",
+          "fr": "Hiri Motu",
+          "de": "Hiri Motu"
+        }
+      },
+      {
+        "code": "tpi",
+        "name": {
+          "en": "Tok Pisin",
+          "fr": "Tok Pisin",
+          "de": "Tok Pisin"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/pg.svg",
@@ -2559,6 +4531,24 @@
       "fr": "Asunción",
       "de": "Asunción"
     },
+    "languages": [
+      {
+        "code": "grn",
+        "name": {
+          "en": "Guaraní",
+          "fr": "Guaraní",
+          "de": "Guaraní"
+        }
+      },
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/py.svg",
@@ -2578,6 +4568,32 @@
       "fr": "Lima",
       "de": "Lima"
     },
+    "languages": [
+      {
+        "code": "aym",
+        "name": {
+          "en": "Aymara",
+          "fr": "Aymara",
+          "de": "Aymara"
+        }
+      },
+      {
+        "code": "que",
+        "name": {
+          "en": "Quechua",
+          "fr": "Quechua",
+          "de": "Quechua"
+        }
+      },
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/pe.svg",
@@ -2597,6 +4613,24 @@
       "fr": "Manille",
       "de": "Manila"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fil",
+        "name": {
+          "en": "Filipino",
+          "fr": "Filipino",
+          "de": "Filipino"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/ph.svg",
@@ -2616,6 +4650,16 @@
       "fr": "Varsovie",
       "de": "Warschau"
     },
+    "languages": [
+      {
+        "code": "pol",
+        "name": {
+          "en": "Polish",
+          "fr": "Polonais",
+          "de": "Polnisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/pl.svg",
@@ -2635,6 +4679,16 @@
       "fr": "Lisbonne",
       "de": "Lissabon"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/pt.svg",
@@ -2654,6 +4708,16 @@
       "fr": "Doha",
       "de": "Doha"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/qa.svg",
@@ -2673,6 +4737,32 @@
       "fr": "Brazzaville",
       "de": "Brazzaville"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "kon",
+        "name": {
+          "en": "Kikongo",
+          "fr": "Kikongo",
+          "de": "Kikongo"
+        }
+      },
+      {
+        "code": "lin",
+        "name": {
+          "en": "Lingala",
+          "fr": "Lingala",
+          "de": "Lingala"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/cg.svg",
@@ -2692,6 +4782,16 @@
       "fr": "Bucarest",
       "de": "Bukarest"
     },
+    "languages": [
+      {
+        "code": "ron",
+        "name": {
+          "en": "Romanian",
+          "fr": "Roumain",
+          "de": "Rumänisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/ro.svg",
@@ -2711,6 +4811,16 @@
       "fr": "Moscou",
       "de": "Moskau"
     },
+    "languages": [
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/ru.svg",
@@ -2730,6 +4840,32 @@
       "fr": "Kigali",
       "de": "Kigali"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "kin",
+        "name": {
+          "en": "Kinyarwanda",
+          "fr": "Kinyarwanda",
+          "de": "Kinyarwanda"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/rw.svg",
@@ -2749,6 +4885,16 @@
       "fr": "Basseterre",
       "de": "Basseterre"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/kn.svg",
@@ -2768,6 +4914,16 @@
       "fr": "Castries",
       "de": "Castries"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/lc.svg",
@@ -2787,6 +4943,16 @@
       "fr": "Kingstown",
       "de": "Kingstown"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/vc.svg",
@@ -2806,6 +4972,24 @@
       "fr": "Apia",
       "de": "Apia"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "smo",
+        "name": {
+          "en": "Samoan",
+          "fr": "Samoan",
+          "de": "Samoanisch"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/ws.svg",
@@ -2825,6 +5009,16 @@
       "fr": "City of San Marino",
       "de": "City of San Marino"
     },
+    "languages": [
+      {
+        "code": "ita",
+        "name": {
+          "en": "Italian",
+          "fr": "Italien",
+          "de": "Italienisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/sm.svg",
@@ -2844,6 +5038,16 @@
       "fr": "São Tomé",
       "de": "São Tomé"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/st.svg",
@@ -2863,6 +5067,16 @@
       "fr": "Riyad",
       "de": "Riad"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/sa.svg",
@@ -2882,6 +5096,16 @@
       "fr": "Dakar",
       "de": "Dakar"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/sn.svg",
@@ -2901,6 +5125,16 @@
       "fr": "Belgrade",
       "de": "Belgrad"
     },
+    "languages": [
+      {
+        "code": "srp",
+        "name": {
+          "en": "Serbian",
+          "fr": "Serbe",
+          "de": "Serbisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/rs.svg",
@@ -2920,6 +5154,32 @@
       "fr": "Victoria",
       "de": "Victoria"
     },
+    "languages": [
+      {
+        "code": "crs",
+        "name": {
+          "en": "Seychellois Creole",
+          "fr": "Seychellois Creole",
+          "de": "Seychellois Creole"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/sc.svg",
@@ -2939,6 +5199,16 @@
       "fr": "Freetown",
       "de": "Freetown"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/sl.svg",
@@ -2958,6 +5228,40 @@
       "fr": "Singapour",
       "de": "Singapur"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "msa",
+        "name": {
+          "en": "Malay",
+          "fr": "Malais",
+          "de": "Malaiisch"
+        }
+      },
+      {
+        "code": "tam",
+        "name": {
+          "en": "Tamil",
+          "fr": "Tamoul",
+          "de": "Tamil"
+        }
+      },
+      {
+        "code": "zho",
+        "name": {
+          "en": "Chinese",
+          "fr": "Chinois",
+          "de": "Chinesisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/sg.svg",
@@ -2977,6 +5281,16 @@
       "fr": "Bratislava",
       "de": "Bratislava"
     },
+    "languages": [
+      {
+        "code": "slk",
+        "name": {
+          "en": "Slovak",
+          "fr": "Slovaque",
+          "de": "Slowakisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/sk.svg",
@@ -2996,6 +5310,16 @@
       "fr": "Ljubljana",
       "de": "Ljubljana"
     },
+    "languages": [
+      {
+        "code": "slv",
+        "name": {
+          "en": "Slovene",
+          "fr": "Slovène",
+          "de": "Slowenisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/si.svg",
@@ -3015,6 +5339,16 @@
       "fr": "Honiara",
       "de": "Honiara"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/sb.svg",
@@ -3034,6 +5368,24 @@
       "fr": "Mogadiscio",
       "de": "Mogadischu"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "som",
+        "name": {
+          "en": "Somali",
+          "fr": "Somali",
+          "de": "Somalisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/so.svg",
@@ -3053,6 +5405,96 @@
       "fr": "Pretoria",
       "de": "Pretoria"
     },
+    "languages": [
+      {
+        "code": "afr",
+        "name": {
+          "en": "Afrikaans",
+          "fr": "Afrikaans",
+          "de": "Afrikaans"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "nbl",
+        "name": {
+          "en": "Southern Ndebele",
+          "fr": "Southern Ndebele",
+          "de": "Southern Ndebele"
+        }
+      },
+      {
+        "code": "nso",
+        "name": {
+          "en": "Northern Sotho",
+          "fr": "Northern Sotho",
+          "de": "Northern Sotho"
+        }
+      },
+      {
+        "code": "sot",
+        "name": {
+          "en": "Southern Sotho",
+          "fr": "Southern Sotho",
+          "de": "Southern Sotho"
+        }
+      },
+      {
+        "code": "ssw",
+        "name": {
+          "en": "Swazi",
+          "fr": "Swazi",
+          "de": "Swazi"
+        }
+      },
+      {
+        "code": "tsn",
+        "name": {
+          "en": "Tswana",
+          "fr": "Tswana",
+          "de": "Tswana"
+        }
+      },
+      {
+        "code": "tso",
+        "name": {
+          "en": "Tsonga",
+          "fr": "Tsonga",
+          "de": "Tsonga"
+        }
+      },
+      {
+        "code": "ven",
+        "name": {
+          "en": "Venda",
+          "fr": "Venda",
+          "de": "Venda"
+        }
+      },
+      {
+        "code": "xho",
+        "name": {
+          "en": "Xhosa",
+          "fr": "Xhosa",
+          "de": "Xhosa"
+        }
+      },
+      {
+        "code": "zul",
+        "name": {
+          "en": "Zulu",
+          "fr": "Zulu",
+          "de": "Zulu"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/za.svg",
@@ -3072,6 +5514,16 @@
       "fr": "Séoul",
       "de": "Seoul"
     },
+    "languages": [
+      {
+        "code": "kor",
+        "name": {
+          "en": "Korean",
+          "fr": "Coréen",
+          "de": "Koreanisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/kr.svg",
@@ -3091,6 +5543,16 @@
       "fr": "Juba",
       "de": "Juba"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/ss.svg",
@@ -3110,6 +5572,16 @@
       "fr": "Madrid",
       "de": "Madrid"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/es.svg",
@@ -3129,6 +5601,24 @@
       "fr": "Colombo",
       "de": "Colombo"
     },
+    "languages": [
+      {
+        "code": "sin",
+        "name": {
+          "en": "Sinhala",
+          "fr": "Cingalais",
+          "de": "Singhalesisch"
+        }
+      },
+      {
+        "code": "tam",
+        "name": {
+          "en": "Tamil",
+          "fr": "Tamoul",
+          "de": "Tamil"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Southern Asia",
     "flagAsset": "flags/lk.svg",
@@ -3148,6 +5638,24 @@
       "fr": "Khartoum",
       "de": "Khartum"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/sd.svg",
@@ -3167,6 +5675,16 @@
       "fr": "Paramaribo",
       "de": "Paramaribo"
     },
+    "languages": [
+      {
+        "code": "nld",
+        "name": {
+          "en": "Dutch",
+          "fr": "Néerlandais",
+          "de": "Niederländisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/sr.svg",
@@ -3186,6 +5704,16 @@
       "fr": "Stockholm",
       "de": "Stockholm"
     },
+    "languages": [
+      {
+        "code": "swe",
+        "name": {
+          "en": "Swedish",
+          "fr": "Suédois",
+          "de": "Schwedisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/se.svg",
@@ -3205,6 +5733,40 @@
       "fr": "Berne",
       "de": "Bern"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      },
+      {
+        "code": "gsw",
+        "name": {
+          "en": "Swiss German",
+          "fr": "Suisse allemand",
+          "de": "Schweizerdeutsch"
+        }
+      },
+      {
+        "code": "ita",
+        "name": {
+          "en": "Italian",
+          "fr": "Italien",
+          "de": "Italienisch"
+        }
+      },
+      {
+        "code": "roh",
+        "name": {
+          "en": "Romansh",
+          "fr": "Romanche",
+          "de": "Rätoromanisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Western Europe",
     "flagAsset": "flags/ch.svg",
@@ -3224,6 +5786,16 @@
       "fr": "Damas",
       "de": "Damaskus"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/sy.svg",
@@ -3243,6 +5815,24 @@
       "fr": "Douchanbé",
       "de": "Duschanbe"
     },
+    "languages": [
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      },
+      {
+        "code": "tgk",
+        "name": {
+          "en": "Tajik",
+          "fr": "Tadjik",
+          "de": "Tadschikisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/tj.svg",
@@ -3262,6 +5852,24 @@
       "fr": "Dodoma",
       "de": "Dodoma"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "swa",
+        "name": {
+          "en": "Swahili",
+          "fr": "Swahili",
+          "de": "Suaheli"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/tz.svg",
@@ -3281,6 +5889,16 @@
       "fr": "Bangkok",
       "de": "Bangkok"
     },
+    "languages": [
+      {
+        "code": "tha",
+        "name": {
+          "en": "Thai",
+          "fr": "Thaï",
+          "de": "Thailändisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/th.svg",
@@ -3300,6 +5918,24 @@
       "fr": "Dili",
       "de": "Dili"
     },
+    "languages": [
+      {
+        "code": "por",
+        "name": {
+          "en": "Portuguese",
+          "fr": "Portugais",
+          "de": "Portugiesisch"
+        }
+      },
+      {
+        "code": "tet",
+        "name": {
+          "en": "Tetum",
+          "fr": "Tetum",
+          "de": "Tetum"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/tl.svg",
@@ -3319,6 +5955,16 @@
       "fr": "Lomé",
       "de": "Lomé"
     },
+    "languages": [
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Western Africa",
     "flagAsset": "flags/tg.svg",
@@ -3338,6 +5984,24 @@
       "fr": "Nuku'alofa",
       "de": "Nuku'alofa"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "ton",
+        "name": {
+          "en": "Tongan",
+          "fr": "Tongien",
+          "de": "Tongaisch"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/to.svg",
@@ -3357,6 +6021,16 @@
       "fr": "Port-d'Espagne",
       "de": "Port of Spain"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "Caribbean",
     "flagAsset": "flags/tt.svg",
@@ -3376,6 +6050,16 @@
       "fr": "Tunis",
       "de": "Tunis"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Northern & Central Africa",
     "flagAsset": "flags/tn.svg",
@@ -3395,6 +6079,16 @@
       "fr": "Ankara",
       "de": "Ankara"
     },
+    "languages": [
+      {
+        "code": "tur",
+        "name": {
+          "en": "Turkish",
+          "fr": "Turc",
+          "de": "Türkisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/tr.svg",
@@ -3414,6 +6108,24 @@
       "fr": "Achgabat",
       "de": "Aschgabat"
     },
+    "languages": [
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      },
+      {
+        "code": "tuk",
+        "name": {
+          "en": "Turkmen",
+          "fr": "Turkmène",
+          "de": "Turkmenisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/tm.svg",
@@ -3433,6 +6145,24 @@
       "fr": "Funafuti",
       "de": "Funafuti"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "tvl",
+        "name": {
+          "en": "Tuvaluan",
+          "fr": "Tuvaluan",
+          "de": "Tuvaluan"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/tv.svg",
@@ -3452,6 +6182,24 @@
       "fr": "Kampala",
       "de": "Kampala"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "swa",
+        "name": {
+          "en": "Swahili",
+          "fr": "Swahili",
+          "de": "Suaheli"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/ug.svg",
@@ -3471,6 +6219,16 @@
       "fr": "Kyiv",
       "de": "Kyiv"
     },
+    "languages": [
+      {
+        "code": "ukr",
+        "name": {
+          "en": "Ukrainian",
+          "fr": "Ukrainien",
+          "de": "Ukrainisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Eastern Europe",
     "flagAsset": "flags/ua.svg",
@@ -3490,6 +6248,16 @@
       "fr": "Abou Dabi",
       "de": "Abu Dhabi"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/ae.svg",
@@ -3509,6 +6277,16 @@
       "fr": "Londres",
       "de": "London"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Northern Europe",
     "flagAsset": "flags/gb.svg",
@@ -3528,6 +6306,16 @@
       "fr": "Washington D.C.",
       "de": "Washington D.C."
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "North & Central America",
     "flagAsset": "flags/us.svg",
@@ -3547,6 +6335,16 @@
       "fr": "Montevideo",
       "de": "Montevideo"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/uy.svg",
@@ -3566,6 +6364,24 @@
       "fr": "Tachkent",
       "de": "Taschkent"
     },
+    "languages": [
+      {
+        "code": "rus",
+        "name": {
+          "en": "Russian",
+          "fr": "Russe",
+          "de": "Russisch"
+        }
+      },
+      {
+        "code": "uzb",
+        "name": {
+          "en": "Uzbek",
+          "fr": "Ouzbek",
+          "de": "Usbekisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Central & Eastern Asia",
     "flagAsset": "flags/uz.svg",
@@ -3585,6 +6401,32 @@
       "fr": "Port Vila",
       "de": "Port Vila"
     },
+    "languages": [
+      {
+        "code": "bis",
+        "name": {
+          "en": "Bislama",
+          "fr": "Bislama",
+          "de": "Bislama"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "fra",
+        "name": {
+          "en": "French",
+          "fr": "Français",
+          "de": "Französisch"
+        }
+      }
+    ],
     "region": "Oceania",
     "subregion": "Oceania",
     "flagAsset": "flags/vu.svg",
@@ -3604,6 +6446,24 @@
       "fr": "Cité du Vatican",
       "de": "Vatikanstadt"
     },
+    "languages": [
+      {
+        "code": "ita",
+        "name": {
+          "en": "Italian",
+          "fr": "Italien",
+          "de": "Italienisch"
+        }
+      },
+      {
+        "code": "lat",
+        "name": {
+          "en": "Latin",
+          "fr": "Latin",
+          "de": "Latin"
+        }
+      }
+    ],
     "region": "Europe",
     "subregion": "Southern Europe",
     "flagAsset": "flags/va.svg",
@@ -3623,6 +6483,16 @@
       "fr": "Caracas",
       "de": "Caracas"
     },
+    "languages": [
+      {
+        "code": "spa",
+        "name": {
+          "en": "Spanish",
+          "fr": "Espagnol",
+          "de": "Spanisch"
+        }
+      }
+    ],
     "region": "Americas",
     "subregion": "South America",
     "flagAsset": "flags/ve.svg",
@@ -3642,6 +6512,16 @@
       "fr": "Hanoï",
       "de": "Hanoi"
     },
+    "languages": [
+      {
+        "code": "vie",
+        "name": {
+          "en": "Vietnamese",
+          "fr": "Vietnamien",
+          "de": "Vietnamesisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "South-Eastern Asia",
     "flagAsset": "flags/vn.svg",
@@ -3661,6 +6541,16 @@
       "fr": "Sana'a",
       "de": "Sana'a"
     },
+    "languages": [
+      {
+        "code": "ara",
+        "name": {
+          "en": "Arabic",
+          "fr": "Arabe",
+          "de": "Arabisch"
+        }
+      }
+    ],
     "region": "Asia",
     "subregion": "Western Asia",
     "flagAsset": "flags/ye.svg",
@@ -3680,6 +6570,16 @@
       "fr": "Lusaka",
       "de": "Lusaka"
     },
+    "languages": [
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/zm.svg",
@@ -3699,6 +6599,128 @@
       "fr": "Harare",
       "de": "Harare"
     },
+    "languages": [
+      {
+        "code": "bwg",
+        "name": {
+          "en": "Chibarwe",
+          "fr": "Chibarwe",
+          "de": "Chibarwe"
+        }
+      },
+      {
+        "code": "eng",
+        "name": {
+          "en": "English",
+          "fr": "Anglais",
+          "de": "Englisch"
+        }
+      },
+      {
+        "code": "kck",
+        "name": {
+          "en": "Kalanga",
+          "fr": "Kalanga",
+          "de": "Kalanga"
+        }
+      },
+      {
+        "code": "khi",
+        "name": {
+          "en": "Khoisan",
+          "fr": "Khoisan",
+          "de": "Khoisan"
+        }
+      },
+      {
+        "code": "ndc",
+        "name": {
+          "en": "Ndau",
+          "fr": "Ndau",
+          "de": "Ndau"
+        }
+      },
+      {
+        "code": "nde",
+        "name": {
+          "en": "Northern Ndebele",
+          "fr": "Northern Ndebele",
+          "de": "Northern Ndebele"
+        }
+      },
+      {
+        "code": "nya",
+        "name": {
+          "en": "Chewa",
+          "fr": "Chewa",
+          "de": "Chewa"
+        }
+      },
+      {
+        "code": "sna",
+        "name": {
+          "en": "Shona",
+          "fr": "Shona",
+          "de": "Shona"
+        }
+      },
+      {
+        "code": "sot",
+        "name": {
+          "en": "Sotho",
+          "fr": "Sotho",
+          "de": "Sotho"
+        }
+      },
+      {
+        "code": "toi",
+        "name": {
+          "en": "Tonga",
+          "fr": "Tonga",
+          "de": "Tonga"
+        }
+      },
+      {
+        "code": "tsn",
+        "name": {
+          "en": "Tswana",
+          "fr": "Tswana",
+          "de": "Tswana"
+        }
+      },
+      {
+        "code": "tso",
+        "name": {
+          "en": "Tsonga",
+          "fr": "Tsonga",
+          "de": "Tsonga"
+        }
+      },
+      {
+        "code": "ven",
+        "name": {
+          "en": "Venda",
+          "fr": "Venda",
+          "de": "Venda"
+        }
+      },
+      {
+        "code": "xho",
+        "name": {
+          "en": "Xhosa",
+          "fr": "Xhosa",
+          "de": "Xhosa"
+        }
+      },
+      {
+        "code": "zib",
+        "name": {
+          "en": "Zimbabwean Sign Language",
+          "fr": "Zimbabwean Sign Language",
+          "de": "Zimbabwean Sign Language"
+        }
+      }
+    ],
     "region": "Africa",
     "subregion": "Eastern & Southern Africa",
     "flagAsset": "flags/zw.svg",
