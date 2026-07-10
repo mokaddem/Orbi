@@ -139,6 +139,19 @@ pain; **27 (targeted practice)** is the biggest new capability; **28/29** are po
 > ⭐ *Legible reveal, target-first* deliverable. It is the owner's top-priority v1.4 quick win, and
 > **shipped** in Phase 22's first increment (2026-07-09), alongside visible micro-state dots.
 
+### v1.5 — Navigation & visual depth
+
+A further round of owner feedback: give the overloaded History/stats route room to breathe by splitting
+it, and spend the existing bundled visual assets (icons, flags, maps) more widely across the app. As
+before, each PRD **requires a clarifying-questions round with the owner before implementation** (see the
+callout at the top of each file). Independent; **30 recommended before 31** so the visual sweep covers
+the final page structure (31 also best follows 29's identity work).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 30 | Split "History & stats" into two pages (History · Progress) | [phase-30-history-stats-split.md](phases/phase-30-history-stats-split.md) | 6, 16, 23/24 | ⬜ Not started | 0% |
+| 31 | Full UI visual sweep (more icons, flags & maps) | [phase-31-ui-visual-sweep.md](phases/phase-31-ui-visual-sweep.md) | 12, 18 (after 29, 30) | ⬜ Not started | 0% |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
