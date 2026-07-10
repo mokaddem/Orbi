@@ -165,6 +165,21 @@ file). **Industries (25) is the motivating first target**; it extends to other m
 |---|---|---|---|---|---|
 | 32 | Answer explanations ("why" fun facts) | [phase-32-answer-explanations.md](phases/archive/phase-32-answer-explanations.md) | 2, 25 (pilot; grows to 23/24 + identity modes) | ✅ Done | 100% (industries pilot: "Did you know?" on wrong answers; curated trilingual fact store — 224 pairs / 58 priority countries; Atlas tie-in & other modes deferred) |
 
+### v1.7 — Character & delight (mascot, motion & illustration)
+
+Owner feedback during the Phase 31 sweep: the app's graphics are still minimal — "use the mascot in more
+places, add more pictures, maybe an animated mascot" and "go a step above." Deliberately split out from
+the enrichment sweep (which used only existing *static* assets) into its own character-focused pass: a
+few new mascot poses, subtle **reduced-motion-aware** animation, a mascot that **reacts to context**, and
+small illustrative moments — all in the existing house style, building on the Orbi identity (29) and the
+visual system (12 / 18). As before, the PRD **requires a clarifying-questions round with the owner before
+implementation** (see the callout at the top of the file). Best sequenced **after 31 and 32** so it
+decorates the final structure and reveal surface once.
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 33 | Graphic richness & delight (mascot, motion & illustration) | [phase-33-graphic-richness.md](phases/phase-33-graphic-richness.md) | 12, 18, 29 (16/15 for reactive beats; after 31, 32) | ⬜ Not started | 0% |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
