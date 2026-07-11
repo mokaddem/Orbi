@@ -1,6 +1,6 @@
 # Phase 35 — Play mode picker redesign + "Grand Tour" format
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done (built & verified; pending merge/archive) · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done (merged & archived) · **Progress:** 100%
 · **Track:** v2.0 follow-up (builds on Phase 34)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)

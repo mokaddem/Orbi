@@ -193,8 +193,8 @@ implementation** (see the callout at the top of the file).
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 34 | "Orbi Play" visual redesign (mobile & desktop) | [phase-34-orbi-play-redesign.md](phases/phase-34-orbi-play-redesign.md) | 12, 18, 29, 30, 33 | ✅ Done | 100% (built & verified on branch `phase-34-orbi-play`: recoloured token set, responsive rail/bottom-bar shell, pill CTAs, per-route desktop layouts; test/check/lint green; awaiting merge → then archive) |
-| 35 | Play mode-picker redesign + "Grand Tour" format | [phase-35-play-modes-grand-tour.md](phases/phase-35-play-modes-grand-tour.md) | 5, 23–25, 34 | ✅ Done | 100% (category-first mode picker — Map/Flags/Capitals/Extra families → direction tray; new uncapped `full` "Grand Tour" session over the whole selected region/sub-region; violet token + EN/FR/DE; test/check/lint green; verified in-app; awaiting merge → then archive) |
+| 34 | "Orbi Play" visual redesign (mobile & desktop) | [phase-34-orbi-play-redesign.md](phases/archive/phase-34-orbi-play-redesign.md) | 12, 18, 29, 30, 33 | ✅ Done | 100% (recoloured token set, responsive rail/bottom-bar shell, pill CTAs, per-route desktop layouts; merged to main + archived) |
+| 35 | Play mode-picker redesign + "Grand Tour" format | [phase-35-play-modes-grand-tour.md](phases/archive/phase-35-play-modes-grand-tour.md) | 5, 23–25, 34 | ✅ Done | 100% (category-first mode picker — Map/Flags/Capitals/Extra families → direction tray; new uncapped `full` "Grand Tour" session over the whole selected region/sub-region; map-locate wrong-pick label + dot hover; violet token + EN/FR/DE; merged to main + archived) |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

@@ -1,6 +1,6 @@
 # Phase 34 — "Orbi Play" visual redesign (mobile & desktop)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done (built & verified; pending merge/archive) · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done (merged & archived) · **Progress:** 100%
 · **Track:** v2.0 visual redesign
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
