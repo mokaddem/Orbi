@@ -180,6 +180,21 @@ decorates the final structure and reveal surface once.
 |---|---|---|---|---|---|
 | 33 | Graphic richness & delight (mascot, motion & illustration) | [phase-33-graphic-richness.md](phases/archive/phase-33-graphic-richness.md) | 12, 18, 29 (16/15 for reactive beats; after 31, 32) | ✅ Done | 100% (Expressive motion foundation; 3 new poses — proud/encouraging/cheer; reactive Summary + streak/achievement beats + Home hero; perfect-score flag-fan & MascotScene empty states; in-app "Reduce animation" toggle) |
 
+### v2.0 — "Orbi Play" visual redesign (mobile & desktop)
+
+Owner-driven redesign: after a UI-design exploration that pitched three full directions across every
+screen (**A · Orbi Play**, **B · Cartographer**, **C · Explorer HUD**), the owner chose **A · Orbi Play**
+— a bright, tactile game-app look — and asked to implement it **app-wide for both mobile and desktop**
+(directions B & C retired). It keeps **Orbi** and the **teal** accent but moves off the warm-cream Phase-12
+theme onto a cool-white ground, and replaces the wrapping top nav with a **responsive** bottom-tab-bar (+
+raised Play) on mobile and a **left sidebar rail** on desktop. **Presentation only — no new features,
+data, or domain logic.** As before, the PRD **requires a clarifying-questions round with the owner before
+implementation** (see the callout at the top of the file).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 34 | "Orbi Play" visual redesign (mobile & desktop) | [phase-34-orbi-play-redesign.md](phases/phase-34-orbi-play-redesign.md) | 12, 18, 29, 30, 33 | ✅ Done | 100% (built & verified on branch `phase-34-orbi-play`: recoloured token set, responsive rail/bottom-bar shell, pill CTAs, per-route desktop layouts; test/check/lint green; awaiting merge → then archive) |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
