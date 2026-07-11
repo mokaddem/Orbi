@@ -44,15 +44,49 @@ describe('Play route', () => {
     expect(screen.getByText(/Question 1 \/ 10/)).toBeInTheDocument();
   });
 
-  it('offers all seven modes on the setup screen', () => {
+  it('groups modes into families and swaps the direction options when a family is picked', async () => {
     render(Play);
+
+    // Flags is the default family → its two directions are shown; other families' aren't.
     expect(screen.getByText('Flag → Country')).toBeInTheDocument();
     expect(screen.getByText('Country → Flag')).toBeInTheDocument();
+    expect(screen.queryByText('Find the highlighted country')).not.toBeInTheDocument();
+
+    // Selecting the Map family reveals its directions and hides the Flags ones.
+    await fireEvent.click(screen.getByRole('button', { name: /Map/ }));
     expect(screen.getByText('Find the highlighted country')).toBeInTheDocument();
     expect(screen.getByText('Locate on the map')).toBeInTheDocument();
+    expect(screen.queryByText('Flag → Country')).not.toBeInTheDocument();
+
+    // Capitals and Extra families are reachable and reveal their own two directions.
+    await fireEvent.click(screen.getByRole('button', { name: /Capitals/ }));
     expect(screen.getByText('Capital → Country')).toBeInTheDocument();
     expect(screen.getByText('Country → Capital')).toBeInTheDocument();
+
+    await fireEvent.click(screen.getByRole('button', { name: /Extra/ }));
     expect(screen.getByText('National languages')).toBeInTheDocument();
+    expect(screen.getByText('Main industries')).toBeInTheDocument();
+  });
+
+  it('starts an uncapped Grand Tour over the selected region, sized to the pool', async () => {
+    render(Play);
+
+    // Pick the Grand Tour format (default Flags → Flag→Country mode) over Europe.
+    await fireEvent.click(screen.getByRole('button', { name: /Grand Tour/ }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Europe' }));
+    await fireEvent.click(screen.getByText('Start'));
+
+    const view = get(play);
+    expect(view.status).toBe('playing');
+    expect(view.config!.type).toBe('full');
+    expect(view.config!.filter).toEqual({ region: 'Europe' });
+
+    // The session is sized to every country in scope (not the fixed-length default of 10),
+    // and the HUD counts up to that total; every answer comes from Europe.
+    const total = view.config!.fixedLength!;
+    expect(total).toBeGreaterThan(10);
+    expect(screen.getByText(`Question 1 / ${total}`)).toBeInTheDocument();
+    expect(view.question!.answer.region).toBe('Europe');
   });
 
   it('offers the region filter as buttons (few options) and starts a region-filtered session', async () => {

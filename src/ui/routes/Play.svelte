@@ -11,7 +11,13 @@
     type RegionFilter,
     type SessionType,
   } from '../../domain';
-  import { countryCount, getCountries, getRegionTree, type RegionNode } from '../../data';
+  import {
+    countryCount,
+    getCountries,
+    getCountry,
+    getRegionTree,
+    type RegionNode,
+  } from '../../data';
   import {
     play,
     lastSummary,
@@ -25,6 +31,7 @@
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
   import SegmentedControl from '../components/SegmentedControl.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
+  import ModeGroupIcon, { type ModeGroup } from '../components/ModeGroupIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
   import Icon from '../components/Icon.svelte';
 
@@ -44,21 +51,59 @@
     return hasReveal ? REVEAL_MS : CORRECT_MS;
   }
 
-  // Setup selections.
+  // Setup selections. `category` is the chosen mode *family* (category-first picker, Phase 35);
+  // `mode` is the specific direction within it. They start on Flags → "Flag → Country".
+  let category = $state<ModeGroup>('flags');
   let mode = $state<GameMode>('flag-to-country');
   let type = $state<SessionType>('fixed');
 
-  /** The selectable modes, in display order, with their label keys. */
-  const MODE_OPTIONS: { mode: GameMode; labelKey: string }[] = [
-    { mode: 'flag-to-country', labelKey: 'modes.flagToCountry' },
-    { mode: 'country-to-flag', labelKey: 'modes.countryToFlag' },
-    { mode: 'map-highlight', labelKey: 'modes.mapHighlight' },
-    { mode: 'map-locate', labelKey: 'modes.mapLocate' },
-    { mode: 'capital-to-country', labelKey: 'modes.capitalToCountry' },
-    { mode: 'country-to-capital', labelKey: 'modes.countryToCapital' },
-    { mode: 'country-to-languages', labelKey: 'modes.countryToLanguages' },
-    { mode: 'country-to-industry', labelKey: 'modes.mainIndustries' },
+  /**
+   * The selectable modes grouped into families for the category-first picker. Each family
+   * offers its two direction modes; `key` maps to `modes.group.*` labels and the emblem chip.
+   */
+  const MODE_GROUPS: { key: ModeGroup; modes: { mode: GameMode; labelKey: string }[] }[] = [
+    {
+      key: 'map',
+      modes: [
+        { mode: 'map-highlight', labelKey: 'modes.mapHighlight' },
+        { mode: 'map-locate', labelKey: 'modes.mapLocate' },
+      ],
+    },
+    {
+      key: 'flags',
+      modes: [
+        { mode: 'flag-to-country', labelKey: 'modes.flagToCountry' },
+        { mode: 'country-to-flag', labelKey: 'modes.countryToFlag' },
+      ],
+    },
+    {
+      key: 'capitals',
+      modes: [
+        { mode: 'capital-to-country', labelKey: 'modes.capitalToCountry' },
+        { mode: 'country-to-capital', labelKey: 'modes.countryToCapital' },
+      ],
+    },
+    {
+      key: 'extra',
+      modes: [
+        { mode: 'country-to-languages', labelKey: 'modes.countryToLanguages' },
+        { mode: 'country-to-industry', labelKey: 'modes.mainIndustries' },
+      ],
+    },
   ];
+
+  // The family whose direction modes are shown in the tray. Falls back defensively to the first.
+  const activeGroup = $derived(MODE_GROUPS.find((g) => g.key === category) ?? MODE_GROUPS[0]);
+
+  // Selecting a family shows its directions; if the current `mode` doesn't belong to the new
+  // family, land on that family's first direction so `mode` is always valid and in-scope.
+  function selectCategory(key: ModeGroup): void {
+    category = key;
+    const group = MODE_GROUPS.find((g) => g.key === key);
+    if (group && !group.modes.some((m) => m.mode === mode)) {
+      mode = group.modes[0].mode;
+    }
+  }
 
   // Country-centric modes where a wrong-answer reveal benefits from the correct country's
   // flag beside the name — the flag wasn't the question here (unlike the flag↔country modes,
@@ -260,26 +305,53 @@
     <PageHero title={$t('play.title')} pose="wave" />
 
     <div class="field">
-      <span class="legend">{$t('play.setup.chooseMode')}</span>
-      <div class="options">
-        {#each MODE_OPTIONS as opt (opt.mode)}
+      <span class="legend" id="mode-legend">{$t('play.setup.chooseMode')}</span>
+
+      <!-- Category-first (Phase 35): pick a family, then a direction. -->
+      <div class="cat-grid" role="group" aria-labelledby="mode-legend">
+        {#each MODE_GROUPS as group (group.key)}
           <button
             type="button"
-            class="opt mode-opt"
-            class:selected={mode === opt.mode}
-            aria-pressed={mode === opt.mode}
-            onclick={() => (mode = opt.mode)}
+            class="cat-card {group.key}"
+            class:selected={category === group.key}
+            aria-pressed={category === group.key}
+            onclick={() => selectCategory(group.key)}
           >
-            <ModeIcon mode={opt.mode} />
-            <span>{$t(opt.labelKey)}</span>
+            <span class="cat-chip"><ModeGroupIcon group={group.key} /></span>
+            <span class="cat-text">
+              <span class="cat-name">{$t(`modes.group.${group.key}`)}</span>
+              <span class="cat-hint">{$t(`modes.groupHint.${group.key}`)}</span>
+            </span>
           </button>
         {/each}
       </div>
+
+      <!-- Direction sub-choice for the selected family. Re-keyed on `category` so the tray
+           animates in whenever the family changes. -->
+      {#key category}
+        <div class="dir-tray" role="group" aria-label={$t('play.setup.pickDirection')}>
+          <span class="dir-legend">{$t('play.setup.pickDirection')}</span>
+          <div class="dir-row">
+            {#each activeGroup.modes as opt (opt.mode)}
+              <button
+                type="button"
+                class="opt mode-opt dir-opt"
+                class:selected={mode === opt.mode}
+                aria-pressed={mode === opt.mode}
+                onclick={() => (mode = opt.mode)}
+              >
+                <ModeIcon mode={opt.mode} />
+                <span>{$t(opt.labelKey)}</span>
+              </button>
+            {/each}
+          </div>
+        </div>
+      {/key}
     </div>
 
     <div class="field">
       <span class="legend">{$t('play.setup.chooseType')}</span>
-      <div class="options">
+      <div class="format-grid">
         <button
           type="button"
           class="opt"
@@ -303,6 +375,18 @@
             ><Icon name="survival" size="1.05em" /> {$t('sessionType.survival')}</span
           >
           <small>{$t('play.setup.survivalHint', { lives: $prefs.survivalLives })}</small>
+        </button>
+        <!-- Grand Tour (Phase 35): every country in the chosen scope, once, uncapped. -->
+        <button
+          type="button"
+          class="opt fmt-full"
+          class:selected={type === 'full'}
+          aria-pressed={type === 'full'}
+          onclick={() => (type = 'full')}
+        >
+          <span class="opt-title"><Icon name="globe" size="1.05em" /> {$t('sessionType.full')}</span
+          >
+          <small>{$t('play.setup.fullHint', { count: poolSize })}</small>
         </button>
       </div>
     </div>
@@ -448,11 +532,20 @@
 
       {#if isMapMode(cfg.mode)}
         {#if MapBoard}
+          <!-- On a wrong map-locate answer, resolve the country the player actually clicked
+               so the board can label it (and the feedback can name it below). -->
+          {@const pickedWrong =
+            cfg.mode === 'map-locate' && answered && view.feedback && !view.feedback.correct
+              ? getCountry(view.feedback.pickedIso ?? '')
+              : undefined}
           <MapBoard
             highlightIso={cfg.mode === 'map-highlight' ? question.answer.iso2 : null}
             interactive={cfg.mode === 'map-locate'}
             disabled={answered}
             pickedIso={cfg.mode === 'map-locate' ? (view.feedback?.pickedIso ?? null) : null}
+            pickedLabel={pickedWrong && pickedWrong.iso2 !== question.answer.iso2
+              ? $localizedName(pickedWrong)
+              : null}
             revealIso={cfg.mode === 'map-locate' && answered ? question.answer.iso2 : null}
             revealLabel={cfg.mode === 'map-locate' && answered
               ? $localizedName(question.answer)
@@ -567,6 +660,19 @@
                 })}
               </p>
             {:else}
+              <!-- map-locate: name the country the player actually clicked, so a wrong
+                   answer says what was selected (echoed by the red on-map label). -->
+              {#if fb.question.mode === 'map-locate' && fb.pickedIso && fb.pickedIso !== fb.question.answer.iso2}
+                {@const picked = getCountry(fb.pickedIso)}
+                {#if picked}
+                  <div class="reveal-line picked-pick">
+                    <span class="reveal-flag"><Flag country={picked} /></span>
+                    <p class="reveal">
+                      {$t('play.feedback.youPicked', { country: $localizedName(picked) })}
+                    </p>
+                  </div>
+                {/if}
+              {/if}
               <div class="reveal-line">
                 {#if REVEAL_FLAG_MODES.includes(fb.question.mode)}
                   <span class="reveal-flag"><Flag country={fb.question.answer} /></span>
@@ -614,9 +720,131 @@
     color: var(--color-muted);
   }
 
-  .options {
+  /* Mode families (Phase 35 category-first picker): a 2×2 grid of emblem cards. */
+  .cat-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .cat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.85rem 1rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    text-align: left;
+    box-shadow: var(--shadow-card);
+    transition:
+      transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+      border-color 0.12s ease,
+      background 0.12s ease,
+      box-shadow 0.12s ease;
+  }
+
+  .cat-chip {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border-radius: 13px;
+    color: #fff;
+  }
+
+  .cat-card.map .cat-chip {
+    background: var(--color-accent);
+  }
+  .cat-card.flags .cat-chip {
+    background: var(--color-coral);
+  }
+  .cat-card.capitals .cat-chip {
+    background: var(--color-sun);
+  }
+  .cat-card.extra .cat-chip {
+    background: var(--color-violet);
+  }
+
+  .cat-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    min-width: 0;
+  }
+
+  .cat-name {
+    font-weight: 800;
+  }
+
+  .cat-hint {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .cat-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .cat-card.selected {
+    border-color: var(--color-accent);
+    background: var(--color-accent-weak);
+    box-shadow: var(--ring-selected);
+  }
+
+  /* Direction sub-choice tray for the selected family. */
+  .dir-tray {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.15rem;
+    padding: 0.75rem;
+    background: var(--color-accent-weak);
+    border-radius: var(--radius);
+    animation: tray-in 0.18s ease;
+  }
+
+  @keyframes tray-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .dir-legend {
+    padding-left: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-accent-strong);
+  }
+
+  .dir-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  /* A selected direction card sits on the tinted tray, so it flips to white (not the
+     accent-weak fill used elsewhere) to stay legible against the tray. */
+  .dir-tray .opt.selected {
+    background: var(--color-surface);
+  }
+
+  /* Format cards (Fixed / Survival / Grand Tour) — three across, stacking when narrow. */
+  .format-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.75rem;
   }
 
@@ -1033,6 +1261,12 @@
     color: var(--color-text);
   }
 
+  /* "You picked …" (wrong map-locate): tinted the "wrong" red to match the red on-map
+     label of the clicked country, and to read as the mistake vs. the green correct reveal. */
+  .picked-pick .reveal {
+    color: var(--color-wrong);
+  }
+
   /* Phase 32: "Did you know?" fun-fact callout on a wrong industries answer. A calm turquoise
      card so the learning moment reads apart from the red "wrong" state around it. */
   .did-you-know {
@@ -1090,11 +1324,13 @@
   @media (prefers-reduced-motion: reduce) {
     .countdown-fill,
     .feedback,
-    .streak {
+    .streak,
+    .dir-tray {
       animation: none;
     }
 
     .opt,
+    .cat-card,
     .region-opt,
     .start,
     .heart {
@@ -1102,14 +1338,22 @@
     }
 
     .opt:hover,
+    .cat-card:hover,
     .region-opt:hover,
     .start:hover {
       transform: none;
     }
   }
 
+  @media (max-width: 560px) {
+    .format-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 480px) {
-    .options {
+    .cat-grid,
+    .dir-row {
       grid-template-columns: 1fr;
     }
   }

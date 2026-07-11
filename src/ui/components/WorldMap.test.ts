@@ -134,6 +134,49 @@ describe('WorldMap', () => {
     expect(container.querySelector('circle.reveal-ring')).not.toBeInTheDocument();
   });
 
+  it('names the wrong pick with a red on-map label (Phase 35)', () => {
+    const { container } = render(WorldMap, {
+      features,
+      interactive: true,
+      disabled: true,
+      revealIso: 'AA', // correct target
+      pickedIso: 'BB', // moderate-sized wrong pick
+      revealLabel: 'Aaland',
+      pickedLabel: 'Bbland',
+    });
+    const label = container.querySelector('text.picked-label');
+    expect(label).toBeInTheDocument();
+    expect(label?.textContent).toBe('Bbland');
+    expect(container.querySelector('line.picked-leader')).toBeInTheDocument();
+    // BB isn't a micro-state, so its red fill carries it — no ring on top.
+    expect(container.querySelector('circle.picked-ring')).not.toBeInTheDocument();
+  });
+
+  it('rings a micro wrong pick so its tiny red fill is findable', () => {
+    const { container } = render(WorldMap, {
+      features,
+      interactive: true,
+      disabled: true,
+      revealIso: 'AA',
+      pickedIso: 'CC', // microstate wrong pick — too small to see from its fill
+      pickedLabel: 'Ccland',
+    });
+    expect(container.querySelector('circle.picked-ring')).toBeInTheDocument();
+    expect(container.querySelector('text.picked-label')?.textContent).toBe('Ccland');
+  });
+
+  it('omits the picked label when the pick is the correct target', () => {
+    const { container } = render(WorldMap, {
+      features,
+      interactive: true,
+      disabled: true,
+      revealIso: 'AA',
+      pickedIso: 'AA', // correct → nothing to call out
+      pickedLabel: 'Aaland',
+    });
+    expect(container.querySelector('text.picked-label')).not.toBeInTheDocument();
+  });
+
   it('makes microstate aim dots visible in locate play', () => {
     const { container } = render(WorldMap, { features, interactive: true });
     const dot = container.querySelector('circle[data-hit="dot"]');

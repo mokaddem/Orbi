@@ -33,8 +33,12 @@ export interface AttributeOption {
   label: CountryName;
 }
 
-/** How a session ends. `training` (SR-driven) is wired up in Phase 7. */
-export type SessionType = 'fixed' | 'survival' | 'training';
+/**
+ * How a session ends. `training` (SR-driven) is wired up in Phase 7. `full` (Phase 35, the
+ * "Grand Tour") asks about **every** country in the selected scope exactly once — uncapped,
+ * no lives — finishing when the answer pool is exhausted.
+ */
+export type SessionType = 'fixed' | 'survival' | 'training' | 'full';
 
 /** Optional region / sub-region narrowing of the country pool. */
 export interface RegionFilter {

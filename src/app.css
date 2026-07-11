@@ -23,6 +23,8 @@
   --color-coral-weak: #ffe6df;
   --color-sun: #ffb020;
   --color-sun-weak: #fff0d2;
+  --color-violet: #7b6bd6; /* Phase 35: "Extra" mode family + the Grand Tour badge */
+  --color-violet-weak: #ece9fb;
 
   /* Map palette (Phase 34): cool off-white land on a soft teal sea with a legible cool
      border, so every country reads on the mint ground. The highlighted country keeps the

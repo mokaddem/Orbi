@@ -127,6 +127,15 @@ export class QuizSession {
     return this.s;
   }
 
+  /**
+   * The number of distinct countries this session can ask about — the answer pool *after*
+   * the mode's eligibility filter (map modes drop geometry-less countries). This is exactly
+   * the length of a `full` ("Grand Tour") run, so the UI reads it to show the right total.
+   */
+  get answerCount(): number {
+    return this.answers.length;
+  }
+
   isFinished(): boolean {
     return this.s.status === 'finished';
   }
@@ -227,9 +236,11 @@ export class QuizSession {
   }
 
   private shouldFinish(): boolean {
-    return this.type === 'survival'
-      ? this.s.livesRemaining <= 0
-      : this.s.results.length >= this.fixedLength;
+    if (this.type === 'survival') return this.s.livesRemaining <= 0;
+    // `full` (Grand Tour) runs until every country in the answer pool has been asked once;
+    // the draw bag is exhausted without replacement, so this asks each exactly once.
+    if (this.type === 'full') return this.s.results.length >= this.answers.length;
+    return this.s.results.length >= this.fixedLength;
   }
 
   private finish(): void {

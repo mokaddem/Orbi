@@ -104,16 +104,31 @@ const de: typeof en = {
     countryToCapital: 'Land → Hauptstadt',
     countryToLanguages: 'Landessprachen',
     mainIndustries: 'Hauptindustrien',
+    // Modus-Familien für die kategoriebasierte Auswahl (Phase 35).
+    group: {
+      map: 'Karte',
+      flags: 'Flaggen',
+      capitals: 'Hauptstädte',
+      extra: 'Extra',
+    },
+    groupHint: {
+      map: 'Länder finden & verorten',
+      flags: 'Flaggen zuordnen',
+      capitals: 'Städte & Länder',
+      extra: 'Sprachen & Industrie',
+    },
   },
   sessionType: {
     fixed: 'Fest',
     survival: 'Überleben',
     training: 'Training',
+    full: 'Grand Tour',
   },
   play: {
     title: 'Spielen',
     setup: {
       chooseMode: 'Wähle einen Modus',
+      pickDirection: 'Wähle eine Richtung',
       chooseType: 'Wähle ein Format',
       chooseRegion: 'Wähle eine Region',
       regionWorld: 'Welt',
@@ -122,6 +137,7 @@ const de: typeof en = {
       poolReduced: '{count} Länder — Auswahl auf {choices} reduziert',
       fixedHint: '{count} Fragen',
       survivalHint: '{lives} Leben',
+      fullHint: 'Alle {count} Länder',
       start: 'Start',
       targetedPractice: 'Gezieltes Üben',
     },
@@ -154,6 +170,7 @@ const de: typeof en = {
     feedback: {
       correct: 'Richtig!',
       wrong: 'Nicht ganz',
+      youPicked: 'Du hast {country} gewählt',
       reveal: 'Es ist {country}',
       revealLanguages: '{country}: {languages}',
       revealIndustries: '{country}: {industries}',

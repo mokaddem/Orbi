@@ -11,6 +11,7 @@
   let {
     highlightIso = null,
     pickedIso = null,
+    pickedLabel = null,
     revealIso = null,
     revealLabel = null,
     focusIsos = null,
@@ -21,6 +22,7 @@
   }: {
     highlightIso?: string | null;
     pickedIso?: string | null;
+    pickedLabel?: string | null;
     revealIso?: string | null;
     revealLabel?: string | null;
     focusIsos?: string[] | null;
@@ -47,6 +49,7 @@
     {features}
     {highlightIso}
     {pickedIso}
+    {pickedLabel}
     {revealIso}
     {revealLabel}
     {focusIsos}

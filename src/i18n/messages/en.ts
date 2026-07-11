@@ -95,16 +95,31 @@ const en = {
     countryToCapital: 'Country → Capital',
     countryToLanguages: 'National languages',
     mainIndustries: 'Main industries',
+    // Mode families for the category-first picker (Phase 35).
+    group: {
+      map: 'Map',
+      flags: 'Flags',
+      capitals: 'Capitals',
+      extra: 'Extra',
+    },
+    groupHint: {
+      map: 'Find & locate countries',
+      flags: 'Match flags to names',
+      capitals: 'Cities & their countries',
+      extra: 'Languages & industries',
+    },
   },
   sessionType: {
     fixed: 'Fixed',
     survival: 'Survival',
     training: 'Training',
+    full: 'Grand Tour',
   },
   play: {
     title: 'Play',
     setup: {
       chooseMode: 'Choose a mode',
+      pickDirection: 'Pick a direction',
       chooseType: 'Choose a format',
       chooseRegion: 'Choose a region',
       regionWorld: 'World',
@@ -113,6 +128,7 @@ const en = {
       poolReduced: '{count} countries — options reduced to {choices}',
       fixedHint: '{count} questions',
       survivalHint: '{lives} lives',
+      fullHint: 'All {count} countries',
       start: 'Start',
       targetedPractice: 'Targeted practice',
     },
@@ -145,6 +161,7 @@ const en = {
     feedback: {
       correct: 'Correct!',
       wrong: 'Not quite',
+      youPicked: 'You picked {country}',
       reveal: 'It’s {country}',
       revealLanguages: '{country}: {languages}',
       revealIndustries: '{country}: {industries}',

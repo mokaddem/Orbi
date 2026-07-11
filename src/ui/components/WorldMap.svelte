@@ -20,6 +20,7 @@
     features,
     highlightIso = null,
     pickedIso = null,
+    pickedLabel = null,
     revealIso = null,
     revealLabel = null,
     focusIsos = null,
@@ -34,6 +35,12 @@
     highlightIso?: string | null;
     /** Country the player clicked; marked wrong once answered (map-locate). */
     pickedIso?: string | null;
+    /**
+     * Localised name of the wrong pick, drawn as a red on-map label so the player sees
+     * *which* country they actually selected (map-locate, Phase 35). Only set on a wrong
+     * answer; ignored when the pick equals the reveal target.
+     */
+    pickedLabel?: string | null;
     /** Correct country to reveal in green once answered (map-locate). */
     revealIso?: string | null;
     /**
@@ -155,6 +162,22 @@
     return { cx: item.cx, cy: item.cy, r, lx, ly, anchor: dir > 0 ? 'start' : 'end', micro };
   });
 
+  // The wrong pick's name label (map-locate, once answered). Mirrors the reveal marker
+  // but is painted red and its label is offset *downward* — the reveal label goes up — so
+  // the two never collide when the pick and target sit near each other. A ring is drawn
+  // only for micro picks, where the faint red fill is too small to spot on its own.
+  const pickedMarker = $derived.by(() => {
+    if (!pickedLabel || !pickedIso || pickedIso === revealIso) return null;
+    const item = rendered.find((r) => r.iso2 === pickedIso);
+    if (!item || !Number.isFinite(item.cx) || !Number.isFinite(item.cy)) return null;
+    const micro = item.area < SMALL_AREA;
+    const r = Math.min(40, Math.max(11, Math.sqrt(item.area) * 0.9));
+    const dir = item.cx < WIDTH * 0.72 ? 1 : -1;
+    const lx = item.cx + dir * (r + 26);
+    const ly = Math.min(HEIGHT - 12, item.cy + (r + 16));
+    return { cx: item.cx, cy: item.cy, r, lx, ly, anchor: dir > 0 ? 'start' : 'end', micro };
+  });
+
   type FillState = 'reveal' | 'picked-wrong' | 'highlight' | '';
 
   function stateFor(iso2: string): FillState {
@@ -248,6 +271,32 @@
         {/if}
       </g>
     {/if}
+
+    {#if pickedMarker}
+      <g class="picked-target">
+        <line
+          class="picked-leader"
+          x1={pickedMarker.cx}
+          y1={pickedMarker.cy}
+          x2={pickedMarker.lx}
+          y2={pickedMarker.ly}
+        />
+        {#if pickedMarker.micro}
+          <circle
+            class="picked-ring"
+            cx={pickedMarker.cx}
+            cy={pickedMarker.cy}
+            r={pickedMarker.r}
+          />
+        {/if}
+        <text
+          class="picked-label"
+          x={pickedMarker.lx}
+          y={pickedMarker.ly}
+          text-anchor={pickedMarker.anchor}>{pickedLabel}</text
+        >
+      </g>
+    {/if}
   </svg>
 </div>
 
@@ -316,6 +365,19 @@
     stroke: #fff;
     stroke-width: 1;
     cursor: pointer;
+    /* Grow from the dot's own centre on hover (not the SVG origin). */
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      transform 0.12s ease,
+      fill 0.12s ease;
+  }
+
+  /* Hover feedback: the dot swells and brightens so a player aiming at a tiny country
+     is sure the pointer is on it before committing the click. */
+  svg.interactive .dot:hover {
+    transform: scale(1.6);
+    fill: var(--color-accent);
   }
 
   .dot.muted {
@@ -346,6 +408,31 @@
     stroke-linejoin: round;
   }
 
+  /* The wrong pick's name, in the "wrong" red so it reads as the mistake — distinct from
+     the green reveal target it sits beneath. */
+  .picked-ring {
+    fill: none;
+    stroke: var(--color-wrong);
+    stroke-width: 3;
+    animation: marker-in 0.45s ease;
+  }
+
+  .picked-leader {
+    stroke: var(--color-wrong);
+    stroke-width: 1.5;
+  }
+
+  .picked-label {
+    font:
+      600 20px system-ui,
+      sans-serif;
+    fill: var(--color-wrong);
+    paint-order: stroke;
+    stroke: var(--map-water);
+    stroke-width: 4;
+    stroke-linejoin: round;
+  }
+
   .marker {
     fill: none;
     stroke: var(--color-accent-strong);
@@ -365,12 +452,14 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .country {
+    .country,
+    .dot {
       transition: none;
     }
 
     .marker,
-    .reveal-ring {
+    .reveal-ring,
+    .picked-ring {
       animation: none;
     }
   }

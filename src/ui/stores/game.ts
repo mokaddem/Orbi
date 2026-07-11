@@ -127,6 +127,10 @@ function createPlayStore() {
         rng: cfg.rng,
         now: cfg.now,
       });
+      // A "Grand Tour" (full) run asks about every eligible country once — a count only the
+      // session knows (after the map-geometry filter). Pin it into the config as `fixedLength`
+      // so the HUD progress bar and the summary total read the real length, not a prefs default.
+      if (cfg.type === 'full') config = { ...cfg, fixedLength: session.answerCount };
       const question = session.next();
       set({ status: 'playing', config, state: snapshot(), question, feedback: null });
     },

@@ -184,6 +184,55 @@ describe('QuizSession — survival sessions', () => {
   });
 });
 
+describe('QuizSession — full ("Grand Tour") sessions', () => {
+  it('exposes answerCount as the eligible pool size (Infinity lives, like fixed)', () => {
+    const s = new QuizSession(base({ type: 'full' }));
+    expect(s.answerCount).toBe(UNIVERSE.length);
+    expect(s.state.livesRemaining).toBe(Infinity);
+  });
+
+  it('asks about every country in scope exactly once, then finishes', () => {
+    const s = new QuizSession(base({ type: 'full' }));
+    const asked: string[] = [];
+    let q = s.next();
+    while (q) {
+      asked.push(q.answer.iso2);
+      s.submit(q.answer);
+      q = s.next();
+    }
+    expect(s.isFinished()).toBe(true);
+    expect(s.next()).toBeNull();
+    // One question per country, no repeats, covering the whole universe.
+    expect(asked).toHaveLength(UNIVERSE.length);
+    expect(new Set(asked)).toEqual(new Set(UNIVERSE.map((c) => c.iso2)));
+  });
+
+  it('honours the region filter — a full run covers only the filtered pool', () => {
+    const s = new QuizSession(base({ type: 'full', filter: { region: 'R2' } }));
+    const r2 = UNIVERSE.filter((c) => c.region === 'R2');
+    expect(s.answerCount).toBe(r2.length);
+    let count = 0;
+    let q = s.next();
+    while (q) {
+      expect(q.answer.region).toBe('R2');
+      count += 1;
+      s.submit(q.answer);
+      q = s.next();
+    }
+    expect(count).toBe(r2.length);
+  });
+
+  it('sizes a map-mode full run to countries that have geometry', () => {
+    const withGap: Country[] = [...UNIVERSE, { ...mk('XX', 'R1', 'S1'), hasGeometry: false }];
+    const flag = new QuizSession(
+      base({ type: 'full', mode: 'flag-to-country', countries: withGap }),
+    );
+    const map = new QuizSession(base({ type: 'full', mode: 'map-highlight', countries: withGap }));
+    expect(flag.answerCount).toBe(withGap.length); // flags keep the geometry-less country
+    expect(map.answerCount).toBe(UNIVERSE.length); // map drops it
+  });
+});
+
 describe('QuizSession — scoring & streaks', () => {
   it('tracks correct count, accuracy, and best streak', () => {
     const s = new QuizSession(base({ fixedLength: 5 }));
