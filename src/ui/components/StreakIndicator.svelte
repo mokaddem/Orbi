@@ -55,8 +55,10 @@
     opacity: 0.6;
   }
 
+  /* The lit flame is the app's one warm secondary accent (Phase 34) — sunshine, used
+     sparingly and only on a decorative aria-hidden glyph, so it never carries text contrast. */
   .flame.lit {
-    color: var(--color-accent);
+    color: var(--color-sun);
     opacity: 1;
     animation: flame-pulse 1.8s ease-in-out infinite;
   }

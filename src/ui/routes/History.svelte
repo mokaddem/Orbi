@@ -113,62 +113,67 @@
       {/if}
     </div>
 
-    <!-- Most-missed countries -->
-    <div class="panel">
-      <h2>{$t('history.missed.title')}</h2>
-      {#if topMissed.length === 0}
-        <p class="muted">{$t('history.missed.none')}</p>
-      {:else}
-        <ul class="missed-list">
-          {#each topMissed as m (m.iso2)}
-            {@const country = getCountry(m.iso2)}
-            {#if country}
-              <li>
-                <span class="missed-flag"><Flag {country} alt={$localizedName(country)} /></span>
-                <span class="missed-body">
-                  <span class="missed-name">{$localizedName(country)}</span>
-                  <span class="missed-ratio"
-                    >{$t('history.missed.ratio', { misses: m.misses, attempts: m.attempts })}</span
-                  >
-                </span>
-              </li>
-            {/if}
+    <div class="cols">
+      <!-- Most-missed countries -->
+      <div class="panel">
+        <h2>{$t('history.missed.title')}</h2>
+        {#if topMissed.length === 0}
+          <p class="muted">{$t('history.missed.none')}</p>
+        {:else}
+          <ul class="missed-list">
+            {#each topMissed as m (m.iso2)}
+              {@const country = getCountry(m.iso2)}
+              {#if country}
+                <li>
+                  <span class="missed-flag"><Flag {country} alt={$localizedName(country)} /></span>
+                  <span class="missed-body">
+                    <span class="missed-name">{$localizedName(country)}</span>
+                    <span class="missed-ratio"
+                      >{$t('history.missed.ratio', {
+                        misses: m.misses,
+                        attempts: m.attempts,
+                      })}</span
+                    >
+                  </span>
+                </li>
+              {/if}
+            {/each}
+          </ul>
+        {/if}
+      </div>
+
+      <!-- Recent sessions (also the accessible table-style view of the data) -->
+      <div class="panel">
+        <h2>{$t('history.recent.title')}</h2>
+        <ul class="recent-list">
+          {#each recent as r (r.id)}
+            {@const regionKey = r.regionFilter?.subregion ?? r.regionFilter?.region ?? null}
+            <li>
+              <span class="recent-mode-ico" aria-hidden="true"><ModeIcon mode={r.mode} /></span>
+              <span class="recent-date">{formatDate(r.finishedAt, $locale)}</span>
+              <span class="recent-mode">
+                {$t(MODE_LABEL[r.mode] ?? r.mode)}
+                <small class="recent-sub">
+                  <span>{$t(`sessionType.${r.type}`)}</span>
+                  {#if regionKey}
+                    <span class="dot" aria-hidden="true">·</span>
+                    <span class="recent-region">
+                      <span class="recent-region-ico" aria-hidden="true"
+                        ><RegionIcon region={r.regionFilter?.region ?? ''} /></span
+                      >
+                      {$localizedRegion(regionKey)}
+                    </span>
+                  {/if}
+                </small>
+              </span>
+              <span class="recent-score">
+                {r.correct}/{r.total}
+                <small>{formatPercent(r.total === 0 ? 0 : r.correct / r.total)}</small>
+              </span>
+            </li>
           {/each}
         </ul>
-      {/if}
-    </div>
-
-    <!-- Recent sessions (also the accessible table-style view of the data) -->
-    <div class="panel">
-      <h2>{$t('history.recent.title')}</h2>
-      <ul class="recent-list">
-        {#each recent as r (r.id)}
-          {@const regionKey = r.regionFilter?.subregion ?? r.regionFilter?.region ?? null}
-          <li>
-            <span class="recent-mode-ico" aria-hidden="true"><ModeIcon mode={r.mode} /></span>
-            <span class="recent-date">{formatDate(r.finishedAt, $locale)}</span>
-            <span class="recent-mode">
-              {$t(MODE_LABEL[r.mode] ?? r.mode)}
-              <small class="recent-sub">
-                <span>{$t(`sessionType.${r.type}`)}</span>
-                {#if regionKey}
-                  <span class="dot" aria-hidden="true">·</span>
-                  <span class="recent-region">
-                    <span class="recent-region-ico" aria-hidden="true"
-                      ><RegionIcon region={r.regionFilter?.region ?? ''} /></span
-                    >
-                    {$localizedRegion(regionKey)}
-                  </span>
-                {/if}
-              </small>
-            </span>
-            <span class="recent-score">
-              {r.correct}/{r.total}
-              <small>{formatPercent(r.total === 0 ? 0 : r.correct / r.total)}</small>
-            </span>
-          </li>
-        {/each}
-      </ul>
+      </div>
     </div>
   {/if}
 </section>
@@ -178,6 +183,22 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+  }
+
+  /* Desktop (Phase 34): the timeline stays full-width, then most-missed and recent
+     sessions sit side by side. On mobile they stack in one column. */
+  .cols {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 860px) {
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
   }
 
   .head {

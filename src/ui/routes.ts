@@ -27,14 +27,29 @@ const routes: RouteDefinition = {
   '*': NotFound,
 };
 
-/** Primary navigation entries (order matters). */
-export const navLinks: { href: string; labelKey: string; icon: IconName }[] = [
+export interface NavLink {
+  href: string;
+  labelKey: string;
+  icon: IconName;
+  /** The Play entry is rendered specially by the responsive nav (Phase 34): a raised centre
+      FAB in the mobile bottom bar, and a prominent primary button in the desktop rail. */
+  primary?: boolean;
+}
+
+/** Primary navigation entries (order matters — this is the desktop rail order). */
+export const navLinks: NavLink[] = [
   { href: '#/', labelKey: 'nav.home', icon: 'home' },
-  { href: '#/play', labelKey: 'nav.play', icon: 'play' },
+  { href: '#/play', labelKey: 'nav.play', icon: 'play', primary: true },
   { href: '#/atlas', labelKey: 'nav.atlas', icon: 'map' },
   { href: '#/history', labelKey: 'nav.history', icon: 'history' },
   { href: '#/progress', labelKey: 'nav.progress', icon: 'trophy' },
   { href: '#/settings', labelKey: 'nav.settings', icon: 'settings' },
 ];
+
+/** Mobile bottom-bar layout (Phase 34): four destinations flanking the raised Play FAB in the
+    centre. Settings is intentionally absent here — on mobile it lives in the slim top app-bar. */
+export const bottomTabs: NavLink[] = ['#/', '#/atlas', '#/play', '#/history', '#/progress'].map(
+  (href) => navLinks.find((link) => link.href === href)!,
+);
 
 export default routes;

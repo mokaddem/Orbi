@@ -43,77 +43,81 @@
       <span>{$localizedName(country)}</span>
     </nav>
 
-    <div class="card">
-      <div class="flag">
-        <Flag {country} alt={$localizedName(country)} />
-      </div>
-      <div class="facts">
-        <h1>{$localizedName(country)}</h1>
-        <dl>
-          <div class="fact">
-            <dt><Icon name="landmark" size={13} /> {$t('atlas.capitalLabel')}</dt>
-            <dd>{$localizedText(country.capital)}</dd>
-          </div>
-          <div class="fact">
-            <dt><Icon name="languages" size={13} /> {$t('atlas.languagesLabel')}</dt>
-            <dd>{country.languages.map((lang) => $localizedText(lang.name)).join(', ')}</dd>
-          </div>
-          {#if country.industries.length}
+    <div class="country-cols">
+      <div class="card">
+        <div class="flag">
+          <Flag {country} alt={$localizedName(country)} />
+        </div>
+        <div class="facts">
+          <h1>{$localizedName(country)}</h1>
+          <dl>
             <div class="fact">
-              <dt><Icon name="factory" size={13} /> {$t('atlas.industriesLabel')}</dt>
-              <dd>{country.industries.map((ind) => $localizedText(ind.name)).join(', ')}</dd>
+              <dt><Icon name="landmark" size={13} /> {$t('atlas.capitalLabel')}</dt>
+              <dd>{$localizedText(country.capital)}</dd>
             </div>
-          {/if}
-          <div class="fact">
-            <dt><Icon name="globe" size={13} /> {$t('atlas.regionLabel')}</dt>
-            <dd>
-              <a href="#/atlas/region/{encodeURIComponent(country.region)}">
-                {$localizedRegion(country.region)}
-              </a>
-            </dd>
-          </div>
-          <div class="fact">
-            <dt><Icon name="map" size={13} /> {$t('atlas.subregionLabel')}</dt>
-            <dd>
-              <a href="#/atlas/region/{encodeURIComponent(country.region)}">
-                {$localizedRegion(country.subregion)}
-              </a>
-            </dd>
-          </div>
-        </dl>
+            <div class="fact">
+              <dt><Icon name="languages" size={13} /> {$t('atlas.languagesLabel')}</dt>
+              <dd>{country.languages.map((lang) => $localizedText(lang.name)).join(', ')}</dd>
+            </div>
+            {#if country.industries.length}
+              <div class="fact">
+                <dt><Icon name="factory" size={13} /> {$t('atlas.industriesLabel')}</dt>
+                <dd>{country.industries.map((ind) => $localizedText(ind.name)).join(', ')}</dd>
+              </div>
+            {/if}
+            <div class="fact">
+              <dt><Icon name="globe" size={13} /> {$t('atlas.regionLabel')}</dt>
+              <dd>
+                <a href="#/atlas/region/{encodeURIComponent(country.region)}">
+                  {$localizedRegion(country.region)}
+                </a>
+              </dd>
+            </div>
+            <div class="fact">
+              <dt><Icon name="map" size={13} /> {$t('atlas.subregionLabel')}</dt>
+              <dd>
+                <a href="#/atlas/region/{encodeURIComponent(country.region)}">
+                  {$localizedRegion(country.subregion)}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="country-aside">
+        {#if country.industries.some((ind) => ind.fact)}
+          <!-- Phase 32: the industries mode's "why" fun facts also surface here, per the
+           "Atlas reflects country data" convention — one line per fact-bearing industry. -->
+          <section class="did-you-know" aria-labelledby="dyk-heading">
+            <h2 id="dyk-heading">
+              <Icon name="sparkles" size={16} />
+              {$t('play.feedback.didYouKnow')}
+            </h2>
+            <ul>
+              {#each country.industries.filter((ind) => ind.fact) as ind (ind.key)}
+                <li>
+                  <span class="topic">{$localizedText(ind.name)}</span>
+                  <span>{$localizedText(ind.fact!)}</span>
+                </li>
+              {/each}
+            </ul>
+          </section>
+        {/if}
+
+        {#if features}
+          <AtlasMap
+            {features}
+            highlightCountry={country.iso2}
+            label={$t('atlas.countryMapLabel', { country: $localizedName(country) })}
+          />
+        {:else}
+          <p class="map-status" role="status">
+            {mapFailed ? $t('play.map.error') : $t('play.map.loading')}
+          </p>
+        {/if}
       </div>
     </div>
-
-    {#if country.industries.some((ind) => ind.fact)}
-      <!-- Phase 32: the industries mode's "why" fun facts also surface here, per the
-           "Atlas reflects country data" convention — one line per fact-bearing industry. -->
-      <section class="did-you-know" aria-labelledby="dyk-heading">
-        <h2 id="dyk-heading">
-          <Icon name="sparkles" size={16} />
-          {$t('play.feedback.didYouKnow')}
-        </h2>
-        <ul>
-          {#each country.industries.filter((ind) => ind.fact) as ind (ind.key)}
-            <li>
-              <span class="topic">{$localizedText(ind.name)}</span>
-              <span>{$localizedText(ind.fact!)}</span>
-            </li>
-          {/each}
-        </ul>
-      </section>
-    {/if}
-
-    {#if features}
-      <AtlasMap
-        {features}
-        highlightCountry={country.iso2}
-        label={$t('atlas.countryMapLabel', { country: $localizedName(country) })}
-      />
-    {:else}
-      <p class="map-status" role="status">
-        {mapFailed ? $t('play.map.error') : $t('play.map.loading')}
-      </p>
-    {/if}
   </section>
 {/if}
 
@@ -122,6 +126,29 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+  }
+
+  /* Desktop (Phase 34): flag + facts on the left, "Did you know?" + locator map on the
+     right. On mobile everything stacks in one column. */
+  .country-cols,
+  .country-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 860px) {
+    .country-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .card {
+      /* Stack flag above facts inside the narrower left column so neither is squeezed. */
+      align-items: flex-start;
+    }
   }
 
   .crumbs {

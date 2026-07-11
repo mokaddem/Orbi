@@ -231,6 +231,10 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    /* Focused results card — a centred column on desktop, never stretched (Phase 34). */
+    max-width: 640px;
+    margin-inline: auto;
+    width: 100%;
   }
 
   .empty {
@@ -253,10 +257,10 @@
 
   .cta {
     align-self: flex-start;
-    padding: 0.6rem 1.2rem;
+    padding: 0.65rem 1.5rem;
     background: var(--color-accent);
     color: var(--color-accent-contrast);
-    border-radius: var(--radius);
+    border-radius: 999px;
     font-weight: 800;
     box-shadow: var(--shadow-chunky);
     transition:
@@ -432,8 +436,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    padding: 0.55rem 1.3rem;
-    border-radius: var(--radius);
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
     font-weight: 700;
     border: 2px solid transparent;
     transition:

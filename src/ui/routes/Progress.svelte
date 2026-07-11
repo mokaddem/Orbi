@@ -157,66 +157,68 @@
       </div>
     {/if}
 
-    <!-- World mastery + per-region breakdown -->
-    {#if mastery}
-      <div class="panel">
-        <h2>{$t('progress.mastery.title')}</h2>
-        <WorldMasteryMeter {mastery} />
-        <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
-        <RegionMasteryBreakdown regions={mastery.byRegion} />
-      </div>
-    {/if}
+    <div class="p-grid">
+      <!-- World mastery + per-region breakdown -->
+      {#if mastery}
+        <div class="panel">
+          <h2>{$t('progress.mastery.title')}</h2>
+          <WorldMasteryMeter {mastery} />
+          <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
+          <RegionMasteryBreakdown regions={mastery.byRegion} />
+        </div>
+      {/if}
 
-    <!-- Achievements (country / skill / habit — extra-topic badges live in the panel below) -->
-    {#if countryAchievements.length > 0}
-      <div class="panel">
-        <h2>{$t('progress.achievements.title')}</h2>
-        <AchievementsGrid achievements={countryAchievements} />
-      </div>
-    {/if}
+      <!-- Achievements (country / skill / habit — extra-topic badges live in the panel below) -->
+      {#if countryAchievements.length > 0}
+        <div class="panel">
+          <h2>{$t('progress.achievements.title')}</h2>
+          <AchievementsGrid achievements={countryAchievements} />
+        </div>
+      {/if}
 
-    <!-- Combined "extra knowledge" panel (Phase 23/24): capitals + languages (+ industries
+      <!-- Combined "extra knowledge" panel (Phase 23/24): capitals + languages (+ industries
          later) folded into one surface, each shown only once played. Kept separate from and
          smaller than the primary country-mastery panel above. -->
-    {#if hasExtras}
-      <div class="panel">
-        <h2>{$t('progress.extras.title')}</h2>
-        <p class="panel-sub">{$t('progress.extras.subtitle')}</p>
-        <div class="topics">
-          {#if capitalMastery && hasCapitalActivity}
-            <ExtraMasteryTopic
-              mastery={capitalMastery}
-              titleKey="progress.capitalMastery.title"
-              learnedKey="progress.capitalMastery.learned"
-              regionsTitleKey="progress.capitalMastery.regionsTitle"
-              icon="landmark"
-            />
-          {/if}
-          {#if languageMastery && hasLanguageActivity}
-            <ExtraMasteryTopic
-              mastery={languageMastery}
-              titleKey="progress.languageMastery.title"
-              learnedKey="progress.languageMastery.learned"
-              regionsTitleKey="progress.languageMastery.regionsTitle"
-              icon="languages"
-            />
-          {/if}
-          {#if industryMastery && hasIndustryActivity}
-            <ExtraMasteryTopic
-              mastery={industryMastery}
-              titleKey="progress.industryMastery.title"
-              learnedKey="progress.industryMastery.learned"
-              regionsTitleKey="progress.industryMastery.regionsTitle"
-              icon="factory"
-            />
+      {#if hasExtras}
+        <div class="panel">
+          <h2>{$t('progress.extras.title')}</h2>
+          <p class="panel-sub">{$t('progress.extras.subtitle')}</p>
+          <div class="topics">
+            {#if capitalMastery && hasCapitalActivity}
+              <ExtraMasteryTopic
+                mastery={capitalMastery}
+                titleKey="progress.capitalMastery.title"
+                learnedKey="progress.capitalMastery.learned"
+                regionsTitleKey="progress.capitalMastery.regionsTitle"
+                icon="landmark"
+              />
+            {/if}
+            {#if languageMastery && hasLanguageActivity}
+              <ExtraMasteryTopic
+                mastery={languageMastery}
+                titleKey="progress.languageMastery.title"
+                learnedKey="progress.languageMastery.learned"
+                regionsTitleKey="progress.languageMastery.regionsTitle"
+                icon="languages"
+              />
+            {/if}
+            {#if industryMastery && hasIndustryActivity}
+              <ExtraMasteryTopic
+                mastery={industryMastery}
+                titleKey="progress.industryMastery.title"
+                learnedKey="progress.industryMastery.learned"
+                regionsTitleKey="progress.industryMastery.regionsTitle"
+                icon="factory"
+              />
+            {/if}
+          </div>
+          {#if extraAchievements.length > 0}
+            <h3 class="subhead">{$t('progress.extras.badgesTitle')}</h3>
+            <AchievementsGrid achievements={extraAchievements} />
           {/if}
         </div>
-        {#if extraAchievements.length > 0}
-          <h3 class="subhead">{$t('progress.extras.badgesTitle')}</h3>
-          <AchievementsGrid achievements={extraAchievements} />
-        {/if}
-      </div>
-    {/if}
+      {/if}
+    </div>
   {/if}
 </section>
 
@@ -388,11 +390,29 @@
     background: var(--color-surface);
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
+    min-width: 0;
   }
 
   .panel h2 {
     margin: 0;
     font-size: 1.05rem;
+  }
+
+  /* Desktop (Phase 34): the stat row + recap stay full-width above; the mastery, achievements
+     and extra-knowledge panels flow into a multi-column dashboard rather than one tall column.
+     Auto-fit keeps a single panel full-width and never drops below a readable ~420px. */
+  .p-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 860px) {
+    .p-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      align-items: start;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

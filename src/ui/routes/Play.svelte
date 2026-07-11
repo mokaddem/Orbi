@@ -597,6 +597,10 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    /* Focused screen (Phase 34): a centred column on desktop, never full-bleed. */
+    max-width: 720px;
+    margin-inline: auto;
+    width: 100%;
   }
 
   .field {
@@ -742,11 +746,11 @@
 
   .start {
     align-self: flex-start;
-    padding: 0.65rem 1.6rem;
+    padding: 0.7rem 1.8rem;
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border: 0;
-    border-radius: var(--radius);
+    border-radius: 999px;
     font-weight: 800;
     box-shadow: var(--shadow-chunky);
     transition:
@@ -786,11 +790,11 @@
   .submit-multi {
     align-self: center;
     margin-top: 0.25rem;
-    padding: 0.6rem 1.8rem;
+    padding: 0.65rem 2rem;
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border: 0;
-    border-radius: var(--radius);
+    border-radius: 999px;
     font-weight: 800;
     box-shadow: var(--shadow-chunky);
     transition:
@@ -817,6 +821,10 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    /* The live board stays a focused, centred column — the map/choices never stretch wide. */
+    max-width: 640px;
+    margin-inline: auto;
+    width: 100%;
   }
 
   .hud {

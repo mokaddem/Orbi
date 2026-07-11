@@ -147,10 +147,10 @@
 
   .start {
     align-self: flex-start;
-    padding: 0.55rem 1.3rem;
+    padding: 0.6rem 1.5rem;
     background: var(--color-accent);
     color: var(--color-accent-contrast);
-    border-radius: var(--radius);
+    border-radius: 999px;
     font-weight: 800;
     box-shadow: var(--shadow-chunky);
     transition:

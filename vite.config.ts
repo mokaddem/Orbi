@@ -34,9 +34,10 @@ export default defineConfig(({ command, isPreview }) => ({
         description:
           'Orbi — an offline-first game for learning world geography through maps, flags, capitals and more.',
         lang: 'en',
-        // Matches --color-accent / --color-bg in src/app.css (Playful turquoise theme).
+        // Matches --color-accent / --color-bg in src/app.css ("Orbi Play" theme, Phase 34):
+        // teal accent retained, cool mint-white ground for the splash background.
         theme_color: '#10a5a0',
-        background_color: '#fff6f1',
+        background_color: '#eafaf8',
         display: 'standalone',
         orientation: 'any',
         // start_url and scope intentionally omitted: browsers derive them from the

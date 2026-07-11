@@ -7,7 +7,7 @@
 </script>
 
 <section class="notfound">
-  <Mascot pose="thinking" size={120} />
+  <Mascot pose="thinking" size={140} animate="idle" />
   <h1>{$t('notFound.title')}</h1>
   <a class="back" href="#/">{$t('notFound.back')}</a>
 </section>
@@ -26,11 +26,16 @@
     margin: 0;
   }
 
+  .notfound {
+    min-height: 60vh;
+    justify-content: center;
+  }
+
   .back {
-    padding: 0.6rem 1.2rem;
+    padding: 0.65rem 1.5rem;
     background: var(--color-accent);
     color: var(--color-accent-contrast);
-    border-radius: var(--radius);
+    border-radius: 999px;
     font-weight: 800;
     box-shadow: var(--shadow-chunky);
   }

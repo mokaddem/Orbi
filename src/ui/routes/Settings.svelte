@@ -209,6 +209,10 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    /* A single comfortable centred column on desktop (Phase 34). */
+    max-width: 640px;
+    margin-inline: auto;
+    width: 100%;
   }
 
   h2 {

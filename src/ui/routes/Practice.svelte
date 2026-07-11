@@ -193,238 +193,246 @@
     <p class="warn" role="status">{$t('settings.notPersisted')}</p>
   {/if}
 
-  <!-- Saved sets -->
-  <section class="block saved">
-    <h2>{$t('practice.savedSets.title')}</h2>
-    {#if savedSets.length === 0}
-      <p class="muted">{$t('practice.savedSets.empty')}</p>
-    {:else}
-      <ul class="set-list">
-        {#each savedSets as set (set.id)}
-          <li class="set-row" class:editing={editingId === set.id}>
-            <div class="set-meta">
-              <span class="set-name">{set.name}</span>
-              <span class="set-count"
-                >{$t('practice.savedSets.count', { count: set.iso2.length })}</span
-              >
-            </div>
-            <div class="set-actions">
-              <button type="button" class="pill accent" onclick={() => launch(set.iso2)}>
-                <Icon name="play" size={14} />
-                {$t('practice.savedSets.play')}
+  <div class="practice-cols">
+    <div class="pane-left">
+      <!-- Saved sets -->
+      <section class="block saved">
+        <h2>{$t('practice.savedSets.title')}</h2>
+        {#if savedSets.length === 0}
+          <p class="muted">{$t('practice.savedSets.empty')}</p>
+        {:else}
+          <ul class="set-list">
+            {#each savedSets as set (set.id)}
+              <li class="set-row" class:editing={editingId === set.id}>
+                <div class="set-meta">
+                  <span class="set-name">{set.name}</span>
+                  <span class="set-count"
+                    >{$t('practice.savedSets.count', { count: set.iso2.length })}</span
+                  >
+                </div>
+                <div class="set-actions">
+                  <button type="button" class="pill accent" onclick={() => launch(set.iso2)}>
+                    <Icon name="play" size={14} />
+                    {$t('practice.savedSets.play')}
+                  </button>
+                  <button type="button" class="pill" onclick={() => editSet(set)}>
+                    {$t('practice.savedSets.edit')}
+                  </button>
+                  <button
+                    type="button"
+                    class="pill danger"
+                    aria-label={$t('practice.savedSets.delete')}
+                    onclick={() => (deleteTarget = set)}
+                  >
+                    <Icon name="trash" size={14} />
+                  </button>
+                </div>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </section>
+
+      <!-- Country picker -->
+      <section class="block">
+        <div class="block-head">
+          <h2>{$t('practice.picker.title')}</h2>
+          <span class="chosen-count" role="status">
+            {$t('practice.picker.chosen', { count: selected.length })}
+          </span>
+        </div>
+
+        <label class="search">
+          <span class="search-ico"><Icon name="search" size={16} /></span>
+          <input
+            type="search"
+            bind:value={query}
+            placeholder={$t('practice.picker.searchPlaceholder')}
+            aria-label={$t('practice.picker.searchLabel')}
+          />
+        </label>
+
+        {#if selected.length > 0}
+          <div class="chips" aria-label={$t('practice.picker.chosen', { count: selected.length })}>
+            {#each chosenCountries as c (c.iso2)}
+              <button type="button" class="chip" onclick={() => toggleCountry(c.iso2)}>
+                <span class="chip-flag"><Flag country={c} /></span>
+                <span class="chip-name">{$localizedName(c)}</span>
+                <span class="chip-x" aria-hidden="true">×</span>
               </button>
-              <button type="button" class="pill" onclick={() => editSet(set)}>
-                {$t('practice.savedSets.edit')}
-              </button>
-              <button
-                type="button"
-                class="pill danger"
-                aria-label={$t('practice.savedSets.delete')}
-                onclick={() => (deleteTarget = set)}
-              >
-                <Icon name="trash" size={14} />
-              </button>
-            </div>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </section>
-
-  <!-- Country picker -->
-  <section class="block">
-    <div class="block-head">
-      <h2>{$t('practice.picker.title')}</h2>
-      <span class="chosen-count" role="status">
-        {$t('practice.picker.chosen', { count: selected.length })}
-      </span>
-    </div>
-
-    <label class="search">
-      <span class="search-ico"><Icon name="search" size={16} /></span>
-      <input
-        type="search"
-        bind:value={query}
-        placeholder={$t('practice.picker.searchPlaceholder')}
-        aria-label={$t('practice.picker.searchLabel')}
-      />
-    </label>
-
-    {#if selected.length > 0}
-      <div class="chips" aria-label={$t('practice.picker.chosen', { count: selected.length })}>
-        {#each chosenCountries as c (c.iso2)}
-          <button type="button" class="chip" onclick={() => toggleCountry(c.iso2)}>
-            <span class="chip-flag"><Flag country={c} /></span>
-            <span class="chip-name">{$localizedName(c)}</span>
-            <span class="chip-x" aria-hidden="true">×</span>
-          </button>
-        {/each}
-        <button type="button" class="pill clear" onclick={clearAll}>
-          {$t('practice.picker.clearAll')}
-        </button>
-      </div>
-    {/if}
-
-    {#if hasQuery && !anyMatch}
-      <p class="muted">{$t('practice.picker.noResults', { query })}</p>
-    {/if}
-
-    <div class="region-groups">
-      {#each groups as group (group.region)}
-        {@const visible = visibleIn(group.countries)}
-        {#if !hasQuery || visible.length > 0}
-          {@const chosenN = group.countries.filter((c) => selectedSet.has(c.iso2)).length}
-          <div class="group" class:open={isOpen(group.region)}>
-            <div class="group-head">
-              <button
-                type="button"
-                class="group-toggle"
-                aria-expanded={isOpen(group.region)}
-                onclick={() => toggleGroup(group.region)}
-              >
-                <span class="chev" class:rot={isOpen(group.region)}>
-                  <Icon name="chevron-right" size={16} />
-                </span>
-                <span class="group-ico"><RegionIcon region={group.region} /></span>
-                <span class="group-name">{$localizedRegion(group.region)}</span>
-                <span class="group-count">{chosenN}/{group.countries.length}</span>
-              </button>
-              <div class="group-bulk">
-                <button type="button" class="pill" onclick={() => selectAll(visible)}>
-                  {$t('practice.picker.all')}
-                </button>
-                <button type="button" class="pill" onclick={() => deselectAll(visible)}>
-                  {$t('practice.picker.none')}
-                </button>
-              </div>
-            </div>
-
-            {#if isOpen(group.region)}
-              <ul class="country-list">
-                {#each visible as c (c.iso2)}
-                  <li>
-                    <button
-                      type="button"
-                      class="country"
-                      class:selected={selectedSet.has(c.iso2)}
-                      aria-pressed={selectedSet.has(c.iso2)}
-                      onclick={() => toggleCountry(c.iso2)}
-                    >
-                      <span class="check" aria-hidden="true">
-                        {#if selectedSet.has(c.iso2)}<Icon name="check" size={14} />{/if}
-                      </span>
-                      <span class="country-flag"><Flag country={c} /></span>
-                      <span class="country-name">{$localizedName(c)}</span>
-                    </button>
-                  </li>
-                {/each}
-              </ul>
-            {/if}
+            {/each}
+            <button type="button" class="pill clear" onclick={clearAll}>
+              {$t('practice.picker.clearAll')}
+            </button>
           </div>
         {/if}
-      {/each}
-    </div>
-  </section>
 
-  <!-- Save this set -->
-  <section class="block save">
-    <h2>{$t('practice.save.title')}</h2>
-    {#if editingId}
-      {@const editingSet = savedSets.find((s) => s.id === editingId)}
-      {#if editingSet}
-        <p class="muted editing-note">{$t('practice.editing', { name: editingSet.name })}</p>
-      {/if}
-    {/if}
-    <div class="save-row">
-      <input
-        type="text"
-        class="name-input"
-        bind:value={setName}
-        placeholder={$t('practice.save.namePlaceholder')}
-        aria-label={$t('practice.save.nameLabel')}
-      />
-      <button type="button" class="pill accent save-btn" disabled={!canSave} onclick={saveSet}>
-        {savedFlash
-          ? $t('practice.save.saved')
-          : editingId
-            ? $t('practice.save.update')
-            : $t('practice.save.save')}
-      </button>
-      {#if editingId}
-        <button type="button" class="pill" onclick={newSet}>
-          <Icon name="plus" size={14} />
-          {$t('practice.newSet')}
-        </button>
-      {/if}
-    </div>
-  </section>
-
-  <!-- Mode -->
-  <section class="block">
-    <h2>{$t('practice.mode.title')}</h2>
-    <div class="mode-grid">
-      {#each MODE_OPTIONS as opt (opt.mode)}
-        <button
-          type="button"
-          class="opt mode-opt"
-          class:selected={mode === opt.mode}
-          aria-pressed={mode === opt.mode}
-          onclick={() => (mode = opt.mode)}
-        >
-          <ModeIcon mode={opt.mode} />
-          <span>{$t(opt.labelKey)}</span>
-        </button>
-      {/each}
-    </div>
-    {#if selected.length > 0 && eligibility.skipped.length > 0}
-      <p class="coverage" role="status">
-        {#if eligibility.eligible.length === 0}
-          {$t('practice.mode.coverageNone')}
-        {:else}
-          {$t('practice.mode.coverage', {
-            eligible: eligibility.eligible.length,
-            total: chosenCountries.length,
-          })}
+        {#if hasQuery && !anyMatch}
+          <p class="muted">{$t('practice.picker.noResults', { query })}</p>
         {/if}
-      </p>
-    {/if}
-  </section>
 
-  <!-- Format -->
-  <section class="block">
-    <h2>{$t('practice.type.title')}</h2>
-    <div class="type-grid">
-      <button
-        type="button"
-        class="opt"
-        class:selected={type === 'fixed'}
-        aria-pressed={type === 'fixed'}
-        onclick={() => (type = 'fixed')}
-      >
-        <span class="opt-title"><Icon name="fixed" size="1.05em" /> {$t('sessionType.fixed')}</span>
-      </button>
-      <button
-        type="button"
-        class="opt"
-        class:selected={type === 'survival'}
-        aria-pressed={type === 'survival'}
-        onclick={() => (type = 'survival')}
-      >
-        <span class="opt-title"
-          ><Icon name="survival" size="1.05em" /> {$t('sessionType.survival')}</span
-        >
-        <small>{$t('play.setup.survivalHint', { lives: $prefs.survivalLives })}</small>
-      </button>
+        <div class="region-groups">
+          {#each groups as group (group.region)}
+            {@const visible = visibleIn(group.countries)}
+            {#if !hasQuery || visible.length > 0}
+              {@const chosenN = group.countries.filter((c) => selectedSet.has(c.iso2)).length}
+              <div class="group" class:open={isOpen(group.region)}>
+                <div class="group-head">
+                  <button
+                    type="button"
+                    class="group-toggle"
+                    aria-expanded={isOpen(group.region)}
+                    onclick={() => toggleGroup(group.region)}
+                  >
+                    <span class="chev" class:rot={isOpen(group.region)}>
+                      <Icon name="chevron-right" size={16} />
+                    </span>
+                    <span class="group-ico"><RegionIcon region={group.region} /></span>
+                    <span class="group-name">{$localizedRegion(group.region)}</span>
+                    <span class="group-count">{chosenN}/{group.countries.length}</span>
+                  </button>
+                  <div class="group-bulk">
+                    <button type="button" class="pill" onclick={() => selectAll(visible)}>
+                      {$t('practice.picker.all')}
+                    </button>
+                    <button type="button" class="pill" onclick={() => deselectAll(visible)}>
+                      {$t('practice.picker.none')}
+                    </button>
+                  </div>
+                </div>
+
+                {#if isOpen(group.region)}
+                  <ul class="country-list">
+                    {#each visible as c (c.iso2)}
+                      <li>
+                        <button
+                          type="button"
+                          class="country"
+                          class:selected={selectedSet.has(c.iso2)}
+                          aria-pressed={selectedSet.has(c.iso2)}
+                          onclick={() => toggleCountry(c.iso2)}
+                        >
+                          <span class="check" aria-hidden="true">
+                            {#if selectedSet.has(c.iso2)}<Icon name="check" size={14} />{/if}
+                          </span>
+                          <span class="country-flag"><Flag country={c} /></span>
+                          <span class="country-name">{$localizedName(c)}</span>
+                        </button>
+                      </li>
+                    {/each}
+                  </ul>
+                {/if}
+              </div>
+            {/if}
+          {/each}
+        </div>
+      </section>
+
+      <!-- Save this set -->
+      <section class="block save">
+        <h2>{$t('practice.save.title')}</h2>
+        {#if editingId}
+          {@const editingSet = savedSets.find((s) => s.id === editingId)}
+          {#if editingSet}
+            <p class="muted editing-note">{$t('practice.editing', { name: editingSet.name })}</p>
+          {/if}
+        {/if}
+        <div class="save-row">
+          <input
+            type="text"
+            class="name-input"
+            bind:value={setName}
+            placeholder={$t('practice.save.namePlaceholder')}
+            aria-label={$t('practice.save.nameLabel')}
+          />
+          <button type="button" class="pill accent save-btn" disabled={!canSave} onclick={saveSet}>
+            {savedFlash
+              ? $t('practice.save.saved')
+              : editingId
+                ? $t('practice.save.update')
+                : $t('practice.save.save')}
+          </button>
+          {#if editingId}
+            <button type="button" class="pill" onclick={newSet}>
+              <Icon name="plus" size={14} />
+              {$t('practice.newSet')}
+            </button>
+          {/if}
+        </div>
+      </section>
     </div>
-  </section>
 
-  <div class="start-row">
-    <button type="button" class="start" disabled={!canStart} onclick={startPractice}>
-      {$t('practice.start')}
-    </button>
-    {#if !canStart}
-      <small class="muted">{$t('practice.startHint')}</small>
-    {/if}
+    <div class="pane-right">
+      <!-- Mode -->
+      <section class="block">
+        <h2>{$t('practice.mode.title')}</h2>
+        <div class="mode-grid">
+          {#each MODE_OPTIONS as opt (opt.mode)}
+            <button
+              type="button"
+              class="opt mode-opt"
+              class:selected={mode === opt.mode}
+              aria-pressed={mode === opt.mode}
+              onclick={() => (mode = opt.mode)}
+            >
+              <ModeIcon mode={opt.mode} />
+              <span>{$t(opt.labelKey)}</span>
+            </button>
+          {/each}
+        </div>
+        {#if selected.length > 0 && eligibility.skipped.length > 0}
+          <p class="coverage" role="status">
+            {#if eligibility.eligible.length === 0}
+              {$t('practice.mode.coverageNone')}
+            {:else}
+              {$t('practice.mode.coverage', {
+                eligible: eligibility.eligible.length,
+                total: chosenCountries.length,
+              })}
+            {/if}
+          </p>
+        {/if}
+      </section>
+
+      <!-- Format -->
+      <section class="block">
+        <h2>{$t('practice.type.title')}</h2>
+        <div class="type-grid">
+          <button
+            type="button"
+            class="opt"
+            class:selected={type === 'fixed'}
+            aria-pressed={type === 'fixed'}
+            onclick={() => (type = 'fixed')}
+          >
+            <span class="opt-title"
+              ><Icon name="fixed" size="1.05em" /> {$t('sessionType.fixed')}</span
+            >
+          </button>
+          <button
+            type="button"
+            class="opt"
+            class:selected={type === 'survival'}
+            aria-pressed={type === 'survival'}
+            onclick={() => (type = 'survival')}
+          >
+            <span class="opt-title"
+              ><Icon name="survival" size="1.05em" /> {$t('sessionType.survival')}</span
+            >
+            <small>{$t('play.setup.survivalHint', { lives: $prefs.survivalLives })}</small>
+          </button>
+        </div>
+      </section>
+
+      <div class="start-row">
+        <button type="button" class="start" disabled={!canStart} onclick={startPractice}>
+          {$t('practice.start')}
+        </button>
+        {#if !canStart}
+          <small class="muted">{$t('practice.startHint')}</small>
+        {/if}
+      </div>
+    </div>
   </div>
 </section>
 
@@ -442,6 +450,31 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+  }
+
+  /* Desktop (Phase 34): a two-pane builder — the country-picking workflow (saved sets,
+     picker, save) on the left, and a persistent "what you'll play" panel (mode, format,
+     Start) that sticks in view on the right while the picker scrolls. Mobile stacks them. */
+  .practice-cols,
+  .pane-left,
+  .pane-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 860px) {
+    .practice-cols {
+      display: grid;
+      grid-template-columns: 1fr minmax(320px, 400px);
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .pane-right {
+      position: sticky;
+      top: 1.5rem;
+    }
   }
 
   .head h1 {

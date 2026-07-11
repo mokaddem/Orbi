@@ -1,46 +1,65 @@
 :root {
-  /* Playful & educational theme (Phase 12 Stage 2) — warm ground, turquoise accent,
-     rounded/chunky components. Every component styles through these tokens. */
-  --color-bg: #fff6f1;
+  /* "Orbi Play" theme (Phase 34) — a bright, tactile game-app look on a cool mint-white
+     ground, teal accent RETAINED, coral + sunshine secondaries used sparingly, rounder and
+     chunkier than before. Every component styles through these tokens (Phase 12 mechanism),
+     so this is a recolour + a couple of new tokens, not a rewrite. */
+  --color-bg: #eafaf8; /* cool mint-white ground (was warm cream) */
   --color-surface: #ffffff;
-  --color-border: #f1ded4;
-  --color-text: #2a2320;
-  --color-muted: #927f75;
-  --color-accent: #10a5a0;
+  --color-border: #d3efeb; /* cool teal-tinted hairline */
+  --color-text: #123130; /* deep teal-charcoal */
+  --color-muted: #6e8a88; /* cool grey-teal for secondary text */
+  --color-accent: #10a5a0; /* teal — kept literally */
   --color-accent-contrast: #ffffff;
-  --color-accent-weak: #dbf3f1; /* selected / active tint */
-  --color-accent-strong: #0b7e7a; /* darker turquoise: chunky button drop, map strokes */
+  --color-accent-weak: #d6f4f0; /* selected / active tint (cooler) */
+  --color-accent-strong: #0b7e7a; /* darker teal: chunky button drop, map strokes */
   --color-correct: #1e9e5a;
   --color-correct-bg: #e4f7ec;
   --color-wrong: #cf3b2c;
   --color-wrong-bg: #fce9e6;
 
-  /* Map palette (Phase 12): warm land on a sky-tinted sea with a soft-but-legible
-     border, so every country reads. The highlighted country is a turquoise tint with
-     a darker outline (matches the signed-off Playful mockup). */
-  --map-water: #cde8f0;
-  --map-land: #fff3e8;
+  /* Secondary accents (Phase 34) — introduced sparingly alongside teal for streaks,
+     highlights and playful spot colour. Never the primary CTA colour (that stays teal). */
+  --color-coral: #ff7a59;
+  --color-coral-weak: #ffe6df;
+  --color-sun: #ffb020;
+  --color-sun-weak: #fff0d2;
+
+  /* Map palette (Phase 34): cool off-white land on a soft teal sea with a legible cool
+     border, so every country reads on the mint ground. The highlighted country keeps the
+     turquoise tint + darker outline (unchanged from the signed-off Playful reveal). */
+  --map-water: #d3edf3;
+  --map-land: #ecf7f4;
   --map-land-hover: #a7e0dc;
-  --map-border: #e6b491;
+  --map-border: #bfded9;
   --map-highlight: #7fd9d3;
   --map-highlight-line: #0b7e7a;
 
-  --radius: 16px;
-  --max-width: 900px;
+  --radius: 20px; /* rounder than the Phase-12 16px */
+
+  /* Layout tokens (Phase 34) for the responsive shell: the desktop content cap, the left
+     sidebar rail width, and the mobile bottom-bar height (safe-area added where used). */
+  --content-max: 1160px;
+  --rail-width: 214px;
+  --bottombar-h: 64px;
 
   /* Shared Playful treatments: a chunky accent-button drop, a soft card drop, the
-     selection ring, and the progress-bar gradient. */
+     selection ring, and the progress-bar gradient (teal, unchanged). */
   --shadow-chunky: 0 4px 0 var(--color-accent-strong);
   --shadow-chunky-press: 0 2px 0 var(--color-accent-strong);
-  --shadow-card: 0 3px 0 rgb(42 35 32 / 5%);
+  --shadow-card: 0 3px 0 rgb(18 49 48 / 6%);
+  --shadow-float: 0 10px 30px -12px rgb(18 49 48 / 22%); /* raised FAB / rail lift */
   --ring-selected: 0 0 0 3px var(--color-accent-weak);
   --progress-gradient: linear-gradient(90deg, #4fd1ca, #10a5a0);
 
+  /* Rounded system-font stack (Phase 34) — prefers a rounded display face where the OS has
+     one (Apple's SF Pro Rounded), otherwise the familiar friendly fallbacks. No CDN/webfont
+     fetch, so it stays offline/PWA-safe. */
   font-family:
-    'Trebuchet MS',
-    'Segoe UI',
     ui-rounded,
+    'SF Pro Rounded',
+    'Segoe UI',
     system-ui,
+    'Trebuchet MS',
     -apple-system,
     Roboto,
     Helvetica,

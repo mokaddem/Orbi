@@ -75,7 +75,7 @@
 
 <section class="home">
   <header class="home-header">
-    <Mascot pose="wave" size={84} animate="idle" />
+    <Mascot pose="wave" size={108} animate="idle" />
     <div class="home-heading">
       <h1>{$t('home.title')}</h1>
       <p class="tagline">{$t('home.tagline')}</p>
@@ -107,32 +107,34 @@
     <NextUpCard rec={recs[0]} />
   {/if}
 
-  {#if daily}
-    <div class="daily-row">
-      <DailyChallengeCard challenge={daily.challenge} done={daily.done} result={daily.result} />
-    </div>
-  {/if}
+  <div class="home-grid">
+    {#if daily}
+      <div class="daily-row">
+        <DailyChallengeCard challenge={daily.challenge} done={daily.done} result={daily.result} />
+      </div>
+    {/if}
 
-  {#if mastery}
-    <div class="mastery-row" class:open={regionsOpen}>
-      <button
-        type="button"
-        class="mastery-toggle"
-        aria-expanded={regionsOpen}
-        aria-controls="home-region-breakdown"
-        aria-label={regionsOpen ? $t('home.mastery.hideRegions') : $t('home.mastery.showRegions')}
-        onclick={() => (regionsOpen = !regionsOpen)}
-      >
-        <WorldMasteryMeter {mastery} compact />
-        <span class="chev" aria-hidden="true"><Icon name="chevron-right" size={18} /></span>
-      </button>
-      {#if regionsOpen}
-        <div id="home-region-breakdown" class="region-breakdown">
-          <RegionMasteryBreakdown regions={mastery.byRegion} />
-        </div>
-      {/if}
-    </div>
-  {/if}
+    {#if mastery}
+      <div class="mastery-row" class:open={regionsOpen}>
+        <button
+          type="button"
+          class="mastery-toggle"
+          aria-expanded={regionsOpen}
+          aria-controls="home-region-breakdown"
+          aria-label={regionsOpen ? $t('home.mastery.hideRegions') : $t('home.mastery.showRegions')}
+          onclick={() => (regionsOpen = !regionsOpen)}
+        >
+          <WorldMasteryMeter {mastery} compact />
+          <span class="chev" aria-hidden="true"><Icon name="chevron-right" size={18} /></span>
+        </button>
+        {#if regionsOpen}
+          <div id="home-region-breakdown" class="region-breakdown">
+            <RegionMasteryBreakdown regions={mastery.byRegion} />
+          </div>
+        {/if}
+      </div>
+    {/if}
+  </div>
 
   {#if allCaughtUp}
     <div class="caught-up" role="status">
@@ -215,6 +217,30 @@
   /* The compact world-mastery glance sits below the daily card. */
   .mastery-row {
     margin-top: 1rem;
+  }
+
+  /* Desktop (Phase 34): the hero + resume banner stay full-width, then the Daily Challenge
+     and world-mastery glance sit side by side. On mobile they stack in one column. The grid
+     owns the spacing, so the rows drop their own margin-top inside it. */
+  .home-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .home-grid .daily-row,
+  .home-grid .mastery-row {
+    margin-top: 0;
+  }
+
+  @media (min-width: 860px) {
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
   }
 
   /* The whole compact meter is the disclosure trigger (Phase 29): a bare button reset so the

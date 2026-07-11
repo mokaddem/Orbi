@@ -3,6 +3,9 @@
   import Router from 'svelte-spa-router';
   import routes from './ui/routes';
   import Nav from './ui/components/Nav.svelte';
+  import Icon from './ui/components/Icon.svelte';
+  import Mascot from './ui/components/Mascot.svelte';
+  import LanguageSwitcher from './ui/components/LanguageSwitcher.svelte';
   import { t } from './i18n';
   import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
 
@@ -24,38 +27,118 @@
 </script>
 
 <div class="app-shell">
+  <!-- Slim top app-bar — mobile only (the desktop rail carries the brand/language/settings). -->
+  <header class="appbar">
+    <a class="appbar-brand" href="#/">
+      <Mascot pose="wave" size={30} />
+      <span>{$t('app.title')}</span>
+    </a>
+    <div class="appbar-actions">
+      <LanguageSwitcher />
+      <a class="appbar-settings" href="#/settings" aria-label={$t('nav.settings')}>
+        <Icon name="settings" size={20} />
+      </a>
+    </div>
+  </header>
+
   <Nav />
-  {#if $storageReady && !$persistent}
-    <p class="storage-warning" role="alert">{$t('storage.unavailable')}</p>
-  {/if}
+
   <main class="content">
-    <Router {routes} />
+    <div class="content-inner">
+      {#if $storageReady && !$persistent}
+        <p class="storage-warning" role="alert">{$t('storage.unavailable')}</p>
+      {/if}
+      <Router {routes} />
+    </div>
   </main>
 </div>
 
 <style>
   .app-shell {
-    display: flex;
-    flex-direction: column;
     min-height: 100vh;
   }
 
+  /* ---- Mobile top app-bar ------------------------------------------------------------- */
+  .appbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1rem 0.55rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .appbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--color-accent);
+  }
+
+  .appbar-brand:hover {
+    text-decoration: none;
+  }
+
+  .appbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .appbar-settings {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    color: var(--color-muted);
+  }
+
+  .appbar-settings:hover {
+    text-decoration: none;
+    background: var(--color-accent-weak);
+    color: var(--color-accent-strong);
+  }
+
+  /* ---- Content ------------------------------------------------------------------------ */
+  .content {
+    /* Clear the fixed bottom tab bar on mobile. */
+    padding: 1.25rem 1rem calc(var(--bottombar-h) + env(safe-area-inset-bottom, 0px) + 1.5rem);
+  }
+
+  .content-inner {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 0 auto;
+  }
+
   .storage-warning {
-    margin: 0;
+    margin: 0 0 1rem;
     padding: 0.6rem 1rem;
     text-align: center;
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--color-wrong);
     background: var(--color-wrong-bg);
-    border-bottom: 1px solid var(--color-wrong);
+    border: 1px solid var(--color-wrong);
+    border-radius: var(--radius);
   }
 
-  .content {
-    flex: 1;
-    width: 100%;
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 1.5rem 1rem 3rem;
+  @media (min-width: 860px) {
+    .appbar {
+      display: none;
+    }
+
+    .content {
+      margin-left: var(--rail-width);
+      padding: 2rem 2.5rem 3.5rem;
+    }
   }
 </style>
