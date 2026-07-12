@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { geoPath } from 'd3-geo';
   import { pointer, select } from 'd3-selection';
   import {
@@ -300,7 +301,12 @@
       sel.call(zoomBehavior.transform, target);
       return;
     }
-    const from = zoomTransform;
+    // `untrack`: this is just the tween's starting snapshot. Read plainly, it would
+    // subscribe the re-frame `$effect` (which calls `animateTo`) to `zoomTransform`, so
+    // every tween frame would re-run the effect → restart the re-frame → cancel the tween.
+    // That feedback loop pins the board at its default framing and makes the +/−/reset
+    // controls appear dead in motion mode (the instant path returns above, so it was fine).
+    const from = untrack(() => zoomTransform);
     const t0 = performance.now();
     const step = (now: number): void => {
       const p = Math.min(1, (now - t0) / dur);
