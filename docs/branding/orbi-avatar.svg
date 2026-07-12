@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Orbi avatar — the globe mascot on a soft brand-tint ground. Square, safe for GitHub's
+       circle-crop (mascot centered with generous padding). Vector: crisp at any size. -->
+  <defs>
+    <radialGradient id="ground" cx="50%" cy="42%" r="72%">
+      <stop offset="0%" stop-color="#f4fdfc" />
+      <stop offset="60%" stop-color="#e3f8f5" />
+      <stop offset="100%" stop-color="#cdeeeb" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#ground)" />
+
+  <!-- soft halo behind the mascot -->
+  <circle cx="512" cy="500" r="372" fill="#ffffff" opacity="0.45" />
+
+  <!-- The mascot, auto-scaled from its own 70-unit viewBox into a centered box. -->
+  <svg x="140" y="128" width="744" height="744" viewBox="25 21 70 70">
+    <circle cx="60" cy="56" r="32" fill="#dbf3f1" stroke="#2a2320" stroke-width="3" />
+    <clipPath id="orbi-globe"><circle cx="60" cy="56" r="32" /></clipPath>
+    <g clip-path="url(#orbi-globe)">
+      <path d="M44 31 C37 32 35 40 41 43 C48 46 57 43 58 37 C59 31 51 30 44 31 Z" fill="#10a5a0" />
+      <path d="M29 52 C25 54 26 62 32 62 C38 62 40 54 36 50 C34 48 31 50 29 52 Z" fill="#10a5a0" />
+      <path d="M84 47 C79 45 75 50 78 55 C81 61 88 58 88 52 C88 48 87 48 84 47 Z" fill="#10a5a0" />
+      <path d="M52 76 C48 77 48 83 53 83 C58 83 59 77 55 76 Z" fill="#10a5a0" />
+    </g>
+    <circle cx="44" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+    <circle cx="76" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+    <circle cx="51" cy="54" r="3" fill="#2a2320" />
+    <circle cx="69" cy="54" r="3" fill="#2a2320" />
+    <circle cx="52.1" cy="52.9" r="0.9" fill="#fff" />
+    <circle cx="70.1" cy="52.9" r="0.9" fill="#fff" />
+    <path d="M52 63 Q60 70 68 63" fill="none" stroke="#2a2320" stroke-width="2.4" stroke-linecap="round" />
+  </svg>
+</svg>

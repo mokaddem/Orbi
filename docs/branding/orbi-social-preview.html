@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1280px;
+        height: 640px;
+      }
+      .card {
+        position: relative;
+        width: 1280px;
+        height: 640px;
+        overflow: hidden;
+        background: radial-gradient(1100px 700px at 88% 34%, #f3fcfb 0%, #e6f8f5 42%, #dcf3ef 100%);
+        font-family: 'Comfortaa', ui-rounded, system-ui, sans-serif;
+      }
+      /* faint decorative orbit rings behind the mascot */
+      .ring {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid #10a5a0;
+        opacity: 0.1;
+      }
+      .r1 {
+        width: 720px;
+        height: 720px;
+        right: -120px;
+        top: -40px;
+      }
+      .r2 {
+        width: 980px;
+        height: 980px;
+        right: -260px;
+        top: -160px;
+        opacity: 0.07;
+      }
+      .halo {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #ffffff 0%, rgba(255, 255, 255, 0) 68%);
+      }
+      .content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 84px;
+      }
+      .left {
+        max-width: 700px;
+      }
+      .kicker {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 26px;
+      }
+      .chip {
+        font-size: 22px;
+        font-weight: 600;
+        color: #0b7e7a;
+        background: #d6f4f0;
+        padding: 8px 18px;
+        border-radius: 999px;
+      }
+      .wordmark {
+        font-size: 168px;
+        font-weight: 700;
+        color: #10a5a0;
+        line-height: 0.9;
+        letter-spacing: -2px;
+      }
+      .tagline {
+        margin-top: 26px;
+        font-size: 40px;
+        font-weight: 600;
+        color: #2a2320;
+        line-height: 1.28;
+      }
+      .tagline b {
+        color: #0b7e7a;
+        font-weight: 700;
+      }
+      .url {
+        margin-top: 34px;
+        font-size: 26px;
+        font-weight: 600;
+        color: #6a8f8b;
+      }
+      .mascot {
+        flex: 0 0 auto;
+        width: 440px;
+        height: 440px;
+        position: relative;
+        z-index: 2;
+      }
+      .accentbar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 12px;
+        background: linear-gradient(90deg, #4fd1ca, #10a5a0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="ring r2"></div>
+      <div class="ring r1"></div>
+      <div class="halo"></div>
+      <div class="content">
+        <div class="left">
+          <div class="kicker">
+            <span class="chip">🗺️ Maps</span>
+            <span class="chip">🚩 Flags</span>
+            <span class="chip">🏛️ Capitals</span>
+          </div>
+          <div class="wordmark">Orbi</div>
+          <div class="tagline">
+            Learn the <b>whole world</b> — one map, flag &amp; capital at a time.
+          </div>
+          <div class="url">Free · offline · no account · EN / FR / DE</div>
+        </div>
+        <div class="mascot">
+          <svg xmlns="http://www.w3.org/2000/svg" width="440" height="440" viewBox="25 21 70 70">
+            <circle cx="60" cy="56" r="32" fill="#dbf3f1" stroke="#2a2320" stroke-width="3" />
+            <clipPath id="g"><circle cx="60" cy="56" r="32" /></clipPath>
+            <g clip-path="url(#g)">
+              <path
+                d="M44 31 C37 32 35 40 41 43 C48 46 57 43 58 37 C59 31 51 30 44 31 Z"
+                fill="#10a5a0"
+              />
+              <path
+                d="M29 52 C25 54 26 62 32 62 C38 62 40 54 36 50 C34 48 31 50 29 52 Z"
+                fill="#10a5a0"
+              />
+              <path
+                d="M84 47 C79 45 75 50 78 55 C81 61 88 58 88 52 C88 48 87 48 84 47 Z"
+                fill="#10a5a0"
+              />
+              <path d="M52 76 C48 77 48 83 53 83 C58 83 59 77 55 76 Z" fill="#10a5a0" />
+            </g>
+            <circle cx="44" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+            <circle cx="76" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+            <circle cx="51" cy="54" r="3" fill="#2a2320" />
+            <circle cx="69" cy="54" r="3" fill="#2a2320" />
+            <circle cx="52.1" cy="52.9" r="0.9" fill="#fff" />
+            <circle cx="70.1" cy="52.9" r="0.9" fill="#fff" />
+            <path
+              d="M52 63 Q60 70 68 63"
+              fill="none"
+              stroke="#2a2320"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="accentbar"></div>
+    </div>
+  </body>
+</html>
