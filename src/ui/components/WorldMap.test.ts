@@ -227,6 +227,29 @@ describe('WorldMap', () => {
     expect(mercator.container.querySelectorAll('path.country').length).toBe(3);
   });
 
+  it('renders zoom controls, with reset hidden until the board is zoomed', () => {
+    const { container } = render(WorldMap, { features, interactive: true });
+    const buttons = container.querySelectorAll('.map-controls button');
+    // Zoom-in and zoom-out are always available; reset only appears once zoomed (k>1).
+    expect(buttons.length).toBe(2);
+    for (const b of buttons) {
+      expect(b.getAttribute('aria-label')?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('adds an ocean-hit snap catcher only in interactive (locate) mode', async () => {
+    const locate = render(WorldMap, { features, interactive: true });
+    // The catcher sits below the countries so a direct hit still wins, and is hidden
+    // from assistive tech (pointer-only forgiveness; the country buttons carry a11y).
+    const rect = locate.container.querySelector('rect.ocean-hit');
+    expect(rect).toBeInTheDocument();
+    expect(rect).toHaveAttribute('aria-hidden', 'true');
+    locate.unmount();
+
+    const display = render(WorldMap, { features, interactive: false });
+    expect(display.container.querySelector('rect.ocean-hit')).not.toBeInTheDocument();
+  });
+
   it('adds a tappable fallback dot for microstates in locate mode only', async () => {
     const onpick = vi.fn();
     const { container, rerender } = render(WorldMap, { features, interactive: true, onpick });

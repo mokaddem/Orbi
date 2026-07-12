@@ -18,6 +18,8 @@
     projection = 'naturalEarth',
     interactive = false,
     disabled = false,
+    reduceMotion = false,
+    questionKey = null,
     onpick,
   }: {
     highlightIso?: string | null;
@@ -29,6 +31,8 @@
     projection?: MapProjection;
     interactive?: boolean;
     disabled?: boolean;
+    reduceMotion?: boolean;
+    questionKey?: string | number | null;
     onpick?: (iso2: string) => void;
   } = $props();
 
@@ -56,6 +60,8 @@
     {projection}
     {interactive}
     {disabled}
+    {reduceMotion}
+    {questionKey}
     {onpick}
   />
 {:else}

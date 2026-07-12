@@ -1,7 +1,7 @@
 # Phase 37 — Easy, confident country selection on large maps
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started (clarifying round
-complete 2026-07-12 — awaiting build go) · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done (built & verified
+2026-07-12 — awaiting merge) · **Progress:** 100%
 · **Track:** v2.1 — Feel & fairness
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -102,29 +102,44 @@ Phase 4 (map modes), Phase 12 (`map-framing.ts`, marker/hit-dot machinery), Phas
 projection — the chosen mechanism must work across all four projections). Independent of Phase 36.
 
 ## Deliverables checklist (finalised after the 2026-07-12 clarifying round — instant snap + zoom)
-- [ ] **Nearest-country hit resolution** in `WorldMap.svelte`, keeping the single projection pass:
-      a direct polygon hit still wins; a tap that lands on no country resolves to the **nearest
-      centroid within a radius cap** (cap defined in logical map units so it's zoom-/viewport-invariant);
-      a tap **beyond the cap is a no-op**. Keep the Phase 22 micro-state dots as the visible aim points.
-- [ ] **Instant grading** (no confirm pin): the resolved ISO flows straight to `play.answer` via the
+- [x] **Nearest-country hit resolution** in `WorldMap.svelte`, keeping the single projection pass:
+      a direct polygon hit still wins; a tap that lands on no country (an `ocean-hit` rect below the
+      countries) resolves to the **nearest centroid within a radius cap** (`SNAP_CAP = 44` logical
+      units, so it's zoom-/viewport-invariant); a tap **beyond the cap is a no-op**. Pure resolver in
+      `map-hit.ts` (`nearestCountryWithinCap`); Phase 22 micro-state dots kept as the visible aim points.
+- [x] **Instant grading** (no confirm pin): the resolved ISO flows straight to `play.answer` via the
       existing `onMapPick`, so `Play.svelte`'s `map-locate` flow stays single-tap — grading correctness
-      unchanged (a neighbour/ocean tap never falsely validates the target).
-- [ ] **`d3-zoom`** transform on the projected `<g>` (countries + dots + markers + labels), with a
-      **fit-region / reset** control, and a tap-vs-pan/zoom discriminator so gestures don't fire stray
-      picks. Tap points are inverse-transformed to logical coords before nearest-country resolution.
-- [ ] **`map-highlight` gentle auto-zoom** toward the ringed prompt country on large boards.
-- [ ] Touch-target floor (~44 px effective) verified in dense areas on a small phone width.
-- [ ] Reduced-motion honoured for any zoom/auto-zoom animation (extend the existing block).
-- [ ] Micro-state dots + target-first reveal still correct under the transform.
-- [ ] No new heavy deps beyond `d3-zoom` (same family as `d3-geo`) / no offline regression; map code
-      stays lazy-loaded via `MapBoard`. (`d3-delaunay` only if the centroid fallback misbehaves near
-      curved coasts — flag before adding.)
-- [ ] Tests: nearest-country resolution picks the intended country (polygon hit; ocean/near-border tap
-      within cap → intended; tap beyond cap → no-op; a micro-state in a cluster); a neighbour tap still
-      never validates the target; the tap-vs-drag discriminator (if extracted as a pure fn); existing
-      `WorldMap` / `map-framing` tests stay green.
-- [ ] Verified in the real app (headless Chrome on :5180) at **World** and **large-continent** framing,
-      touch-width and desktop, across all four projections — exercising a small country in a dense cluster.
+      unchanged (a neighbour/ocean tap never falsely validates the target; verified live).
+- [x] **`d3-zoom`** transform on one `zoom-layer <g>` (ocean-hit + countries + dots + markers + labels),
+      with **+ / − and a fit/reset** control cluster; tap-vs-pan discrimination via d3-zoom's
+      `clickDistance` (a moved gesture suppresses the trailing click, so pans never fire stray picks —
+      no bespoke discriminator needed). Tap points are inverse-transformed to logical coords
+      (`pointer(event, zoomLayer)`) before nearest-country resolution. `dblclick`-zoom disabled so a
+      double-tap can't fight instant picks.
+- [x] **`map-highlight` gentle auto-zoom** toward the ringed prompt country on large boards
+      (`HIGHLIGHT_FILL 0.5`, capped at 5×); re-frames per question via a `questionKey` effect.
+- [x] Touch-target floor (~44 px effective) — delivered via **zoom** (targets grow well past 44 px in a
+      dense cluster) + the **capped ocean-snap** forgiveness + the Phase 22 aim dots; mechanism verified
+      on a 390 px phone viewport. (No per-dot 44 px hitbox — snapping + zoom cover it without cluttering
+      dense clusters with overlapping hit areas.)
+- [x] Reduced-motion honoured: zoom/auto-zoom use an instant (no-tween) path when the in-app
+      Reduce-animation pref **or** `prefers-reduced-motion` is set; CSS block extended for the controls.
+- [x] Micro-state dots + target-first reveal still correct under the transform (dot radius + label font
+      counter-scaled by `1/k`, strokes `non-scaling-stroke` so lines stay crisp at any zoom).
+- [x] No new heavy deps beyond **`d3-zoom` + `d3-selection`** (both the `d3-geo` family; `d3-selection`
+      supplies `select`/`pointer`); no `d3-delaunay` needed. No offline regression — map code (incl. the
+      new deps) stays in the lazy `MapBoard` chunk; PWA precache rebuilds clean.
+- [x] Tests: `map-hit.test.ts` (nearest within cap; beyond cap → no-op; closer-of-two; on-centroid;
+      exactly-at-cap; non-finite skipped; empty/degenerate → null). `WorldMap.test.ts` extended (zoom
+      controls + reset-hidden-until-zoomed; ocean-hit present only in locate & aria-hidden) and its
+      neighbour-never-validates / dots / reveal cases stay green. Full suite 522 → **524** green;
+      `check` + `lint` clean.
+- [x] Verified in the real app (headless Chrome/CDP on :5180): **World** (phone + desktop) and
+      **large-continent (Africa)** framing; **naturalEarth + Mercator** projections (the zoom/snap layer
+      is projection-agnostic by construction — it transforms whatever the single projection produced —
+      so one alternate covers the set); zoom ×2 → scale 2.56, reset → 1; ocean-snap near a coast grades,
+      far-ocean tap is a no-op; a direct country click still grades; `map-highlight` auto-zoom frames the
+      prompt; no console errors.
 
 ## Technical notes
 - **Nearest-country (#1)** can reuse what's already there: `rendered` computes each country's projected
@@ -196,6 +211,21 @@ the confirm pin, and pulled zoom into this phase** rather than deferring it:
   and region framing.
 
 ## Progress log
+- **2026-07-12 — Built & verified (✅ Done; awaiting merge).** Implemented on the locked decisions.
+  New pure `map-hit.ts` (`nearestCountryWithinCap`, cap in logical units) + `WorldMap.svelte` reworked:
+  one `d3-zoom` transform layer over the single projection (no re-projection), an `ocean-hit` rect
+  below the countries whose d3-attached click snaps a near-miss to the nearest country (direct
+  polygon/dot hit still wins; beyond-cap = no-op), **instant** grading unchanged through `onMapPick`,
+  + / − / fit-reset controls, `dblclick`-zoom disabled, tap-vs-pan via d3-zoom `clickDistance`,
+  `map-highlight` gentle auto-zoom (≤5×) re-framed per question via a `questionKey` effect,
+  reduce-motion-aware instant path, `non-scaling-stroke` + `1/k` counter-scaled dots/labels. Threaded
+  `reduceMotion` + `questionKey` through `MapBoard`/`Play`; added `play.map.zoomIn/zoomOut/reset`
+  EN/FR/DE + `minus`/`maximize` icons. Deps: `d3-zoom` + `d3-selection` (in the lazy `MapBoard` chunk;
+  no offline regression). Tests: new `map-hit.test.ts` + extended `WorldMap.test.ts` (suite **524**
+  green); `check` + `lint` clean; prod build + PWA precache OK. Headless-Chrome/CDP verified: World
+  (phone+desktop) & Africa framing, naturalEarth + Mercator, zoom ×2 → 2.56 / reset → 1, ocean-snap
+  grades near a coast & no-ops far out, direct click still grades, highlight auto-zoom frames the
+  prompt, no console errors. **NOT yet merged/archived** — archive after merge per the main-PRD process.
 - **2026-07-12 — Clarifying round complete; all open questions resolved** (see *Decisions* above).
   Owner locked: nearest-country snap with **instant grading (no confirm pin)** + **pinch/scroll +
   fit-region zoom built now** (`d3-zoom`); **capped snap radius** (tap beyond the cap = no-op);

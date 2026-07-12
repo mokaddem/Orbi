@@ -149,6 +149,9 @@ const en = {
       loading: 'Loading map…',
       error: 'Could not load the map.',
       label: 'World map',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out',
+      reset: 'Reset view',
     },
     progress: {
       question: 'Question {current} / {total}',

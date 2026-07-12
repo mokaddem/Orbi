@@ -152,6 +152,9 @@ const fr: typeof en = {
       loading: 'Chargement de la carte…',
       error: 'Impossible de charger la carte.',
       label: 'Carte du monde',
+      zoomIn: 'Zoom avant',
+      zoomOut: 'Zoom arrière',
+      reset: 'Réinitialiser la vue',
     },
     progress: {
       question: 'Question {current} / {total}',

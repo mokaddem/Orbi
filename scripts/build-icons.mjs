@@ -55,7 +55,9 @@ const ICONS = {
   'chevron-right': 'chevron-right',
   reset: 'rotate-ccw',
   search: 'search', // targeted-practice country picker (Phase 27)
-  plus: 'plus', // "New set" in targeted practice (Phase 27)
+  plus: 'plus', // "New set" in targeted practice (Phase 27); map zoom-in (Phase 37)
+  minus: 'minus', // map zoom-out (Phase 37)
+  maximize: 'maximize', // map "fit / reset view" control (Phase 37)
   trash: 'trash-2', // delete a saved custom set (Phase 27)
 };
 

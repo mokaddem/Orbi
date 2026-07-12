@@ -582,6 +582,8 @@
               : null}
             focusIsos={mapFocusIsos(cfg)}
             projection={$prefs.mapProjection}
+            reduceMotion={$prefs.reduceMotion}
+            questionKey={s.index}
             onpick={onMapPick}
           />
         {:else}

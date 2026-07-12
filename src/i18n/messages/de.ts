@@ -158,6 +158,9 @@ const de: typeof en = {
       loading: 'Karte wird geladen…',
       error: 'Die Karte konnte nicht geladen werden.',
       label: 'Weltkarte',
+      zoomIn: 'Vergrößern',
+      zoomOut: 'Verkleinern',
+      reset: 'Ansicht zurücksetzen',
     },
     progress: {
       question: 'Frage {current} / {total}',
