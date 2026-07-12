@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import type { SRItem } from '../data/persistence/types';
 import { MS_PER_DAY } from './sr';
-import { dominantTrainingMode, parseItemKey, selectTrainingItems } from './training';
+import {
+  GRADUATE_AFTER,
+  dominantTrainingMode,
+  parseItemKey,
+  selectTrainingItems,
+} from './training';
 
 const NOW = 10 * MS_PER_DAY; // a round "today" well clear of the epoch
 
@@ -59,6 +64,42 @@ describe('selectTrainingItems — which items', () => {
     expect(keys).toContain('AA');
     expect(keys).toContain('BB');
     expect(keys).not.toContain('CC');
+  });
+
+  it('retires a lapsed item once it is re-learned (GRADUATE_AFTER consecutive correct)', () => {
+    const items = [
+      // Missed once, then answered right GRADUATE_AFTER times in a row and pushed out of
+      // due range: re-learned, so it should no longer be suggested purely on its old lapse.
+      sr({
+        itemKey: 'flag-to-country:RELEARNED',
+        dueAt: NOW + 5 * MS_PER_DAY,
+        lapses: 1,
+        repetitions: GRADUATE_AFTER,
+      }),
+      // One short of the graduation streak: still worth training.
+      sr({
+        itemKey: 'flag-to-country:ALMOST',
+        dueAt: NOW + 5 * MS_PER_DAY,
+        lapses: 1,
+        repetitions: GRADUATE_AFTER - 1,
+      }),
+    ];
+    const keys = selectTrainingItems(items, { now: NOW }).map((i) => i.iso2);
+    expect(keys).not.toContain('RELEARNED');
+    expect(keys).toContain('ALMOST');
+  });
+
+  it('still surfaces a re-learned item once it falls due again (due beats graduation)', () => {
+    const items = [
+      sr({
+        itemKey: 'flag-to-country:DUEAGAIN',
+        dueAt: NOW - MS_PER_DAY,
+        lapses: 2,
+        repetitions: GRADUATE_AFTER + 1,
+      }),
+    ];
+    const keys = selectTrainingItems(items, { now: NOW }).map((i) => i.iso2);
+    expect(keys).toEqual(['DUEAGAIN']);
   });
 
   it('dueOnly excludes not-yet-due lapsed items', () => {

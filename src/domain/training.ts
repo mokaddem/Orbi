@@ -41,10 +41,25 @@ export interface SelectTrainingOptions {
   dueOnly?: boolean;
 }
 
-/** An item is worth training if it is due for review or has ever been missed. */
+/**
+ * Consecutive correct answers that retire a previously-missed item from the lapse-based
+ * suggestions. `repetitions` resets to 0 on any miss (see `sr.ts`), so this reads as
+ * "answered right this many times in a row since the last mistake" — i.e. re-learned.
+ * A graduated item still resurfaces normally once it is genuinely due again (SM-2),
+ * which is the point of spaced repetition; it just stops being *permanently* suggested.
+ */
+export const GRADUATE_AFTER = 3;
+
+/**
+ * An item is worth training if its review is due, or it has been missed and not yet
+ * re-learned (fewer than {@link GRADUATE_AFTER} consecutive correct answers since the last
+ * miss). A due item always qualifies regardless of streak. Without the graduation clause a
+ * single lapse would keep a country suggested forever, since `lapses` never decrements.
+ */
 function isTrainable(item: SRItem, now: number, dueOnly: boolean): boolean {
   const due = item.dueAt <= now;
-  return dueOnly ? due : due || item.lapses > 0;
+  if (dueOnly) return due;
+  return due || (item.lapses > 0 && item.repetitions < GRADUATE_AFTER);
 }
 
 /**
@@ -67,8 +82,9 @@ function byWeakness(now: number) {
 
 /**
  * Select and order the items to train from all persisted SR state. Returns due and/or
- * previously-missed items, weakest first, optionally narrowed to one `mode` and capped
- * at `limit`. Pure and order-independent given `now`.
+ * previously-missed-but-not-yet-re-learned items (see {@link GRADUATE_AFTER}), weakest
+ * first, optionally narrowed to one `mode` and capped at `limit`. Pure and
+ * order-independent given `now`.
  */
 export function selectTrainingItems(
   srItems: readonly SRItem[],
