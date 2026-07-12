@@ -17,7 +17,7 @@ there are no separately maintained older releases.
 Please **do not** open a public issue for a security problem.
 
 Instead, report it privately via GitHub's
-[**Report a vulnerability**](https://github.com/mokaddem/geography-quiz/security/advisories/new)
+[**Report a vulnerability**](https://github.com/mokaddem/Orbi/security/advisories/new)
 (Security → Advisories), or by email to **mokaddem.sami@gmail.com**.
 
 Please include:

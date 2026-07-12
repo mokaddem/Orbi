@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: ▶︎ Play Orbi
-    url: https://mokaddem.github.io/geography-quiz/
+    url: https://mokaddem.github.io/Orbi/
     about: Try the live app before filing — the bug may already be fixed on the deployed version.
   - name: 💬 Questions & ideas (Discussions)
-    url: https://github.com/mokaddem/geography-quiz/discussions
+    url: https://github.com/mokaddem/Orbi/discussions
     about: For open-ended questions or to chat about the project.

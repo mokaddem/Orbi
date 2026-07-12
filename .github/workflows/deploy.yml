@@ -1,7 +1,7 @@
 # Builds the static site and deploys it to GitHub Pages.
 #
-# The Vite `base` is pinned to `/geography-quiz/` (see vite.config.ts), which matches a
-# GitHub Pages *project* site at https://<user>.github.io/geography-quiz/. If you fork this
+# The Vite `base` is pinned to `/Orbi/` (see vite.config.ts), which matches a
+# GitHub Pages *project* site at https://<user>.github.io/Orbi/. If you fork this
 # under a different repo name, update `base` to `/<repo-name>/`.
 #
 # One-time setup: repo Settings -> Pages -> "Build and deployment" -> Source: "GitHub Actions".

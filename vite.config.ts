@@ -5,10 +5,10 @@ import { svelteTesting } from '@testing-library/svelte/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // Deployed to GitHub Pages under a project subpath, so the production build (and the
-// preview server that mimics it) are served from `/geography-quiz/`. The dev server stays
+// preview server that mimics it) are served from `/Orbi/`. The dev server stays
 // at root `/` to keep the pinned http://localhost:5180 workflow friction-free — safe
 // because routing is hash-based and all asset URLs go through Vite's `base`.
-const BASE = '/geography-quiz/';
+const BASE = '/Orbi/';
 
 // https://vite.dev/config/
 export default defineConfig(({ command, isPreview }) => ({

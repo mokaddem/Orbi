@@ -17,8 +17,8 @@ By participating you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md)
 You'll need **Node.js 22+** (the version CI runs on) and npm.
 
 ```sh
-git clone https://github.com/mokaddem/geography-quiz.git
-cd geography-quiz
+git clone https://github.com/mokaddem/Orbi.git
+cd Orbi
 npm install
 npm run dev        # dev server on http://localhost:5180
 ```

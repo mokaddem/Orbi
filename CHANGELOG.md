@@ -99,4 +99,4 @@ the entries below summarize that history, newest first. **v2.1 is the first publ
 - 🌐 Full **EN / FR** localization.
 - 📴 Installable, offline-capable **PWA** with no backend.
 
-[2.1.0]: https://github.com/mokaddem/geography-quiz/releases/tag/v2.1.0
+[2.1.0]: https://github.com/mokaddem/Orbi/releases/tag/v2.1.0

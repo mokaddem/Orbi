@@ -12,10 +12,10 @@ wrong? Orbi quietly remembers it and brings it back until it sticks.
 
 No account. No backend. No network required after the first load. Just you and 195 countries.
 
-### ▶︎ [**Play it now →**](https://mokaddem.github.io/geography-quiz/)
+### ▶︎ [**Play it now →**](https://mokaddem.github.io/Orbi/)
 
-[![Deploy](https://github.com/mokaddem/geography-quiz/actions/workflows/deploy.yml/badge.svg)](https://github.com/mokaddem/geography-quiz/actions/workflows/deploy.yml)
-[![CI](https://github.com/mokaddem/geography-quiz/actions/workflows/ci.yml/badge.svg)](https://github.com/mokaddem/geography-quiz/actions/workflows/ci.yml)
+[![Deploy](https://github.com/mokaddem/Orbi/actions/workflows/deploy.yml/badge.svg)](https://github.com/mokaddem/Orbi/actions/workflows/deploy.yml)
+[![CI](https://github.com/mokaddem/Orbi/actions/workflows/ci.yml/badge.svg)](https://github.com/mokaddem/Orbi/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-14b8a6.svg)](LICENSE)
 ![PWA](https://img.shields.io/badge/PWA-installable%20%26%20offline-10a5a0)
 ![Built with Svelte](https://img.shields.io/badge/built%20with-Svelte%205-ff3e00?logo=svelte&logoColor=white)
@@ -57,14 +57,14 @@ No account. No backend. No network required after the first load. Just you and 1
 
 ## 🚀 Play
 
-The easiest way is to just **[open the live app](https://mokaddem.github.io/geography-quiz/)** and,
+The easiest way is to just **[open the live app](https://mokaddem.github.io/Orbi/)** and,
 if you like it, hit **Install** in your browser to keep Orbi one tap away — online or off.
 
 ### Run it yourself
 
 ```sh
-git clone https://github.com/mokaddem/geography-quiz.git
-cd geography-quiz
+git clone https://github.com/mokaddem/Orbi.git
+cd Orbi
 npm install
 npm run dev      # → http://localhost:5180
 ```
