@@ -459,6 +459,10 @@ const de: typeof en = {
     reduceMotion: 'Animationen reduzieren',
     reduceMotionHint:
       'Schaltet Orbis Animationen und andere Bewegungen aus. Wird auch automatisch berücksichtigt, wenn dein Gerät reduzierte Bewegung anfordert.',
+    sound: 'Ton',
+    soundEffects: 'Soundeffekte',
+    soundEffectsHint:
+      'Spielt sanfte Klänge und Jingles bei richtigen und falschen Antworten, Serien, beendeten Spielen, freigeschalteten Abzeichen und der täglichen Herausforderung. Standardmäßig an.',
     map: 'Karte',
     mapProjection: 'Kartenprojektion',
     projection: {

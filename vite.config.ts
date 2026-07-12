@@ -56,10 +56,11 @@ export default defineConfig(({ command, isPreview }) => ({
       },
       workbox: {
         // Precache the whole app shell plus every gameplay asset needed offline:
-        // JS/CSS/HTML, the dataset + TopoJSON geometry (json), and all flag SVGs.
+        // JS/CSS/HTML, the dataset + TopoJSON geometry (json), all flag SVGs, and the
+        // bundled sound jingles (ogg — Phase 36) so audio works with no connection.
         // (The web manifest and its PNG icons are auto-added by vite-plugin-pwa, so they
         // are deliberately left out of the glob to avoid duplicate precache entries.)
-        globPatterns: ['**/*.{js,css,html,svg,json,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,json,woff,woff2,ogg}'],
         // The bundled TopoJSON (~750 KB) is the largest single asset; keep headroom.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,

@@ -441,6 +441,10 @@ const en = {
     reduceMotion: 'Reduce animation',
     reduceMotionHint:
       'Turns off Orbi’s animations and other motion. Also honoured automatically if your device requests reduced motion.',
+    sound: 'Sound',
+    soundEffects: 'Sound effects',
+    soundEffectsHint:
+      'Plays gentle sounds and jingles on correct and wrong answers, streaks, finished games, unlocked badges and the Daily Challenge. On by default.',
     map: 'Map',
     mapProjection: 'Map projection',
     projection: {

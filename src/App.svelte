@@ -8,9 +8,30 @@
   import LanguageSwitcher from './ui/components/LanguageSwitcher.svelte';
   import { t } from './i18n';
   import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
+  import { sound } from './ui/sound';
 
   onMount(() => {
     void initPersistence();
+
+    // Autoplay-safe unlock (Phase 36): browsers block audio until a user gesture, so create /
+    // resume the audio backend on the first interaction — then cues are free. Runs once; cues
+    // that (unlikely) fire before this are silently dropped by the service, never queued.
+    const unlock = (): void => {
+      sound.unlock();
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  });
+
+  // Mirror the sound master toggle onto the service so muting is instant and global.
+  $effect(() => {
+    sound.setEnabled($prefs.sound);
   });
 
   // Keep the browser tab title localized; re-runs whenever the locale changes.

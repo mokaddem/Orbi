@@ -36,6 +36,7 @@ const prefs: Prefs = {
   choicesPerQuestion: 6,
   mapProjection: 'equalEarth',
   reduceMotion: true,
+  sound: true,
 };
 
 const srItem: SRItem = {

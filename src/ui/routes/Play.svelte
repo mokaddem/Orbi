@@ -26,6 +26,7 @@
     type RunConfig,
   } from '../stores/game';
   import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
+  import { sound } from '../sound';
   import Flag from '../components/Flag.svelte';
   import PageHero from '../components/PageHero.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
@@ -39,6 +40,11 @@
   // whenever there's a reveal to read. Fixed by design (not a setting).
   const CORRECT_MS = 1500;
   const REVEAL_MS = 4500;
+
+  // Streak milestones that earn the celebratory rising arpeggio (Phase 36); its index bumps
+  // the arpeggio up a step each milestone. A milestone answer plays `streak` in place of the
+  // plain `correct` cue, so the two never overlap.
+  const STREAK_MILESTONES = [3, 5, 10, 15, 20];
 
   // A reveal is shown — so linger for REVEAL_MS rather than CORRECT_MS — on any wrong
   // answer, and also on a *correct* industries answer (which lists the country's full set
@@ -266,6 +272,12 @@
             mode: summary.mode,
           });
         }
+        // End-of-session jingle (Phase 36): the Daily Challenge gets its own habit jingle; an
+        // otherwise-flawless run gets the celebratory peak; every other finish, the soft resolve.
+        // Fires well after the last per-question cue (auto-advance dwell), so they never overlap.
+        if (dailyDate) sound.play('daily');
+        else if (summary.total > 0 && summary.correct === summary.total) sound.play('perfect');
+        else sound.play('finish');
       }
       push('/summary');
     }
@@ -283,6 +295,24 @@
     if ($play.status !== 'answered') return;
     const id = setTimeout(onContinue, dwellMs($play.feedback));
     return () => clearTimeout(id);
+  });
+
+  // Verdict cue (Phase 36): a warm rising mallet on correct (a brighter climbing arpeggio at a
+  // streak milestone), a soft low tone on wrong. Fires once per graded question — same
+  // 'answered' gate as the auto-advance timer, so it can't double-fire. The end-of-session
+  // jingle comes later (in onContinue) and never overlaps this short cue.
+  $effect(() => {
+    if ($play.status !== 'answered') return;
+    const fb = $play.feedback;
+    if (!fb) return;
+    if (!fb.correct) {
+      sound.play('wrong');
+      return;
+    }
+    const streak = $play.state?.streak ?? 0;
+    const milestone = STREAK_MILESTONES.indexOf(streak);
+    if (milestone >= 0) sound.play('streak', { level: milestone });
+    else sound.play('correct');
   });
 
   // ISO codes to frame the map on, for a region-scoped map session. Memoized by config

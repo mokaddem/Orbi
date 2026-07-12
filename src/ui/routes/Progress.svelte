@@ -20,6 +20,7 @@
     storageReady,
     type AchievementView,
   } from '../stores/persistence';
+  import { sound } from '../sound';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
   import MascotScene from '../components/MascotScene.svelte';
@@ -61,6 +62,16 @@
   // Badges that unlocked on this load — celebrated once via a dismissible banner.
   let unlockDismissed = $state(false);
   const justUnlocked = $derived(achievements.filter((a) => a.justUnlocked));
+
+  // Badge-unlock chime (Phase 36): play the sparkle once when a first-time unlock surfaces on
+  // this load, pairing the jingle with the celebration banner. Guarded to fire a single time.
+  let unlockCuePlayed = false;
+  $effect(() => {
+    if (justUnlocked.length > 0 && !unlockCuePlayed) {
+      unlockCuePlayed = true;
+      sound.play('achievement');
+    }
+  });
 
   async function refresh(): Promise<void> {
     loading = true;

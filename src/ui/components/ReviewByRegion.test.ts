@@ -30,6 +30,7 @@ beforeEach(() => {
     choicesPerQuestion: 4,
     mapProjection: 'naturalEarth',
     reduceMotion: false,
+    sound: true,
   });
 });
 afterEach(() => setLocale('en'));

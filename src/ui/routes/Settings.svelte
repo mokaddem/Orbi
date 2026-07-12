@@ -132,6 +132,20 @@
 
   <p class="hint">{$t('settings.reduceMotionHint')}</p>
 
+  <h2>{$t('settings.sound')}</h2>
+
+  <div class="row">
+    <label class="label" for="pref-sound">{$t('settings.soundEffects')}</label>
+    <input
+      id="pref-sound"
+      type="checkbox"
+      checked={$prefs.sound}
+      onchange={(e) => updatePrefs({ sound: e.currentTarget.checked })}
+    />
+  </div>
+
+  <p class="hint">{$t('settings.soundEffectsHint')}</p>
+
   <h2>{$t('settings.map')}</h2>
 
   <div class="row">

@@ -8,6 +8,7 @@ const base: Prefs = {
   choicesPerQuestion: 4,
   mapProjection: 'naturalEarth',
   reduceMotion: false,
+  sound: true,
 };
 
 describe('mapProjection pref (Phase 28)', () => {
@@ -35,5 +36,22 @@ describe('mapProjection pref (Phase 28)', () => {
       clampPrefs({ ...base, mapProjection: undefined as unknown as Prefs['mapProjection'] })
         .mapProjection,
     ).toBe('naturalEarth');
+  });
+});
+
+describe('sound pref (Phase 36)', () => {
+  it('defaults to on', () => {
+    expect(DEFAULT_PREFS.sound).toBe(true);
+  });
+
+  it('keeps an explicit boolean through clampPrefs', () => {
+    expect(clampPrefs({ ...base, sound: false }).sound).toBe(false);
+    expect(clampPrefs({ ...base, sound: true }).sound).toBe(true);
+  });
+
+  it('defaults an absent (pre-Phase-36) value to on rather than off', () => {
+    // A legacy prefs blob has no `sound` key; the default is *on*, so a plain `!!` coercion
+    // (which would yield off) would be wrong — an absent value must resolve to the default.
+    expect(clampPrefs({ ...base, sound: undefined as unknown as Prefs['sound'] }).sound).toBe(true);
   });
 });

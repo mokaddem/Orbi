@@ -196,6 +196,21 @@ implementation** (see the callout at the top of the file).
 | 34 | "Orbi Play" visual redesign (mobile & desktop) | [phase-34-orbi-play-redesign.md](phases/archive/phase-34-orbi-play-redesign.md) | 12, 18, 29, 30, 33 | ✅ Done | 100% (recoloured token set, responsive rail/bottom-bar shell, pill CTAs, per-route desktop layouts; merged to main + archived) |
 | 35 | Play mode-picker redesign + "Grand Tour" format | [phase-35-play-modes-grand-tour.md](phases/archive/phase-35-play-modes-grand-tour.md) | 5, 23–25, 34 | ✅ Done | 100% (category-first mode picker — Map/Flags/Capitals/Extra families → direction tray; new uncapped `full` "Grand Tour" session over the whole selected region/sub-region; map-locate wrong-pick label + dot hover; violet token + EN/FR/DE; merged to main + archived) |
 
+### v2.1 — Feel & fairness (sound + map selection)
+
+Two owner-requested improvements to how the app *feels* to play: give the playful interface a **voice**
+(short sound effects & jingles at the existing feedback moments), and fix the long-standing pain that
+selecting the right country on a **large continent / the whole world** is very hard. Both are
+presentation/interaction work — no new data or domain modes. As before, each PRD **requires a
+clarifying-questions round with the owner before implementation** (see the callout at the top of each
+file). Independent of each other; buildable in any order. Phase 37 is the **future phase** Phase 22
+deferred its interactive-zoom work to.
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 36 | Sound effects & jingles | [phase-36-sound-effects.md](phases/phase-36-sound-effects.md) | 2, 9, 16, 33 | ✅ Done | 100% (hybrid: gentle Web-Audio synth `correct`/`wrong`/`streak` + 4 self-made marimba `.ogg` jingles `finish`/`perfect`/`achievement`/`daily`; `Prefs.sound` on-by-default + Settings "Sound" toggle EN/FR/DE; autoplay-safe unlock; precached offline; verified dev+prod+offline. Awaiting merge, then archive) |
+| 37 | Easy, confident country selection on large maps | [phase-37-large-map-selection.md](phases/phase-37-large-map-selection.md) | 4, 12, 22, 28 | ⬜ Not started | 0% |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 

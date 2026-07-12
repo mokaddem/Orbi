@@ -461,6 +461,10 @@ const fr: typeof en = {
     reduceMotion: 'Réduire les animations',
     reduceMotionHint:
       'Désactive les animations d’Orbi et les autres mouvements. Pris en compte automatiquement si votre appareil demande de réduire les animations.',
+    sound: 'Son',
+    soundEffects: 'Effets sonores',
+    soundEffectsHint:
+      'Joue de petits sons et jingles pour les bonnes et mauvaises réponses, les séries, les parties terminées, les badges débloqués et le Défi du jour. Activé par défaut.',
     map: 'Carte',
     mapProjection: 'Projection de la carte',
     projection: {

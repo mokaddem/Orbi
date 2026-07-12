@@ -116,6 +116,8 @@ export interface Prefs {
   mapProjection: MapProjection;
   /** Force the static (no-animation) presentation regardless of the OS setting (Phase 33). */
   reduceMotion: boolean;
+  /** Play sound effects & jingles at feedback moments; single master on/off (Phase 36). */
+  sound: boolean;
 }
 
 /** Defaults applied on first run and merged over any partially-stored prefs. */
@@ -126,6 +128,7 @@ export const DEFAULT_PREFS: Prefs = {
   choicesPerQuestion: 4,
   mapProjection: 'naturalEarth',
   reduceMotion: false,
+  sound: true,
 };
 
 /** Bounds for the numeric prefs, shared by the Settings UI and validation. */
@@ -162,6 +165,8 @@ export function clampPrefs(prefs: Prefs): Prefs {
       : DEFAULT_PREFS.mapProjection,
     // Coerce any legacy/absent value to a real boolean.
     reduceMotion: !!prefs.reduceMotion,
+    // Absent in a pre-Phase-36 prefs blob → default (on) via the merge; else coerced.
+    sound: prefs.sound === undefined ? DEFAULT_PREFS.sound : !!prefs.sound,
   };
 }
 
