@@ -1,5 +1,10 @@
 # Builds the static site and deploys it to GitHub Pages.
 #
+# Release-driven: Pages is (re)published only when a version tag `v*` is pushed
+# (e.g. `v2.1.0`), not on every push to main. Day-to-day pushes and PRs still run
+# the full quality gate via ci.yml; a deploy is a deliberate, tagged release.
+# Use the `workflow_dispatch` button to publish an untagged build by hand.
+#
 # The Vite `base` is pinned to `/Orbi/` (see vite.config.ts), which matches a
 # GitHub Pages *project* site at https://<user>.github.io/Orbi/. If you fork this
 # under a different repo name, update `base` to `/<repo-name>/`.
@@ -9,7 +14,8 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 # Least-privilege token that can publish to Pages.
