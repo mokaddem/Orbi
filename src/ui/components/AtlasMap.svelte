@@ -41,6 +41,16 @@
       ),
     ),
   );
+
+  // Country mode: only a country too small to pick out by its fill at world scale gets a
+  // locator ring, drawn in map units so it's always visible (Vatican, Monaco, Malta…). It's
+  // anchored to the country's main landmass, so it never drifts onto a neighbour. Larger
+  // countries read fine as the bold coral shape on their own — no marker.
+  const LOCATOR_MAX_SIZE = 26; // map units (of a 980×500 world) ≈ a small European state
+  const focus = $derived(focusIso ? (rendered.find((c) => c.iso2 === focusIso) ?? null) : null);
+  const locator = $derived(
+    focus && focus.anchor && focus.screenSize < LOCATOR_MAX_SIZE ? focus.anchor : null,
+  );
 </script>
 
 <div class="map">
@@ -63,6 +73,17 @@
         />
       {/each}
     </g>
+    {#if locator}
+      <g
+        class="locator"
+        transform="translate({locator[0]} {locator[1]})"
+        data-testid="locator"
+        aria-hidden="true"
+      >
+        <circle class="locator-halo" r="13" />
+        <circle class="locator-ring" r="13" />
+      </g>
+    {/if}
   </svg>
 </div>
 
@@ -95,18 +116,39 @@
     stroke-width: 0.9;
   }
 
-  /* Country mode: the focus country's region, softly tinted as a locator backdrop… */
+  /* Country mode: the focus country's region, faintly tinted as a locator backdrop — kept
+     dim so the focus country reads as the clear figure on top of it… */
   .country.context {
     fill: var(--map-highlight);
-    fill-opacity: 0.32;
+    fill-opacity: 0.22;
     stroke: var(--map-highlight-line);
+    stroke-opacity: 0.5;
     stroke-width: 0.5;
   }
 
-  /* …and the country itself, the bright, boldly-outlined focus on top of it. */
+  /* …and the country itself: a bold coral shape (near-complementary to the teal map) with a
+     crisp dark outline, so the selected country is unmistakable against its dimmed region. */
   .country.focus {
-    fill: var(--map-highlight);
+    fill: var(--color-coral);
     stroke: var(--map-highlight-line);
     stroke-width: 1.6;
+    paint-order: stroke;
+  }
+
+  /* Locator ring (country mode): only for a country too small to see at world scale. A fixed
+     screen-size coral ring encircling the speck, its white halo keeping it legible over both
+     land and the region tint. Hollow (no centre dot) so it reads as "the country is here",
+     not as a capital marker. */
+  .locator-halo {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 5.5;
+    stroke-opacity: 0.9;
+  }
+
+  .locator-ring {
+    fill: none;
+    stroke: var(--color-coral);
+    stroke-width: 2.6;
   }
 </style>
