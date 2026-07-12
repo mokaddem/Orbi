@@ -39,7 +39,7 @@ jobs:
       # `prebuild` regenerates the bundled dataset (scripts/build-data.mjs) from the source
       # packages, then Vite emits the static site (incl. service worker) to dist/.
       - run: npm run build
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
