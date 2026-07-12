@@ -1,6 +1,6 @@
 # Phase 36 — Sound effects & jingles
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v2.1 — Feel & fairness
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -171,6 +171,9 @@ All open questions were resolved with the owner on **2026-07-11** (see **Decisio
   toggle on and off.
 
 ## Progress log
+- **2026-07-12 — Merged to main + archived.** Fast-forwarded `phase-36-sound-effects` into `main`
+  (commit `564e949`, no merge commit) and moved this PRD to `docs/phases/archive/` per the main-PRD
+  process. Phase 36 closed.
 - **2026-07-11 — Built & verified (✅ Done; awaiting merge).** Implemented on the locked decisions.
   `Prefs.sound` (default on, absent→on) in `types.ts`; sound service `src/ui/sound.ts` — lazy
   `AudioContext`, first-gesture unlock (`App.svelte`), gentle synth `correct`/`wrong`/`streak` (low
