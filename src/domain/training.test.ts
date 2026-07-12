@@ -121,6 +121,19 @@ describe('selectTrainingItems — which items', () => {
     expect(result[0].mode).toBe('map-highlight');
   });
 
+  it('filters to a set of eligible modes', () => {
+    const items = [
+      sr({ itemKey: 'flag-to-country:AA', lapses: 1 }),
+      sr({ itemKey: 'capital-to-country:AA', lapses: 1 }),
+      sr({ itemKey: 'country-to-languages:AA', lapses: 1 }),
+    ];
+    const result = selectTrainingItems(items, {
+      now: NOW,
+      modes: ['flag-to-country', 'capital-to-country'],
+    });
+    expect(result.map((i) => i.mode).sort()).toEqual(['capital-to-country', 'flag-to-country']);
+  });
+
   it('ignores malformed keys', () => {
     const items = [
       sr({ itemKey: 'garbage', lapses: 5 }),

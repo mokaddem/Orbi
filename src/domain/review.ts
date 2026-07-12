@@ -14,7 +14,7 @@
 import type { SRItem } from '../data/persistence/types';
 import type { RegionResolver } from './stats';
 import { selectTrainingItems, type TrainingItem } from './training';
-import { ALL_MODES } from './modes';
+import { ALL_MODES, REVIEW_MODES } from './modes';
 import type { GameMode } from './types';
 
 /** One top-level region's review pool: the items to drill and how urgent it is. */
@@ -36,6 +36,13 @@ export interface ReviewByRegionOptions {
   now?: number;
   /** Per-region cap on the drilled pool (mirrors a training session's length cap). */
   limit?: number;
+  /**
+   * Modes eligible to be *proposed* for review. Defaults to {@link REVIEW_MODES} (maps, flags,
+   * capitals): the app never suggests reviewing the extra-knowledge topics (languages/industries),
+   * even when the player has missed them — so a region whose only weak items are in an excluded
+   * mode produces no review at all.
+   */
+  modes?: readonly GameMode[];
 }
 
 /**
@@ -60,8 +67,10 @@ function dominantModeOf(items: readonly TrainingItem[]): GameMode {
 
 /**
  * Group the trainable SR state by top-level region into per-region review pools, most-urgent
- * first. Trainable = due or ever-missed (the `selectTrainingItems` default), so this subsumes
- * the old global "train all" pool *and* the weak-spot nudge, just partitioned by region.
+ * first. Trainable = due or ever-missed (the `selectTrainingItems` default), restricted to the
+ * review-eligible modes (`options.modes`, default {@link REVIEW_MODES}: maps, flags, capitals) —
+ * so this subsumes the old global "train all" pool *and* the weak-spot nudge, partitioned by
+ * region, but never proposes reviewing the extra-knowledge topics.
  *
  * Each region commits to its dominant mode; `iso2s` are that mode's items, weakest first,
  * capped at `limit`. Regions are ordered by most-due, then most-total, then region name — so
@@ -74,8 +83,9 @@ export function reviewByRegion(
 ): RegionReview[] {
   const now = options.now ?? Date.now();
 
-  // All trainable items, already ordered weakest-first (due before not-due, then by lapses…).
-  const items = selectTrainingItems(srItems, { now });
+  // All trainable items, already ordered weakest-first (due before not-due, then by lapses…),
+  // scoped to the review-eligible modes so we never propose reviewing languages/industries.
+  const items = selectTrainingItems(srItems, { now, modes: options.modes ?? REVIEW_MODES });
 
   // Partition by top-level region, preserving the weakest-first order within each group.
   const byRegion = new Map<string, TrainingItem[]>();

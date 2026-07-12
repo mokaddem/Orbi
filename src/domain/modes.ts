@@ -89,6 +89,15 @@ export const EXTRA_TOPICS: readonly {
   { key: 'industries', modes: INDUSTRY_MODES },
 ];
 
+/**
+ * Modes the app will **propose a spaced-repetition review for** ("Time to review", Phase 26):
+ * the country-identification quizzes (maps + flags) plus capitals. The extra-knowledge topics
+ * (languages, industries) are deliberately excluded — they are still played and still accrue SR
+ * state (and a just-played round can be re-drilled from its summary), but the app never *suggests*
+ * a review round for them. `reviewByRegion` and the "review everything" plan filter on this set.
+ */
+export const REVIEW_MODES: readonly GameMode[] = [...MASTERY_MODES, ...CAPITAL_MODES];
+
 /** Whether `mode` presents attribute-value options rather than country options. */
 export function isAttributeMode(mode: GameMode): boolean {
   return ATTRIBUTE_MODES.includes(mode);

@@ -35,6 +35,11 @@ export interface SelectTrainingOptions {
   now?: number;
   /** Restrict to a single game mode (items are keyed `mode:iso2`). */
   mode?: GameMode;
+  /**
+   * Restrict to a set of eligible modes (an item's mode must be one of these). Combines with
+   * `mode` when both are given. Used to scope review suggestions to {@link REVIEW_MODES}.
+   */
+  modes?: readonly GameMode[];
   /** Cap the number of items returned (after ordering). */
   limit?: number;
   /** If set, include only items that are currently due (ignores not-yet-due lapses). */
@@ -98,6 +103,7 @@ export function selectTrainingItems(
       const parsed = parseItemKey(item.itemKey);
       if (!parsed) return false;
       if (options.mode && parsed.mode !== options.mode) return false;
+      if (options.modes && !options.modes.includes(parsed.mode)) return false;
       return isTrainable(item, now, dueOnly);
     })
     .sort(byWeakness(now));

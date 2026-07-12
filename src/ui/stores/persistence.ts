@@ -27,6 +27,7 @@ import {
   CAPITAL_MODES,
   LANGUAGE_MODES,
   INDUSTRY_MODES,
+  REVIEW_MODES,
   buildDailyChallenge,
   computeMastery,
   computeStats,
@@ -212,7 +213,9 @@ export interface TrainingPlan {
 export async function loadTrainingPlan(limit = TRAINING_SESSION_MAX): Promise<TrainingPlan | null> {
   if (!store) return null;
   const srItems = await store.getAllSRItems();
-  const mode = dominantTrainingMode(srItems);
+  // "Review everything" is a review proposal too, so restrict it to the review-eligible modes
+  // (maps/flags/capitals) — never surface a languages/industries round here.
+  const mode = dominantTrainingMode(srItems, { modes: REVIEW_MODES });
   if (!mode) return null;
   const items = selectTrainingItems(srItems, { mode, limit });
   if (items.length === 0) return null;

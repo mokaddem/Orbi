@@ -85,6 +85,42 @@ describe('reviewByRegion — grouping & selection', () => {
   });
 });
 
+describe('reviewByRegion — review-eligible modes only', () => {
+  it('never proposes the extra-knowledge topics (languages/industries) by default', () => {
+    const items = [
+      // Europe: a missed flag (eligible) and a more-lapsed languages item (excluded).
+      due('flag-to-country:FR'),
+      due('country-to-languages:DE', 5),
+      // Asia: only an industries item — an excluded mode, so this region yields no review at all.
+      due('country-to-industry:JP', 4),
+    ];
+    const reviews = reviewByRegion(items, regionOf, { now: NOW });
+    expect(reviews.map((r) => r.region)).toEqual(['Europe']);
+    const [europe] = reviews;
+    expect(europe.mode).toBe('flag-to-country');
+    expect(europe.iso2s).toEqual(['FR']); // the languages item is filtered out
+  });
+
+  it('keeps the capital modes eligible', () => {
+    const items = [due('capital-to-country:FR', 2), due('capital-to-country:DE', 1)];
+    const europe = reviewByRegion(items, regionOf, { now: NOW })[0];
+    expect(europe.region).toBe('Europe');
+    expect(europe.mode).toBe('capital-to-country');
+    expect(europe.iso2s).toEqual(['FR', 'DE']);
+  });
+
+  it('honors an explicit `modes` override (e.g. to include a normally-excluded topic)', () => {
+    const items = [due('country-to-languages:FR', 2)];
+    expect(reviewByRegion(items, regionOf, { now: NOW })).toEqual([]);
+    const europe = reviewByRegion(items, regionOf, {
+      now: NOW,
+      modes: ['country-to-languages'],
+    })[0];
+    expect(europe.mode).toBe('country-to-languages');
+    expect(europe.iso2s).toEqual(['FR']);
+  });
+});
+
 describe('reviewByRegion — due counts & ordering', () => {
   it('counts due vs total and orders regions most-due-first', () => {
     const items = [
