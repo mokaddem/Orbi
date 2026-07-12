@@ -1,6 +1,7 @@
 # Phase 37 — Easy, confident country selection on large maps
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started (clarifying round
+complete 2026-07-12 — awaiting build go) · **Progress:** 0%
 · **Track:** v2.1 — Feel & fairness
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -100,22 +101,30 @@ Phase 4 (map modes), Phase 12 (`map-framing.ts`, marker/hit-dot machinery), Phas
 + target-first reveal — this phase continues its deferred zoom/selection work), and Phase 28 (map
 projection — the chosen mechanism must work across all four projections). Independent of Phase 36.
 
-## Deliverables checklist (shaped for the recommended combo — **finalise after OQ1**)
-- [ ] Chosen mechanism implemented in `WorldMap.svelte` (recommended: nearest-country hit resolution +
-      a pin + a Confirm control), keeping the single projection pass.
-- [ ] `Play.svelte` `map-locate` flow updated from instant single-tap to **place-pin → confirm** (or
-      the picked mechanism's flow), without regressing grading correctness.
-- [ ] If zoom lands: `d3-zoom` transform on `<g class="countries">` (+ dots/markers), a fit-region /
-      reset control, and pan/zoom that don't fire stray picks.
+## Deliverables checklist (finalised after the 2026-07-12 clarifying round — instant snap + zoom)
+- [ ] **Nearest-country hit resolution** in `WorldMap.svelte`, keeping the single projection pass:
+      a direct polygon hit still wins; a tap that lands on no country resolves to the **nearest
+      centroid within a radius cap** (cap defined in logical map units so it's zoom-/viewport-invariant);
+      a tap **beyond the cap is a no-op**. Keep the Phase 22 micro-state dots as the visible aim points.
+- [ ] **Instant grading** (no confirm pin): the resolved ISO flows straight to `play.answer` via the
+      existing `onMapPick`, so `Play.svelte`'s `map-locate` flow stays single-tap — grading correctness
+      unchanged (a neighbour/ocean tap never falsely validates the target).
+- [ ] **`d3-zoom`** transform on the projected `<g>` (countries + dots + markers + labels), with a
+      **fit-region / reset** control, and a tap-vs-pan/zoom discriminator so gestures don't fire stray
+      picks. Tap points are inverse-transformed to logical coords before nearest-country resolution.
+- [ ] **`map-highlight` gentle auto-zoom** toward the ringed prompt country on large boards.
 - [ ] Touch-target floor (~44 px effective) verified in dense areas on a small phone width.
-- [ ] Reduced-motion honoured for any zoom/pin animation (extend the existing block).
-- [ ] Micro-state dots + target-first reveal still correct under the new mechanism.
-- [ ] No new heavy deps / no offline regression; map code stays lazy-loaded via `MapBoard`.
-- [ ] Tests: nearest-country resolution picks the intended country (incl. an ocean/near-border tap and
-      a micro-state in a cluster); confirm-before-commit; a neighbour tap still never validates the
-      target; existing `WorldMap` / `map-framing` tests stay green.
+- [ ] Reduced-motion honoured for any zoom/auto-zoom animation (extend the existing block).
+- [ ] Micro-state dots + target-first reveal still correct under the transform.
+- [ ] No new heavy deps beyond `d3-zoom` (same family as `d3-geo`) / no offline regression; map code
+      stays lazy-loaded via `MapBoard`. (`d3-delaunay` only if the centroid fallback misbehaves near
+      curved coasts — flag before adding.)
+- [ ] Tests: nearest-country resolution picks the intended country (polygon hit; ocean/near-border tap
+      within cap → intended; tap beyond cap → no-op; a micro-state in a cluster); a neighbour tap still
+      never validates the target; the tap-vs-drag discriminator (if extracted as a pure fn); existing
+      `WorldMap` / `map-framing` tests stay green.
 - [ ] Verified in the real app (headless Chrome on :5180) at **World** and **large-continent** framing,
-      touch-width and desktop, across projections — exercising a small country in a dense cluster.
+      touch-width and desktop, across all four projections — exercising a small country in a dense cluster.
 
 ## Technical notes
 - **Nearest-country (#1)** can reuse what's already there: `rendered` computes each country's projected
@@ -156,6 +165,25 @@ projection — the chosen mechanism must work across all four projections). Inde
    without removing the large scopes the owner wants? (Recommendation: keep the scopes; fix selection,
    don't restrict the mode.)
 
+## Decisions (locked with the owner — 2026-07-12)
+All open questions resolved. The owner **kept the recommended snap mechanism but chose _instant_ over
+the confirm pin, and pulled zoom into this phase** rather than deferring it:
+- **OQ1 / OQ2 — Mechanism:** nearest-country snap, **instant grading (no confirm pin)**, **plus
+  pinch/scroll + fit-region zoom built now** (`d3-zoom`). Zoom is the precision path for players who
+  want it; the snap keeps casual taps forgiving; instant keeps it snappy.
+- **OQ3 — `map-highlight`:** **add a gentle auto-zoom** toward the ringed prompt country on large
+  boards (no answer leaks in choice-grid mode).
+- **OQ4 — a11y:** ~44 px effective touch-target floor; **no a11y work beyond "no regression"** (default).
+- **OQ5 — Snap radius:** **capped** — the tap must land near the correct country; snapping from
+  mid-ocean to a far country is disallowed.
+- **OQ6 — Scopes:** **keep World / large-continent scopes**; fix selection, don't restrict the mode.
+
+> **Instant (no confirm) note:** the confirm pin was the PRD's answer to the Phase 22 "did my tap
+> register?" doubt. With instant chosen, that confidence instead comes from (a) zoom-for-precision,
+> (b) the forgiving capped snap, and (c) the existing target-first reveal + Phase 35 wrong-pick label /
+> dot-hover. A tap **beyond the cap** (empty ocean) is a **no-op** (question stays open) rather than an
+> instant wrong, so an obvious miss never burns a question.
+
 ## Acceptance criteria
 - On a **World** or **large-continent** board, on both a phone-width and a desktop viewport, the player
   can select the intended country **quickly and confidently**, including a small country in a dense
@@ -168,6 +196,12 @@ projection — the chosen mechanism must work across all four projections). Inde
   and region framing.
 
 ## Progress log
+- **2026-07-12 — Clarifying round complete; all open questions resolved** (see *Decisions* above).
+  Owner locked: nearest-country snap with **instant grading (no confirm pin)** + **pinch/scroll +
+  fit-region zoom built now** (`d3-zoom`); **capped snap radius** (tap beyond the cap = no-op);
+  **gentle auto-zoom for `map-highlight`**; ~44 px touch floor with no a11y beyond no-regression; keep
+  World/large scopes. Deliverables re-shaped to this combo. **Still NOT built — awaiting explicit build
+  approval.**
 - **2026-07-11 — PRD drafted** from the owner's report that selecting a country on large continents /
   the world is extremely difficult, with a request to investigate and rank alternatives. Grounded in
   the current map implementation (`WorldMap.svelte` single fixed 980×500 projection, no pan/zoom;
