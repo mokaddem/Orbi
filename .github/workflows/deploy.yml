@@ -33,6 +33,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Quality gate: never publish a red build. (PRs get the same checks via ci.yml.)
+      - run: npm run check
+      - run: npm run test
       # `prebuild` regenerates the bundled dataset (scripts/build-data.mjs) from the source
       # packages, then Vite emits the static site (incl. service worker) to dist/.
       - run: npm run build

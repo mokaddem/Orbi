@@ -1,73 +1,107 @@
+<div align="center">
+
+<img src="public/pwa-192x192.png" alt="Orbi mascot" width="120" height="120" />
+
 # Orbi
 
-**Orbi** is a trilingual (EN / FR / DE), offline-first web game for learning world geography via
-**map** and **flag** quizzes (plus capitals, languages and industries), with spaced-repetition
-training on the countries you get wrong. Fully client-side SPA — no backend; gameplay data is
-bundled statically and progress lives in the browser (IndexedDB). *Orbi* is also the app's friendly
-globe mascot.
+**Learn the whole world — one map, flag and capital at a time.** 🌍
 
-See [`docs/main_PRD.md`](docs/main_PRD.md) for the full product spec, architecture, and the
-phase-by-phase plan.
+Orbi is a friendly, offline-first geography game. Meet your globe-shaped guide, pick a corner
+of the planet, and quiz yourself on **maps, flags, capitals, languages and industries**. Get one
+wrong? Orbi quietly remembers it and brings it back until it sticks.
 
-## Tech stack
+No account. No backend. No network required after the first load. Just you and 195 countries.
 
-Svelte 5 + Vite + TypeScript · hash-based routing (`svelte-spa-router`) · custom lightweight
-i18n store · installable, offline-capable **PWA** (`vite-plugin-pwa` / Workbox) · Vitest
-(+ `@testing-library/svelte`) · ESLint + Prettier.
+### ▶︎ [**Play it now →**](https://mokaddem.github.io/geography-quiz/)
 
-## Getting started
+[![Deploy](https://github.com/mokaddem/geography-quiz/actions/workflows/deploy.yml/badge.svg)](https://github.com/mokaddem/geography-quiz/actions/workflows/deploy.yml)
+[![CI](https://github.com/mokaddem/geography-quiz/actions/workflows/ci.yml/badge.svg)](https://github.com/mokaddem/geography-quiz/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-14b8a6.svg)](LICENSE)
+![PWA](https://img.shields.io/badge/PWA-installable%20%26%20offline-10a5a0)
+![Built with Svelte](https://img.shields.io/badge/built%20with-Svelte%205-ff3e00?logo=svelte&logoColor=white)
+![Languages](https://img.shields.io/badge/languages-EN%20%C2%B7%20FR%20%C2%B7%20DE-0ea5e9)
+
+</div>
+
+---
+
+## 🎮 What you can do
+
+- 🗺️ **Find countries on the map** — spot the highlighted one, or drop a pin on the country Orbi names.
+- 🚩 **Match flags to names** — both directions, all 195 of them.
+- 🏛️ **Guess capitals**, 🈯 **national languages** and 🏭 **main industries**.
+- 🎯 **Play your way** — a quick 10, sudden-death **Survival**, or a full **Grand Tour** of a whole region.
+- 🌍 **Zoom in anywhere** — the World, one continent, or a single sub-region.
+- 🧠 **Train your mistakes** — spaced repetition (SM-2) resurfaces exactly the countries you fumble.
+- 🔥 **Build a streak** with a fresh **Daily Challenge**, and collect **achievements** as you go.
+- 📈 **Watch mastery grow** — per-region progress, history and weekly recaps.
+- 📖 **Browse the Atlas** — every country and region, with a "Did you know?" fact for each.
+- 🌐 **Switch language on the fly** — English, French and German, UI *and* country names.
+- 📴 **Install it & go offline** — it's a full PWA; after the first visit, everything works with no connection.
+
+## 📸 A quick look
+
+|            Pick a mode, region & format            |        Which country is highlighted?         |
+| :------------------------------------------------: | :-------------------------------------: |
+| <img src="docs/screenshots/play.png" width="420"/> | <img src="docs/screenshots/map-quiz.png" width="420"/> |
+
+|                     Browse the Atlas                     |                  Every country, with facts                  |
+| :------------------------------------------------------: | :---------------------------------------------------------: |
+| <img src="docs/screenshots/atlas.png" width="420"/>      | <img src="docs/screenshots/country.png" width="420"/>       |
+
+<div align="center">
+  <img src="docs/screenshots/map-locate-mobile.png" width="240" alt="Orbi on mobile — locate mode with a helpful reveal" />
+  <br/>
+  <em>…and it's built for your phone, too.</em>
+</div>
+
+## 🚀 Play
+
+The easiest way is to just **[open the live app](https://mokaddem.github.io/geography-quiz/)** and,
+if you like it, hit **Install** in your browser to keep Orbi one tap away — online or off.
+
+### Run it yourself
 
 ```sh
+git clone https://github.com/mokaddem/geography-quiz.git
+cd geography-quiz
 npm install
-npm run dev       # dev server on http://localhost:5180
+npm run dev      # → http://localhost:5180
 ```
 
-## Scripts
+That's it. Want the real, installable, offline build? `npm run build && npm run preview`.
 
-| Script            | Description                                            |
-| ----------------- | ------------------------------------------------------ |
-| `npm run dev`     | Start the Vite dev server (port **5180**, strict).     |
-| `npm run build`   | Production build to `dist/`.                            |
-| `npm run preview` | Preview the production build (port **5181**, strict).  |
-| `npm run test`    | Run the Vitest suite once.                             |
-| `npm run test:watch` | Run Vitest in watch mode.                           |
-| `npm run check`   | Type-check with `svelte-check`.                         |
-| `npm run lint`    | Lint (ESLint) and verify formatting (Prettier).        |
-| `npm run format`  | Format the codebase with Prettier.                     |
+## 🛠️ Under the hood
 
-## Project structure
+A deliberately lean, fully client-side single-page app:
 
-```
-src/
-  domain/   Pure, framework-agnostic game logic (generator, scoring, SM-2). [later phases]
-  data/     Static dataset + IndexedDB persistence.                          [later phases]
-  i18n/     Language store + EN/FR message dictionaries + pure translator.
-  ui/       Svelte components: app shell, nav, and routed screens.
-  App.svelte, main.ts, app.css
-```
+**Svelte 5** + **Vite** + **TypeScript** · **D3-geo** + **TopoJSON** maps · bundled **SVG flags** ·
+**IndexedDB** for your progress · **hash routing** so it hosts anywhere static · installable,
+Workbox-powered **PWA**. Domain logic (quiz generation, scoring, spaced repetition) is kept pure
+and framework-free, covered by a **Vitest** suite (500+ tests).
 
-Routing is hash-based (`#/`, `#/play`, `#/history`, `#/settings`, ...) so the app works as a
-static, offline-capable PWA without server-side route handling.
+Curious how it was built? The whole thing was developed phase-by-phase against a product spec —
+see [`docs/main_PRD.md`](docs/main_PRD.md).
 
-## PWA / offline
+## 🤝 Contributing
 
-The production build is an installable PWA. A Workbox service worker (via `vite-plugin-pwa`)
-precaches the whole app shell plus every gameplay asset needed offline — the bundled dataset,
-the TopoJSON map geometry, and all flag SVGs — so after the first load every mode plays with
-no network. Updates are applied automatically on the next visit.
+Ideas, bug reports and PRs are welcome! Start with **[CONTRIBUTING.md](CONTRIBUTING.md)** for the
+dev setup, project layout and conventions, and please be kind — this project follows a
+[Code of Conduct](CODE_OF_CONDUCT.md).
 
-- Verify offline locally: `npm run build && npm run preview`, open the preview URL, then in
-  DevTools → Network toggle **Offline** and reload — all four modes should still work.
-- PNG icons live in `public/` and are generated from `public/favicon.svg` by
-  `scripts/gen-icons.sh` (requires Inkscape); re-run it if the favicon design changes.
+## 📜 License & credits
 
-## Deployment (GitHub Pages)
+Code is released under the **[MIT License](LICENSE)** — do what you like with it.
 
-The app deploys to a GitHub Pages **project site**, so `base` is pinned to `/geography-quiz/`
-in `vite.config.ts` (the dev server stays at `/`). Pushing to `main` runs
-`.github/workflows/deploy.yml`, which builds and publishes `dist/`. One-time setup: repo
-**Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Orbi stands on the shoulders of open data:
 
-Hosting elsewhere? Change `base` in `vite.config.ts` — `'/'` for a domain root or Netlify,
-`'/<repo>/'` for a differently-named GitHub Pages project — then serve `dist/` as static
-files. Routing is hash-based, so no server rewrite rules are required.
+- **Flags** — [flag-icons](https://github.com/lipis/flag-icons) (MIT)
+- **Map geometry** — [world-atlas](https://github.com/topojson/world-atlas), derived from [Natural Earth](https://www.naturalearthdata.com/) (public domain)
+- **Country facts** — [world-countries](https://github.com/mledoze/countries)
+
+Capital, language, industry and "Did you know?" content was curated for this project. See each
+upstream project for its own license terms.
+
+<div align="center">
+  <sub>Made with 🌍 and a friendly little globe named Orbi.</sub>
+</div>

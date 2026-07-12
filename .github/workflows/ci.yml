@@ -1,0 +1,33 @@
+# Continuous integration: lint, type-check, test and build on every push & pull request.
+# This is the quality gate; deployment to GitHub Pages lives in deploy.yml.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref (a new push to a PR supersedes the old one).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Lint (ESLint + Prettier)
+        run: npm run lint
+      - name: Type-check (svelte-check)
+        run: npm run check
+      - name: Unit & component tests (Vitest)
+        run: npm run test
+      - name: Production build
+        run: npm run build

@@ -1,0 +1,30 @@
+name: 💡 Feature request
+description: Suggest a new mode, improvement, or idea for Orbi.
+title: '[Idea]: '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Love that you want to make Orbi better! Tell us what you have in mind.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+      description: Describe the feature or improvement.
+      placeholder: A "guess the currency" mode, or ...
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve?
+      description: What would this let you (or other learners) do that you can't today?
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or extra context
+      description: Anything else — sketches, similar apps, edge cases to consider.
+    validations:
+      required: false
