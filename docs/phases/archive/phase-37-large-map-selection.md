@@ -1,7 +1,7 @@
 # Phase 37 — Easy, confident country selection on large maps
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done (built & verified
-2026-07-12 — awaiting merge) · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done (merged to main +
+archived 2026-07-12) · **Progress:** 100%
 · **Track:** v2.1 — Feel & fairness
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -211,6 +211,9 @@ the confirm pin, and pulled zoom into this phase** rather than deferring it:
   and region framing.
 
 ## Progress log
+- **2026-07-12 — Merged to main + archived.** Fast-forwarded `phase-37-large-map-selection` into
+  `main` (commit `f40c526`, no merge commit) and moved this PRD to `docs/phases/archive/` per the
+  main-PRD process. Phase 37 closed — v2.1 "Feel & fairness" track complete.
 - **2026-07-12 — Built & verified (✅ Done; awaiting merge).** Implemented on the locked decisions.
   New pure `map-hit.ts` (`nearestCountryWithinCap`, cap in logical units) + `WorldMap.svelte` reworked:
   one `d3-zoom` transform layer over the single projection (no re-projection), an `ocean-hit` rect
