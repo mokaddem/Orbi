@@ -25,12 +25,15 @@ describe('mapProjection pref (Phase 28)', () => {
 
   it('keeps a valid stored projection through clampPrefs', () => {
     expect(clampPrefs({ ...base, mapProjection: 'mercator' }).mapProjection).toBe('mercator');
+    // 'globe' (Phase 38) is a valid surface too, not coerced away.
+    expect(clampPrefs({ ...base, mapProjection: 'globe' }).mapProjection).toBe('globe');
   });
 
   it('coerces a corrupted/legacy projection back to the default', () => {
     // A pre-Phase-28 prefs blob has no mapProjection; a corrupted one has a bad value.
     expect(
-      clampPrefs({ ...base, mapProjection: 'globe' as Prefs['mapProjection'] }).mapProjection,
+      clampPrefs({ ...base, mapProjection: 'orthographic' as Prefs['mapProjection'] })
+        .mapProjection,
     ).toBe('naturalEarth');
     expect(
       clampPrefs({ ...base, mapProjection: undefined as unknown as Prefs['mapProjection'] })

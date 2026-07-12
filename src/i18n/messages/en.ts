@@ -455,6 +455,7 @@ const en = {
       equalEarth: 'Equal Earth',
       equirectangular: 'Equirectangular',
       mercator: 'Mercator',
+      globe: '3D Globe',
     },
     notPersisted: 'Storage is unavailable — settings and history won’t be saved.',
     data: {

@@ -473,6 +473,7 @@ const de: typeof en = {
       equalEarth: 'Equal Earth',
       equirectangular: 'Äquirektangulär',
       mercator: 'Mercator',
+      globe: '3D-Globus',
     },
     notPersisted:
       'Der Speicher ist nicht verfügbar — Einstellungen und Verlauf werden nicht gesichert.',

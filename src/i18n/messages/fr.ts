@@ -475,6 +475,7 @@ const fr: typeof en = {
       equalEarth: 'Equal Earth',
       equirectangular: 'Équirectangulaire',
       mercator: 'Mercator',
+      globe: 'Globe 3D',
     },
     notPersisted:
       'Le stockage est indisponible — les paramètres et l’historique ne seront pas enregistrés.',

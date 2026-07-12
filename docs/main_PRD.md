@@ -211,6 +211,19 @@ deferred its interactive-zoom work to.
 | 36 | Sound effects & jingles | [phase-36-sound-effects.md](phases/archive/phase-36-sound-effects.md) | 2, 9, 16, 33 | ✅ Done | 100% (hybrid: gentle Web-Audio synth `correct`/`wrong`/`streak` + 4 self-made marimba `.ogg` jingles `finish`/`perfect`/`achievement`/`daily`; `Prefs.sound` on-by-default + Settings "Sound" toggle EN/FR/DE; autoplay-safe unlock; precached offline; verified dev+prod+offline. Merged to main + archived) |
 | 37 | Easy, confident country selection on large maps | [phase-37-large-map-selection.md](phases/archive/phase-37-large-map-selection.md) | 4, 12, 22, 28 | ✅ Done | 100% (nearest-country ocean-snap within a capped radius, **instant** grading; `d3-zoom` pan/zoom with + / − / fit-reset controls; `map-highlight` gentle auto-zoom; reduce-motion instant path; crisp non-scaling strokes; `d3-zoom`+`d3-selection` in the lazy MapBoard chunk. Tests 524 green; verified headless at World+Africa, naturalEarth+Mercator, phone+desktop. Merged to main + archived) |
 
+### v2.2 — Dimensional maps (play on a 3D globe)
+
+Owner-requested new map surface: a real, interactive **3D globe** to play on, with the same
+functionality as the flat map but smooth to spin/zoom/fly-between-regions and visibly playful. It is the
+orthographic "globe" Phase 28 deferred, now built as a proper **WebGL (three.js)** planet rather than a
+static projection, and offered as a **5th entry in the existing map-projection dropdown**. As before, the
+PRD **requires a clarifying-questions round with the owner before implementation** (see the callout at
+the top of the file).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 38 | Play on a 3D globe (WebGL projection) | [phase-38-globe-projection.md](phases/phase-38-globe-projection.md) | 4, 12, 22, 28, 37 | 🟡 In progress | ~95% (Stages 1 + 2 built & verified: `'globe'` pref + lazy-loaded/precached three.js `GlobeMap`, both modes, geoContains + micro/ocean snap picking, auto-rotate + region fit-distance, reveal/picked labels, +/−/reset zoom, idle-spin preview, WebGL→flat fallback; pending owner review + on-device check + merge) |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 

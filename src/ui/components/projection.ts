@@ -17,7 +17,11 @@ import {
 } from 'd3-geo';
 import type { MapProjection } from '../../data';
 
-const CONSTRUCTORS: Record<MapProjection, () => GeoProjection> = {
+// Only the *planar* projections live here. `'globe'` (Phase 38) is intentionally absent:
+// it is not a D3 projection but a separate WebGL renderer selected by `MapBoard`, so it
+// falls through to the Natural-Earth fallback below — which is exactly the flat map shown
+// when the globe is requested on a device without WebGL.
+const CONSTRUCTORS: Partial<Record<MapProjection, () => GeoProjection>> = {
   naturalEarth: geoNaturalEarth1,
   equalEarth: geoEqualEarth,
   equirectangular: geoEquirectangular,
@@ -25,9 +29,9 @@ const CONSTRUCTORS: Record<MapProjection, () => GeoProjection> = {
 };
 
 /**
- * Return a fresh (un-fit) projection for the given preference. Falls back to Natural
- * Earth — the historical default — for any unknown value, so a corrupted pref never
- * breaks the map.
+ * Return a fresh (un-fit) planar projection for the given preference. Falls back to
+ * Natural Earth — the historical default — for `'globe'` and any unknown value, so a
+ * corrupted pref (or the globe's flat fallback) never breaks the map.
  */
 export function projectionFor(name: MapProjection): GeoProjection {
   return (CONSTRUCTORS[name] ?? geoNaturalEarth1)();

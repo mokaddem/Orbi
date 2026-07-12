@@ -88,18 +88,23 @@ export interface CustomSet {
 }
 
 /**
- * Map projection offered for the map modes (Phase 28). All are planar D3-geo
- * projections that fit the flat board via `fitExtent`; kept a small curated set so
- * every in-scope country stays visible. `naturalEarth` is the historical default.
+ * Map surface offered for the map modes. The first four (Phase 28) are planar D3-geo
+ * projections that fit the flat board via `fitExtent`; kept a small curated set so every
+ * in-scope country stays visible. `'globe'` (Phase 38) is not a planar projection but an
+ * interactive WebGL 3D globe, selected via the same preference and rendered by a separate
+ * component. `naturalEarth` is the historical default (and the flat fallback when WebGL is
+ * unavailable).
  */
-export type MapProjection = 'naturalEarth' | 'equalEarth' | 'equirectangular' | 'mercator';
+export type MapProjection =
+  'naturalEarth' | 'equalEarth' | 'equirectangular' | 'mercator' | 'globe';
 
-/** The offered projections, in display order (drives the Settings dropdown). */
+/** The offered surfaces, in display order (drives the Settings dropdown). */
 export const MAP_PROJECTIONS = [
   'naturalEarth',
   'equalEarth',
   'equirectangular',
   'mercator',
+  'globe',
 ] as const satisfies readonly MapProjection[];
 
 /** Type guard so a corrupted/legacy stored value falls back to the default. */

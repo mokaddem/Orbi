@@ -8,6 +8,10 @@ import { projectionFor } from './projection';
 // distinct projection.
 const SAMPLE: [number, number] = [100, 60];
 
+// The planar projections only — `'globe'` is a WebGL renderer, not a D3 projection, so
+// `projectionFor('globe')` intentionally returns the Natural-Earth flat fallback.
+const PLANAR = MAP_PROJECTIONS.filter((p) => p !== 'globe');
+
 describe('projectionFor', () => {
   it('returns a working projection for every offered name', () => {
     for (const name of MAP_PROJECTIONS) {
@@ -18,20 +22,22 @@ describe('projectionFor', () => {
     }
   });
 
-  it('gives distinct results for distinct projections', () => {
+  it('gives distinct results for distinct planar projections', () => {
     const seen = new Set<string>();
-    for (const name of MAP_PROJECTIONS) {
+    for (const name of PLANAR) {
       const p = projectionFor(name)(SAMPLE)!;
       seen.add(`${p[0].toFixed(3)},${p[1].toFixed(3)}`);
     }
-    // All four projections place the sample point differently.
-    expect(seen.size).toBe(MAP_PROJECTIONS.length);
+    // Each planar projection places the sample point differently.
+    expect(seen.size).toBe(PLANAR.length);
   });
 
-  it('falls back to Natural Earth for an unknown name', () => {
-    const fallback = projectionFor('bogus' as MapProjection)(SAMPLE)!;
+  it('falls back to Natural Earth for an unknown name and for the globe', () => {
     const natural = geoNaturalEarth1()(SAMPLE)!;
-    expect(fallback[0]).toBeCloseTo(natural[0]);
-    expect(fallback[1]).toBeCloseTo(natural[1]);
+    for (const name of ['bogus', 'globe'] as MapProjection[]) {
+      const fallback = projectionFor(name)(SAMPLE)!;
+      expect(fallback[0]).toBeCloseTo(natural[0]);
+      expect(fallback[1]).toBeCloseTo(natural[1]);
+    }
   });
 });
