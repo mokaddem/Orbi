@@ -75,6 +75,12 @@ export class QuizSession {
   private bag: Country[] = [];
   private lastAnswerIso: string | null = null;
   private questionStartedAt = 0;
+  /**
+   * Distinct iso2 answered **correctly at least once** (survival "region cleared" win, Phase 40).
+   * A country missed then later gotten right still counts, so a region can be cleared on the last
+   * life. `size` can't overshoot `answers.length` — questions only ever draw from `answers`.
+   */
+  private readonly cleared = new Set<string>();
 
   private readonly s: SessionState;
 
@@ -184,6 +190,7 @@ export class QuizSession {
       this.s.correct += 1;
       this.s.streak += 1;
       if (this.s.streak > this.s.bestStreak) this.s.bestStreak = this.s.streak;
+      this.cleared.add(question.answer.iso2);
     } else {
       this.s.streak = 0;
       if (this.type === 'survival') this.s.livesRemaining -= 1;
@@ -222,6 +229,11 @@ export class QuizSession {
       durationMs: Math.max(0, finished - started),
       missed,
       results: results.slice(),
+      // A survival run that *finished with lives left* can only have ended by clearing the
+      // region (the sole other survival finish is 0 lives). Gated on `finished` so a mid-run
+      // `summary()` never reads as cleared; `false` for non-survival types.
+      cleared:
+        this.type === 'survival' && this.s.status === 'finished' && this.s.livesRemaining > 0,
     };
   }
 
@@ -236,7 +248,11 @@ export class QuizSession {
   }
 
   private shouldFinish(): boolean {
-    if (this.type === 'survival') return this.s.livesRemaining <= 0;
+    // Survival ends in a **loss** at 0 lives, or a **win** once the region is *cleared* —
+    // every country in the answer pool answered correctly at least once (Phase 40). Without
+    // the clear, a flawless run reshuffles the draw bag forever.
+    if (this.type === 'survival')
+      return this.s.livesRemaining <= 0 || this.cleared.size >= this.answers.length;
     // `full` (Grand Tour) runs until every country in the answer pool has been asked once;
     // the draw bag is exhausted without replacement, so this asks each exactly once.
     if (this.type === 'full') return this.s.results.length >= this.answers.length;

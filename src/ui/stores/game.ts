@@ -70,6 +70,12 @@ export interface PlayView {
   /** Current unanswered question, or (while `answered`) the one just graded. */
   question: Question | null;
   feedback: AnsweredFeedback | null;
+  /**
+   * The session's answer-pool size (distinct countries it can ask about, after the mode's
+   * eligibility filter) — constant per session, `null` when idle. The survival HUD reads it
+   * as the denominator of its "mastered X / N" clear-progress indicator (Phase 40).
+   */
+  answerCount: number | null;
 }
 
 const idleView: PlayView = {
@@ -78,6 +84,7 @@ const idleView: PlayView = {
   state: null,
   question: null,
   feedback: null,
+  answerCount: null,
 };
 
 function createPlayStore() {
@@ -132,7 +139,14 @@ function createPlayStore() {
       // so the HUD progress bar and the summary total read the real length, not a prefs default.
       if (cfg.type === 'full') config = { ...cfg, fixedLength: session.answerCount };
       const question = session.next();
-      set({ status: 'playing', config, state: snapshot(), question, feedback: null });
+      set({
+        status: 'playing',
+        config,
+        state: snapshot(),
+        question,
+        feedback: null,
+        answerCount: session.answerCount,
+      });
     },
 
     /**
@@ -158,6 +172,7 @@ function createPlayStore() {
           pickedIds: isMulti ? pick : null,
           correct: result.correct,
         },
+        answerCount: session.answerCount,
       });
       return result;
     },
@@ -169,11 +184,25 @@ function createPlayStore() {
     advance(): boolean {
       if (!session) return false;
       if (session.isFinished()) {
-        set({ status: 'finished', config, state: snapshot(), question: null, feedback: null });
+        set({
+          status: 'finished',
+          config,
+          state: snapshot(),
+          question: null,
+          feedback: null,
+          answerCount: session.answerCount,
+        });
         return true;
       }
       const question = session.next();
-      set({ status: 'playing', config, state: snapshot(), question, feedback: null });
+      set({
+        status: 'playing',
+        config,
+        state: snapshot(),
+        question,
+        feedback: null,
+        answerCount: session.answerCount,
+      });
       return false;
     },
 

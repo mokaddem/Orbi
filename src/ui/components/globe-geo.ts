@@ -12,7 +12,7 @@
 // raycast hit can be inverted straight back to lon/lat.
 
 import { geoArea, geoCentroid, geoDistance } from 'd3-geo';
-import type { Geometry, MultiPoint, Position } from 'geojson';
+import type { Geometry, MultiPoint, Polygon, Position } from 'geojson';
 import { inlierMask } from './robust-stats';
 
 /** Equirectangular country-texture dimensions (px). 2048×1024 keeps borders crisp. */
@@ -111,6 +111,24 @@ export function fitDistanceForAngularRadius(rad: number): number {
  * there are no polygons or the largest one is degenerate.
  */
 export function largestPolygonCentroid(geom: Geometry): [number, number] {
+  const largest = largestPolygon(geom);
+  const c = largest ? geoCentroid(largest) : geoCentroid(geom);
+  return Number.isFinite(c[0]) && Number.isFinite(c[1])
+    ? [c[0], c[1]]
+    : (geoCentroid(geom) as [number, number]);
+}
+
+/**
+ * A country's **largest-area polygon** as a GeoJSON `Polygon`, or `null` when the geometry has
+ * no polygons (`Point` / `LineString` / empty). Areas are compared with `geoArea` (steradians),
+ * so the choice is projection-independent — the mainland is the mainland on the globe and on any
+ * flat projection alike. This is the shared "mainland selector" behind both the globe's
+ * {@link largestPolygonCentroid} and the flat map's mainland anchor (Phase 40): for a country
+ * with far-flung territory (France + French Guiana, Norway + Svalbard) it returns the biggest
+ * landmass, so labels, framing, and aim-assist anchor to the mainland rather than the
+ * all-polygon centre of mass. Identical to the sole polygon for a single-polygon country.
+ */
+export function largestPolygon(geom: Geometry): Polygon | null {
   let best: Position[][] | null = null;
   let bestArea = -1;
   for (const poly of polygonsOf(geom)) {
@@ -120,10 +138,7 @@ export function largestPolygonCentroid(geom: Geometry): [number, number] {
       best = poly;
     }
   }
-  const c = best ? geoCentroid({ type: 'Polygon', coordinates: best }) : geoCentroid(geom);
-  return Number.isFinite(c[0]) && Number.isFinite(c[1])
-    ? [c[0], c[1]]
-    : (geoCentroid(geom) as [number, number]);
+  return best ? { type: 'Polygon', coordinates: best } : null;
 }
 
 /** Flatten a Polygon/MultiPolygon geometry to its list of polygons (each a list of rings). */

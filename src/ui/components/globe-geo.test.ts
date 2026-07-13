@@ -7,6 +7,7 @@ import {
   appendBorderSegments,
   crossesAntimeridian,
   fitDistanceForAngularRadius,
+  largestPolygon,
   largestPolygonCentroid,
   lonLatToTexPx,
   lonLatToVec3,
@@ -134,6 +135,52 @@ describe('largestPolygonCentroid', () => {
     const [lon, lat] = largestPolygonCentroid({ type: 'Point', coordinates: [12, 34] });
     expect(lon).toBeCloseTo(12, 3);
     expect(lat).toBeCloseTo(34, 3);
+  });
+});
+
+describe('largestPolygon', () => {
+  const squarePoly = (lon: number, lat: number, h: number): Position[][] => [
+    [
+      [lon - h, lat - h],
+      [lon - h, lat + h],
+      [lon + h, lat + h],
+      [lon + h, lat - h],
+      [lon - h, lat - h],
+    ],
+  ];
+
+  it('returns the sole polygon for a single-polygon country', () => {
+    const poly = largestPolygon({ type: 'Polygon', coordinates: squarePoly(10, 50, 4) });
+    expect(poly).not.toBeNull();
+    expect(poly!.type).toBe('Polygon');
+    expect(poly!.coordinates).toEqual(squarePoly(10, 50, 4));
+  });
+
+  it('picks the biggest polygon of a multipolygon (mainland over a far small territory)', () => {
+    const geom: Geometry = {
+      type: 'MultiPolygon',
+      coordinates: [
+        squarePoly(2, 47, 5), // metropolitan France (big)
+        squarePoly(-53, 4, 1), // French Guiana (small, far off in South America)
+      ],
+    };
+    const poly = largestPolygon(geom);
+    expect(poly).not.toBeNull();
+    // The returned polygon is the big mainland square, not the tiny far one.
+    expect(poly!.coordinates).toEqual(squarePoly(2, 47, 5));
+  });
+
+  it('returns null for non-polygonal geometry', () => {
+    expect(largestPolygon({ type: 'Point', coordinates: [12, 34] })).toBeNull();
+  });
+
+  it('keeps largestPolygonCentroid output identical after the refactor', () => {
+    const geom: Geometry = {
+      type: 'MultiPolygon',
+      coordinates: [squarePoly(2, 47, 5), squarePoly(-53, 4, 1)],
+    };
+    // The centroid helper is now a thin wrapper: the largest polygon's centroid.
+    expect(largestPolygonCentroid(geom)).toEqual(geoCentroid(largestPolygon(geom)!));
   });
 });
 

@@ -12,6 +12,7 @@
   import type { FeatureCollection } from 'geojson';
   import type { CountryFeature, MapProjection } from '../../data';
   import { t } from '../../i18n';
+  import { largestPolygon } from './globe-geo';
   import Icon from './Icon.svelte';
   import { focusFrame } from './map-framing';
   import { nearestCountryWithinCap } from './map-hit';
@@ -23,9 +24,9 @@
   // (the Play shell) — this component only draws and reports.
   //
   // Modes use it differently:
-  //  • map-highlight → non-interactive display: one country is highlighted (with a
-  //    pointer ring so even microstates are visible) and the player answers elsewhere.
-  //    On a large board the map gently auto-zooms to frame the ringed prompt (Phase 37).
+  //  • map-highlight → non-interactive display: one country is highlighted (micro-states
+  //    also get a pointer ring so they stay visible) and the player answers elsewhere.
+  //    On a large board the map gently auto-zooms to frame the highlighted prompt (Phase 37).
   //  • map-locate    → interactive: the player clicks a country; once `disabled` the
   //    board locks and reveals the correct (and, if wrong, the picked) country.
   //
@@ -113,6 +114,7 @@
   const ZOOM_MS = 350; // animated re-frame duration (0 when reduce-motion)
   const CLICK_DISTANCE = 12; // viewBox units a tap may drift before it counts as a pan
   const SNAP_CAP = 44; // nearest-country snap radius, in logical units
+  const DOT_SNAP_CAP = 30; // micro-state aim-dot magnet radius (logical units, Phase 40)
   const DOT_R = 9; // aim-dot radius at k=1 (counter-scaled so it stays ~constant on screen)
   const REVEAL_FONT = 22; // reveal label px at k=1 (counter-scaled while zoomed)
   const PICKED_FONT = 20; // wrong-pick label px at k=1
@@ -159,8 +161,15 @@
     for (const [iso2, f] of features) {
       const d = path(f);
       if (!d) continue;
-      const [cx, cy] = path.centroid(f);
-      const [[bx0, by0], [bx1, by1]] = path.bounds(f);
+      // Anchor the centroid + framing bounds to the country's *mainland* (its largest
+      // polygon), matching the globe (Phase 38/40). A country with far-flung territory —
+      // France + French Guiana, Norway + Svalbard — otherwise centres on its full-geometry
+      // centre of mass, out at sea (France drifts into the Bay of Biscay). `area` stays on
+      // the *full* geometry, so which countries get an aim dot / count as "micro" is
+      // unchanged. Falls back to the full feature when there's no usable polygon.
+      const anchor = largestPolygon(f.geometry) ?? f;
+      const [cx, cy] = path.centroid(anchor);
+      const [[bx0, by0], [bx1, by1]] = path.bounds(anchor);
       const bounds: Bounds | null =
         Number.isFinite(bx0) && Number.isFinite(by0) && Number.isFinite(bx1) && Number.isFinite(by1)
           ? [bx0, by0, bx1, by1]
@@ -180,14 +189,19 @@
       : [],
   );
 
-  // Pointer ring drawing attention to the highlighted country (map-highlight), sized
-  // to the country but with a floor so microstates remain visible.
+  // Pointer ring drawing attention to the highlighted country (map-highlight), sized to
+  // the country but with a floor so microstates remain visible. Drawn *only for micro-states*
+  // (`area < SMALL_AREA`) — matching the reveal/picked-ring convention below: a normal-sized
+  // highlighted country is already unmistakable from its fill, so a ring on top just clutters
+  // it (owner feedback, Phase 40); the ring earns its place only where the fill is too small
+  // to see. A large highlight keeps its fill + auto-zoom framing, just no ring.
   const marker = $derived.by(() => {
     if (!highlightIso) return null;
     const item = rendered.find((r) => r.iso2 === highlightIso);
     if (!item || !Number.isFinite(item.cx) || !Number.isFinite(item.cy)) return null;
+    const micro = item.area < SMALL_AREA;
     const r = Math.min(40, Math.max(13, Math.sqrt(item.area) * 0.75));
-    return { cx: item.cx, cy: item.cy, r };
+    return { cx: item.cx, cy: item.cy, r, micro };
   });
 
   // Target-first reveal (map-locate, once answered): a name label on the country the
@@ -242,15 +256,32 @@
     onpick?.(iso2);
   }
 
-  // A tap that lands on open water (the ocean-hit rect below the countries) snaps to the
-  // nearest country centroid within the cap. `pointer(event, zoomLayer)` maps the tap
-  // into logical coords through the current zoom transform, so the cap stays meaningful
-  // at every zoom level. Beyond the cap → no-op (the question stays open).
-  function onOceanPick(event: MouseEvent): void {
+  // The single resolver every interactive tap routes through — country path, micro-state
+  // aim-dot, and the ocean-hit rect alike (Phase 40). Priority order:
+  //   1. Nearest micro-state aim-dot within DOT_SNAP_CAP → pick it. The *magnet*: a fingertip
+  //      near a tiny country's dot selects it even when the tap lands on its big neighbour
+  //      (Vatican over Italy). Touch has no hover to confirm the target, and a fingertip is far
+  //      larger than the dot, so without this the neighbour's path wins the raw hit.
+  //   2. Else the directly-hit country path (`fallbackIso`) → pick it.
+  //   3. Else the existing ocean snap: nearest country within SNAP_CAP → pick it.
+  //   4. Else a no-op (a clear miss past every cap leaves the question open).
+  // `pointer(event, zoomLayer)` inverse-transforms the tap through the current zoom, so the
+  // caps are fixed *logical* distances at any zoom level. Pinch-zoom (Phase 37) stays the
+  // precise fallback for a dense micro-state cluster. Grading is exact — this yields one ISO.
+  function resolvePick(event: MouseEvent, fallbackIso: string | null): void {
     if (!interactive || disabled || !zoomLayer) return;
     const [x, y] = pointer(event, zoomLayer);
-    const iso = nearestCountryWithinCap(x, y, rendered, SNAP_CAP);
-    if (iso) pick(iso);
+    const dot = nearestCountryWithinCap(x, y, hitDots, DOT_SNAP_CAP);
+    if (dot) {
+      pick(dot);
+      return;
+    }
+    if (fallbackIso) {
+      pick(fallbackIso);
+      return;
+    }
+    const near = nearestCountryWithinCap(x, y, rendered, SNAP_CAP);
+    if (near) pick(near);
   }
 
   // --- Zoom / pan (Phase 37) ------------------------------------------------------
@@ -405,7 +436,7 @@
   $effect(() => {
     if (!oceanEl) return;
     const sel = select(oceanEl);
-    sel.on('click', (event: MouseEvent) => onOceanPick(event));
+    sel.on('click', (event: MouseEvent) => resolvePick(event, null));
     return () => {
       sel.on('click', null);
     };
@@ -453,7 +484,7 @@
             data-state={st}
             role={interactive ? 'button' : undefined}
             aria-label={interactive ? c.iso2 : undefined}
-            onclick={() => pick(c.iso2)}
+            onclick={(e) => resolvePick(e, c.iso2)}
           />
         {/each}
       </g>
@@ -473,14 +504,14 @@
                 data-hit="dot"
                 role={interactive ? 'button' : undefined}
                 aria-label={interactive ? c.iso2 : undefined}
-                onclick={() => pick(c.iso2)}
+                onclick={(e) => resolvePick(e, c.iso2)}
               />
             {/if}
           {/each}
         </g>
       {/if}
 
-      {#if marker}
+      {#if marker?.micro}
         <circle class="marker" cx={marker.cx} cy={marker.cy} r={marker.r} />
       {/if}
 

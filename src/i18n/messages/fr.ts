@@ -159,6 +159,7 @@ const fr: typeof en = {
     progress: {
       question: 'Question {current} / {total}',
       answered: 'Répondu : {count}',
+      mastered: 'Maîtrisés {count} / {total}',
       lives: 'Vies',
       livesRemaining: '{remaining} vies sur {total}',
       score: 'Score : {correct}/{total}',
@@ -231,6 +232,7 @@ const fr: typeof en = {
     bestStreak: 'Meilleure série',
     missedTitle: 'Manqués ({count})',
     noneMissed: 'Parfait — aucun manqué !',
+    regionCleared: 'Région maîtrisée !',
     reaction: {
       perfect: 'Sans faute !',
       strong: 'Excellent travail !',

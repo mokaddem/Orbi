@@ -237,6 +237,22 @@ implementation** (see the callout at the top of the file).
 |---|---|---|---|---|---|
 | 39 | Escalating streak jingles & milestone pop | [phase-39-streak-escalation.md](phases/archive/phase-39-streak-escalation.md) | 36, 33, 2 | ✅ Done | 100% (sticky per-milestone `streak` tiers escalating via layers **+ per-tier transposition**; milestone-only indicator pop; no new deps/audio. Extended post-ship to **9 milestones up to streak 50** (3/4/6/8/12/13/15/17/18 voices). Suite 571 green; headless drive to streak 50 confirms escalation, no `correct` fallback, milestone-only pops, zero errors. Merged to main + archived) |
 
+### v2.4 — Post-play fixes (mobile map, survival, map anchoring)
+
+A round of owner feedback after playing on mobile: four small play-feel fixes bundled into one phase —
+a **magnetic** micro-state tap so tiny countries are selectable on a phone, a **"region cleared" win**
+so survival ends once a region is mastered, the `map-highlight` **ring only for micro-states** (noise
+on big countries), and porting the globe's **mainland (largest-polygon) anchor** to the flat map so
+France frames on the mainland, not its centre of mass. Presentation / interaction only — no new data
+or modes (the survival end condition is a pure `shouldFinish` addition). As before, the PRD
+**requires a clarifying-questions round with the owner before implementation** (see the callout at the
+top of the file); the survival model and the phase-PRD framing were **already resolved with the owner
+(2026-07-13)**.
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 40 | Play-feel fixes (mobile tap-snap · survival clear-win · highlight ring · mainland anchor) | [phase-40-play-feel-fixes.md](phases/archive/phase-40-play-feel-fixes.md) | 4, 22, 37, 38, 2 | ✅ Done | 100% (all four built: `resolvePick` micro-dot magnet `DOT_SNAP_CAP=30`; survival "region cleared" win — distinct-correct Set + `cleared` summary flag + HUD "Mastered X/N" + Summary badge; highlight ring micro-only; flat-map mainland anchor via shared `largestPolygon`. Suite 579 green; headless-CDP drive confirmed near-miss→Vatican, survival "Region cleared!" 3/3, France on the mainland, no large-highlight ring, zero console errors. Merged to main + archived) |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 

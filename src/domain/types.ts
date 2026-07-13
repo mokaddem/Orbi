@@ -124,4 +124,10 @@ export interface SessionSummary {
   /** Distinct countries answered incorrectly, in order of first miss. */
   missed: Country[];
   results: QuestionResult[];
+  /**
+   * Survival only: `true` when the run ended by **clearing the region** — every country in the
+   * answer pool answered correctly at least once, finishing with lives to spare (Phase 40).
+   * `false` for a survival loss (0 lives) and for every non-survival type.
+   */
+  cleared?: boolean;
 }

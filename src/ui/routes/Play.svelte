@@ -495,6 +495,12 @@
             </span>
           </div>
         {:else}
+          <!-- Survival now ends in a "region cleared" win once every country in the pool has
+               been answered correctly at least once (Phase 40), so the HUD shows progress toward
+               that goal — distinct countries mastered out of the pool size — rather than a raw
+               answered count. This makes the finish feel earned, never random. -->
+          {@const mastered = new Set(s.results.filter((r) => r.correct).map((r) => r.countryIso2))
+            .size}
           <div
             class="lives"
             aria-label={$t('play.progress.livesRemaining', {
@@ -514,8 +520,11 @@
                 />
               </svg>
             {/each}
-            <span class="answered">{$t('play.progress.answered', { count: s.results.length })}</span
-            >
+            {#if view.answerCount}
+              <span class="mastered"
+                >{$t('play.progress.mastered', { count: mastered, total: view.answerCount })}</span
+              >
+            {/if}
           </div>
         {/if}
 
@@ -1156,7 +1165,7 @@
     transform: scale(0.82);
   }
 
-  .lives .answered {
+  .lives .mastered {
     margin-left: 0.5rem;
     font-size: 0.9rem;
     color: var(--color-muted);

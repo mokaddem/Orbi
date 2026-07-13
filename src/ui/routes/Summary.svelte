@@ -146,6 +146,14 @@
       {#if REACTION_HEADLINE[reaction.pose]}
         <p class="result-headline">{$t(REACTION_HEADLINE[reaction.pose] as string)}</p>
       {/if}
+      <!-- Survival "region cleared" win (Phase 40): a small badge marking that every country
+           in the pool was answered correctly, distinct from the pose-driven score reaction. -->
+      {#if s.cleared}
+        <p class="cleared-badge">
+          <Icon name="trophy" size="0.95em" />
+          {$t('summary.regionCleared')}
+        </p>
+      {/if}
     </div>
 
     <div class="stats">
@@ -360,6 +368,19 @@
     font-size: 1.15rem;
     font-weight: 800;
     color: var(--color-accent-strong);
+  }
+
+  .cleared-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    background: var(--color-correct-bg);
+    color: var(--color-correct);
+    font-weight: 800;
+    font-size: 0.9rem;
   }
 
   .perfect-state {

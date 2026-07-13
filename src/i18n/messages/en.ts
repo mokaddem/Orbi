@@ -156,6 +156,7 @@ const en = {
     progress: {
       question: 'Question {current} / {total}',
       answered: 'Answered: {count}',
+      mastered: 'Mastered {count} / {total}',
       lives: 'Lives',
       livesRemaining: '{remaining} of {total} lives',
       score: 'Score: {correct}/{total}',
@@ -226,6 +227,7 @@ const en = {
     bestStreak: 'Best streak',
     missedTitle: 'Missed ({count})',
     noneMissed: 'Perfect — nothing missed!',
+    regionCleared: 'Region cleared!',
     reaction: {
       perfect: 'Flawless!',
       strong: 'Great work!',

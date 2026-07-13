@@ -170,17 +170,76 @@ describe('QuizSession — survival sessions', () => {
     expect(s.state.livesRemaining).toBe(0);
   });
 
-  it('does not end from exhausting the pool while answering correctly', () => {
+  it('ends in a "region cleared" win once every country is answered correctly (Phase 40)', () => {
     const smallPool = [mk('AA', 'R1', 'S1'), mk('AB', 'R1', 'S1'), mk('AC', 'R1', 'S1')];
     const s = new QuizSession(base({ type: 'survival', lives: 3, countries: smallPool }));
-    for (let i = 0; i < 12; i++) {
-      const q = s.next();
-      expect(q).not.toBeNull();
-      s.submit(q!.answer);
-    }
+    // The three distinct countries are drawn without replacement; clearing needs all three.
+    s.submit(s.next()!.answer);
+    expect(s.isFinished()).toBe(false); // 1/3 cleared
+    s.submit(s.next()!.answer);
+    expect(s.isFinished()).toBe(false); // 2/3 cleared — not before the whole pool
+    s.submit(s.next()!.answer);
+    expect(s.isFinished()).toBe(true); // 3/3 → region cleared
+    expect(s.state.results).toHaveLength(3);
+    expect(s.state.livesRemaining).toBe(3); // a flawless clear keeps every life
+    expect(s.next()).toBeNull();
+    const sum = s.summary();
+    expect(sum.cleared).toBe(true);
+    expect(sum.correct).toBe(sum.total); // flawless → the UI plays the `perfect` jingle
+  });
+
+  it('clears a region even when a country was missed then later gotten right (last life)', () => {
+    const pool = [mk('AA', 'R1', 'S1'), mk('AB', 'R1', 'S1')];
+    const s = new QuizSession(base({ type: 'survival', lives: 2, countries: pool }));
+    // Miss the first question — costs a life, but the country can still be cleared later.
+    const first = s.next()!;
+    s.submit(null);
+    expect(s.state.livesRemaining).toBe(1);
     expect(s.isFinished()).toBe(false);
-    expect(s.state.results).toHaveLength(12);
-    expect(s.state.livesRemaining).toBe(3);
+    // Now answer every drawn question correctly until the region clears.
+    let guard = 0;
+    while (!s.isFinished() && guard++ < 50) {
+      const q = s.next();
+      if (!q) break;
+      s.submit(q.answer);
+    }
+    expect(s.isFinished()).toBe(true);
+    expect(s.state.livesRemaining).toBe(1); // cleared on the last life
+    const sum = s.summary();
+    expect(sum.cleared).toBe(true);
+    // Distinct-correct is what clears, so an earlier miss still shows up as missed.
+    expect(sum.missed.map((c) => c.iso2)).toContain(first.answer.iso2);
+    expect(sum.correct).toBeLessThan(sum.total); // imperfect clear → the `finish` jingle
+  });
+
+  it('still ends in a loss at 0 lives even with one country left to clear', () => {
+    const pool = [mk('AA', 'R1', 'S1'), mk('AB', 'R1', 'S1')];
+    const s = new QuizSession(base({ type: 'survival', lives: 1, countries: pool }));
+    s.submit(s.next()!.answer); // clear one (1/2), 1 life left
+    expect(s.isFinished()).toBe(false);
+    s.next();
+    s.submit(null); // miss the last one → out of lives, region not cleared
+    expect(s.isFinished()).toBe(true);
+    expect(s.state.livesRemaining).toBe(0);
+    expect(s.summary().cleared).toBe(false); // a loss, not a clear
+  });
+
+  it('leaves the clear-win off for non-survival types (cleared is false)', () => {
+    const pool = [mk('AA', 'R1', 'S1'), mk('AB', 'R1', 'S1')];
+    // fixed: bounded by fixedLength, never by pool coverage.
+    const fixed = new QuizSession(base({ type: 'fixed', fixedLength: 2, countries: pool }));
+    fixed.submit(fixed.next()!.answer);
+    fixed.submit(fixed.next()!.answer);
+    expect(fixed.summary().cleared).toBe(false);
+    // full: already exhausts the pool; the clear flag stays off (only survival "wins").
+    const full = new QuizSession(base({ type: 'full', countries: pool }));
+    let q = full.next();
+    while (q) {
+      full.submit(q.answer);
+      q = full.next();
+    }
+    expect(full.isFinished()).toBe(true);
+    expect(full.summary().cleared).toBe(false);
   });
 });
 
