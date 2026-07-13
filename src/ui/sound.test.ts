@@ -79,11 +79,11 @@ describe('sound service (Phase 36)', () => {
     expect(contexts[0].oscStarted).toBe(2);
   });
 
-  it('escalates the streak cue: each tier adds voices (Phase 39)', () => {
-    // Tier 0..4 grows the flourish (triad → +octave → +bass/run → +sparkle → +chord stab), so the
-    // oscillator count climbs strictly with the tier (pitch, which also transposes per tier, is
-    // ignored by the fake backend).
-    const counts = [0, 1, 2, 3, 4].map((level) => {
+  it('escalates the streak cue: each tier adds voices (Phase 39, extended to streak 50)', () => {
+    // Tiers 0..8 grow the flourish (triad → +octave → +bass/run → +sparkle → +stab → +sub-bass →
+    // +higher run/echo → +pad/fuller stab → +blooming stab), so the oscillator count climbs strictly
+    // with the tier (pitch, which also transposes per tier, is ignored by the fake backend).
+    const counts = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((level) => {
       contexts.length = 0;
       const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
       s.setEnabled(true);
@@ -91,7 +91,7 @@ describe('sound service (Phase 36)', () => {
       s.play('streak', { level });
       return contexts[0].oscStarted;
     });
-    expect(counts).toEqual([3, 4, 6, 8, 12]);
+    expect(counts).toEqual([3, 4, 6, 8, 12, 13, 15, 17, 18]);
     // strictly increasing
     for (let i = 1; i < counts.length; i++) expect(counts[i]).toBeGreaterThan(counts[i - 1]);
   });
@@ -100,8 +100,8 @@ describe('sound service (Phase 36)', () => {
     const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
     s.setEnabled(true);
     s.unlock();
-    s.play('streak', { level: 99 }); // caps at tier 4
-    expect(contexts[0].oscStarted).toBe(12);
+    s.play('streak', { level: 99 }); // caps at tier 8 (the peak)
+    expect(contexts[0].oscStarted).toBe(18);
   });
 
   it('is completely silent when the sound pref is off', () => {

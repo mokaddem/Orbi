@@ -18,6 +18,7 @@ import finishUrl from './assets/sound/finish.ogg?url';
 import perfectUrl from './assets/sound/perfect.ogg?url';
 import achievementUrl from './assets/sound/achievement.ogg?url';
 import dailyUrl from './assets/sound/daily.ogg?url';
+import { STREAK_MILESTONES } from './streak';
 
 /** Synthesized short SFX. */
 export type SynthCue = 'correct' | 'wrong' | 'streak';
@@ -93,27 +94,33 @@ function synthVoices(cue: SynthCue, level = 0): Voice[] {
 }
 
 /**
- * The escalating streak cue (Phase 39). Tier `level` (0..4, sticky — see `streakTier`) builds a
- * progressively grander mallet flourish, escalating by *density and brightness* rather than volume
- * (per-voice gains stay low, so every tier peaks gently — there is no volume slider). The whole cue
- * also climbs a whole step per tier (owner A/B pick), so higher streaks feel brighter and more
- * urgent. Stays ≤ ~650 ms so it fits comfortably inside the correct-answer dwell.
+ * The escalating streak cue (Phase 39; extended to streak 50). Tier `level` (0..8, sticky — see
+ * `streakTier`) builds a progressively grander mallet flourish, escalating by *density, depth and
+ * brightness* rather than volume (per-voice gains stay low, so every tier peaks gently — there is no
+ * volume slider). Stays ≤ ~1.1 s at the top, well inside the correct-answer dwell.
  *
  *   tier 0  triad arpeggio (the original cue)
  *   tier 1  + a resolving octave on top
  *   tier 2  + a low bass root (body) and a fuller run up to the octave
  *   tier 3  + a delayed high sparkle and a faint detuned shimmer
- *   tier 4  + a final sustained major-chord stab — the peak
+ *   tier 4  + a final sustained major-chord stab
+ *   tier 5  + a deep sub-bass octave (weight)
+ *   tier 6  + a higher arpeggio run and a rhythmic top-octave echo
+ *   tier 7  + a sustained warm pad and a fuller chord stab
+ *   tier 8  + a brighter, longer blooming stab — the peak
+ *
+ * The whole cue climbs a whole step per tier through tier 4 (the base feel), then more gently
+ * (+1 semitone/tier) so the high tiers stay bright without turning shrill.
  */
 function streakVoices(level: number): Voice[] {
-  const tier = Math.max(0, Math.min(STREAK_MILESTONES_MAX, level));
-  const root = 72 + tier * 2; // C5, climbing a whole step per tier
+  const tier = Math.max(0, Math.min(STREAK_TIER_MAX, level));
+  const root = 72 + (tier <= 4 ? tier * 2 : 8 + (tier - 4)); // C5, climbing (whole steps, then half)
   const step = 0.065; // arpeggio note spacing
   const tri: OscillatorType = 'triangle';
   const voices: Voice[] = [];
 
-  // Core ascending arpeggio — a triad low, a full run to the octave from tier 2.
-  const arp = tier >= 2 ? [0, 4, 7, 12] : [0, 4, 7];
+  // Core ascending arpeggio — a triad low, a run to the octave from tier 2, a higher run from tier 6.
+  const arp = tier >= 6 ? [0, 4, 7, 12, 16] : tier >= 2 ? [0, 4, 7, 12] : [0, 4, 7];
   arp.forEach((semi, i) => {
     voices.push({ freq: hz(root + semi), at: i * step, dur: 0.16, gain: 0.14, type: tri });
   });
@@ -132,19 +139,34 @@ function streakVoices(level: number): Voice[] {
     voices.push({ freq: hz(root + 19), at: afterArp + 0.05, dur: 0.2, gain: 0.08, type: tri });
     voices.push({ freq: hz(root + 12) * 1.006, at: afterArp, dur: 0.22, gain: 0.05, type: tri });
   }
-  // tier 4: a final sustained major-chord stab — gently, four quiet voices struck together.
+  // tier 5+: a deep sub-bass octave for weight. tier 7+: a sustained warm pad underneath.
+  if (tier >= 5) {
+    voices.push({ freq: hz(root - 24), at: 0, dur: 0.42, gain: 0.1, type: 'sine' });
+  }
+  if (tier >= 7) {
+    voices.push({ freq: hz(root - 12), at: 0, dur: 0.6, gain: 0.06, type: 'sine' });
+  }
+  // tier 6+: a rhythmic echo of the top octave — a little bounce before the stab.
+  if (tier >= 6) {
+    voices.push({ freq: hz(root + 12), at: afterArp + 0.14, dur: 0.18, gain: 0.07, type: tri });
+  }
+  // tier 4+: a final sustained major-chord stab. It grows fuller (tier 7+) and brighter/longer
+  // (tier 8) as the peak, with per-voice gain eased down so the bigger chord still lands gently.
   if (tier >= 4) {
-    const stabAt = afterArp + step + 0.02;
-    for (const semi of [0, 4, 7, 12]) {
-      voices.push({ freq: hz(root + semi), at: stabAt, dur: 0.3, gain: 0.07, type: tri });
+    const stabAt = afterArp + (tier >= 6 ? 0.28 : step) + 0.02;
+    const stab = tier >= 8 ? [0, 4, 7, 12, 16, 19] : tier >= 7 ? [0, 4, 7, 12, 16] : [0, 4, 7, 12];
+    const stabDur = tier >= 8 ? 0.42 : 0.3;
+    const stabGain = tier >= 7 ? 0.06 : 0.07;
+    for (const semi of stab) {
+      voices.push({ freq: hz(root + semi), at: stabAt, dur: stabDur, gain: stabGain, type: tri });
     }
   }
 
   return voices;
 }
 
-/** Highest streak tier index (5 milestones → tiers 0..4). Kept local to bound `streakVoices`. */
-const STREAK_MILESTONES_MAX = 4;
+/** Highest streak tier index — tracks {@link STREAK_MILESTONES} so the two never drift. */
+const STREAK_TIER_MAX = STREAK_MILESTONES.length - 1;
 
 // ---- Controller ------------------------------------------------------------------------
 

@@ -158,6 +158,14 @@ reduce-motion foundation), Phase 2 (the verdict signal). Independent of Phase 38
   app per the deliverable above.
 
 ## Progress log
+- **2026-07-13 — Post-ship follow-up: escalation extended to streak 50.** Owner asked to keep the
+  climb going past streak 20. Milestones extended to `[3, 5, 10, 15, 20, 25, 30, 40, 50]` (9 tiers
+  0–8); tiers 0–4 are unchanged. The four new tiers add a deep sub-bass (25), a higher arpeggio run +
+  top-octave echo (30), a sustained warm pad + fuller chord (40), and a brighter/longer blooming stab
+  (50) — voices `3/4/6/8/12/13/15/17/18`. Transposition eases from +2 to +1 semitone per tier past
+  tier 4 so the high tiers stay bright, not shrill. `sound.ts` now derives its tier cap from
+  `STREAK_MILESTONES` (no drift). Tests updated; suite 571 green; `check`/`lint` clean; headless drive
+  to streak 51 re-verified (voice counts, no `correct` fallback, milestone-only pops, zero errors).
 - **2026-07-13 — Merged to main + archived (✅ Done).** Fast-forwarded `phase-39-streak-escalation`
   into `main` (no merge commit), immediately after Phase 38, and moved this PRD to
   `docs/phases/archive/`. Phase 39 closed.

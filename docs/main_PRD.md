@@ -235,7 +235,7 @@ implementation** (see the callout at the top of the file).
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 39 | Escalating streak jingles & milestone pop | [phase-39-streak-escalation.md](phases/archive/phase-39-streak-escalation.md) | 36, 33, 2 | ✅ Done | 100% (sticky per-milestone `streak` tiers — 3/4/6/8/12 voices, escalate via layers **+ per-tier transposition** (owner A/B pick); milestone-only indicator pop; no new deps/audio. Suite 571 green; headless drive to streak 21 confirms escalation, no `correct` fallback, milestone-only pops, zero errors. Merged to main + archived) |
+| 39 | Escalating streak jingles & milestone pop | [phase-39-streak-escalation.md](phases/archive/phase-39-streak-escalation.md) | 36, 33, 2 | ✅ Done | 100% (sticky per-milestone `streak` tiers escalating via layers **+ per-tier transposition**; milestone-only indicator pop; no new deps/audio. Extended post-ship to **9 milestones up to streak 50** (3/4/6/8/12/13/15/17/18 voices). Suite 571 green; headless drive to streak 50 confirms escalation, no `correct` fallback, milestone-only pops, zero errors. Merged to main + archived) |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

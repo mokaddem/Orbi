@@ -5,8 +5,11 @@
 // until the next milestone upgrades it — you never fall back to the plain `correct` cue mid-streak.
 // A wrong answer resets the streak (and therefore the tier) to nothing.
 
-/** Streak lengths that unlock a higher celebratory jingle tier. */
-export const STREAK_MILESTONES: readonly number[] = [3, 5, 10, 15, 20];
+/**
+ * Streak lengths that unlock a higher celebratory jingle tier. Cadence tightens early (every few
+ * answers) then widens as milestones get rarer and more special, topping out at 50.
+ */
+export const STREAK_MILESTONES: readonly number[] = [3, 5, 10, 15, 20, 25, 30, 40, 50];
 
 /**
  * Sticky celebration tier for a streak: the index of the highest milestone reached
