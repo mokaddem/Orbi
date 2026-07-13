@@ -74,8 +74,10 @@
   const MICRO_STER = 3e-5; // geoArea (steradians) below which a country is "micro" (aim-assisted)
   const AUTOROTATE_SPEED = 0.5;
   const BORDER_R = 1.0015; // radius of the vector border lines, just above the fill surface
-  const LIFT_MAX = 1.035; // radius the hovered country's raised tile lifts to
+  const LIFT_MAX = 1.026; // radius the hovered country's raised tile lifts to
   const LIFT_MIN = 1.003; // resting radius (just clear of the fill, so it settles unseen)
+  const DOT_SIZE = 15; // base micro-state dot size (screen px)
+  const DOT_HOVER_SIZE = 23; // micro-state dot size while hovered (pulses around this)
 
   interface Palette {
     water: string;
@@ -84,7 +86,6 @@
     highlight: string;
     correct: string;
     wrong: string;
-    coral: string;
     dot: string;
   }
 
@@ -100,9 +101,10 @@
   let borders: THREE.LineSegments | undefined;
   let microDots: THREE.Points | undefined;
   let microDotMat: THREE.PointsMaterial | undefined;
+  let microHover: THREE.Points | undefined; // single pulsing dot on the hovered micro-state
+  let microHoverMat: THREE.PointsMaterial | undefined;
   let liftMesh: THREE.Mesh | undefined;
   let liftMat: THREE.MeshPhongMaterial | undefined;
-  let pin: THREE.Sprite | undefined;
   let revealSprite: THREE.Sprite | undefined;
   let pickedSprite: THREE.Sprite | undefined;
   let texture: THREE.CanvasTexture | undefined;
@@ -126,6 +128,7 @@
   // raised tile. `hoverPointer` is the latest pointer position, resolved once per frame in
   // the render loop (throttling the raycast); `liftCurrent`/`liftTarget` drive the spring.
   let hoverIso: string | null = null;
+  let hoverMicroIso: string | null = null; // micro-state whose dot the pointer is over
   let hoverPointer: [number, number] | null = null;
   let liftCurrent = 1;
   let liftTarget = 1;
@@ -177,7 +180,6 @@
       highlight: v('--map-highlight') || '#7fd9d3',
       correct: v('--color-correct') || '#1e9e5a',
       wrong: v('--color-wrong') || '#cf3b2c',
-      coral: v('--color-coral') || '#ff7a59',
       dot: v('--color-accent-strong') || '#0b7e7a',
     };
   }
@@ -244,52 +246,11 @@
     texture.needsUpdate = true;
   }
 
-  // --- Drop-pin ------------------------------------------------------------------
-  function makePin(): THREE.Sprite {
-    const c = document.createElement('canvas');
-    c.width = c.height = 128;
-    const g = c.getContext('2d')!;
-    g.translate(64, 74);
-    g.scale(3, 3);
-    g.beginPath();
-    g.moveTo(0, 6);
-    g.bezierCurveTo(-11, -8, -7, -22, 0, -22);
-    g.bezierCurveTo(7, -22, 11, -8, 0, 6);
-    g.fillStyle = palette.coral;
-    g.fill();
-    g.beginPath();
-    g.arc(0, -15, 4, 0, 2 * Math.PI);
-    g.fillStyle = '#fff';
-    g.fill();
-    const sprite = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true }),
-    );
-    sprite.scale.set(0.16, 0.16, 1);
-    // Anchor the pin's *tip* (teardrop point at canvas (64, 92)) on the surface point, so
-    // the pin stands on the country rather than hovering by its centre.
-    sprite.center.set(0.5, 1 - 92 / 128);
-    sprite.visible = false;
-    return sprite;
-  }
-
   // The country a question wants to teach: the highlight prompt, or (once answered) the
-  // locate reveal target. Fresh locate questions have neither → no pin.
+  // locate reveal target — the country the camera re-frames to. Fresh locate questions have
+  // neither. (The reveal target is marked by its name callout, not a pin.)
   function teachTarget(): string | null {
     return highlightIso ?? (disabled ? revealIso : null);
-  }
-
-  function placePin(): void {
-    if (!pin) return;
-    const iso = teachTarget();
-    if (iso && centroids.has(iso)) {
-      const [lon, lat] = centroids.get(iso)!;
-      // Tip-anchored (see makePin), so the base sits just clear of the surface.
-      pin.position.copy(new THREE.Vector3(...lonLatToVec3(lon, lat, 1.008)));
-      pin.userData.base = pin.position.clone();
-      pin.visible = true;
-    } else {
-      pin.visible = false;
-    }
   }
 
   // --- Micro-state aim dots ------------------------------------------------------
@@ -317,12 +278,15 @@
 
   // Show the dots only on a locate board (no highlight prompt): while answering, and once
   // answered (muted). The reveal target's own dot is dropped when answered — its place is
-  // shown by the pin + label instead, mirroring the flat map's reveal ring.
+  // shown by the name callout instead, mirroring the flat map's reveal ring.
   function updateMicroDots(): void {
     if (!microDots || !microDotMat) return;
     const show = !highlightIso && (interactive || (disabled && !!revealIso));
     microDots.visible = show;
-    if (!show) return;
+    if (!show) {
+      setMicroHover(null);
+      return;
+    }
     const pos: number[] = [];
     for (const iso of microIsos) {
       if (disabled && iso === revealIso) continue;
@@ -334,6 +298,26 @@
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setDrawRange(0, pos.length / 3);
     microDotMat.opacity = disabled ? 0.4 : 1;
+  }
+
+  // Highlight the micro-state dot the pointer is over with a single pulsing dot on top of
+  // it (locate mode). The pulse animates in the render loop; here we just position it and
+  // toggle visibility when the hovered micro-state changes.
+  function setMicroHover(iso: string | null): void {
+    if (iso === hoverMicroIso) return;
+    hoverMicroIso = iso;
+    if (!microHover) return;
+    if (iso && centroids.has(iso)) {
+      const [lon, lat] = centroids.get(iso)!;
+      const geo = microHover.geometry;
+      geo.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute([...lonLatToVec3(lon, lat, 1.01)], 3),
+      );
+      microHover.visible = true;
+    } else {
+      microHover.visible = false;
+    }
   }
 
   // --- Reveal / picked name callouts (billboarded sprites) -----------------------
@@ -584,15 +568,26 @@
   function onPointerLeave(): void {
     hoverPointer = null;
     if (hoverIso) setHover(null);
+    setMicroHover(null);
   }
 
-  // Resolve the hovered country from the latest pointer — called once per frame, so the
-  // raycast + geoContains are throttled to the frame rate rather than every pointer event.
+  // Resolve what the pointer is over, once per frame (throttling the raycast + geoContains).
+  // A micro-state dot within the aim cap wins — it pulses, and the big-country lift yields —
+  // mirroring the pick's micro-first precedence; otherwise the country under the pointer
+  // lifts.
   function processHover(): void {
     if (!hoverPointer || !renderer || !camera || !earth) return;
     const rect = renderer.domElement.getBoundingClientRect();
     const [cx, cy] = hoverPointer;
     hoverPointer = null;
+    const { micro } = collectTargets(rect);
+    const microIso = nearestCountryWithinCap(cx, cy, micro, MICRO_CAP);
+    if (microIso) {
+      setMicroHover(microIso);
+      if (hoverIso) setHover(null); // micro dot takes precedence over the tile lift
+      return;
+    }
+    setMicroHover(null);
     ndc.x = (cx / rect.width) * 2 - 1;
     ndc.y = -(cy / rect.height) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
@@ -737,7 +732,7 @@
     scene.add(borders);
 
     microDotMat = new THREE.PointsMaterial({
-      size: 15,
+      size: DOT_SIZE,
       sizeAttenuation: false,
       map: makeDotTexture(),
       transparent: true,
@@ -747,6 +742,21 @@
     microDots = new THREE.Points(new THREE.BufferGeometry(), microDotMat);
     microDots.visible = false;
     scene.add(microDots);
+
+    // A single dot drawn over the hovered micro-state; its size pulses in the render loop
+    // (a small "grow" affordance, since a micro-state is too tiny to lift like a big country).
+    microHoverMat = new THREE.PointsMaterial({
+      size: DOT_HOVER_SIZE,
+      sizeAttenuation: false,
+      map: makeDotTexture(),
+      transparent: true,
+      depthWrite: false,
+      alphaTest: 0.4,
+    });
+    microHover = new THREE.Points(new THREE.BufferGeometry(), microHoverMat);
+    microHover.visible = false;
+    microHover.renderOrder = 5; // over the resting dots
+    scene.add(microHover);
 
     // The hovered country's raised tile (geometry swapped in per hover; scale animates the
     // lift). Turquoise + emissive so it pops off the globe as the "about to pick" affordance.
@@ -760,9 +770,6 @@
     liftMesh = new THREE.Mesh(new THREE.BufferGeometry(), liftMat);
     liftMesh.visible = false;
     scene.add(liftMesh);
-
-    pin = makePin();
-    scene.add(pin);
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = !prefersReduced();
@@ -802,7 +809,6 @@
 
     drawTexture();
     updateLabels();
-    placePin();
     updateMicroDots();
     resize();
     reframe();
@@ -827,10 +833,6 @@
           if (controls) controls.enabled = true;
         }
       }
-      if (pin?.visible && pin.userData.base) {
-        const base = pin.userData.base as THREE.Vector3;
-        pin.position.copy(base).multiplyScalar(1 + 0.01 * (1 + Math.sin(now * 0.004)));
-      }
       processHover();
       if (liftMesh) {
         // Uniform scale from the globe centre == a pure radial lift for a patch on the
@@ -838,6 +840,12 @@
         liftCurrent += (liftTarget - liftCurrent) * (prefersReduced() ? 1 : 0.22);
         liftMesh.scale.setScalar(liftCurrent);
         liftMesh.visible = liftCurrent > 1.001;
+      }
+      if (microHover?.visible && microHoverMat) {
+        // A gentle size pulse on the hovered micro-state dot (static under reduced motion).
+        microHoverMat.size = prefersReduced()
+          ? DOT_HOVER_SIZE
+          : DOT_HOVER_SIZE + 3 * Math.sin(now * 0.006);
       }
       if (!fly) controls?.update();
       renderer?.render(scene!, camera!);
@@ -863,6 +871,9 @@
     microDots?.geometry.dispose();
     microDotMat?.map?.dispose();
     microDotMat?.dispose();
+    microHover?.geometry.dispose();
+    microHoverMat?.map?.dispose();
+    microHoverMat?.dispose();
     liftMesh?.geometry.dispose();
     liftMat?.dispose();
     texture?.dispose();
@@ -873,8 +884,8 @@
     }
   });
 
-  // Recolour the texture, refresh labels + pin + micro dots when the highlight / pick /
-  // reveal (or the interactive/answered board state) changes.
+  // Recolour the texture, refresh labels + micro dots when the highlight / pick / reveal
+  // (or the interactive/answered board state) changes.
   $effect(() => {
     void highlightIso;
     void pickedIso;
@@ -884,15 +895,15 @@
     void interactive;
     void disabled;
     if (!renderer) return;
-    // Drop any stale hover-lift when the board leaves interactive locate mode (e.g. a new
-    // highlight question, or the board locking on answer).
-    if ((!interactive || disabled || highlightIso) && hoverIso) {
+    // Drop any stale hover affordance when the board leaves interactive locate mode (e.g. a
+    // new highlight question, or the board locking on answer).
+    if (!interactive || disabled || highlightIso) {
       hoverPointer = null;
-      setHover(null);
+      if (hoverIso) setHover(null);
+      setMicroHover(null);
     }
     drawTexture();
     updateLabels();
-    placePin();
     updateMicroDots();
   });
 
@@ -951,7 +962,9 @@
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 2;
-    background: radial-gradient(120% 120% at 34% 26%, #f3fdfc 0%, #dcf4f2 42%, #bfe6e4 100%);
+    /* Deep cool-teal "space" so the pale globe reads clearly against the board (the glow
+       ring is gone, so the background carries the separation). */
+    background: radial-gradient(125% 125% at 33% 24%, #cfe8e7 0%, #6ba7ac 46%, #3f757e 100%);
     border: 2px solid var(--map-border);
     border-radius: var(--radius);
     overflow: hidden;

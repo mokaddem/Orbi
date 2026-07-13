@@ -369,5 +369,14 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
   (offline-ready); `robust-stats` split to a 1.8 kB shared chunk. **Headless-verified** (puppeteer /
   swiftshader) across all seven: Europe framed centred with micro dots, no glow ring, Czechia pops on
   hover, clean pole, crisp zoomed borders, France/Spain callouts landing on their countries. Committed on
-  `phase-38-globe-projection`. **Pending owner review + an on-device (mobile) check before ✅ Done + merge
-  + archive.**
+  `phase-38-globe-projection` (`b763f03`). **Pending owner review + an on-device (mobile) check before
+  ✅ Done + merge + archive.**
+- **2026-07-13 — Stage 3 review round 2 (owner feedback on the built globe).** Four tweaks: (a) **more
+  globe/background separation** — the `.globe` board now uses a deep cool-teal "space" gradient so the
+  pale planet reads clearly (the glow ring is gone, so the background carries the contrast); (b) **removed
+  the drop-pin** entirely — the reveal target is marked by its name callout + leader alone (highlight mode
+  by its turquoise fill); (c) **micro-state dots get a hover animation** — a single pulsing dot grows over
+  the hovered dot (locate-mode, micro-first precedence over the tile lift; static under reduced motion);
+  (d) **softened the large-country hover pop** (`LIFT_MAX` 1.035 → 1.026). Fast loop green (562 tests);
+  headless-verified all four (incl. a Vatican-framed micro-hover shot). Still pending owner review +
+  on-device check before ✅ Done.
