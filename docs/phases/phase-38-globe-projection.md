@@ -377,6 +377,9 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
   the drop-pin** entirely — the reveal target is marked by its name callout + leader alone (highlight mode
   by its turquoise fill); (c) **micro-state dots get a hover animation** — a single pulsing dot grows over
   the hovered dot (locate-mode, micro-first precedence over the tile lift; static under reduced motion);
-  (d) **softened the large-country hover pop** (`LIFT_MAX` 1.035 → 1.026). Fast loop green (562 tests);
-  headless-verified all four (incl. a Vatican-framed micro-hover shot). Still pending owner review +
-  on-device check before ✅ Done.
+  (d) **softened the large-country hover pop** (`LIFT_MAX` 1.035 → 1.026); (e) **distance-scaled
+  drag-spin speed** — `OrbitControls.rotateSpeed` is now updated per frame ∝ camera distance (anchored so
+  it's unchanged at the world view, floored so it never stalls), so a zoomed-in spin no longer races.
+  Fast loop green (562 tests); headless-verified (incl. a Vatican-framed micro-hover shot and a
+  zoomed-in drag that now rotates a controlled amount). Still pending owner review + on-device check
+  before ✅ Done.

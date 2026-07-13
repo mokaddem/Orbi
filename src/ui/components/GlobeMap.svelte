@@ -73,6 +73,11 @@
   const OCEAN_CAP = 42; // px snap radius for a near-miss on open water
   const MICRO_STER = 3e-5; // geoArea (steradians) below which a country is "micro" (aim-assisted)
   const AUTOROTATE_SPEED = 0.5;
+  // Drag-spin speed at the world view; scaled down proportionally as the camera dollies in
+  // (rotateSpeed ∝ distance keeps the surface travel per drag-pixel constant, so a zoomed-in
+  // spin isn't way too fast), with a floor so it never grinds to a halt.
+  const ROTATE_SPEED = 0.62;
+  const ROTATE_SPEED_MIN = 0.22;
   const BORDER_R = 1.0015; // radius of the vector border lines, just above the fill surface
   const LIFT_MAX = 1.026; // radius the hovered country's raised tile lifts to
   const LIFT_MIN = 1.003; // resting radius (just clear of the fill, so it settles unseen)
@@ -774,7 +779,7 @@
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = !prefersReduced();
     controls.dampingFactor = 0.09;
-    controls.rotateSpeed = 0.62;
+    controls.rotateSpeed = ROTATE_SPEED; // updated per-frame by distance (see the loop)
     controls.enablePan = false;
     controls.minDistance = MIN_DIST;
     controls.maxDistance = MAX_DIST;
@@ -846,6 +851,14 @@
         microHoverMat.size = prefersReduced()
           ? DOT_HOVER_SIZE
           : DOT_HOVER_SIZE + 3 * Math.sin(now * 0.006);
+      }
+      if (controls && camera) {
+        // Scale drag-spin speed with the camera distance so a zoomed-in spin isn't too fast.
+        const d = camera.position.length();
+        controls.rotateSpeed = Math.max(
+          ROTATE_SPEED_MIN,
+          Math.min(ROTATE_SPEED, (ROTATE_SPEED * d) / WORLD_DIST),
+        );
       }
       if (!fly) controls?.update();
       renderer?.render(scene!, camera!);
