@@ -1,7 +1,7 @@
 # Phase 38 — Play on a 3D globe (WebGL projection)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress (Stages 1 + 2 built
-& committed; **Stage 3** — owner-review fixes — specced, awaiting approval) · **Progress:** ~70% ·
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress (Stages 1 + 2 + 3
+built & committed; pending owner review + on-device check before ✅ Done) · **Progress:** ~90% ·
 **Track:** v2.2 — Dimensional maps
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -120,13 +120,12 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
 - [x] **Offline** — the three.js `GlobeMap` chunk (563 kB / 142 kB gz) is a separate lazy chunk and is
       in the PWA precache manifest (`dist/sw.js`), so the globe works offline.
 
-### Stage 3 — Owner review fixes & polish ⬜ (planning — awaiting approval)
+### Stage 3 — Owner review fixes & polish ✅ (built & headless-verified 2026-07-13)
 
-> Feedback from the owner's review of the Stages 1 + 2 build (2026-07-12). **Planning only** — get an
-> explicit "go" before building (see the callout at the top). Grounded in the current `GlobeMap.svelte`,
-> `map-framing.ts`, and `WorldMap.svelte`.
+> Feedback from the owner's review of the Stages 1 + 2 build (2026-07-12). Built after an explicit "go"
+> (2026-07-13). Grounded in the current `GlobeMap.svelte`, `map-framing.ts`, and `WorldMap.svelte`.
 
-- [ ] **1 · Region framing must stay on the region (no drift).** Selecting a region should fly to and
+- [x] **1 · Region framing must stay on the region (no drift).** Selecting a region should fly to and
       frame *that* region. Today `reframe()` uses `geoCentroid` of the member `FeatureCollection` and an
       angular radius = the farthest member centroid; a region whose M49 membership has a far outlier —
       confirmed **Russia is in "Europe"** (Eastern Europe, reaching ~170°E) — drags the centroid east and
@@ -134,28 +133,28 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
       Fix by reusing Phase 12's robust-framing insight (`map-framing.ts`): reduce members to centroids,
       **trim far outliers** (the same MAD + ~±60° floor gate that already drops Russia-in-Europe on the
       flat map), then derive the fly-to centre **and** angular radius from the kept set.
-- [ ] **2 · Remove the glow ring.** Delete the additive fresnel **atmosphere sphere** (`atmo`, teal
+- [x] **2 · Remove the glow ring.** Delete the additive fresnel **atmosphere sphere** (`atmo`, teal
       `--color-accent`) — the owner reads it as a "green circle/sphere around the globe." Keep the planet;
       drop the halo (and re-check the board's radial-gradient background isn't contributing a ring).
-- [ ] **3 · Hover feedback — the country pops.** There's no hover affordance today. Add a throttled
+- [x] **3 · Hover feedback — the country pops.** There's no hover affordance today. Add a throttled
       pointer-move raycast → `geoContains` (locate mode only) and give playful feedback so the player sees
       what they're about to pick: the hovered country lifts/brightens. (Approach + fidelity in
       *Stage 3 notes* / *open questions*.)
-- [ ] **4 · Fix the north-pole band.** A "band" appears near the north pole. Likely the **antimeridian
+- [x] **4 · Fix the north-pole band.** A "band" appears near the north pole. Likely the **antimeridian
       ±360° redraw** (Russia/Fiji drawn as three full-width copies) bleeding across the top of the
       equirectangular texture, and/or the polar texel pinch. Replace the 3-copy draw with a proper
       antimeridian **split/clip**, ensure clean ocean to the top edge, and `ClampToEdge` wrap.
-- [ ] **5 · Crisp borders when zoomed.** Borders come from the raster **CanvasTexture**, so they blur on
+- [x] **5 · Crisp borders when zoomed.** Borders come from the raster **CanvasTexture**, so they blur on
       zoom (the flat SVG map stays crisp via non-scaling strokes). Render country **borders as GPU vector
       line geometry** on the sphere (ring coords → `lonLatToVec3` → `LineSegments`), overlaid on the
       textured fills, so borders stay crisp at any zoom. (Higher texture resolution is a fallback, not a
       real fix.)
-- [ ] **6 · Visible micro-state dots (2D-map parity).** Vatican/Monaco/… are nearly impossible to see or
+- [x] **6 · Visible micro-state dots (2D-map parity).** Vatican/Monaco/… are nearly impossible to see or
       hit. Do exactly what `WorldMap` does (Phase 22): a **visible aim-dot** at each micro-state centroid
       (front hemisphere, constant screen size via a sprite), clickable, shown during locate and muted once
       answered. The Stage-2 16 px snap already resolves them — this makes them *visible* so the player
       knows where to aim (the dot == the snappable target).
-- [ ] **7 · Label callout points at the country.** The reveal/picked name pill is a billboarded sprite
+- [x] **7 · Label callout points at the country.** The reveal/picked name pill is a billboarded sprite
       anchored so the *label+pin midpoint* sits on the country, so it reads as mis-placed. Rework it into a
       **callout whose pointer/leader tip lands exactly on the country's surface point** (like the flat
       map's leader + label), with the pill offset from the tip; and fix the **drop-pin anchor** so its
@@ -338,3 +337,37 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
   Confirmed RU is region "Europe"/"Eastern Europe" in the dataset (grounds fix 1). **NOT built — awaiting
   explicit approval; three open questions to resolve first (hover-pop fidelity, border architecture,
   micro-dot set).**
+- **2026-07-13 — Stage 3 built & headless-verified** (owner gave the explicit "go ahead and build Stage 3").
+  All seven fixes landed, sharing a new **GPU geometry overlay** layer (borders + dots + hover lift) so
+  interactive affordances leave the raster texture (fills stay from the texture):
+  1. **Region framing** — extracted the flat map's robust MAD + ~±60° outlier trim into a shared
+     `robust-stats.ts` (`inlierMask`, used by both `map-framing.focusFrame` and the globe) and added
+     `robustRegionFrame` (trimmed **centre + angular radius**) to `globe-geo.ts`; `reframe()` now flies to
+     that centre. Russia's centroid is trimmed from "Europe", so Europe frames centred (verified).
+  2. **Glow ring** — deleted the additive fresnel `atmo` sphere (+ its now-dead `accent` palette entry).
+  3. **Hover pop** — throttled (per-frame) pointermove raycast → bbox-reject → `geoContains` (locate mode
+     only) lifts the hovered country as an on-demand **earcut**-triangulated tile (radius spring 1→1.035,
+     instant under reduced motion). New dep **earcut** (^3.2, ~2.5 KB) in the globe chunk only.
+  4. **North-pole band** — root cause was Russia/Fiji rings carrying the antimeridian seam *inside* one
+     ring (vertices at ±180 → a full-width texture smear at ~65–71°N). Replaced the ±360° 3-copy draw with
+     a pure `splitRingAtAntimeridian` (cuts each crossing edge at ±180, splices the wrap) + `ClampToEdge`
+     wrap. Verified on the real data (worst post-split |Δlon| = 1.7°) and headless (clean Arctic).
+  5. **Crisp borders** — country outlines built once as GPU `LineSegments` (`appendBorderSegments`,
+     antimeridian-split), overlaid at radius 1.0015; the texture stroke is dropped (fills only). Crisp at
+     any zoom vs. the old blurry raster.
+  6. **Micro-state dots** — a `THREE.Points` layer (constant screen size, depth-tested so back-hemisphere
+     dots hide) at each `geoArea < 3e-5` sr centroid — the same snap set, so the visible dot *is* the
+     target; muted on answer, target's own dot dropped (pin/label instead), mirroring the flat map.
+  7. **Label callout + pin** — reveal/picked pills reworked into one billboarded sprite each (pill + a
+     downward leader stem + a tip dot), anchored at the tip so the pointer lands exactly on the country's
+     surface (green stem longer, red shorter, so adjacent France/Spain pills clear each other); the pin is
+     re-anchored at its **tip** (`sprite.center`) so it stands on the country.
+
+  **Fast loop green** — `npm run check` 0 errors, `npm run test` **562 passing** (+ new `robust-stats` and
+  `globe-geo` split/border/frame tests), `npm run lint` clean. **Production build:** `GlobeMap` is still a
+  separate lazy chunk (**579 kB / 147 kB gz**, three + earcut; +~16 kB vs Stage 2) and in the PWA precache
+  (offline-ready); `robust-stats` split to a 1.8 kB shared chunk. **Headless-verified** (puppeteer /
+  swiftshader) across all seven: Europe framed centred with micro dots, no glow ring, Czechia pops on
+  hover, clean pole, crisp zoomed borders, France/Spain callouts landing on their countries. Committed on
+  `phase-38-globe-projection`. **Pending owner review + an on-device (mobile) check before ✅ Done + merge
+  + archive.**

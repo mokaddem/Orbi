@@ -11,8 +11,9 @@
 // Keep the earth mesh unrotated in the scene so world coords equal local coords and a
 // raycast hit can be inverted straight back to lon/lat.
 
-import { geoDistance } from 'd3-geo';
-import type { Geometry, Position } from 'geojson';
+import { geoCentroid, geoDistance } from 'd3-geo';
+import type { Geometry, MultiPoint, Position } from 'geojson';
+import { inlierMask } from './robust-stats';
 
 /** Equirectangular country-texture dimensions (px). 2048×1024 keeps borders crisp. */
 export const TEX_W = 2048;
@@ -59,6 +60,37 @@ export function regionAngularRadius(
 }
 
 /**
+ * Robust region **centre + angular radius** for framing a filtered region on the globe.
+ *
+ * The globe analogue of `map-framing.ts`'s `focusFrame`, and the fix for a region whose
+ * M49 membership has a far outlier — canonically **Russia in "Europe"** (reaching ~170°E):
+ * its centroid otherwise drags the fly-to centre east and inflates the radius, so the
+ * globe backs off and recentres over Asia with Europe hidden at the limb. Here we reduce
+ * the region to its member centroids, trim points that are outliers on *either* axis (the
+ * same MAD + ~±60° floor gate the flat map uses — so Russia is dropped entirely), then
+ * derive the centre (spherical centroid of the kept points) and angular radius from the
+ * kept set. Falls back to the untrimmed set if trimming would leave nothing.
+ *
+ * Returns `null` when there are no finite centroids (caller frames the whole world).
+ * Pure (only d3-geo), so it is unit-tested without a browser.
+ */
+export function robustRegionFrame(
+  centroids: readonly [number, number][],
+): { centre: [number, number]; radius: number } | null {
+  const finite = centroids.filter((c) => Number.isFinite(c[0]) && Number.isFinite(c[1]));
+  if (finite.length === 0) return null;
+  const lonKeep = inlierMask(finite.map((c) => c[0]));
+  const latKeep = inlierMask(finite.map((c) => c[1]));
+  let kept = finite.filter((_, i) => lonKeep[i] && latKeep[i]);
+  if (kept.length === 0) kept = finite;
+  const mp: MultiPoint = { type: 'MultiPoint', coordinates: kept as Position[] };
+  const c = geoCentroid(mp);
+  const centre: [number, number] =
+    Number.isFinite(c[0]) && Number.isFinite(c[1]) ? [c[0], c[1]] : kept[0];
+  return { centre, radius: regionAngularRadius(centre, kept) };
+}
+
+/**
  * Camera distance (globe radius = 1) that frames a region of the given angular radius:
  * tighter for compact regions, backing off for sprawling ones, clamped so a point-region
  * doesn't dive inside the globe and a hemisphere-wide one doesn't exceed the world view.
@@ -77,9 +109,30 @@ export function polygonsOf(geom: Geometry): Position[][][] {
 }
 
 /**
- * True if any ring spans more than 180° of longitude — i.e. it crosses the antimeridian.
- * Such a ring must also be drawn ±360°-shifted or it smears horizontally across the
- * equirectangular texture (Russia, Fiji, the US Aleutians…).
+ * Append a geometry's ring outlines to `out` as flat `LineSegments` vertex data (pairs of
+ * xyz per edge) on a sphere of the given radius. Rings are antimeridian-split first so no
+ * border edge cuts across the globe. Used for the crisp GPU vector borders overlaid on the
+ * textured fills (Phase 38 Stage 3) — re-rasterised per frame, so they stay sharp at any
+ * zoom where the raster texture would blur.
+ */
+export function appendBorderSegments(geom: Geometry, radius: number, out: number[]): void {
+  for (const poly of polygonsOf(geom)) {
+    for (const ring of poly) {
+      for (const piece of splitRingAtAntimeridian(ring)) {
+        for (let i = 0; i + 1 < piece.length; i++) {
+          const a = lonLatToVec3(piece[i][0], piece[i][1], radius);
+          const b = lonLatToVec3(piece[i + 1][0], piece[i + 1][1], radius);
+          out.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * True if any ring spans more than 180° of longitude — i.e. it crosses the antimeridian
+ * (Russia, Fiji, the US Aleutians…). Such a ring must be split at the antimeridian before
+ * rasterising or it smears a full-width horizontal band across the equirectangular texture.
  */
 export function crossesAntimeridian(geom: Geometry): boolean {
   for (const poly of polygonsOf(geom)) {
@@ -94,4 +147,65 @@ export function crossesAntimeridian(geom: Geometry): boolean {
     }
   }
   return false;
+}
+
+/**
+ * Split a polygon ring at the antimeridian into one or more sub-rings, each staying on a
+ * single side of ±180° (longitudes stay continuous). This replaces the old ±360°-shifted
+ * 3-copy draw, which left the antimeridian seam *inside* each copy — a vertex at ~+180
+ * followed by one at ~−180 draws an edge clean across the texture, producing the polar
+ * band (Russia's Chukotka reaches ~71°N right at the seam).
+ *
+ * Each crossing edge is cut at the ±180 boundary (latitude interpolated in unwrapped
+ * longitude space) and the walk continues from the opposite boundary. Because a closed
+ * ring wraps, the final piece is spliced back onto the first — otherwise starting the walk
+ * mid-arc would leave an artificial straight cut through the interior. Each returned piece
+ * closes naturally against the texture edge (px 0 / TEX_W), so the fill hugs the seam.
+ *
+ * Rings that don't cross are returned unchanged in a single-element array.
+ */
+export function splitRingAtAntimeridian(ring: Position[]): Position[][] {
+  if (ring.length < 3) return [ring];
+
+  let crosses = false;
+  for (let i = 1; i < ring.length; i++) {
+    if (Math.abs(ring[i][0] - ring[i - 1][0]) > 180) {
+      crosses = true;
+      break;
+    }
+  }
+  if (!crosses) return [ring];
+
+  const pieces: Position[][] = [];
+  let current: Position[] = [ring[0]];
+  for (let i = 1; i < ring.length; i++) {
+    const [lon0, lat0] = ring[i - 1];
+    const [lon1, lat1] = ring[i];
+    const dlon = lon1 - lon0;
+    if (Math.abs(dlon) > 180) {
+      // Crosses the antimeridian. Unwrap lon1 to be continuous with lon0, find where the
+      // edge hits ±180, and interpolate the crossing latitude there.
+      const lon1u = dlon > 0 ? lon1 - 360 : lon1 + 360;
+      const bound = lon0 >= 0 ? 180 : -180;
+      const denom = lon1u - lon0;
+      const tt = denom === 0 ? 0 : (bound - lon0) / denom;
+      const latCross = lat0 + (lat1 - lat0) * tt;
+      current.push([bound, latCross]);
+      pieces.push(current);
+      current = [
+        [-bound, latCross],
+        [lon1, lat1],
+      ];
+    } else {
+      current.push(ring[i]);
+    }
+  }
+  pieces.push(current);
+
+  // Merge the trailing piece back onto the leading one: both lie on the side the walk
+  // started from and are one continuous arc split only by the arbitrary start vertex.
+  if (pieces.length > 1) {
+    pieces[0] = [...pieces.pop()!, ...pieces[0]];
+  }
+  return pieces;
 }

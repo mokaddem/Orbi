@@ -2,8 +2,8 @@
   import { onMount, onDestroy } from 'svelte';
   import * as THREE from 'three';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+  import earcut from 'earcut';
   import { geoArea, geoCentroid, geoContains } from 'd3-geo';
-  import type { FeatureCollection } from 'geojson';
   import type { CountryFeature } from '../../data';
   import { t } from '../../i18n';
   import Icon from './Icon.svelte';
@@ -11,12 +11,13 @@
   import {
     TEX_W,
     TEX_H,
-    crossesAntimeridian,
+    appendBorderSegments,
     fitDistanceForAngularRadius,
     lonLatToTexPx,
     lonLatToVec3,
     polygonsOf,
-    regionAngularRadius,
+    robustRegionFrame,
+    splitRingAtAntimeridian,
     vec3ToLonLat,
   } from './globe-geo';
 
@@ -72,17 +73,19 @@
   const OCEAN_CAP = 42; // px snap radius for a near-miss on open water
   const MICRO_STER = 3e-5; // geoArea (steradians) below which a country is "micro" (aim-assisted)
   const AUTOROTATE_SPEED = 0.5;
+  const BORDER_R = 1.0015; // radius of the vector border lines, just above the fill surface
+  const LIFT_MAX = 1.035; // radius the hovered country's raised tile lifts to
+  const LIFT_MIN = 1.003; // resting radius (just clear of the fill, so it settles unseen)
 
   interface Palette {
     water: string;
     land: string;
     border: string;
     highlight: string;
-    highlightLine: string;
     correct: string;
     wrong: string;
-    accent: string;
     coral: string;
+    dot: string;
   }
 
   let container = $state<HTMLDivElement>();
@@ -94,6 +97,11 @@
   let camera: THREE.PerspectiveCamera | undefined;
   let controls: OrbitControls | undefined;
   let earth: THREE.Mesh | undefined;
+  let borders: THREE.LineSegments | undefined;
+  let microDots: THREE.Points | undefined;
+  let microDotMat: THREE.PointsMaterial | undefined;
+  let liftMesh: THREE.Mesh | undefined;
+  let liftMat: THREE.MeshPhongMaterial | undefined;
   let pin: THREE.Sprite | undefined;
   let revealSprite: THREE.Sprite | undefined;
   let pickedSprite: THREE.Sprite | undefined;
@@ -108,6 +116,19 @@
   const centroids = new Map<string, [number, number]>();
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const microIsos = new Set<string>();
+  // lon/lat bounding box [minLon, minLat, maxLon, maxLat] per country, for a cheap reject
+  // before the (costly) `geoContains` on each hover frame. Antimeridian-spanning countries
+  // get a full-width box so they're never wrongly rejected.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const bboxes = new Map<string, [number, number, number, number]>();
+
+  // Hover-lift state (locate mode): the country under the pointer rises off the globe as a
+  // raised tile. `hoverPointer` is the latest pointer position, resolved once per frame in
+  // the render loop (throttling the raycast); `liftCurrent`/`liftTarget` drive the spring.
+  let hoverIso: string | null = null;
+  let hoverPointer: [number, number] | null = null;
+  let liftCurrent = 1;
+  let liftTarget = 1;
 
   interface Fly {
     fromDir: THREE.Vector3;
@@ -154,11 +175,10 @@
       land: v('--map-land') || '#ecf7f4',
       border: v('--map-border') || '#bfded9',
       highlight: v('--map-highlight') || '#7fd9d3',
-      highlightLine: v('--map-highlight-line') || '#0b7e7a',
       correct: v('--color-correct') || '#1e9e5a',
       wrong: v('--color-wrong') || '#cf3b2c',
-      accent: v('--color-accent') || '#10a5a0',
       coral: v('--color-coral') || '#ff7a59',
+      dot: v('--color-accent-strong') || '#0b7e7a',
     };
   }
 
@@ -180,19 +200,25 @@
   }
 
   // --- Country texture -----------------------------------------------------------
-  function tracePolygons(geom: CountryFeature['geometry'], shift: number): void {
+  // The texture supplies the *fills* only; borders are crisp GPU vector lines (`borders`)
+  // overlaid on the sphere, so they stay sharp at any zoom instead of blurring with the
+  // raster (Phase 38 Stage 3, fix 5).
+  function tracePolygons(geom: CountryFeature['geometry']): void {
     if (!texCtx) return;
     for (const poly of polygonsOf(geom)) {
       for (const ring of poly) {
-        texCtx.beginPath();
-        ring.forEach(([lon, lat], i) => {
-          const [x, y] = lonLatToTexPx(lon + shift, lat);
-          if (i) texCtx!.lineTo(x, y);
-          else texCtx!.moveTo(x, y);
-        });
-        texCtx.closePath();
-        texCtx.fill('evenodd');
-        texCtx.stroke();
+        // Split antimeridian-crossing rings so no edge smears across the whole texture
+        // (the old ±360 3-copy draw left the seam inside each copy → the polar band).
+        for (const piece of splitRingAtAntimeridian(ring)) {
+          texCtx.beginPath();
+          piece.forEach(([lon, lat], i) => {
+            const [x, y] = lonLatToTexPx(lon, lat);
+            if (i) texCtx!.lineTo(x, y);
+            else texCtx!.moveTo(x, y);
+          });
+          texCtx.closePath();
+          texCtx.fill('evenodd');
+        }
       }
     }
   }
@@ -202,7 +228,6 @@
     texCtx.clearRect(0, 0, TEX_W, TEX_H);
     texCtx.fillStyle = palette.water;
     texCtx.fillRect(0, 0, TEX_W, TEX_H);
-    texCtx.lineJoin = 'round';
     for (const [iso2, f] of features) {
       const isReveal = iso2 === revealIso;
       const isPicked = iso2 === pickedIso && iso2 !== revealIso;
@@ -214,16 +239,7 @@
           : isPicked
             ? palette.wrong
             : palette.land;
-      texCtx.strokeStyle = isHighlight
-        ? palette.highlightLine
-        : isReveal
-          ? palette.correct
-          : isPicked
-            ? palette.wrong
-            : palette.border;
-      texCtx.lineWidth = isHighlight || isReveal || isPicked ? 2.2 : 1;
-      const shifts = crossesAntimeridian(f.geometry) ? [0, -360, 360] : [0];
-      for (const s of shifts) tracePolygons(f.geometry, s);
+      tracePolygons(f.geometry);
     }
     texture.needsUpdate = true;
   }
@@ -249,6 +265,9 @@
       new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true }),
     );
     sprite.scale.set(0.16, 0.16, 1);
+    // Anchor the pin's *tip* (teardrop point at canvas (64, 92)) on the surface point, so
+    // the pin stands on the country rather than hovering by its centre.
+    sprite.center.set(0.5, 1 - 92 / 128);
     sprite.visible = false;
     return sprite;
   }
@@ -264,7 +283,8 @@
     const iso = teachTarget();
     if (iso && centroids.has(iso)) {
       const [lon, lat] = centroids.get(iso)!;
-      pin.position.copy(new THREE.Vector3(...lonLatToVec3(lon, lat, 1.02)));
+      // Tip-anchored (see makePin), so the base sits just clear of the surface.
+      pin.position.copy(new THREE.Vector3(...lonLatToVec3(lon, lat, 1.008)));
       pin.userData.base = pin.position.clone();
       pin.visible = true;
     } else {
@@ -272,20 +292,85 @@
     }
   }
 
-  // --- Reveal / picked name labels (billboarded sprites) -------------------------
-  function makeTextSprite(text: string, color: string, place: 'above' | 'below'): THREE.Sprite {
+  // --- Micro-state aim dots ------------------------------------------------------
+  // Parity with the flat map (Phase 22): micro-states (Vatican, Monaco, Singapore…) are
+  // nearly invisible and un-hittable, so each gets a visible constant-size dot at its
+  // centroid. The dot set == the Stage-2 snap set (`microIsos`), so the visible dot *is*
+  // the snappable target. Points with `sizeAttenuation:false` stay a fixed pixel size;
+  // depth-tested against the sphere so back-hemisphere dots hide behind the globe.
+  function makeDotTexture(): THREE.CanvasTexture {
+    const s = 64;
+    const c = document.createElement('canvas');
+    c.width = c.height = s;
+    const g = c.getContext('2d')!;
+    g.beginPath();
+    g.arc(s / 2, s / 2, s / 2 - 7, 0, 2 * Math.PI);
+    g.fillStyle = palette.dot;
+    g.fill();
+    g.lineWidth = 7;
+    g.strokeStyle = '#fff';
+    g.stroke();
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  // Show the dots only on a locate board (no highlight prompt): while answering, and once
+  // answered (muted). The reveal target's own dot is dropped when answered — its place is
+  // shown by the pin + label instead, mirroring the flat map's reveal ring.
+  function updateMicroDots(): void {
+    if (!microDots || !microDotMat) return;
+    const show = !highlightIso && (interactive || (disabled && !!revealIso));
+    microDots.visible = show;
+    if (!show) return;
+    const pos: number[] = [];
+    for (const iso of microIsos) {
+      if (disabled && iso === revealIso) continue;
+      const c = centroids.get(iso);
+      if (!c) continue;
+      pos.push(...lonLatToVec3(c[0], c[1], 1.01));
+    }
+    const geo = microDots.geometry;
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setDrawRange(0, pos.length / 3);
+    microDotMat.opacity = disabled ? 0.4 : 1;
+  }
+
+  // --- Reveal / picked name callouts (billboarded sprites) -----------------------
+  // A callout = a name pill + a downward leader stem + a tip dot, all drawn into one canvas
+  // and anchored at the tip. The sprite billboards (screen-aligned), so the stem is always
+  // vertical on screen and the tip lands *exactly* on the country's surface point, with the
+  // pill floating above — the flat map's leader+label, on the globe (Phase 38 Stage 3).
+  const PILL_WORLD = 0.13; // pill height in world units (tuned for the answer framing)
+  function makeCallout(text: string, color: string, stem: number): THREE.Sprite {
     const font = 46;
     const pad = 18;
+    const tip = 7;
     const measure = document.createElement('canvas').getContext('2d')!;
     measure.font = `600 ${font}px system-ui, sans-serif`;
-    const w = Math.ceil(measure.measureText(text).width) + pad * 2;
-    const h = font + pad * 2;
+    const pillW = Math.ceil(measure.measureText(text).width) + pad * 2;
+    const pillH = font + pad * 2;
+    const W = pillW;
+    const H = pillH + stem + tip * 2;
     const c = document.createElement('canvas');
-    c.width = w;
-    c.height = h;
+    c.width = W;
+    c.height = H;
     const g = c.getContext('2d')!;
+    // Leader stem + tip dot first, so the pill draws over the stem's top.
+    g.strokeStyle = color;
+    g.lineWidth = 5;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(W / 2, pillH);
+    g.lineTo(W / 2, H - tip);
+    g.stroke();
+    g.beginPath();
+    g.arc(W / 2, H - tip, tip, 0, 2 * Math.PI);
+    g.fillStyle = color;
+    g.fill();
+    // Pill.
     g.fillStyle = 'rgba(255,255,255,0.94)';
-    roundRect(g, 1, 1, w - 2, h - 2, h / 2);
+    roundRect(g, 1, 1, W - 2, pillH - 2, pillH / 2);
     g.fill();
     g.lineWidth = 3;
     g.strokeStyle = color;
@@ -294,16 +379,22 @@
     g.fillStyle = color;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(text, w / 2, h / 2 + 2);
+    g.fillText(text, W / 2, pillH / 2 + 2);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
     const sprite = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }),
+      new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+      }),
     );
-    const scale = 0.13; // world-units tall (tuned for the ~COUNTRY_DIST answer framing)
-    sprite.scale.set((w / h) * scale, scale, 1);
-    // Anchor so the label floats just above (or below) the surface point.
-    sprite.center.set(0.5, place === 'above' ? -0.1 : 1.1);
+    const scaleY = (PILL_WORLD * H) / pillH;
+    sprite.scale.set((W / H) * scaleY, scaleY, 1);
+    // Anchor the tip dot (canvas y = H − tip) on the surface point.
+    sprite.center.set(0.5, tip / H);
+    sprite.renderOrder = 10; // always legible, above the fills/borders/lift
     return sprite;
   }
 
@@ -320,16 +411,18 @@
     revealSprite = undefined;
     disposeSprite(pickedSprite);
     pickedSprite = undefined;
+    // Reveal gets the taller stem, the wrong pick a shorter one, so the two pills clear
+    // each other when the countries are adjacent (e.g. picked France / answer Spain).
     if (revealLabel && revealIso && centroids.has(revealIso)) {
-      revealSprite = makeTextSprite(revealLabel, palette.correct, 'above');
+      revealSprite = makeCallout(revealLabel, palette.correct, 84);
       const [lon, lat] = centroids.get(revealIso)!;
-      revealSprite.position.copy(new THREE.Vector3(...lonLatToVec3(lon, lat, 1.05)));
+      revealSprite.position.copy(new THREE.Vector3(...lonLatToVec3(lon, lat, 1.01)));
       scene.add(revealSprite);
     }
     if (pickedLabel && pickedIso && pickedIso !== revealIso && centroids.has(pickedIso)) {
-      pickedSprite = makeTextSprite(pickedLabel, palette.wrong, 'below');
+      pickedSprite = makeCallout(pickedLabel, palette.wrong, 40);
       const [lon, lat] = centroids.get(pickedIso)!;
-      pickedSprite.position.copy(new THREE.Vector3(...lonLatToVec3(lon, lat, 1.05)));
+      pickedSprite.position.copy(new THREE.Vector3(...lonLatToVec3(lon, lat, 1.01)));
       scene.add(pickedSprite);
     }
   }
@@ -370,17 +463,6 @@
     reframe();
   }
 
-  function regionCentroid(isos: string[]): [number, number] | null {
-    const feats: CountryFeature[] = [];
-    for (const iso of isos) {
-      const f = features.get(iso);
-      if (f) feats.push(f);
-    }
-    if (!feats.length) return null;
-    const c = geoCentroid({ type: 'FeatureCollection', features: feats } as FeatureCollection);
-    return Number.isFinite(c[0]) && Number.isFinite(c[1]) ? [c[0], c[1]] : null;
-  }
-
   // Re-frame on a new question: prompt/answer country to the front (highlight or answered
   // locate), else the active region fit to its angular span, else the whole world.
   function reframe(): void {
@@ -392,13 +474,15 @@
       return;
     }
     if (focusIsos && focusIsos.length) {
-      const c = regionCentroid(focusIsos);
-      if (c) {
-        const members = focusIsos
-          .map((iso) => centroids.get(iso))
-          .filter((m): m is [number, number] => !!m);
-        const dist = fitDistanceForAngularRadius(regionAngularRadius(c, members));
-        flyToLonLat(c[0], c[1], dist);
+      // Robust centre + angular radius over the members' *centroids*, trimming far
+      // outliers (drops Russia-in-Europe) so the region stays framed — not recentred
+      // over Asia with Europe at the limb.
+      const members = focusIsos
+        .map((iso) => centroids.get(iso))
+        .filter((m): m is [number, number] => !!m);
+      const frame = robustRegionFrame(members);
+      if (frame) {
+        flyToLonLat(frame.centre[0], frame.centre[1], fitDistanceForAngularRadius(frame.radius));
         return;
       }
     }
@@ -434,6 +518,17 @@
     return { all, micro };
   }
 
+  // Country containing a lon/lat, with a cheap bounding-box reject before the O(ring)
+  // `geoContains`. Shared by the click pick and the hover-lift resolver.
+  function countryAtLonLat(lon: number, lat: number): string | null {
+    for (const [iso2, f] of features) {
+      const b = bboxes.get(iso2);
+      if (b && (lon < b[0] || lon > b[2] || lat < b[1] || lat > b[3])) continue;
+      if (geoContains(f, [lon, lat])) return iso2;
+    }
+    return null;
+  }
+
   function onPointerDown(e: PointerEvent): void {
     downXY = [e.clientX, e.clientY];
   }
@@ -462,18 +557,103 @@
       const hit = raycaster.intersectObject(earth, false)[0];
       if (hit) {
         const [lon, lat] = vec3ToLonLat(hit.point.x, hit.point.y, hit.point.z);
-        for (const [iso2, f] of features) {
-          if (geoContains(f, [lon, lat])) {
-            iso = iso2;
-            break;
-          }
-        }
+        iso = countryAtLonLat(lon, lat);
       }
     }
     // 3) near-miss on open water → snap to the nearest visible country within a cap.
     if (!iso) iso = nearestCountryWithinCap(cx, cy, all, OCEAN_CAP);
 
     if (iso) onpick?.(iso);
+  }
+
+  // --- Hover pop (locate mode) ---------------------------------------------------
+  // The country under the pointer lifts off the globe like a raised tile, so the player
+  // sees what they're about to pick. The raised patch is an on-demand triangulated mesh
+  // (earcut) for the hovered country *only* — one at a time, so it stays cheap on mobile.
+  function onPointerMove(e: PointerEvent): void {
+    if (!interactive || disabled || highlightIso) {
+      hoverPointer = null;
+      if (hoverIso) setHover(null);
+      return;
+    }
+    if (!renderer) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    hoverPointer = [e.clientX - rect.left, e.clientY - rect.top];
+  }
+
+  function onPointerLeave(): void {
+    hoverPointer = null;
+    if (hoverIso) setHover(null);
+  }
+
+  // Resolve the hovered country from the latest pointer — called once per frame, so the
+  // raycast + geoContains are throttled to the frame rate rather than every pointer event.
+  function processHover(): void {
+    if (!hoverPointer || !renderer || !camera || !earth) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const [cx, cy] = hoverPointer;
+    hoverPointer = null;
+    ndc.x = (cx / rect.width) * 2 - 1;
+    ndc.y = -(cy / rect.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObject(earth, false)[0];
+    const iso = hit
+      ? countryAtLonLat(...vec3ToLonLat(hit.point.x, hit.point.y, hit.point.z))
+      : null;
+    if (iso !== hoverIso) setHover(iso);
+  }
+
+  function setHover(iso: string | null): void {
+    hoverIso = iso;
+    if (iso && liftMesh) {
+      const geo = buildLiftGeometry(iso);
+      if (!geo) {
+        liftTarget = 1;
+        return;
+      }
+      liftMesh.geometry.dispose();
+      liftMesh.geometry = geo;
+      liftCurrent = prefersReduced() ? LIFT_MAX : LIFT_MIN;
+      liftTarget = LIFT_MAX;
+    } else {
+      liftTarget = 1;
+      if (prefersReduced()) {
+        liftCurrent = 1;
+        if (liftMesh) liftMesh.visible = false;
+      }
+    }
+  }
+
+  // Triangulate the hovered country onto the unit sphere (earcut in lon/lat space). The
+  // mesh's uniform scale animates the radial lift, so vertices live at radius 1 here.
+  // Antimeridian-crossing rings are split first; each piece is triangulated independently
+  // (holes are filled, matching the texture's per-ring fill).
+  function buildLiftGeometry(iso: string): THREE.BufferGeometry | null {
+    const f = features.get(iso);
+    if (!f) return null;
+    const positions: number[] = [];
+    const indices: number[] = [];
+    let base = 0;
+    for (const poly of polygonsOf(f.geometry)) {
+      for (const ring of poly) {
+        for (const piece of splitRingAtAntimeridian(ring)) {
+          if (piece.length < 3) continue;
+          const flat: number[] = [];
+          for (const [lon, lat] of piece) flat.push(lon, lat);
+          const tri = earcut(flat);
+          if (!tri.length) continue;
+          for (const [lon, lat] of piece) positions.push(...lonLatToVec3(lon, lat, 1));
+          for (const idx of tri) indices.push(base + idx);
+          base += piece.length;
+        }
+      }
+    }
+    if (!indices.length) return null;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    return geo;
   }
 
   // --- Lifecycle -----------------------------------------------------------------
@@ -524,6 +704,10 @@
     texture = new THREE.CanvasTexture(texCanvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = 4;
+    // Clamp both axes so anisotropic/mip sampling can't bleed the bottom texel row over
+    // the north pole (or the seam across the top) — the top row is clean ocean.
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
     const earthMat = new THREE.MeshPhongMaterial({
       map: texture,
       emissive: 0xffffff,
@@ -535,21 +719,47 @@
     earth = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), earthMat);
     scene.add(earth);
 
-    const atmo = new THREE.Mesh(
-      new THREE.SphereGeometry(1.16, 64, 48),
-      new THREE.ShaderMaterial({
+    // Crisp country borders as GPU line geometry, overlaid just above the fill surface.
+    // Depth-tested against the earth so the back hemisphere's borders stay hidden. Built
+    // once — the geometry never changes (state is conveyed by fills + the hover lift).
+    const borderPos: number[] = [];
+    for (const f of features.values()) appendBorderSegments(f.geometry, BORDER_R, borderPos);
+    const borderGeo = new THREE.BufferGeometry();
+    borderGeo.setAttribute('position', new THREE.Float32BufferAttribute(borderPos, 3));
+    borders = new THREE.LineSegments(
+      borderGeo,
+      new THREE.LineBasicMaterial({
+        color: new THREE.Color(palette.border),
         transparent: true,
-        side: THREE.BackSide,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        uniforms: { c: { value: new THREE.Color(palette.accent) } },
-        vertexShader: `varying vec3 vN; varying vec3 vP;
-          void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vP = mv.xyz; gl_Position = projectionMatrix * mv; }`,
-        fragmentShader: `uniform vec3 c; varying vec3 vN; varying vec3 vP;
-          void main(){ float i = pow(1.0 - abs(dot(vN, normalize(-vP))), 3.0); gl_FragColor = vec4(c, i * 0.9); }`,
+        opacity: 0.85,
       }),
     );
-    scene.add(atmo);
+    scene.add(borders);
+
+    microDotMat = new THREE.PointsMaterial({
+      size: 15,
+      sizeAttenuation: false,
+      map: makeDotTexture(),
+      transparent: true,
+      depthWrite: false,
+      alphaTest: 0.4,
+    });
+    microDots = new THREE.Points(new THREE.BufferGeometry(), microDotMat);
+    microDots.visible = false;
+    scene.add(microDots);
+
+    // The hovered country's raised tile (geometry swapped in per hover; scale animates the
+    // lift). Turquoise + emissive so it pops off the globe as the "about to pick" affordance.
+    liftMat = new THREE.MeshPhongMaterial({
+      color: new THREE.Color(palette.highlight),
+      emissive: new THREE.Color(palette.highlight),
+      emissiveIntensity: 0.4,
+      shininess: 30,
+      side: THREE.DoubleSide,
+    });
+    liftMesh = new THREE.Mesh(new THREE.BufferGeometry(), liftMat);
+    liftMesh.visible = false;
+    scene.add(liftMesh);
 
     pin = makePin();
     scene.add(pin);
@@ -567,16 +777,40 @@
     for (const [iso2, f] of features) {
       centroids.set(iso2, geoCentroid(f) as [number, number]);
       if (geoArea(f) < MICRO_STER) microIsos.add(iso2);
+      let minLon = 180;
+      let minLat = 90;
+      let maxLon = -180;
+      let maxLat = -90;
+      let wide = false;
+      for (const poly of polygonsOf(f.geometry)) {
+        for (const ring of poly) {
+          let rMin = 180;
+          let rMax = -180;
+          for (const [lon, lat] of ring) {
+            if (lon < minLon) minLon = lon;
+            if (lon > maxLon) maxLon = lon;
+            if (lat < minLat) minLat = lat;
+            if (lat > maxLat) maxLat = lat;
+            if (lon < rMin) rMin = lon;
+            if (lon > rMax) rMax = lon;
+          }
+          if (rMax - rMin > 180) wide = true;
+        }
+      }
+      bboxes.set(iso2, wide ? [-180, minLat, 180, maxLat] : [minLon, minLat, maxLon, maxLat]);
     }
 
     drawTexture();
     updateLabels();
     placePin();
+    updateMicroDots();
     resize();
     reframe();
 
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerleave', onPointerLeave);
     resizeObserver = new ResizeObserver(() => resize());
     resizeObserver.observe(container);
 
@@ -597,6 +831,14 @@
         const base = pin.userData.base as THREE.Vector3;
         pin.position.copy(base).multiplyScalar(1 + 0.01 * (1 + Math.sin(now * 0.004)));
       }
+      processHover();
+      if (liftMesh) {
+        // Uniform scale from the globe centre == a pure radial lift for a patch on the
+        // unit sphere. Spring toward the target; reduced motion snaps (set in setHover).
+        liftCurrent += (liftTarget - liftCurrent) * (prefersReduced() ? 1 : 0.22);
+        liftMesh.scale.setScalar(liftCurrent);
+        liftMesh.visible = liftCurrent > 1.001;
+      }
       if (!fly) controls?.update();
       renderer?.render(scene!, camera!);
     };
@@ -609,11 +851,20 @@
     if (renderer) {
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
+      renderer.domElement.removeEventListener('pointermove', onPointerMove);
+      renderer.domElement.removeEventListener('pointerleave', onPointerLeave);
     }
     disposeSprite(revealSprite);
     disposeSprite(pickedSprite);
     controls?.dispose();
     earth?.geometry.dispose();
+    borders?.geometry.dispose();
+    (borders?.material as THREE.Material | undefined)?.dispose();
+    microDots?.geometry.dispose();
+    microDotMat?.map?.dispose();
+    microDotMat?.dispose();
+    liftMesh?.geometry.dispose();
+    liftMat?.dispose();
     texture?.dispose();
     renderer?.dispose();
     if (renderer && container?.contains(renderer.domElement)) {
@@ -622,17 +873,27 @@
     }
   });
 
-  // Recolour the texture, refresh labels + pin when the highlight / pick / reveal changes.
+  // Recolour the texture, refresh labels + pin + micro dots when the highlight / pick /
+  // reveal (or the interactive/answered board state) changes.
   $effect(() => {
     void highlightIso;
     void pickedIso;
     void revealIso;
     void pickedLabel;
     void revealLabel;
+    void interactive;
+    void disabled;
     if (!renderer) return;
+    // Drop any stale hover-lift when the board leaves interactive locate mode (e.g. a new
+    // highlight question, or the board locking on answer).
+    if ((!interactive || disabled || highlightIso) && hoverIso) {
+      hoverPointer = null;
+      setHover(null);
+    }
     drawTexture();
     updateLabels();
     placePin();
+    updateMicroDots();
   });
 
   // Re-frame the camera when the question (or its target) changes.

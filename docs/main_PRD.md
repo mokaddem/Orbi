@@ -222,7 +222,7 @@ the top of the file).
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 38 | Play on a 3D globe (WebGL projection) | [phase-38-globe-projection.md](phases/phase-38-globe-projection.md) | 4, 12, 22, 28, 37 | 🟡 In progress | ~70% (Stages 1 + 2 built & committed: lazy/precached three.js `GlobeMap`, both modes, snap picking, auto-rotate, labels, zoom, WebGL→flat fallback. **Stage 3** specced from owner review — robust region framing, remove glow ring, hover-pop, north-pole fix, crisp zoomed borders, visible micro-dots, label pointer — awaiting approval) |
+| 38 | Play on a 3D globe (WebGL projection) | [phase-38-globe-projection.md](phases/phase-38-globe-projection.md) | 4, 12, 22, 28, 37 | 🟡 In progress | ~90% (Stages 1 + 2 + 3 built & committed: lazy/precached three.js `GlobeMap`, both modes, snap picking, auto-rotate, zoom, WebGL→flat fallback. **Stage 3** landed all 7 owner-review fixes — robust region framing (Russia-in-Europe trim), no glow ring, earcut hover-pop, antimeridian-split pole fix, crisp GPU vector borders, visible micro-dots, tip-anchored label callouts + pin. Fast loop green (562 tests); headless-verified. Pending owner review + on-device check before ✅ Done) |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

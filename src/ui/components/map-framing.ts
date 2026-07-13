@@ -24,13 +24,8 @@
 import { geoCentroid } from 'd3-geo';
 import type { MultiPoint } from 'geojson';
 import type { CountryFeature } from '../../data';
+import { inlierMask } from './robust-stats';
 
-/** Keep centroids within this many degrees of the median even when the spread is
- *  tight, so continuous regions aren't over-trimmed. Only a *far* isolated outlier
- *  (beyond both this floor and the MAD gate) is dropped. */
-const OUTLIER_FLOOR_DEG = 60;
-/** Outlier gate as a multiple of the median absolute deviation. */
-const MAD_K = 3;
 /** Context margin as a fraction of the box span… */
 const PAD_FRACTION = 0.12;
 /** …clamped between these bounds (degrees) so tiny regions still get breathing room
@@ -41,24 +36,13 @@ const PAD_MAX_DEG = 12;
  *  `fitExtent` account for the projection's curvature (bowed parallels/meridians). */
 const GRID_STEPS = 4;
 
-function median(sorted: readonly number[]): number {
-  const n = sorted.length;
-  if (n === 0) return NaN;
-  const mid = n >> 1;
-  return n % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
 /**
  * Robust [min, max] of a 1-D sample: drop values that are both beyond `MAD_K` MADs
  * and beyond `OUTLIER_FLOOR_DEG` from the median, then take the range of the rest.
  */
 function robustRange(values: readonly number[]): [number, number] {
-  const sorted = [...values].sort((a, b) => a - b);
-  const med = median(sorted);
-  const devs = sorted.map((v) => Math.abs(v - med)).sort((a, b) => a - b);
-  const mad = median(devs);
-  const threshold = Math.max(MAD_K * mad, OUTLIER_FLOOR_DEG);
-  const kept = values.filter((v) => Math.abs(v - med) <= threshold);
+  const keep = inlierMask(values);
+  const kept = values.filter((_, i) => keep[i]);
   return [Math.min(...kept), Math.max(...kept)];
 }
 
