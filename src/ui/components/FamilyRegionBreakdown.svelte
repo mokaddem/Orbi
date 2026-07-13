@@ -1,6 +1,7 @@
 <script lang="ts">
   import { t, localizedRegion } from '../../i18n';
   import { FAMILIES, type MasteryFamily, type RegionFamilyMastery } from '../../domain';
+  import Icon from './Icon.svelte';
   import RegionIcon from './RegionIcon.svelte';
 
   // Per-region combined-mastery breakdown (Phase 41). Two layouts (owner pick, OQ4):
@@ -8,12 +9,17 @@
   //  • 'toggle'  (Home)     — one bar per region + an Overall/Map/Flags/Capitals lens toggle.
   // Rows arrive pre-ordered least-complete first (from `computeFamilyMastery`), so this stays
   // presentational.
+  //
+  // `onPractise` (stacked only) turns each not-fully-mastered family mini-bar into a "practise"
+  // shortcut: tapping it drills that region×family's unmastered countries (owner-chosen scope).
   let {
     regions,
     variant = 'stacked',
+    onPractise,
   }: {
     regions: RegionFamilyMastery[];
     variant?: 'stacked' | 'toggle';
+    onPractise?: (region: string, family: MasteryFamily) => void;
   } = $props();
 
   type Lens = 'overall' | MasteryFamily;
@@ -37,6 +43,12 @@
       : pct(famTally(r, lens).learning, famTally(r, lens).total);
   const lensLabel = (l: Lens): string =>
     l === 'overall' ? $t('progress.mastery.overall') : $t(`modes.group.${l}`);
+  // Shared label for the practise shortcut's tooltip (title) and screen-reader name (aria-label).
+  const practiseLabel = (family: MasteryFamily, region: string): string =>
+    $t('progress.mastery.practise', {
+      family: $t(`modes.group.${family}`),
+      region: $localizedRegion(region),
+    });
 </script>
 
 {#if variant === 'toggle'}
@@ -98,6 +110,18 @@
                   ></span>
                 </span>
                 <span class="mpct">{p}%</span>
+                {#if onPractise && fam.mastered < fam.total}
+                  {@const label = practiseLabel(f.key, r.region)}
+                  <button
+                    type="button"
+                    class="practise"
+                    aria-label={label}
+                    title={label}
+                    onclick={() => onPractise(r.region, f.key)}
+                  >
+                    <Icon name="target" size={15} />
+                  </button>
+                {/if}
               </div>
             {/each}
           </div>
@@ -231,9 +255,48 @@
 
   .mini {
     display: grid;
-    grid-template-columns: 4.2rem 1fr 2.4rem;
+    /* tag · track · % · practise-shortcut (the last column stays reserved even when a family is
+       fully mastered and its button is absent, so the % column never shifts between rows). */
+    grid-template-columns: 4.2rem 1fr 2.4rem 1.6rem;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  /* Per-family "practise this region's unmastered countries" shortcut (Phase 41 follow-on).
+     Icon-only + muted so it stays secondary to the bar; grows to accent on hover/focus. */
+  .practise {
+    appearance: none;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-muted);
+    cursor: pointer;
+    transition:
+      background 0.12s ease,
+      border-color 0.12s ease,
+      color 0.12s ease;
+  }
+
+  .practise:hover {
+    background: var(--color-accent-weak);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .practise:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .practise {
+      transition: none;
+    }
   }
 
   .tag {

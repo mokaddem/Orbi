@@ -330,3 +330,86 @@ export function computeFamilyMastery(
 
   return { overall, byRegion };
 }
+
+// --- Region × family practice pool (Phase 41 follow-on) --------------------------------------
+//
+// Powers the per-family "practise" shortcut on the Progress world-mastery breakdown: given a
+// region and a family, assemble a launchable drill of that region's **unmastered** countries
+// (learning + unseen) for the family's **weaker direction** — whichever of its two direction
+// modes has more not-yet-mastered countries. A session runs a single mode, so we target the
+// direction with the most work; the family fills as the player drills each direction in turn.
+// Mirrors {@link computeFamilyMastery}'s applicability rules (Map is N/A for geometry-less
+// countries), so the pool always matches the count the mini-bar shows. Pure & deterministic
+// given `now`.
+
+/** A launchable region×family drill: the direction mode to run and its weakest-first pool. */
+export interface RegionFamilyPractice {
+  mode: GameMode;
+  iso2s: string[];
+}
+
+/**
+ * Assemble the region×family practice pool, or `null` when the family is already fully mastered
+ * in this region (nothing to drill). The chosen `mode` is the family's weaker direction; `iso2s`
+ * are that direction's not-yet-mastered applicable countries, weakest-first (most-overdue seen
+ * items ahead of never-seen ones).
+ */
+export function regionFamilyPracticePool(
+  srItems: readonly SRItem[],
+  countries: readonly MasteryCountry[],
+  region: string,
+  family: MasteryFamily,
+  options: { now?: number } = {},
+): RegionFamilyPractice | null {
+  const now = options.now ?? Date.now();
+  const fam = FAMILIES.find((f) => f.key === family);
+  if (!fam) return null;
+
+  // Index this family's SR items by `mode:iso2` for O(1) mastered lookups.
+  const items = new Map<string, SRItem>();
+  const famModes = new Set<GameMode>(fam.modes);
+  for (const item of srItems) {
+    const parsed = parseItemKey(item.itemKey);
+    if (parsed && famModes.has(parsed.mode)) items.set(item.itemKey, item);
+  }
+  const masteredIn = (mode: GameMode, iso2: string): boolean => {
+    const it = items.get(`${mode}:${iso2}`);
+    return !!it && isItemMastered(it, now);
+  };
+
+  // Applicable countries in this region (Map excludes geometry-less countries, as in mastery).
+  const applicable = countries.filter((c) => c.region === region && familyApplies(family, c));
+
+  // Pick the weaker direction: the family mode with more not-yet-mastered applicable countries.
+  // Ties keep the family's first mode (stable, matching `FAMILIES` order).
+  let chosen: GameMode = fam.modes[0];
+  let chosenUnmastered = -1;
+  for (const mode of fam.modes) {
+    const n = applicable.reduce((s, c) => (masteredIn(mode, c.iso2) ? s : s + 1), 0);
+    if (n > chosenUnmastered) {
+      chosen = mode;
+      chosenUnmastered = n;
+    }
+  }
+  if (chosenUnmastered <= 0) return null; // both directions fully mastered here
+
+  // The pool: applicable countries not yet mastered in the chosen direction, weakest-first —
+  // seen-but-weak (most overdue, then most-missed) ahead of never-seen (dataset order).
+  const weakness = (iso2: string): { seen: boolean; dueAt: number; lapses: number } => {
+    const it = items.get(`${chosen}:${iso2}`);
+    return it
+      ? { seen: true, dueAt: it.dueAt, lapses: it.lapses }
+      : { seen: false, dueAt: Infinity, lapses: -1 };
+  };
+  const pool = applicable
+    .filter((c) => !masteredIn(chosen, c.iso2))
+    .sort((a, b) => {
+      const wa = weakness(a.iso2);
+      const wb = weakness(b.iso2);
+      if (wa.seen !== wb.seen) return wa.seen ? -1 : 1; // seen (has SR state) before never-seen
+      if (wa.dueAt !== wb.dueAt) return wa.dueAt - wb.dueAt; // most overdue first
+      return wb.lapses - wa.lapses; // then most-missed
+    });
+
+  return { mode: chosen, iso2s: pool.map((c) => c.iso2) };
+}

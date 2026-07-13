@@ -288,6 +288,7 @@ const fr: typeof en = {
       regionsTitle: 'Maîtrise par région',
       regionCount: '{mastered}/{total}',
       regionSummary: '{pct}% · {fully}/{total} complets',
+      practise: 'S’entraîner sur {family} à revoir en {region}',
     },
     capitalMastery: {
       title: 'Capitales',

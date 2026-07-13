@@ -283,6 +283,7 @@ const en = {
       regionsTitle: 'Mastery by region',
       regionCount: '{mastered}/{total}',
       regionSummary: '{pct}% · {fully}/{total} fully',
+      practise: 'Practise unmastered {family} in {region}',
     },
     capitalMastery: {
       title: 'Capitals',

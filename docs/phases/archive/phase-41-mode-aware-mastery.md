@@ -202,6 +202,21 @@ state), Phase 2 (modes). Independent of the map/globe work.
   zero console errors.
 
 ## Progress log
+- **2026-07-13 — Follow-on: per-family "practise" shortcut on Progress.** Owner asked for a quick
+  way, per region, to practise the in-progress learning items. Clarifying round (owner picks): drill
+  **everything unmastered** (learning + unseen), **follow the lens** → on the lens-less Progress
+  *stacked* layout this became a **per-family ▶ button** on each Map/Flags/Capitals mini-bar,
+  **Progress only** (Home keeps its "Time to review"). Implemented: pure `regionFamilyPracticePool`
+  in `mastery.ts` (weaker direction = the family mode with more not-mastered applicable countries,
+  tie → first mode; pool = that direction's not-mastered countries, weakest-first; Map excludes
+  geometry-less countries; `null` when the family is fully mastered) + barrel export; store loader
+  `loadRegionFamilyPractice`; optional `onPractise` prop on `FamilyRegionBreakdown` renders the button
+  only when `mastered < total`; `Progress.svelte` stages a `type: 'training'` run (`answerPoolIso`) and
+  `push('/play')`, exactly like "Time to review" (so map-locate still frames to the whole region). New
+  EN/FR/DE `progress.mastery.practise` aria-label (family + region). `mastery.test.ts` +5 cases;
+  `check`/`lint` clean, **suite 590 green**. Verified in the real app (headless Chrome, seeded SR):
+  15 buttons (5 regions × 3 families), tapping *Practise Map in Africa* launched a 54-country
+  map-highlight run framed to the whole continent; **zero console errors**.
 - **2026-07-13 — Post-review: "learning" visibility added.** Owner observed that after two ~95%
   Map Grand Tours (one per direction), Progress showed Europe Map at 51%, not ~100%. Diagnosed (not a
   bug): mastery = durable SR (≥ 2 correct reviews per item **and** not overdue), and Phase 41 requires

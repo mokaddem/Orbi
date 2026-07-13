@@ -295,6 +295,7 @@ const de: typeof en = {
       regionsTitle: 'Fortschritt nach Region',
       regionCount: '{mastered}/{total}',
       regionSummary: '{pct}% · {fully}/{total} komplett',
+      practise: 'Nicht gemeisterte {family} in {region} üben',
     },
     capitalMastery: {
       title: 'Hauptstädte',

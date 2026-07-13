@@ -40,6 +40,7 @@ import {
   isLanguageQuizEligible,
   localDayKey,
   recommend,
+  regionFamilyPracticePool,
   reviewByRegion,
   scheduleNext,
   selectTrainingItems,
@@ -48,7 +49,9 @@ import {
   type FamilyMasteryResult,
   type FamilyMasteryRollup,
   type GameMode,
+  type MasteryFamily,
   type MasteryResult,
+  type RegionFamilyPractice,
   type MasteryRollup,
   type QuestionResult,
   type Recommendation,
@@ -425,6 +428,22 @@ function industryMasteryCountries(): { iso2: string; region: string }[] {
 export async function loadMastery(now = Date.now()): Promise<FamilyMasteryResult> {
   const srItems = store ? await store.getAllSRItems() : [];
   return computeFamilyMastery(srItems, masteryCountries(), { now });
+}
+
+/**
+ * Build the launchable practice pool for one region × family — the not-yet-mastered countries of
+ * that family's weaker direction (Phase 41 follow-on). Powers the per-family "practise" shortcut
+ * on the Progress world-mastery breakdown. Same denominator as {@link loadMastery}, so the pool
+ * always matches the mini-bar's count. `null` before init or when the family is fully mastered.
+ */
+export async function loadRegionFamilyPractice(
+  region: string,
+  family: MasteryFamily,
+  now = Date.now(),
+): Promise<RegionFamilyPractice | null> {
+  if (!store) return null;
+  const srItems = await store.getAllSRItems();
+  return regionFamilyPracticePool(srItems, masteryCountries(), region, family, { now });
 }
 
 /**

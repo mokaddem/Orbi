@@ -131,11 +131,13 @@ export {
   type FamilyMasteryRollup,
   type RegionFamilyMastery,
   type FamilyMasteryResult,
+  type RegionFamilyPractice,
   MASTERY_MIN_REPETITIONS,
   isItemMastered,
   masteryFraction,
   computeMastery,
   computeFamilyMastery,
+  regionFamilyPracticePool,
 } from './mastery';
 
 export {

@@ -5,6 +5,7 @@ import {
   computeMastery,
   isItemMastered,
   masteryFraction,
+  regionFamilyPracticePool,
   type FamilyMasteryResult,
   type FamilyTally,
   type MasteryCountry,
@@ -262,5 +263,60 @@ describe('computeFamilyMastery (Phase 41)', () => {
     expect(europe.blended).toBe(1);
     expect(oceania.blended).toBe(0);
     expect(r.byRegion[0].region).toBe('Oceania'); // least-complete first
+  });
+});
+
+describe('regionFamilyPracticePool', () => {
+  const c = (iso2: string, region: string, hasGeometry?: boolean): MasteryCountry => ({
+    iso2,
+    region,
+    ...(hasGeometry === undefined ? {} : { hasGeometry }),
+  });
+
+  it('returns null when the family is fully mastered in the region', () => {
+    const countries = [c('FR', 'Europe'), c('DE', 'Europe')];
+    const items = ['FR', 'DE'].flatMap((iso) => [
+      sr(`flag-to-country:${iso}`),
+      sr(`country-to-flag:${iso}`),
+    ]);
+    expect(regionFamilyPracticePool(items, countries, 'Europe', 'flags', { now: NOW })).toBeNull();
+  });
+
+  it('drills the weaker direction over learning + unseen, weakest-first', () => {
+    const countries = [c('FR', 'Europe'), c('DE', 'Europe'), c('IT', 'Europe')];
+    const items = [
+      // FR: both directions mastered → excluded from the pool entirely.
+      sr('flag-to-country:FR'),
+      sr('country-to-flag:FR'),
+      // DE: recognises the flag but can't produce it — country-to-flag lapsed & overdue.
+      sr('flag-to-country:DE'),
+      sr('country-to-flag:DE', { repetitions: 0, dueAt: NOW - DAY, lapses: 3 }),
+      // IT: never seen in either direction.
+    ];
+    const pool = regionFamilyPracticePool(items, countries, 'Europe', 'flags', { now: NOW })!;
+    // country-to-flag has 2 not-mastered (DE, IT) vs flag-to-country's 1 (IT) → weaker direction.
+    expect(pool.mode).toBe('country-to-flag');
+    // Seen-but-weak (DE, overdue) before never-seen (IT); FR omitted (already mastered).
+    expect(pool.iso2s).toEqual(['DE', 'IT']);
+  });
+
+  it('breaks a direction tie toward the family’s first mode', () => {
+    const countries = [c('FR', 'Europe'), c('DE', 'Europe')]; // both unseen in flags
+    const pool = regionFamilyPracticePool([], countries, 'Europe', 'flags', { now: NOW })!;
+    expect(pool.mode).toBe('flag-to-country'); // FAMILIES[flags].modes[0]
+    expect([...pool.iso2s].sort()).toEqual(['DE', 'FR']);
+  });
+
+  it('excludes geometry-less countries from the Map family', () => {
+    const countries = [c('FJ', 'Oceania', true), c('TV', 'Oceania', false)]; // both unseen
+    const pool = regionFamilyPracticePool([], countries, 'Oceania', 'map', { now: NOW })!;
+    expect(pool.mode).toBe('map-highlight'); // FAMILIES[map].modes[0], tie
+    expect(pool.iso2s).toEqual(['FJ']); // TV has no map geometry → never drilled
+  });
+
+  it('scopes to the requested region only', () => {
+    const countries = [c('FR', 'Europe'), c('BR', 'Americas')]; // both unseen in flags
+    const pool = regionFamilyPracticePool([], countries, 'Europe', 'flags', { now: NOW })!;
+    expect(pool.iso2s).toEqual(['FR']); // Americas ignored
   });
 });

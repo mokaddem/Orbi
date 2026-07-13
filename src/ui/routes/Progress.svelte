@@ -1,22 +1,27 @@
 <script lang="ts">
+  import { push } from 'svelte-spa-router';
   import { t } from '../../i18n';
   import {
     computeStats,
     type FamilyMasteryResult,
+    type MasteryFamily,
     type MasteryResult,
     type StatsOverview,
     type WeeklyRecap as WeeklyRecapData,
   } from '../../domain';
   import type { SessionRecord } from '../../data';
   import { formatDuration, formatPercent } from '../format';
+  import { pendingConfig } from '../stores/game';
   import {
     loadSessions,
     loadMastery,
+    loadRegionFamilyPractice,
     loadLanguageMastery,
     loadIndustryMastery,
     loadWeeklyRecap,
     loadAchievements,
     persistent,
+    prefs,
     storageReady,
     type AchievementView,
   } from '../stores/persistence';
@@ -54,6 +59,25 @@
   // the combined panel so the main grid doesn't grow with every new mode.
   // Header Orbi (Phase 33): proud once the player has mastered something, else a friendly wave.
   const heroPose = $derived(mastery && mastery.overall.fullyMastered > 0 ? 'proud' : 'wave');
+
+  /**
+   * Per-family "practise" shortcut on the world-mastery breakdown (Phase 41 follow-on): drill a
+   * region×family's unmastered countries in its weaker direction. Launched like "Time to review"
+   * — a region-scoped training run whose scope lives in `answerPoolIso` (so map-locate still
+   * frames to the whole region). No-op if the family turns out fully mastered (button hidden then).
+   */
+  async function practiseRegionFamily(region: string, family: MasteryFamily): Promise<void> {
+    const pool = await loadRegionFamilyPractice(region, family);
+    if (!pool || pool.iso2s.length === 0) return;
+    pendingConfig.set({
+      mode: pool.mode,
+      type: 'training',
+      answerPoolIso: pool.iso2s,
+      fixedLength: pool.iso2s.length,
+      choices: $prefs.choicesPerQuestion,
+    });
+    push('/play');
+  }
 
   const countryAchievements = $derived(achievements.filter((a) => !a.topic));
   const extraAchievements = $derived(achievements.filter((a) => a.topic));
@@ -171,7 +195,11 @@
           <h2>{$t('progress.mastery.title')}</h2>
           <FamilyMasteryMeter {mastery} />
           <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
-          <FamilyRegionBreakdown regions={mastery.byRegion} variant="stacked" />
+          <FamilyRegionBreakdown
+            regions={mastery.byRegion}
+            variant="stacked"
+            onPractise={practiseRegionFamily}
+          />
         </div>
       {/if}
 
