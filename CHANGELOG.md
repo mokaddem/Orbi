@@ -7,6 +7,32 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.2.0] — 2026-07-13 — _Globe & mastery_
+
+### Added
+
+- 🌐 **Play on a 3D globe** — an optional map projection you can spin, drag and zoom, with the same
+  tap-to-locate, micro-state dots and gentle auto-framing as the flat map (Settings → map
+  projection).
+- 📊 **Honest world mastery** — progress now tracks **Map · Flags · Capitals** combined, each
+  counted **both directions**, with a blended headline, per-family bars and a least-complete-first
+  per-region breakdown on Home and Progress. (Capitals is now core; languages & industries stay as
+  separate "extra knowledge".)
+- 🎯 **Per-region practise shortcut** — a button on each family's region bar jumps straight into
+  drilling that region's not-yet-mastered countries.
+- 🔥 **Escalating streak celebrations** — sticky, building streak jingles and a milestone pop,
+  across nine tiers up to a streak of 50.
+
+### Fixed
+
+- 🗺️ Highlighted **micro-states** (Vatican, Monaco…) now show a clear aim-dot in "which country is
+  highlighted?", matching the locate mode.
+- Tiny countries are easier to hit (a "magnet" snaps to the nearest micro-state), survival rounds
+  can be won by clearing the board, and map framing/labels anchor to a country's mainland (France
+  no longer drifts out to sea).
+- Only Maps, Flags and Capitals are ever proposed for review — never the extra-knowledge topics.
+- The Atlas country highlight is clearly visible again.
+
 ## [2.1.0] — 2026-07-12 — _Feel & fairness_ · first public release
 
 ### Added
