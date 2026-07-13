@@ -1,7 +1,7 @@
 # Phase 39 — Escalating streak jingles & milestone pop
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Built & signed off — ready to merge
-· **Progress:** ~95% · **Track:** v2.3 — Streak celebration
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+· **Track:** v2.3 — Streak celebration
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -111,7 +111,7 @@ reduce-motion foundation), Phase 2 (the verdict signal). Independent of Phase 38
       3/5/10/15/20; **zero** console/page errors.
 - [x] **Owner by-ear sign-off** via the A/B listening artifact → **layering + transposition** chosen;
       winner finalised, loser dropped, fast loop + headless re-verified green.
-- [ ] Merge to `main` (after Phase 38 lands) and archive this PRD.
+- [x] Merged to `main` (after Phase 38 landed) and archived this PRD.
 
 ## Technical notes
 - **Sticky tier = "how many milestones passed".** `tier = STREAK_MILESTONES.filter(m => streak >= m).length - 1`.
@@ -158,6 +158,9 @@ reduce-motion foundation), Phase 2 (the verdict signal). Independent of Phase 38
   app per the deliverable above.
 
 ## Progress log
+- **2026-07-13 — Merged to main + archived (✅ Done).** Fast-forwarded `phase-39-streak-escalation`
+  into `main` (no merge commit), immediately after Phase 38, and moved this PRD to
+  `docs/phases/archive/`. Phase 39 closed.
 - **2026-07-13 — Owner chose the escalation model; finalised.** Owner A/B'd the listening artifact and
   picked **layering + transposition** (the cue climbs a whole step per tier atop the added layers).
   Removed the losing `'layers'` variant and the `StreakVariant`/`STREAK_ESCALATION` plumbing;

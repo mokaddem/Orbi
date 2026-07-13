@@ -1,7 +1,6 @@
 # Phase 38 — Play on a 3D globe (WebGL projection)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress (Stages 1 + 2 + 3
-built & committed; pending owner review + on-device check before ✅ Done) · **Progress:** ~90% ·
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100% ·
 **Track:** v2.2 — Dimensional maps
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -286,6 +285,10 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
 - New quiz modes or data.
 
 ## Progress log
+- **2026-07-13 — Merged to main + archived (✅ Done).** Owner approved the merge; fast-forwarded
+  `phase-38-globe-projection` into `main` (no merge commit) and moved this PRD to
+  `docs/phases/archive/`. The physical multi-device sanity check remains the general pre-release
+  v1.0 follow-up tracked in the main PRD (not a Phase 38 blocker). Phase 38 closed.
 - **2026-07-12 — PRD drafted after clarifying round #1 and a two-prototype spike.** Owner rejected a flat
   SVG orthographic view, then chose **three.js WebGL** over a canvas+versor alternative. Decisions
   recorded above (rotatable, `'globe'` as a 5th projection option, three.js, smooth+playful). Grounded in
