@@ -36,6 +36,26 @@ export const MASTERY_MODES: readonly GameMode[] = [
   'map-locate',
 ];
 
+/** The three core knowledge families that combine into per-country mastery (Phase 41). */
+export type MasteryFamily = 'map' | 'flags' | 'capitals';
+
+/**
+ * The core mastery **families** (Phase 41) — the redefinition of country mastery from the
+ * Phase-16 "any one of four identity modes" (lenient OR) to a **combined, per-family** model.
+ * Each family covers **both directions** of a skill; a country is *fully mastered* only when all
+ * its applicable families are (see `computeFamilyMastery`). Capitals is now core (it used to roll
+ * up as a separate "extra knowledge" topic); languages & industries stay separate extras.
+ *
+ * The `map` family is **N/A for geometry-less countries** (only Tuvalu today) — they can never get
+ * map SR items, so `computeFamilyMastery` excludes `map` from their denominator rather than
+ * capping their mastery below 100% forever.
+ */
+export const FAMILIES: readonly { key: MasteryFamily; modes: readonly [GameMode, GameMode] }[] = [
+  { key: 'map', modes: ['map-highlight', 'map-locate'] },
+  { key: 'flags', modes: ['flag-to-country', 'country-to-flag'] },
+  { key: 'capitals', modes: ['capital-to-country', 'country-to-capital'] },
+];
+
 /**
  * Modes whose options are attribute values (not countries), so the question carries
  * {@link AttributeOption}s + a `correctOptionId`/`correctOptionIds` instead of country

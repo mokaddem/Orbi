@@ -287,8 +287,14 @@ const de: typeof en = {
     mastery: {
       title: 'Weltwissen',
       learned: '{mastered} von {total} Ländern gemeistert',
+      fullyMastered: '{mastered} von {total} vollständig gemeistert',
+      inProgress: '{count} in Arbeit',
+      mastered: 'Gemeistert',
+      learning: 'In Arbeit',
+      overall: 'Gesamt',
       regionsTitle: 'Fortschritt nach Region',
       regionCount: '{mastered}/{total}',
+      regionSummary: '{pct}% · {fully}/{total} komplett',
     },
     capitalMastery: {
       title: 'Hauptstädte',

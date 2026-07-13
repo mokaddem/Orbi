@@ -14,7 +14,7 @@
   import {
     isStreakMilestone,
     pickStreakReaction,
-    type MasteryResult,
+    type FamilyMasteryResult,
     type Recommendation,
     type RegionReview,
     type StreakInfo,
@@ -26,8 +26,8 @@
   import ReviewByRegion from '../components/ReviewByRegion.svelte';
   import StreakIndicator from '../components/StreakIndicator.svelte';
   import DailyChallengeCard from '../components/DailyChallengeCard.svelte';
-  import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
-  import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
+  import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
+  import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
 
   // The review hero (Phase 14, region-scoped in Phase 26): reads the player's own state and
   // surfaces what to review. When there are mistakes queued, the "Time to review" list offers
@@ -40,12 +40,14 @@
   let plan = $state<TrainingPlan | null>(null);
   let streak = $state<StreakInfo | null>(null);
   let daily = $state<DailyState | null>(null);
-  let mastery = $state<MasteryResult | null>(null);
+  let mastery = $state<FamilyMasteryResult | null>(null);
 
   // "All caught up": the player has made some progress but has nothing queued to review — the
   // positive complement to the review list, shown with the relaxed globe. Gated on mastery so
   // it never shows for a brand-new player.
-  const hasPlayed = $derived(!!mastery && mastery.overall.mastered + mastery.overall.learning > 0);
+  const hasPlayed = $derived(
+    !!mastery && mastery.overall.families.some((f) => f.mastered + f.learning > 0),
+  );
   const hasReviews = $derived(!!regionReviews && regionReviews.length > 0);
   const allCaughtUp = $derived(hasPlayed && !hasReviews);
 
@@ -124,12 +126,12 @@
           aria-label={regionsOpen ? $t('home.mastery.hideRegions') : $t('home.mastery.showRegions')}
           onclick={() => (regionsOpen = !regionsOpen)}
         >
-          <WorldMasteryMeter {mastery} compact />
+          <FamilyMasteryMeter {mastery} compact />
           <span class="chev" aria-hidden="true"><Icon name="chevron-right" size={18} /></span>
         </button>
         {#if regionsOpen}
           <div id="home-region-breakdown" class="region-breakdown">
-            <RegionMasteryBreakdown regions={mastery.byRegion} />
+            <FamilyRegionBreakdown regions={mastery.byRegion} variant="toggle" />
           </div>
         {/if}
       </div>

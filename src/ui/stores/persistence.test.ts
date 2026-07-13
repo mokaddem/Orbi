@@ -195,18 +195,28 @@ describe('progress & rewards wiring (Phase 16)', () => {
     await clearTraining();
   });
 
-  it('rolls mastered SR items into the mastery meter', async () => {
-    // Two correct answers push SM-2 to repetitions 2, interval 6d (future) → mastered.
-    const key = 'flag-to-country:SE';
-    await recordAnswer(answer({ itemKey: key, countryIso2: 'SE', correct: true, answerMs: 500 }));
-    await recordAnswer(answer({ itemKey: key, countryIso2: 'SE', correct: true, answerMs: 500 }));
+  it('rolls SR items into the per-family mastery meter (both directions ⇒ family mastered)', async () => {
+    // Two correct answers push SM-2 to repetitions 2, interval 6d (future) → that item mastered.
+    const master = async (key: string) => {
+      await recordAnswer(answer({ itemKey: key, countryIso2: 'SE', correct: true, answerMs: 500 }));
+      await recordAnswer(answer({ itemKey: key, countryIso2: 'SE', correct: true, answerMs: 500 }));
+    };
+    const flags = (m: Awaited<ReturnType<typeof loadMastery>>) =>
+      m.overall.families.find((f) => f.family === 'flags')!;
 
-    const mastery = await loadMastery();
+    // One direction only → the Flags family is still just "learning", not mastered.
+    await master('flag-to-country:SE');
+    let mastery = await loadMastery();
     expect(mastery.overall.total).toBe(195); // full-world denominator
-    expect(mastery.overall.mastered).toBeGreaterThanOrEqual(1);
-    // Sweden's region (Europe) should reflect the mastered country.
+    expect(flags(mastery).learning).toBeGreaterThanOrEqual(1);
+    expect(flags(mastery).mastered).toBe(0);
+
+    // Master the other direction too → the Flags family now counts Sweden as mastered.
+    await master('country-to-flag:SE');
+    mastery = await loadMastery();
+    expect(flags(mastery).mastered).toBeGreaterThanOrEqual(1);
     const europe = mastery.byRegion.find((r) => r.region === 'Europe');
-    expect(europe!.mastered).toBeGreaterThanOrEqual(1);
+    expect(europe!.families.find((f) => f.family === 'flags')!.mastered).toBeGreaterThanOrEqual(1);
   });
 
   it('summarizes the current week from saved sessions', async () => {

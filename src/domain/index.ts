@@ -20,6 +20,7 @@ export type {
 export {
   ALL_MODES,
   MASTERY_MODES,
+  FAMILIES,
   REVIEW_MODES,
   ATTRIBUTE_MODES,
   MULTI_SELECT_MODES,
@@ -27,6 +28,7 @@ export {
   LANGUAGE_MODES,
   INDUSTRY_MODES,
   EXTRA_TOPICS,
+  type MasteryFamily,
   isAttributeMode,
   isMultiSelectMode,
   isIndustryMode,
@@ -125,10 +127,15 @@ export {
   type MasteryResult,
   type MasteryCountry,
   type MasteryOptions,
+  type FamilyTally,
+  type FamilyMasteryRollup,
+  type RegionFamilyMastery,
+  type FamilyMasteryResult,
   MASTERY_MIN_REPETITIONS,
   isItemMastered,
   masteryFraction,
   computeMastery,
+  computeFamilyMastery,
 } from './mastery';
 
 export {

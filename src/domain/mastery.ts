@@ -19,7 +19,7 @@
 import type { SRItem } from '../data/persistence/types';
 import type { GameMode } from './types';
 import { parseItemKey } from './training';
-import { MASTERY_MODES } from './modes';
+import { FAMILIES, MASTERY_MODES, type MasteryFamily } from './modes';
 
 /** Owner-agreed SR bar: consecutive correct recalls required to count an item mastered. */
 export const MASTERY_MIN_REPETITIONS = 2;
@@ -52,6 +52,12 @@ export interface MasteryResult {
 export interface MasteryCountry {
   iso2: string;
   region: string;
+  /**
+   * Whether the country has map geometry (default `true`). `false` (only Tuvalu today) makes the
+   * **Map family N/A** in {@link computeFamilyMastery} — it has no map SR items, so counting Map
+   * against it would cap its mastery below 100% forever. Ignored by the legacy {@link computeMastery}.
+   */
+  hasGeometry?: boolean;
 }
 
 export interface MasteryOptions {
@@ -138,6 +144,187 @@ export function computeMastery(
     (a, b) =>
       masteryFraction(a) - masteryFraction(b) ||
       b.total - b.mastered - (a.total - a.mastered) ||
+      a.region.localeCompare(b.region),
+  );
+
+  return { overall, byRegion };
+}
+
+// --- Per-family mastery (Phase 41) --------------------------------------------------------
+//
+// Replaces the lenient "any one of four modes masters a country" headline with a **combined,
+// per-family** model. Country knowledge is split into the three {@link FAMILIES} — Map, Flags,
+// Capitals — each covering *both* of its directions. A family is `mastered` only when **both**
+// direction items clear {@link isItemMastered} (the "both ways" rule, Phase 41 OQ1; flip the
+// `>= 2` below to `>= 1` for an "either direction" rule); `learning` once *any* of its modes is
+// seen; `unseen` otherwise. Capitals is now core here (it used to be a separate "extra" topic);
+// languages & industries stay on the legacy {@link computeMastery} as separate tallies.
+
+/** Per-family country tally within a scope (region or overall). */
+export interface FamilyTally {
+  family: MasteryFamily;
+  /** Countries (for which the family applies) with **both** directions mastered. */
+  mastered: number;
+  /** Applicable countries seen in ≥ 1 of the family's modes but not both-mastered. */
+  learning: number;
+  /** Applicable countries with no SR state in either of the family's modes. */
+  unseen: number;
+  /** Applicable countries — the family's denominator (Map excludes geometry-less countries). */
+  total: number;
+}
+
+/** A combined per-family rollup: the three families plus the blended + fully-mastered headline. */
+export interface FamilyMasteryRollup {
+  /** One entry per {@link FAMILIES} member, in that order. */
+  families: FamilyTally[];
+  /** Countries whose *every applicable* family is mastered — the honest "fully learned" count. */
+  fullyMastered: number;
+  /**
+   * Countries with some core activity (≥ 1 family seen) but **not yet** fully mastered — the
+   * "learning" bucket. Makes a single high-accuracy pass visible (it moves items to learning long
+   * before mastery). `fullyMastered + inProgress + unseen === total`.
+   */
+  inProgress: number;
+  /** Countries with no core (Map / Flags / Capitals) SR state at all. */
+  unseen: number;
+  /**
+   * Blended progress in [0, 1]: mastered *(country × applicable-family)* cells over all applicable
+   * cells. Rises with any family for any country, so the meter stays motivating; equals the mean of
+   * the family fractions when every family applies to every country.
+   */
+  blended: number;
+  /** Country denominator in scope. */
+  total: number;
+}
+
+/** A per-region combined rollup, carrying the untranslated M49 region key. */
+export interface RegionFamilyMastery extends FamilyMasteryRollup {
+  region: string;
+}
+
+/** The full per-family picture: overall + per-region, regions least-complete (lowest blended) first. */
+export interface FamilyMasteryResult {
+  overall: FamilyMasteryRollup;
+  byRegion: RegionFamilyMastery[];
+}
+
+/** Map applies to a country unless it has no geometry; Flags & Capitals apply to every country. */
+function familyApplies(family: MasteryFamily, c: MasteryCountry): boolean {
+  return family === 'map' ? c.hasGeometry !== false : true;
+}
+
+/**
+ * Roll persisted SR state up into overall + per-region **combined family** mastery (Phase 41).
+ * Pure and order-independent given `now`. `countries` is the injected denominator (carry
+ * `hasGeometry` so the Map family is skipped for geometry-less countries).
+ */
+export function computeFamilyMastery(
+  srItems: readonly SRItem[],
+  countries: readonly MasteryCountry[],
+  options: { now?: number } = {},
+): FamilyMasteryResult {
+  const now = options.now ?? Date.now();
+
+  // Which family each core mode belongs to (languages/industries map to nothing → skipped).
+  const familyOf = new Map<GameMode, MasteryFamily>();
+  for (const fam of FAMILIES) for (const m of fam.modes) familyOf.set(m, fam.key);
+
+  // iso2 → family → count of the family's direction modes seen / mastered (each 0–2).
+  const perCountry = new Map<string, Map<MasteryFamily, { seen: number; mastered: number }>>();
+  for (const item of srItems) {
+    const parsed = parseItemKey(item.itemKey);
+    if (!parsed) continue;
+    const fam = familyOf.get(parsed.mode);
+    if (!fam) continue;
+    let byFam = perCountry.get(parsed.iso2);
+    if (!byFam) perCountry.set(parsed.iso2, (byFam = new Map()));
+    const cell = byFam.get(fam) ?? { seen: 0, mastered: 0 };
+    cell.seen += 1;
+    if (isItemMastered(item, now)) cell.mastered += 1;
+    byFam.set(fam, cell);
+  }
+
+  const familyStateOf = (iso2: string, family: MasteryFamily): MasteryState => {
+    const cell = perCountry.get(iso2)?.get(family);
+    if (!cell || cell.seen === 0) return 'unseen';
+    return cell.mastered >= 2 ? 'mastered' : 'learning'; // OQ1: both directions ⇒ mastered
+  };
+
+  const emptyRollup = (): FamilyMasteryRollup => ({
+    families: FAMILIES.map((f) => ({
+      family: f.key,
+      mastered: 0,
+      learning: 0,
+      unseen: 0,
+      total: 0,
+    })),
+    fullyMastered: 0,
+    inProgress: 0,
+    unseen: 0,
+    blended: 0,
+    total: 0,
+  });
+
+  const overall = emptyRollup();
+  const byRegionMap = new Map<string, RegionFamilyMastery>();
+  // Applicable/mastered "cells" (country × family) for the blended fraction, per scope.
+  const overallCells = { mastered: 0, applicable: 0 };
+  const regionCells = new Map<string, { mastered: number; applicable: number }>();
+
+  for (const c of countries) {
+    let region = byRegionMap.get(c.region);
+    if (!region) byRegionMap.set(c.region, (region = { region: c.region, ...emptyRollup() }));
+    const rc = regionCells.get(c.region) ?? { mastered: 0, applicable: 0 };
+    regionCells.set(c.region, rc);
+
+    let applicable = 0;
+    let mastered = 0;
+    let seenAny = false;
+    for (let i = 0; i < FAMILIES.length; i++) {
+      const family = FAMILIES[i].key;
+      if (!familyApplies(family, c)) continue;
+      applicable += 1;
+      const state = familyStateOf(c.iso2, family);
+      region.families[i][state] += 1;
+      region.families[i].total += 1;
+      overall.families[i][state] += 1;
+      overall.families[i].total += 1;
+      if (state === 'mastered') mastered += 1;
+      if (state !== 'unseen') seenAny = true;
+    }
+
+    // Bucket the country: fully mastered (every applicable family) → in progress (some activity,
+    // not yet full) → unseen (no core SR). These three always sum to the total.
+    if (applicable > 0 && mastered === applicable) {
+      overall.fullyMastered += 1;
+      region.fullyMastered += 1;
+    } else if (seenAny) {
+      overall.inProgress += 1;
+      region.inProgress += 1;
+    } else {
+      overall.unseen += 1;
+      region.unseen += 1;
+    }
+    overall.total += 1;
+    region.total += 1;
+    overallCells.mastered += mastered;
+    overallCells.applicable += applicable;
+    rc.mastered += mastered;
+    rc.applicable += applicable;
+  }
+
+  overall.blended =
+    overallCells.applicable === 0 ? 0 : overallCells.mastered / overallCells.applicable;
+  for (const [region, cells] of regionCells) {
+    const r = byRegionMap.get(region)!;
+    r.blended = cells.applicable === 0 ? 0 : cells.mastered / cells.applicable;
+  }
+
+  // Least-complete first (lowest blended), then most cells still to master, then name.
+  const byRegion = [...byRegionMap.values()].sort(
+    (a, b) =>
+      a.blended - b.blended ||
+      b.total - b.fullyMastered - (a.total - a.fullyMastered) ||
       a.region.localeCompare(b.region),
   );
 

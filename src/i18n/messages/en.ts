@@ -275,8 +275,14 @@ const en = {
     mastery: {
       title: 'World mastery',
       learned: '{mastered} of {total} countries learned',
+      fullyMastered: '{mastered} of {total} fully mastered',
+      inProgress: '{count} in progress',
+      mastered: 'Mastered',
+      learning: 'Learning',
+      overall: 'Overall',
       regionsTitle: 'Mastery by region',
       regionCount: '{mastered}/{total}',
+      regionSummary: '{pct}% · {fully}/{total} fully',
     },
     capitalMastery: {
       title: 'Capitals',

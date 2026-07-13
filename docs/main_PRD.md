@@ -253,6 +253,21 @@ top of the file); the survival model and the phase-PRD framing were **already re
 |---|---|---|---|---|---|
 | 40 | Play-feel fixes (mobile tap-snap · survival clear-win · highlight ring · mainland anchor) | [phase-40-play-feel-fixes.md](phases/archive/phase-40-play-feel-fixes.md) | 4, 22, 37, 38, 2 | ✅ Done | 100% (all four built: `resolvePick` micro-dot magnet `DOT_SNAP_CAP=30`; survival "region cleared" win — distinct-correct Set + `cleared` summary flag + HUD "Mastered X/N" + Summary badge; highlight ring micro-only; flat-map mainland anchor via shared `largestPolygon`. Suite 579 green; headless-CDP drive confirmed near-miss→Vatican, survival "Region cleared!" 3/3, France on the mainland, no large-highlight ring, zero console errors. Merged to main + archived) |
 
+### v2.5 — Mastery depth (per-mode mastery, combined world/region number)
+
+Owner noticed the Progress page reports a region "mastered" after only one game mode (the Phase-16
+**lenient OR** rule — any one of the four identity modes masters a country). Redefine mastery to be
+**per-family** — **Map**, **Flags**, **Capitals** (both directions each) — with a country **fully
+mastered** only when all three families are, and a **blended** World/region % backed by a per-family
+breakdown. No new data, no new modes, no SR-scheduling change — all per-mode signal already exists
+(`mode:iso2` SR items); this is a computation + presentation change. Owner picked the per-family
+combined model with core = Map + Flags + Capitals (languages/industries stay separate "extra
+knowledge"). As before, the PRD **requires the clarifying round + explicit build approval** first.
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 41 | Mode-aware (per-family) mastery — Map · Flags · Capitals combined | [phase-41-mode-aware-mastery.md](phases/archive/phase-41-mode-aware-mastery.md) | 16, 24, 7, 2 | ✅ Done | 100% (per-family combined mastery: `computeFamilyMastery` + `FAMILIES` — both-directions rule, blended % + fully-mastered + in-progress counts, Map N/A for geometry-less TV; capitals promoted to core; continent/`century` badges retargeted to fully-mastered (monotonic, non-regressing). New `FamilyMasteryMeter` + `FamilyRegionBreakdown` with striped "learning" bands + state key — **Option A stacked** on Progress, **Option B toggle** on Home (owner picks, prototype-driven). Suite 585 green; headless verify of both pages, zero console errors. Merged to main + archived) |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 

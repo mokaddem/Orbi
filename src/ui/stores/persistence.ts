@@ -30,6 +30,7 @@ import {
   REVIEW_MODES,
   buildDailyChallenge,
   computeMastery,
+  computeFamilyMastery,
   computeStats,
   computeStreak,
   computeWeeklyRecap,
@@ -44,8 +45,11 @@ import {
   selectTrainingItems,
   type DailyChallenge,
   type ExtraTopic,
+  type FamilyMasteryResult,
+  type FamilyMasteryRollup,
   type GameMode,
   type MasteryResult,
+  type MasteryRollup,
   type QuestionResult,
   type Recommendation,
   type RegionResolver,
@@ -380,8 +384,14 @@ export async function loadStats(): Promise<StatsOverview> {
 }
 
 /** The full country denominator for mastery, reduced to what the pure rollup needs. */
-function masteryCountries(): { iso2: string; region: string }[] {
-  return getCountries().map((c) => ({ iso2: c.iso2, region: c.region }));
+function masteryCountries(): { iso2: string; region: string; hasGeometry: boolean }[] {
+  // `hasGeometry` lets the per-family rollup skip the Map family for geometry-less countries
+  // (only Tuvalu today), so full mastery stays reachable (Phase 41).
+  return getCountries().map((c) => ({
+    iso2: c.iso2,
+    region: c.region,
+    hasGeometry: c.hasGeometry,
+  }));
 }
 
 /**
@@ -412,19 +422,28 @@ function industryMasteryCountries(): { iso2: string; region: string }[] {
  * Compute world + per-region mastery from persisted SR state (Phase 16). Denominator is all
  * countries in the dataset ("learn the world"). Returns an all-unseen rollup before init.
  */
-export async function loadMastery(now = Date.now()): Promise<MasteryResult> {
+export async function loadMastery(now = Date.now()): Promise<FamilyMasteryResult> {
   const srItems = store ? await store.getAllSRItems() : [];
-  return computeMastery(srItems, masteryCountries(), { now });
+  return computeFamilyMastery(srItems, masteryCountries(), { now });
 }
 
 /**
- * Compute the separate **capital** mastery rollup (Phase 24) over the same country
- * denominator, from the capital-mode SR items only. Kept distinct from {@link loadMastery}
- * so learning capitals never moves the country-identification mastery tally.
+ * Adapt a per-family rollup to the legacy {@link MasteryResult} shape for the achievements engine,
+ * so the region / continent / century / world badges track **fully-mastered** countries (all three
+ * families) rather than the old lenient any-one-mode count (Phase 41 OQ2). Only `mastered` and
+ * `total` drive any badge predicate; `learning`/`unseen` are filled consistently for shape.
  */
-export async function loadCapitalMastery(now = Date.now()): Promise<MasteryResult> {
-  const srItems = store ? await store.getAllSRItems() : [];
-  return computeMastery(srItems, masteryCountries(), { now, modes: CAPITAL_MODES });
+function familyMasteryToResult(fm: FamilyMasteryResult): MasteryResult {
+  const roll = (r: FamilyMasteryRollup): MasteryRollup => ({
+    mastered: r.fullyMastered,
+    learning: Math.max(0, r.total - r.fullyMastered),
+    unseen: 0,
+    total: r.total,
+  });
+  return {
+    overall: roll(fm.overall),
+    byRegion: fm.byRegion.map((r) => ({ region: r.region, ...roll(r) })),
+  };
 }
 
 /**
@@ -482,7 +501,8 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
     : [[] as SessionRecord[], [], [] as AchievementUnlock[]];
 
   const countries = masteryCountries();
-  const mastery = computeMastery(srItems, countries, { now });
+  // Country/continent/century/world badges now track *fully-mastered* countries (Phase 41 OQ2).
+  const mastery = familyMasteryToResult(computeFamilyMastery(srItems, countries, { now }));
   const capitalMastery = computeMastery(srItems, countries, { now, modes: CAPITAL_MODES });
   const languageMastery = computeMastery(srItems, languageMasteryCountries(), {
     now,

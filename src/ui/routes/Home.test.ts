@@ -83,21 +83,21 @@ describe('Home route — mastery region breakdown (Phase 29)', () => {
   it('collapses by default and toggles the per-region breakdown', async () => {
     render(Home);
 
-    // The compact world-mastery meter is on Home...
-    await screen.findByTestId('mastery-meter');
+    // The compact per-family world-mastery meter is on Home...
+    await screen.findByTestId('family-mastery-meter');
 
     // ...and its per-region breakdown is hidden by default: the trigger advertises "show"
     // and reports aria-expanded=false, with no region rows in the DOM yet.
-    expect(screen.queryByTestId('region-mastery')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('family-region-mastery')).not.toBeInTheDocument();
     const toggle = screen.getByRole('button', { name: 'Show per-region breakdown' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(toggle).toHaveAttribute('aria-controls', 'home-region-breakdown');
 
-    // Expanding reveals the existing RegionMasteryBreakdown (one row per M49 region), and the
-    // trigger flips to the "hide" affordance with aria-expanded=true. The breakdown is reused,
-    // not re-implemented — it carries a progressbar per region.
+    // Expanding reveals the per-family region breakdown (one row per M49 region), and the
+    // trigger flips to the "hide" affordance with aria-expanded=true. The toggle variant
+    // carries a progressbar per region (one bar, driven by the family lens).
     await fireEvent.click(toggle);
-    const breakdown = await screen.findByTestId('region-mastery');
+    const breakdown = await screen.findByTestId('family-region-mastery');
     expect(document.getElementById('home-region-breakdown')).toContainElement(breakdown);
     expect(within(breakdown).getAllByRole('progressbar').length).toBeGreaterThan(0);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -106,6 +106,8 @@ describe('Home route — mastery region breakdown (Phase 29)', () => {
     // Collapsing again hides it: aria-expanded flips back and the region rows leave the DOM.
     await fireEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await waitFor(() => expect(screen.queryByTestId('region-mastery')).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByTestId('family-region-mastery')).not.toBeInTheDocument(),
+    );
   });
 });

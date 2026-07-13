@@ -2,6 +2,7 @@
   import { t } from '../../i18n';
   import {
     computeStats,
+    type FamilyMasteryResult,
     type MasteryResult,
     type StatsOverview,
     type WeeklyRecap as WeeklyRecapData,
@@ -11,7 +12,6 @@
   import {
     loadSessions,
     loadMastery,
-    loadCapitalMastery,
     loadLanguageMastery,
     loadIndustryMastery,
     loadWeeklyRecap,
@@ -25,16 +25,15 @@
   import Mascot from '../components/Mascot.svelte';
   import MascotScene from '../components/MascotScene.svelte';
   import PageHero from '../components/PageHero.svelte';
-  import WorldMasteryMeter from '../components/WorldMasteryMeter.svelte';
-  import RegionMasteryBreakdown from '../components/RegionMasteryBreakdown.svelte';
+  import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
+  import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
   import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
   import AchievementsGrid from '../components/AchievementsGrid.svelte';
   import WeeklyRecap from '../components/WeeklyRecap.svelte';
 
   let sessions = $state<SessionRecord[]>([]);
   let stats = $state<StatsOverview | null>(null);
-  let mastery = $state<MasteryResult | null>(null);
-  let capitalMastery = $state<MasteryResult | null>(null);
+  let mastery = $state<FamilyMasteryResult | null>(null);
   let languageMastery = $state<MasteryResult | null>(null);
   let industryMastery = $state<MasteryResult | null>(null);
   let recap = $state<WeeklyRecapData | null>(null);
@@ -47,15 +46,14 @@
   // of its items is in learning or mastered.
   const hasActivity = (m: MasteryResult | null): boolean =>
     !!m && m.overall.mastered + m.overall.learning > 0;
-  const hasCapitalActivity = $derived(hasActivity(capitalMastery));
   const hasLanguageActivity = $derived(hasActivity(languageMastery));
   const hasIndustryActivity = $derived(hasActivity(industryMastery));
-  const hasExtras = $derived(hasCapitalActivity || hasLanguageActivity || hasIndustryActivity);
+  const hasExtras = $derived(hasLanguageActivity || hasIndustryActivity);
 
   // Country badges stay in the main grid; extra-topic badges (capitals/languages) move into
   // the combined panel so the main grid doesn't grow with every new mode.
   // Header Orbi (Phase 33): proud once the player has mastered something, else a friendly wave.
-  const heroPose = $derived(mastery && mastery.overall.mastered > 0 ? 'proud' : 'wave');
+  const heroPose = $derived(mastery && mastery.overall.fullyMastered > 0 ? 'proud' : 'wave');
 
   const countryAchievements = $derived(achievements.filter((a) => !a.topic));
   const extraAchievements = $derived(achievements.filter((a) => a.topic));
@@ -79,15 +77,13 @@
     stats = computeStats(sessions);
     // Progress surfaces (Phase 16): mastery + recap + achievements, computed from the same
     // persisted state. loadAchievements also persists any first-time unlocks.
-    [mastery, capitalMastery, languageMastery, industryMastery, recap, achievements] =
-      await Promise.all([
-        loadMastery(),
-        loadCapitalMastery(),
-        loadLanguageMastery(),
-        loadIndustryMastery(),
-        loadWeeklyRecap(),
-        loadAchievements(),
-      ]);
+    [mastery, languageMastery, industryMastery, recap, achievements] = await Promise.all([
+      loadMastery(),
+      loadLanguageMastery(),
+      loadIndustryMastery(),
+      loadWeeklyRecap(),
+      loadAchievements(),
+    ]);
     loading = false;
   }
 
@@ -169,13 +165,13 @@
     {/if}
 
     <div class="p-grid">
-      <!-- World mastery + per-region breakdown -->
+      <!-- World mastery: blended meter + per-family breakdown, then per-region (stacked, Phase 41) -->
       {#if mastery}
         <div class="panel">
           <h2>{$t('progress.mastery.title')}</h2>
-          <WorldMasteryMeter {mastery} />
+          <FamilyMasteryMeter {mastery} />
           <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
-          <RegionMasteryBreakdown regions={mastery.byRegion} />
+          <FamilyRegionBreakdown regions={mastery.byRegion} variant="stacked" />
         </div>
       {/if}
 
@@ -190,20 +186,11 @@
       <!-- Combined "extra knowledge" panel (Phase 23/24): capitals + languages (+ industries
          later) folded into one surface, each shown only once played. Kept separate from and
          smaller than the primary country-mastery panel above. -->
-      {#if hasExtras}
+      {#if hasExtras || extraAchievements.length > 0}
         <div class="panel">
           <h2>{$t('progress.extras.title')}</h2>
           <p class="panel-sub">{$t('progress.extras.subtitle')}</p>
           <div class="topics">
-            {#if capitalMastery && hasCapitalActivity}
-              <ExtraMasteryTopic
-                mastery={capitalMastery}
-                titleKey="progress.capitalMastery.title"
-                learnedKey="progress.capitalMastery.learned"
-                regionsTitleKey="progress.capitalMastery.regionsTitle"
-                icon="landmark"
-              />
-            {/if}
             {#if languageMastery && hasLanguageActivity}
               <ExtraMasteryTopic
                 mastery={languageMastery}

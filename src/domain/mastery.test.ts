@@ -1,12 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
   MASTERY_MIN_REPETITIONS,
+  computeFamilyMastery,
   computeMastery,
   isItemMastered,
   masteryFraction,
+  type FamilyMasteryResult,
+  type FamilyTally,
   type MasteryCountry,
 } from './mastery';
-import { CAPITAL_MODES } from './modes';
+import { CAPITAL_MODES, type MasteryFamily } from './modes';
 import type { SRItem } from '../data/persistence/types';
 
 const NOW = 1_000_000;
@@ -158,5 +161,106 @@ describe('computeMastery', () => {
     const { overall } = computeMastery(items, countries, { now: NOW });
     expect(overall.mastered + overall.learning).toBe(0);
     expect(overall.unseen).toBe(5);
+  });
+});
+
+describe('computeFamilyMastery (Phase 41)', () => {
+  // FR & DE have geometry; TV (Tuvalu) has none, so the Map family is N/A for it.
+  const countries: MasteryCountry[] = [
+    { iso2: 'FR', region: 'Europe' },
+    { iso2: 'DE', region: 'Europe' },
+    { iso2: 'TV', region: 'Oceania', hasGeometry: false },
+  ];
+  const fam = (r: FamilyMasteryResult, key: MasteryFamily): FamilyTally =>
+    r.overall.families.find((f) => f.family === key)!;
+
+  it('starts everything unseen; Map excludes the geometry-less country from its denominator', () => {
+    const r = computeFamilyMastery([], countries, { now: NOW });
+    expect(r.overall.total).toBe(3);
+    expect(r.overall.fullyMastered).toBe(0);
+    expect(r.overall.inProgress).toBe(0);
+    expect(r.overall.unseen).toBe(3);
+    expect(r.overall.blended).toBe(0);
+    expect(fam(r, 'map').total).toBe(2); // FR, DE — TV excluded (no geometry)
+    expect(fam(r, 'flags').total).toBe(3);
+    expect(fam(r, 'capitals').total).toBe(3);
+    expect(fam(r, 'flags').unseen).toBe(3);
+  });
+
+  it('masters a family only when BOTH directions clear the bar; one direction is "learning"', () => {
+    const items = [
+      sr('map-highlight:FR'),
+      sr('map-locate:FR'), // FR Map: both directions → mastered
+      sr('flag-to-country:FR'), // FR Flags: one direction only → learning
+    ];
+    const r = computeFamilyMastery(items, countries, { now: NOW });
+    expect(fam(r, 'map').mastered).toBe(1);
+    expect(fam(r, 'map').unseen).toBe(1); // DE
+    expect(fam(r, 'flags').learning).toBe(1); // FR half-done
+    expect(fam(r, 'flags').mastered).toBe(0);
+    expect(r.overall.fullyMastered).toBe(0);
+    expect(r.overall.inProgress).toBe(1); // FR has activity but isn't fully mastered
+    expect(r.overall.unseen).toBe(2); // DE, TV untouched
+    // Blended = mastered cells (FR Map = 1) / applicable cells (FR 3 + DE 3 + TV 2 = 8).
+    expect(r.overall.blended).toBeCloseTo(1 / 8);
+  });
+
+  it('counts a country fully mastered only when all three families are mastered', () => {
+    const all = [
+      'map-highlight',
+      'map-locate',
+      'flag-to-country',
+      'country-to-flag',
+      'capital-to-country',
+      'country-to-capital',
+    ];
+    const items = all.map((m) => sr(`${m}:FR`));
+    const r = computeFamilyMastery(items, countries, { now: NOW });
+    expect(r.overall.fullyMastered).toBe(1);
+    expect(r.overall.blended).toBeCloseTo(3 / 8); // FR's 3 cells of 8 applicable
+  });
+
+  it('lets a geometry-less country be fully mastered via Flags + Capitals (Map N/A)', () => {
+    const items = [
+      'flag-to-country',
+      'country-to-flag',
+      'capital-to-country',
+      'country-to-capital',
+    ].map((m) => sr(`${m}:TV`));
+    const r = computeFamilyMastery(items, countries, { now: NOW });
+    expect(r.overall.fullyMastered).toBe(1); // TV counts — Map doesn't apply to it
+    // TV contributes 2 mastered of its 2 applicable cells.
+    expect(r.overall.blended).toBeCloseTo(2 / 8);
+  });
+
+  it('demotes a family from mastered to learning when one direction lapses (overdue)', () => {
+    const items = [
+      sr('map-highlight:FR'),
+      sr('map-locate:FR', { dueAt: NOW - DAY }), // lapsed → not mastered
+    ];
+    const r = computeFamilyMastery(items, countries, { now: NOW });
+    expect(fam(r, 'map').mastered).toBe(0);
+    expect(fam(r, 'map').learning).toBe(1);
+  });
+
+  it('partitions by region and orders least-complete (lowest blended) first', () => {
+    // Fully master both Europe countries; leave Oceania (TV) untouched.
+    const euro = ['FR', 'DE'].flatMap((iso) =>
+      [
+        'map-highlight',
+        'map-locate',
+        'flag-to-country',
+        'country-to-flag',
+        'capital-to-country',
+        'country-to-capital',
+      ].map((m) => sr(`${m}:${iso}`)),
+    );
+    const r = computeFamilyMastery(euro, countries, { now: NOW });
+    const europe = r.byRegion.find((x) => x.region === 'Europe')!;
+    const oceania = r.byRegion.find((x) => x.region === 'Oceania')!;
+    expect(europe.fullyMastered).toBe(2);
+    expect(europe.blended).toBe(1);
+    expect(oceania.blended).toBe(0);
+    expect(r.byRegion[0].region).toBe('Oceania'); // least-complete first
   });
 });

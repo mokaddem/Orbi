@@ -280,8 +280,14 @@ const fr: typeof en = {
     mastery: {
       title: 'Maîtrise du monde',
       learned: '{mastered} pays sur {total} appris',
+      fullyMastered: '{mastered} sur {total} entièrement maîtrisés',
+      inProgress: '{count} en cours',
+      mastered: 'Maîtrisé',
+      learning: 'En cours',
+      overall: 'Global',
       regionsTitle: 'Maîtrise par région',
       regionCount: '{mastered}/{total}',
+      regionSummary: '{pct}% · {fully}/{total} complets',
     },
     capitalMastery: {
       title: 'Capitales',
