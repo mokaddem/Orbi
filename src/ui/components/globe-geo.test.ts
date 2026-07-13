@@ -7,6 +7,7 @@ import {
   appendBorderSegments,
   crossesAntimeridian,
   fitDistanceForAngularRadius,
+  largestPolygonCentroid,
   lonLatToTexPx,
   lonLatToVec3,
   regionAngularRadius,
@@ -88,6 +89,51 @@ describe('crossesAntimeridian', () => {
 
   it('is false for non-polygonal geometry', () => {
     expect(crossesAntimeridian({ type: 'Point', coordinates: [0, 0] })).toBe(false);
+  });
+});
+
+describe('largestPolygonCentroid', () => {
+  // A square polygon (one ring) centred on [lon, lat]; winding matches the dataset's
+  // interior convention (clockwise in lon/lat → the enclosed small area).
+  const squarePoly = (lon: number, lat: number, h: number): Position[][] => [
+    [
+      [lon - h, lat - h],
+      [lon - h, lat + h],
+      [lon + h, lat + h],
+      [lon + h, lat - h],
+      [lon - h, lat - h],
+    ],
+  ];
+
+  it('returns the sole polygon centroid for a single-polygon country', () => {
+    const [lon, lat] = largestPolygonCentroid({
+      type: 'Polygon',
+      coordinates: squarePoly(10, 50, 4),
+    });
+    expect(lon).toBeCloseTo(10, 1);
+    expect(lat).toBeCloseTo(50, 1);
+  });
+
+  it('anchors to the mainland, ignoring a far small territory (France + Guiana)', () => {
+    const geom: Geometry = {
+      type: 'MultiPolygon',
+      coordinates: [
+        squarePoly(2, 47, 5), // metropolitan France (big)
+        squarePoly(-53, 4, 1), // French Guiana (small, far off in South America)
+      ],
+    };
+    const [lon, lat] = largestPolygonCentroid(geom);
+    // Should land on the mainland, not be dragged south-west toward Guiana.
+    expect(lon).toBeGreaterThan(-5);
+    expect(lon).toBeLessThan(10);
+    expect(lat).toBeGreaterThan(40);
+    expect(lat).toBeLessThan(52);
+  });
+
+  it('falls back to geoCentroid for non-polygonal geometry', () => {
+    const [lon, lat] = largestPolygonCentroid({ type: 'Point', coordinates: [12, 34] });
+    expect(lon).toBeCloseTo(12, 3);
+    expect(lat).toBeCloseTo(34, 3);
   });
 });
 

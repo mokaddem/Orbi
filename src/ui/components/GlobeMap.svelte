@@ -3,7 +3,7 @@
   import * as THREE from 'three';
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import earcut from 'earcut';
-  import { geoArea, geoCentroid, geoContains } from 'd3-geo';
+  import { geoArea, geoContains } from 'd3-geo';
   import type { CountryFeature } from '../../data';
   import { t } from '../../i18n';
   import Icon from './Icon.svelte';
@@ -13,6 +13,7 @@
     TEX_H,
     appendBorderSegments,
     fitDistanceForAngularRadius,
+    largestPolygonCentroid,
     lonLatToTexPx,
     lonLatToVec3,
     polygonsOf,
@@ -788,7 +789,7 @@
     controls.autoRotateSpeed = AUTOROTATE_SPEED;
 
     for (const [iso2, f] of features) {
-      centroids.set(iso2, geoCentroid(f) as [number, number]);
+      centroids.set(iso2, largestPolygonCentroid(f.geometry));
       if (geoArea(f) < MICRO_STER) microIsos.add(iso2);
       let minLon = 180;
       let minLat = 90;

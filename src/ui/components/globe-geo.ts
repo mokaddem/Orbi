@@ -11,7 +11,7 @@
 // Keep the earth mesh unrotated in the scene so world coords equal local coords and a
 // raycast hit can be inverted straight back to lon/lat.
 
-import { geoCentroid, geoDistance } from 'd3-geo';
+import { geoArea, geoCentroid, geoDistance } from 'd3-geo';
 import type { Geometry, MultiPoint, Position } from 'geojson';
 import { inlierMask } from './robust-stats';
 
@@ -99,6 +99,31 @@ export function fitDistanceForAngularRadius(rad: number): number {
   const MIN = 1.85;
   const MAX = 3.2;
   return Math.min(MAX, Math.max(MIN, 1.5 + rad * 1.9));
+}
+
+/**
+ * Centroid of a country's **largest-area polygon**, not the spherical centroid of *all* its
+ * polygons. For a country with far-flung territory — France + French Guiana, Norway +
+ * Svalbard — the all-polygon centroid drifts off the mainland (France's slides south toward
+ * South America), so labels, camera framing, and aim-assist anchor to a spot the player
+ * doesn't recognise. Anchoring to the biggest landmass keeps them on the mainland, and is
+ * identical for single-polygon countries. Falls back to the feature's `geoCentroid` when
+ * there are no polygons or the largest one is degenerate.
+ */
+export function largestPolygonCentroid(geom: Geometry): [number, number] {
+  let best: Position[][] | null = null;
+  let bestArea = -1;
+  for (const poly of polygonsOf(geom)) {
+    const area = geoArea({ type: 'Polygon', coordinates: poly });
+    if (area > bestArea) {
+      bestArea = area;
+      best = poly;
+    }
+  }
+  const c = best ? geoCentroid({ type: 'Polygon', coordinates: best }) : geoCentroid(geom);
+  return Number.isFinite(c[0]) && Number.isFinite(c[1])
+    ? [c[0], c[1]]
+    : (geoCentroid(geom) as [number, number]);
 }
 
 /** Flatten a Polygon/MultiPolygon geometry to its list of polygons (each a list of rings). */

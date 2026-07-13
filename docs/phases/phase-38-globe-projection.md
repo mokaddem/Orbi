@@ -383,3 +383,14 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
   Fast loop green (562 tests); headless-verified (incl. a Vatican-framed micro-hover shot and a
   zoomed-in drag that now rotates a controlled amount). Still pending owner review + on-device check
   before ✅ Done.
+- **2026-07-13 — Stage 3 review round 3 (two more owner tweaks).** (a) **Zoomed-in drag-spin was still
+  too fast** — the distance model was under-corrected (`rotateSpeed ∝ distance`); the surface travel per
+  drag-pixel is constant only when `rotateSpeed ∝ (distance − globe radius)`, and the `−1` dominates near
+  the surface. Switched to `(d − 1)/(WORLD_DIST − 1)` and dropped the floor, so a full-zoom spin is ~0.13
+  (was ~0.28) — over 2× slower — while the world view is unchanged. (b) **Country label/anchor drifted off
+  the mainland** for countries with far-flung territory — France's `geoCentroid` sits at ~[−6.7°, 43°] in
+  the Atlantic (dragged by French Guiana + overseas). Added `largestPolygonCentroid` (centroid of the
+  biggest-area polygon), used for the label, camera framing, and aim-assist: France now anchors at
+  ~[2.5°, 46.6°] (central mainland); also improves the USA (Alaska) and Norway (Svalbard); identical for
+  single-mainland countries. Fast loop green (**565 tests**); headless-verified (zoomed drag rotates far
+  less; France callout + framing land on the mainland). Still pending owner review + on-device check.
