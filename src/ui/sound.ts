@@ -27,7 +27,7 @@ export type SoundCue = SynthCue | JingleCue;
 
 const JINGLE_CUES: readonly JingleCue[] = ['finish', 'perfect', 'achievement', 'daily'];
 
-/** Options for a played cue. `level` bumps the `streak` arpeggio up a step per milestone. */
+/** Options for a played cue. `level` selects the sticky `streak` tier (0-based; see `streakVoices`). */
 export interface PlayOpts {
   level?: number;
 }
@@ -87,19 +87,64 @@ function synthVoices(cue: SynthCue, level = 0): Voice[] {
       // Soft, low, muted tone that gently sags — a mellow "not quite", never a buzzer (~250 ms).
       return [{ freq: hz(53), at: 0, dur: 0.3, gain: 0.14, type: 'sine', glideTo: hz(50) }];
     }
-    case 'streak': {
-      // A short major-triad arpeggio that climbs a whole step per milestone (level 0/1/2…).
-      const root = 72 + level * 2; // C5, D5, E5, …
-      return [0, 4, 7].map((semi, i) => ({
-        freq: hz(root + semi),
-        at: i * 0.075,
-        dur: 0.16,
-        gain: 0.15,
-        type: 'triangle' as OscillatorType,
-      }));
-    }
+    case 'streak':
+      return streakVoices(level);
   }
 }
+
+/**
+ * The escalating streak cue (Phase 39). Tier `level` (0..4, sticky — see `streakTier`) builds a
+ * progressively grander mallet flourish, escalating by *density and brightness* rather than volume
+ * (per-voice gains stay low, so every tier peaks gently — there is no volume slider). The whole cue
+ * also climbs a whole step per tier (owner A/B pick), so higher streaks feel brighter and more
+ * urgent. Stays ≤ ~650 ms so it fits comfortably inside the correct-answer dwell.
+ *
+ *   tier 0  triad arpeggio (the original cue)
+ *   tier 1  + a resolving octave on top
+ *   tier 2  + a low bass root (body) and a fuller run up to the octave
+ *   tier 3  + a delayed high sparkle and a faint detuned shimmer
+ *   tier 4  + a final sustained major-chord stab — the peak
+ */
+function streakVoices(level: number): Voice[] {
+  const tier = Math.max(0, Math.min(STREAK_MILESTONES_MAX, level));
+  const root = 72 + tier * 2; // C5, climbing a whole step per tier
+  const step = 0.065; // arpeggio note spacing
+  const tri: OscillatorType = 'triangle';
+  const voices: Voice[] = [];
+
+  // Core ascending arpeggio — a triad low, a full run to the octave from tier 2.
+  const arp = tier >= 2 ? [0, 4, 7, 12] : [0, 4, 7];
+  arp.forEach((semi, i) => {
+    voices.push({ freq: hz(root + semi), at: i * step, dur: 0.16, gain: 0.14, type: tri });
+  });
+  const afterArp = arp.length * step;
+
+  // tier 1+: a resolving top octave that rings a touch longer.
+  if (tier >= 1) {
+    voices.push({ freq: hz(root + 12), at: afterArp, dur: 0.22, gain: 0.13, type: tri });
+  }
+  // tier 2+: a soft low bass root, one octave down, for body.
+  if (tier >= 2) {
+    voices.push({ freq: hz(root - 12), at: 0, dur: 0.32, gain: 0.12, type: 'sine' });
+  }
+  // tier 3+: a delayed high sparkle (the fifth, an octave up) + a faint detuned shimmer.
+  if (tier >= 3) {
+    voices.push({ freq: hz(root + 19), at: afterArp + 0.05, dur: 0.2, gain: 0.08, type: tri });
+    voices.push({ freq: hz(root + 12) * 1.006, at: afterArp, dur: 0.22, gain: 0.05, type: tri });
+  }
+  // tier 4: a final sustained major-chord stab — gently, four quiet voices struck together.
+  if (tier >= 4) {
+    const stabAt = afterArp + step + 0.02;
+    for (const semi of [0, 4, 7, 12]) {
+      voices.push({ freq: hz(root + semi), at: stabAt, dur: 0.3, gain: 0.07, type: tri });
+    }
+  }
+
+  return voices;
+}
+
+/** Highest streak tier index (5 milestones → tiers 0..4). Kept local to bound `streakVoices`. */
+const STREAK_MILESTONES_MAX = 4;
 
 // ---- Controller ------------------------------------------------------------------------
 

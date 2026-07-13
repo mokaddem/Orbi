@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { get } from 'svelte/store';
   import { push } from 'svelte-spa-router';
   import { t, localizedName, localizedText, localizedRegion } from '../../i18n';
@@ -27,6 +27,7 @@
   } from '../stores/game';
   import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
   import { sound } from '../sound';
+  import { streakTier, isStreakMilestone } from '../streak';
   import Flag from '../components/Flag.svelte';
   import PageHero from '../components/PageHero.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
@@ -41,10 +42,10 @@
   const CORRECT_MS = 1500;
   const REVEAL_MS = 4500;
 
-  // Streak milestones that earn the celebratory rising arpeggio (Phase 36); its index bumps
-  // the arpeggio up a step each milestone. A milestone answer plays `streak` in place of the
-  // plain `correct` cue, so the two never overlap.
-  const STREAK_MILESTONES = [3, 5, 10, 15, 20];
+  // Milestone-pop pulse (Phase 39): bumped each time the streak lands on a milestone, so the
+  // streak indicator replays its celebratory scale-bump + accent flash at that moment only. The
+  // sticky streak *tier* (which grows the jingle) lives in `../streak`.
+  let milestonePulse = $state(0);
 
   // A reveal is shown — so linger for REVEAL_MS rather than CORRECT_MS — on any wrong
   // answer, and also on a *correct* industries answer (which lists the country's full set
@@ -297,10 +298,13 @@
     return () => clearTimeout(id);
   });
 
-  // Verdict cue (Phase 36): a warm rising mallet on correct (a brighter climbing arpeggio at a
-  // streak milestone), a soft low tone on wrong. Fires once per graded question — same
-  // 'answered' gate as the auto-advance timer, so it can't double-fire. The end-of-session
-  // jingle comes later (in onContinue) and never overlaps this short cue.
+  // Verdict cue (Phase 36 / 39): a warm rising mallet on correct, a soft low tone on wrong. Once a
+  // streak milestone is reached the celebratory `streak` cue takes over and *sticks* — every
+  // subsequent correct answer plays it at the current tier (grander each milestone) rather than
+  // falling back to `correct`; only below the first milestone does plain `correct` play. Reaching a
+  // new milestone also pulses the streak indicator. Fires once per graded question — same 'answered'
+  // gate as the auto-advance timer, so it can't double-fire. The end-of-session jingle comes later
+  // (in onContinue) and never overlaps this short cue.
   $effect(() => {
     if ($play.status !== 'answered') return;
     const fb = $play.feedback;
@@ -310,9 +314,12 @@
       return;
     }
     const streak = $play.state?.streak ?? 0;
-    const milestone = STREAK_MILESTONES.indexOf(streak);
-    if (milestone >= 0) sound.play('streak', { level: milestone });
+    const tier = streakTier(streak);
+    if (tier >= 0) sound.play('streak', { level: tier });
     else sound.play('correct');
+    // Bump the pop pulse without a *tracked* read of it — reading `milestonePulse` inside this
+    // effect (as `+= 1` would) then writing it back is a self-invalidating loop.
+    if (isStreakMilestone(streak)) milestonePulse = untrack(() => milestonePulse) + 1;
   });
 
   // ISO codes to frame the map on, for a region-scoped map session. Memoized by config
@@ -515,10 +522,15 @@
         <div class="score">
           <span>{$t('play.progress.score', { correct: s.correct, total: s.results.length })}</span>
           {#if s.streak > 1}
-            <span class="streak"
-              ><Icon name="flame" size="0.95em" />
-              {$t('play.progress.streak', { streak: s.streak })}</span
-            >
+            <!-- Keyed on the milestone pulse so the celebratory pop replays only when a new
+                 milestone is reached (`at-milestone`); ordinary correct answers just update the
+                 count with the base appear-pop. -->
+            {#key milestonePulse}
+              <span class="streak" class:at-milestone={isStreakMilestone(s.streak)}
+                ><Icon name="flame" size="0.95em" />
+                {$t('play.progress.streak', { streak: s.streak })}</span
+              >
+            {/key}
           {/if}
           <button type="button" class="quit" onclick={quit}>{$t('play.quit')}</button>
         </div>
@@ -1181,6 +1193,27 @@
     }
   }
 
+  /* Milestone pop (Phase 39): a firmer scale-bump + a brief accent flash/glow, replayed only when
+     the streak reaches a milestone (more specific than `.streak`, so it supersedes the base pop). */
+  .streak.at-milestone {
+    animation: streak-milestone 0.45s ease;
+  }
+
+  @keyframes streak-milestone {
+    0% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    35% {
+      transform: scale(1.35);
+      filter: brightness(1.7) drop-shadow(0 0 6px var(--color-accent));
+    }
+    100% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+  }
+
   .quit {
     padding: 0.3rem 0.7rem;
     background: transparent;
@@ -1357,6 +1390,7 @@
     .countdown-fill,
     .feedback,
     .streak,
+    .streak.at-milestone,
     .dir-tray {
       animation: none;
     }

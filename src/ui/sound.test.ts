@@ -79,12 +79,29 @@ describe('sound service (Phase 36)', () => {
     expect(contexts[0].oscStarted).toBe(2);
   });
 
-  it('plays the rising streak arpeggio (three voices) at any level', () => {
+  it('escalates the streak cue: each tier adds voices (Phase 39)', () => {
+    // Tier 0..4 grows the flourish (triad → +octave → +bass/run → +sparkle → +chord stab), so the
+    // oscillator count climbs strictly with the tier (pitch, which also transposes per tier, is
+    // ignored by the fake backend).
+    const counts = [0, 1, 2, 3, 4].map((level) => {
+      contexts.length = 0;
+      const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+      s.setEnabled(true);
+      s.unlock();
+      s.play('streak', { level });
+      return contexts[0].oscStarted;
+    });
+    expect(counts).toEqual([3, 4, 6, 8, 12]);
+    // strictly increasing
+    for (let i = 1; i < counts.length; i++) expect(counts[i]).toBeGreaterThan(counts[i - 1]);
+  });
+
+  it('clamps a streak level beyond the top tier to the peak cue', () => {
     const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
     s.setEnabled(true);
     s.unlock();
-    s.play('streak', { level: 2 });
-    expect(contexts[0].oscStarted).toBe(3);
+    s.play('streak', { level: 99 }); // caps at tier 4
+    expect(contexts[0].oscStarted).toBe(12);
   });
 
   it('is completely silent when the sound pref is off', () => {

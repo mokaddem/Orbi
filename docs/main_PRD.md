@@ -224,6 +224,19 @@ the top of the file).
 |---|---|---|---|---|---|
 | 38 | Play on a 3D globe (WebGL projection) | [phase-38-globe-projection.md](phases/phase-38-globe-projection.md) | 4, 12, 22, 28, 37 | 🟡 In progress | ~90% (Stages 1 + 2 + 3 built & committed: lazy/precached three.js `GlobeMap`, both modes, snap picking, auto-rotate, zoom, WebGL→flat fallback. **Stage 3** landed all 7 owner-review fixes — robust region framing (Russia-in-Europe trim), no glow ring, earcut hover-pop, antimeridian-split pole fix, crisp GPU vector borders, visible micro-dots, tip-anchored label callouts + pin. Fast loop green (562 tests); headless-verified. Pending owner review + on-device check before ✅ Done) |
 
+### v2.3 — Streak celebration
+
+Owner feedback while enjoying the Phase 36 sound: a growing streak should *feel* like it's building.
+Make the milestone jingle **sticky and escalating** (once a milestone is reached, keep playing that —
+grander — jingle instead of falling back to the plain `correct` cue), with **one** added visual: a
+small pop on the streak indicator at each milestone. Fully synthesized — **no new audio files or
+dependencies**. As before, the PRD **requires a clarifying-questions round with the owner before
+implementation** (see the callout at the top of the file).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 39 | Escalating streak jingles & milestone pop | [phase-39-streak-escalation.md](phases/phase-39-streak-escalation.md) | 36, 33, 2 | 🟡 Built & signed off | ~95% (sticky per-milestone `streak` tiers — 3/4/6/8/12 voices, escalate via layers **+ per-tier transposition** (owner A/B pick); milestone-only indicator pop; no new deps/audio. Suite 571 green; headless drive to streak 21 confirms escalation, no `correct` fallback, milestone-only pops, zero errors. Ready to merge after Phase 38) |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
