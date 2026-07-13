@@ -190,6 +190,17 @@ reveal), Phase 28 (`mapProjection` pref + Settings control + live preview), Phas
 3. **Micro-dot set:** reuse the Stage-2 `geoArea < 3e-5` sr micro set for the visible dots so the dot ==
    the snappable target (*recommended yes*).
 
+##### Resolved (owner, 2026-07-13)
+1. **Hover pop → whole country lifts.** The hovered country rises off the globe like a raised tile
+   (option b), settling back on exit. Built as an **on-demand triangulated mesh for the hovered country
+   only** (one at a time, so it stays smooth on mobile) — adds a small triangulation dep (**earcut**,
+   ~2.5 KB) mapped onto the sphere at an animating radius. This same lift can double as the
+   highlight/selection emphasis.
+2. **Borders → sharp vector line geometry** overlaid on the texture (option a); country **fills stay from
+   the texture**. No full move to per-country fill meshes.
+3. **Micro-dots → reuse** the `geoArea < 3e-5` sr snap set, so the visible dot is exactly the snappable
+   target.
+
 #### Stage 3 — acceptance criteria
 - Selecting any region frames it centred and legible (Europe no longer hidden behind Asia); no drift.
 - No atmosphere halo.
