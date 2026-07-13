@@ -189,19 +189,16 @@
       : [],
   );
 
-  // Pointer ring drawing attention to the highlighted country (map-highlight), sized to
-  // the country but with a floor so microstates remain visible. Drawn *only for micro-states*
-  // (`area < SMALL_AREA`) — matching the reveal/picked-ring convention below: a normal-sized
-  // highlighted country is already unmistakable from its fill, so a ring on top just clutters
-  // it (owner feedback, Phase 40); the ring earns its place only where the fill is too small
-  // to see. A large highlight keeps its fill + auto-zoom framing, just no ring.
+  // The highlighted country's aim dot (map-highlight). Drawn *only for micro-states*
+  // (`area < SMALL_AREA`): a speck like Vatican is invisible when highlighted, so it gets the
+  // same filled dot the locate mode uses for tiny targets (owner request) — a hollow ring left
+  // the country an unseeable dot inside an empty circle. A normal-sized highlight is already
+  // unmistakable from its fill + auto-zoom framing, so it gets nothing extra.
   const marker = $derived.by(() => {
     if (!highlightIso) return null;
     const item = rendered.find((r) => r.iso2 === highlightIso);
     if (!item || !Number.isFinite(item.cx) || !Number.isFinite(item.cy)) return null;
-    const micro = item.area < SMALL_AREA;
-    const r = Math.min(40, Math.max(13, Math.sqrt(item.area) * 0.75));
-    return { cx: item.cx, cy: item.cy, r, micro };
+    return { cx: item.cx, cy: item.cy, micro: item.area < SMALL_AREA };
   });
 
   // Target-first reveal (map-locate, once answered): a name label on the country the
@@ -512,7 +509,7 @@
       {/if}
 
       {#if marker?.micro}
-        <circle class="marker" cx={marker.cx} cy={marker.cy} r={marker.r} />
+        <circle class="dot highlight-dot" cx={marker.cx} cy={marker.cy} r={DOT_R / zoomK} />
       {/if}
 
       {#if revealMarker}
@@ -752,12 +749,12 @@
     stroke-linejoin: round;
   }
 
-  .marker {
-    fill: none;
-    stroke: var(--color-accent-strong);
-    stroke-width: 2;
-    opacity: 0.9;
+  /* The highlighted micro-state's aim dot (map-highlight). Reuses the locate `.dot` fill/edge
+     so both directions mark a tiny country the same way; non-interactive here (the player reads
+     the map, not taps), and it fades in so a highlight change reads as a move, not a jump. */
+  .highlight-dot {
     pointer-events: none;
+    cursor: default;
     animation: marker-in 0.45s ease;
   }
 

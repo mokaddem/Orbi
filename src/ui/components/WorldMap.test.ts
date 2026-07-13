@@ -78,20 +78,22 @@ describe('WorldMap', () => {
     expect(onpick).not.toHaveBeenCalled();
   });
 
-  it('highlights a large country by fill only — no pointer ring (Phase 40)', () => {
+  it('highlights a large country by fill only — no aim dot (Phase 40)', () => {
     const { container } = render(WorldMap, { features, highlightIso: 'AA' });
     expect(path(container, 'AA')).toHaveAttribute('data-state', 'highlight');
     expect(path(container, 'BB')).toHaveAttribute('data-state', '');
-    // AA is large: its highlight fill is unmistakable, so a ring on top would just clutter it.
-    expect(container.querySelector('circle.marker')).not.toBeInTheDocument();
+    // AA is large: its highlight fill is unmistakable, so an extra dot would just clutter it.
+    expect(container.querySelector('circle.highlight-dot')).not.toBeInTheDocument();
   });
 
-  it('rings a highlighted micro-state so it stays visible (Phase 40)', () => {
+  it('marks a highlighted micro-state with the locate aim dot so it stays visible', () => {
     const { container } = render(WorldMap, { features, highlightIso: 'CC' });
     expect(path(container, 'CC')).toHaveAttribute('data-state', 'highlight');
-    // CC is a micro-state (tiny fill), so the pointer ring earns its place — matching the
-    // reveal-ring convention.
-    expect(container.querySelector('circle.marker')).toBeInTheDocument();
+    // CC is a micro-state (tiny fill), so it gets the same filled aim dot the locate mode uses
+    // for tiny targets (owner request) — a hollow ring left the country an unseeable speck.
+    const dot = container.querySelector('circle.highlight-dot');
+    expect(dot).toBeInTheDocument();
+    expect(dot).toHaveClass('dot'); // reuses the locate `.dot` fill/edge
   });
 
   it('reveals correct (green) and marks the picked-wrong country after a miss', () => {

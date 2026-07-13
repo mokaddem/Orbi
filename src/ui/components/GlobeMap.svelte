@@ -283,28 +283,39 @@
     return tex;
   }
 
-  // Show the dots only on a locate board (no highlight prompt): while answering, and once
-  // answered (muted). The reveal target's own dot is dropped when answered — its place is
-  // shown by the name callout instead, mirroring the flat map's reveal ring.
+  // Micro-state dots. Two cases:
+  //  • map-highlight — a single dot on the highlighted country *if it is a micro-state*, so a
+  //    speck like Vatican is visible when highlighted (owner request; parity with the flat map).
+  //  • map-locate — the full micro-state set while answering, and once answered (muted); the
+  //    reveal target's own dot is dropped, its place shown by the name callout instead.
   function updateMicroDots(): void {
     if (!microDots || !microDotMat) return;
-    const show = !highlightIso && (interactive || (disabled && !!revealIso));
+    const highlightMicro = highlightIso && microIsos.has(highlightIso) ? highlightIso : null;
+    const show = highlightMicro
+      ? true
+      : !highlightIso && (interactive || (disabled && !!revealIso));
     microDots.visible = show;
     if (!show) {
       setMicroHover(null);
       return;
     }
     const pos: number[] = [];
-    for (const iso of microIsos) {
-      if (disabled && iso === revealIso) continue;
-      const c = centroids.get(iso);
-      if (!c) continue;
-      pos.push(...lonLatToVec3(c[0], c[1], 1.01));
+    if (highlightMicro) {
+      const c = centroids.get(highlightMicro);
+      if (c) pos.push(...lonLatToVec3(c[0], c[1], 1.01));
+    } else {
+      for (const iso of microIsos) {
+        if (disabled && iso === revealIso) continue;
+        const c = centroids.get(iso);
+        if (!c) continue;
+        pos.push(...lonLatToVec3(c[0], c[1], 1.01));
+      }
     }
     const geo = microDots.geometry;
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setDrawRange(0, pos.length / 3);
-    microDotMat.opacity = disabled ? 0.4 : 1;
+    // Keep the highlight dot at full strength (it *is* the prompt); mute only answered locate.
+    microDotMat.opacity = disabled && !highlightMicro ? 0.4 : 1;
   }
 
   // Highlight the micro-state dot the pointer is over with a single pulsing dot on top of

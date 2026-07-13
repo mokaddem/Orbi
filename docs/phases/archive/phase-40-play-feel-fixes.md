@@ -209,6 +209,16 @@ Phase 2 (session state machine). Items are independent of one another and can la
   per the deliverables; zero console errors.
 
 ## Progress log
+- **2026-07-13 — Follow-up: micro-state *highlight* now uses the filled aim-dot, not a ring.**
+  Owner reported that a speck like Vatican is invisible when highlighted in **map-highlight** ("which
+  country is highlighted?") and asked for the same dot the locate mode already draws. This supersedes
+  this phase's "hollow ring for highlighted micro-states" choice (the ring left the country an
+  unseeable dot inside an empty circle). `WorldMap.svelte`: the `marker` derived now yields just
+  `{cx, cy, micro}` and the block draws `<circle class="dot highlight-dot" r={DOT_R/zoomK}>` (same
+  fill/edge + constant screen size as locate); `.marker` CSS removed. `GlobeMap.svelte`:
+  `updateMicroDots` relaxed so a highlighted micro-state shows its single dot at full opacity (was
+  gated to `!highlightIso`). `check`/`lint` clean. Verified headless (flat map): a forced
+  map-highlight on `VA` renders exactly one `.highlight-dot` at Vatican with zero console errors.
 - **2026-07-13 — Built & verified (all four items).** Owner gave explicit go with the proposed OQ
   defaults. Implemented:
   - **Tap magnet** — `resolvePick(event, fallbackIso)` in `WorldMap.svelte` (micro-dot within
