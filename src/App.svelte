@@ -147,7 +147,9 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* momentum scroll inside the region on iOS */
+    /* No `-webkit-overflow-scrolling: touch`: it's the default on modern iOS, and it promotes this
+       region to a compositing layer that renders ABOVE the tab bar — clipping the raised Play FAB
+       that overflows up out of the bar. The bar takes an explicit stacking context instead. */
     overscroll-behavior-y: contain; /* don't chain the scroll to the (non-scrolling) document */
     padding: 1.25rem 1rem 1.5rem;
   }

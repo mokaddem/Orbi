@@ -189,6 +189,11 @@
   .bottombar {
     display: flex;
     flex: 0 0 auto;
+    /* Own stacking context above `.content`, so the raised Play FAB (which overflows up out of the
+       bar) is never clipped by the scrolling content region — notably on iOS, where the scroll
+       region is composited on its own layer. */
+    position: relative;
+    z-index: 2;
     justify-content: space-around;
     align-items: stretch;
     height: calc(var(--bottombar-h) + env(safe-area-inset-bottom, 0px));
