@@ -828,4 +828,28 @@
       animation: none;
     }
   }
+
+  /* On a phone the map is the primary surface, so give the board a taller 3/2 frame — the
+     same aspect the globe already uses — and let the flat map fill it instead of rendering
+     as a short 2:1 band. The svg keeps its fixed 980×500 viewBox (projection untouched); we
+     size it to the board height and let it overflow the narrower width, so the frame is
+     covered and a little of the far left/right (mostly ocean/margin) is trimmed rather than
+     letterboxed. Desktop keeps the framed 2:1 board. */
+  @media (max-width: 640px) {
+    .map {
+      aspect-ratio: 3 / 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    svg {
+      /* flex: none keeps the map's intrinsic (height-driven) width so it overflows and is
+         clipped — covering the frame — rather than being shrunk to fit and letterboxed. */
+      flex: none;
+      width: auto;
+      height: 100%;
+      max-width: none;
+    }
+  }
 </style>

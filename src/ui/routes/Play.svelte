@@ -1634,13 +1634,19 @@
   }
 
   /* The map is the primary surface, but on a phone the content column is narrow (and further
-     inset by the content's 1rem side padding), so the map ends up small. Let the board bleed
-     out to the screen edges there — canceling that padding — for a noticeably bigger map,
-     without touching the projection (which stays memoized at its fixed 980×500 viewBox).
-     Desktop keeps the framed, centred column. */
+     inset by the content's 1rem side padding), so the map ends up small. Let the board reach
+     most of the way out — canceling all but a slim ~0.5rem gutter so it breathes at the screen
+     edge — and let the map render taller (see WorldMap `.map`, which gives it a 3/2 frame under
+     640px). The projection stays memoized at its fixed 980×500 viewBox. Desktop keeps the
+     framed, centred column. */
   @media (max-width: 640px) {
     .board {
-      margin-inline: -1rem;
+      margin-inline: -0.5rem;
+    }
+
+    /* Match the taller mobile board while the lazily-imported map chunk loads. */
+    .placeholder {
+      aspect-ratio: 3 / 2;
     }
   }
 </style>

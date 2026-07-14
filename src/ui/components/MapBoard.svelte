@@ -136,4 +136,11 @@
     border-radius: var(--radius);
     color: var(--color-muted);
   }
+
+  /* Match the taller mobile board (see WorldMap `.map`) so the loading box doesn't jump. */
+  @media (max-width: 640px) {
+    .placeholder {
+      aspect-ratio: 3 / 2;
+    }
+  }
 </style>
