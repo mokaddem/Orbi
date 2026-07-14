@@ -511,6 +511,26 @@ const fr: typeof en = {
       note: 'Les noms de pays, les drapeaux et les régions suivent tous cette même liste.',
     },
   },
+  pwa: {
+    title: 'Ajoutez Orbi à votre écran d’accueil',
+    subtitle: 'Jouez en plein écran et hors ligne — sans store ni compte.',
+    install: 'Installer Orbi',
+    installHint: 'Un seul geste — votre navigateur vous demandera de confirmer.',
+    dismiss: 'Plus tard',
+    close: 'Fermer',
+    ios: {
+      lead: 'Sur votre iPhone ou iPad :',
+      step1: 'Touchez le bouton Partager dans la barre du navigateur.',
+      step2: 'Faites défiler et choisissez « Sur l’écran d’accueil ».',
+      step3: 'Touchez « Ajouter » — Orbi apparaît sur votre écran d’accueil.',
+    },
+    android: {
+      lead: 'Sur votre téléphone ou tablette Android :',
+      step1: 'Ouvrez le menu du navigateur (le bouton ⋮).',
+      step2: 'Choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».',
+      step3: 'Confirmez — Orbi apparaît sur votre écran d’accueil.',
+    },
+  },
   storage: {
     unavailable:
       'Le stockage est indisponible dans ce navigateur — votre progression ne sera pas enregistrée.',

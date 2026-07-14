@@ -1,6 +1,12 @@
 import { mount } from 'svelte';
 import './app.css';
 import App from './App.svelte';
+import { initInstallPrompt } from './ui/pwa-install';
+
+// Start capturing the browser's PWA install signals before the UI mounts, so Chromium's
+// `beforeinstallprompt` (which can fire during initial load) is stashed for the mobile
+// install prompt's one-tap button rather than lost. No-op on browsers that don't fire it.
+initInstallPrompt();
 
 const target = document.getElementById('app');
 if (!target) {

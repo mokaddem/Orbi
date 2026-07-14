@@ -71,6 +71,31 @@ npm run dev      # → http://localhost:5180
 
 That's it. Want the real, installable, offline build? `npm run build && npm run preview`.
 
+## 📲 Install it on your phone
+
+Orbi is a full PWA, so you can add it to your home screen and play it like a native app —
+full-screen and completely offline. On your **first visit from a phone**, Orbi pops up a short
+prompt with the exact steps for _your_ device. (It reappears on each reload until you install,
+shows only once per visit, and never appears on desktop or once Orbi is already installed.)
+
+You can also do it by hand at any time:
+
+**iPhone / iPad**
+
+1. Tap the **Share** button in the browser toolbar (the box with an up arrow ⬆️).
+2. Scroll down and choose **Add to Home Screen**.
+3. Tap **Add** — Orbi appears on your home screen.
+
+**Android**
+
+1. Open the browser menu (the **⋮** button). On Chrome you may instead see an **Install**
+   banner — just tap that.
+2. Choose **Install app** or **Add to Home screen**.
+3. Confirm — Orbi appears on your home screen.
+
+Once installed, Orbi launches from its own icon, works with no connection, and updates itself
+silently on the next launch.
+
 ## 🛠️ Under the hood
 
 A deliberately lean, fully client-side single-page app:

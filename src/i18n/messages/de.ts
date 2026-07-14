@@ -509,6 +509,26 @@ const de: typeof en = {
       note: 'Ländernamen, Flaggen und Regionen folgen alle derselben Liste.',
     },
   },
+  pwa: {
+    title: 'Orbi zum Startbildschirm hinzufügen',
+    subtitle: 'Im Vollbild und offline spielen — ohne App-Store, ohne Konto.',
+    install: 'Orbi installieren',
+    installHint: 'Ein Fingertipp — dein Browser fragt zur Bestätigung nach.',
+    dismiss: 'Später',
+    close: 'Schließen',
+    ios: {
+      lead: 'Auf deinem iPhone oder iPad:',
+      step1: 'Tippe auf die Teilen-Schaltfläche in der Browserleiste.',
+      step2: 'Wähle „Zum Home-Bildschirm“.',
+      step3: 'Tippe auf „Hinzufügen“ — Orbi erscheint auf dem Startbildschirm.',
+    },
+    android: {
+      lead: 'Auf deinem Android-Smartphone oder -Tablet:',
+      step1: 'Öffne das Browser-Menü (die Schaltfläche ⋮).',
+      step2: 'Wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.',
+      step3: 'Bestätige — Orbi erscheint auf dem Startbildschirm.',
+    },
+  },
   storage: {
     unavailable:
       'Der Speicher ist in diesem Browser nicht verfügbar — dein Fortschritt wird nicht gesichert.',

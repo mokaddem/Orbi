@@ -489,6 +489,26 @@ const en = {
       note: 'Country names, flags and regions all follow this same list.',
     },
   },
+  pwa: {
+    title: 'Add Orbi to your home screen',
+    subtitle: 'Play full-screen and offline — no app store, no account.',
+    install: 'Install Orbi',
+    installHint: 'One tap — your browser will ask you to confirm.',
+    dismiss: 'Maybe later',
+    close: 'Close',
+    ios: {
+      lead: 'On your iPhone or iPad:',
+      step1: 'Tap the Share button in the browser toolbar.',
+      step2: 'Scroll down and choose “Add to Home Screen”.',
+      step3: 'Tap “Add” — Orbi appears on your home screen.',
+    },
+    android: {
+      lead: 'On your Android phone or tablet:',
+      step1: 'Open the browser menu (the ⋮ button).',
+      step2: 'Choose “Install app” or “Add to Home screen”.',
+      step3: 'Confirm — Orbi appears on your home screen.',
+    },
+  },
   storage: {
     unavailable: 'Storage is unavailable in this browser — your progress won’t be saved.',
   },

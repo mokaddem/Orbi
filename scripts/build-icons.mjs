@@ -59,6 +59,14 @@ const ICONS = {
   minus: 'minus', // map zoom-out (Phase 37)
   maximize: 'maximize', // map "fit / reset view" control (Phase 37)
   trash: 'trash-2', // delete a saved custom set (Phase 27)
+  // PWA "add to home screen" install hint (mobile) — OS glyphs shown in the step list so a
+  // user can recognise the real button to tap, plus the sheet's header/close controls.
+  close: 'x', // dismiss the install prompt
+  smartphone: 'smartphone', // install-prompt header illustration
+  share: 'share', // iOS Safari share-sheet button (box with up arrow)
+  'add-home': 'square-plus', // the "Add to Home Screen" row glyph
+  'menu-dots': 'ellipsis-vertical', // Android browser overflow (⋮) menu
+  install: 'download', // one-tap / generic "Install" action
 };
 
 /** Pull the inner markup out of a Lucide <svg> wrapper and compact whitespace. */

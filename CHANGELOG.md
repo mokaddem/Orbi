@@ -7,6 +7,17 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.2.3] — 2026-07-14
+
+### Added
+
+- 📲 **"Add to Home Screen" prompt on phones** — first-time (and every reload until you install)
+  mobile visitors get a short, device-aware popup showing exactly how to install Orbi: the Share
+  → Add to Home Screen steps on iPhone/iPad, and the ⋮ menu → Install steps on Android (with a
+  genuine one-tap **Install** button where the browser offers one). It shows only on phones, only
+  once per visit, and never once Orbi is already installed. Fully localized (EN/FR/DE), and the
+  same steps are now documented in the README.
+
 ## [2.2.2] — 2026-07-14
 
 ### Fixed

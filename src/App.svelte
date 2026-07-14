@@ -6,6 +6,7 @@
   import Icon from './ui/components/Icon.svelte';
   import Mascot from './ui/components/Mascot.svelte';
   import LanguageSwitcher from './ui/components/LanguageSwitcher.svelte';
+  import PwaInstallPrompt from './ui/components/PwaInstallPrompt.svelte';
   import { t } from './i18n';
   import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
   import { sound } from './ui/sound';
@@ -84,6 +85,9 @@
 
   <Nav />
 </div>
+
+<!-- "Add to Home Screen" hint (mobile only; self-hiding on desktop / when already installed). -->
+<PwaInstallPrompt />
 
 <style>
   .app-shell {
