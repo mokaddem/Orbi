@@ -286,6 +286,21 @@ one.
 | 42 | Blitz mode (timed speed run + personal best) | [phase-42-blitz-mode.md](phases/phase-42-blitz-mode.md) | 2, 35, 6 (36 for cues) | ⬜ Not started | 0% |
 | 43 | Explorer rank & XP (progression spine) | [phase-43-explorer-rank-xp.md](phases/phase-43-explorer-rank-xp.md) | 6, 16, 41 (30 for placement) | ⬜ Not started | 0% |
 
+### v2.7 — Mastery capstone
+
+Owner idea (2026-07-14): a **gated "prove-it" challenge** that unlocks only once a **family × region**
+is already mastered (Phase 41), and that tests it end-to-end in a way a normal 4-choice round can't —
+you must identify **every** country in the region, one at a time, with the answer options being the
+**whole region** (no 4-choice crutch), clearing the board as you go. It fills a real gap: today mastery
+is built (SR), measured (Phase 41 %), and rewarded with monotonic badges, but never tested under a
+prove-it constraint. A *format* over the existing modes (like Grand Tour, Phase 35) — **no new game
+mode**, no backend. As before, the PRD **requires a clarifying-questions round with the owner before
+implementation** (see the callout at the top of the file).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 44 | Mastery Challenge (capstone / "prove-it" run) | [phase-44-mastery-challenge.md](phases/phase-44-mastery-challenge.md) | 41, 16, 2, 35, 5 | ⬜ Not started | 0% |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
