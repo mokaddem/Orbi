@@ -129,10 +129,16 @@
       box-shadow 0.12s ease;
   }
 
-  .choice:not(.answered):hover {
-    border-color: var(--color-accent);
-    background: var(--color-bg);
-    transform: translateY(-2px);
+  /* Hover feedback only on a real hovering pointer. On touch there's no hover, so a tapped
+     button would otherwise keep this :hover look stuck until the next tap — reading as the
+     previous pick "lingering" onto the next question (the grid is keyed by option id, so a
+     repeated distractor reuses the same button node and inherits the stuck state). */
+  @media (hover: hover) {
+    .choice:not(.answered):hover {
+      border-color: var(--color-accent);
+      background: var(--color-bg);
+      transform: translateY(-2px);
+    }
   }
 
   .choice:not(.answered):active {

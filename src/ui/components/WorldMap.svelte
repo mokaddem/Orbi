@@ -649,11 +649,16 @@
     cursor: pointer;
   }
 
-  /* Locate mode: a muted-land hover is too subtle, so use a clear accent tint. */
-  svg.interactive .country:hover {
-    fill: var(--map-land-hover);
-    stroke: var(--color-accent);
-    stroke-width: 0.8;
+  /* Locate mode: a muted-land hover is too subtle, so use a clear accent tint. Gated to
+     hover-capable pointers: on touch there's no hover, and since every country path persists
+     across questions (keyed by ISO), a tapped country would otherwise keep this :hover fill
+     stuck — the previous pick appearing to linger into the next question. */
+  @media (hover: hover) {
+    svg.interactive .country:hover {
+      fill: var(--map-land-hover);
+      stroke: var(--color-accent);
+      stroke-width: 0.8;
+    }
   }
 
   .country.highlight {
@@ -694,10 +699,13 @@
   }
 
   /* Hover feedback: the dot swells and brightens so a player aiming at a tiny country
-     is sure the pointer is on it before committing the click. */
-  svg.interactive .dot:hover {
-    transform: scale(1.6);
-    fill: var(--color-accent);
+     is sure the pointer is on it before committing the click. Hover-capable pointers only,
+     so a tapped micro-state dot doesn't stay enlarged into the next question on touch. */
+  @media (hover: hover) {
+    svg.interactive .dot:hover {
+      transform: scale(1.6);
+      fill: var(--color-accent);
+    }
   }
 
   .dot.muted {
