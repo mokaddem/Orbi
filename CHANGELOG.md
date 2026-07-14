@@ -7,6 +7,29 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.2.4] — 2026-07-14
+
+### Changed
+
+- 🌐 **Zoom in closer on the 3D globe** — the globe now dollies right up to the surface (about
+  three times nearer than before), so a single country and its borders can fill the board — handy
+  for pinning down a small nation. Zoom with the `+` control, scroll or pinch.
+- 📱 **Taller phone map board** — the mobile map now sits in the same tall 3/2 frame the globe uses
+  (~26% taller) with a slim gutter at the screen edges instead of bleeding edge-to-edge, so there's
+  more map to read on a phone. Desktop is unchanged.
+
+### Fixed
+
+- 🗺️ **Taps land on the country you tapped** — in Locate-on-the-map, tapping well inside a country
+  next to a micro-state (e.g. Switzerland beside Liechtenstein) no longer snaps to the tiny
+  neighbour. The aim-dot magnet now only helps when you tap open water or the micro-state's own dot;
+  tiny countries stay selectable via their visible dot or a pinch-zoom.
+- 📊 **Visible Mastered / Learning key** — the Progress mastery breakdowns now show a small legend
+  (solid = mastered, striped / lighter = learning) instead of relying on hover tooltips that never
+  appear on touch devices.
+- 🔊 **Quieter celebration jingles** — the finish / perfect / achievement / daily jingles are about
+  40% quieter (~-5 dB) so an end-of-session cue never jars.
+
 ## [2.2.3] — 2026-07-14
 
 ### Added
