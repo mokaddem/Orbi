@@ -60,10 +60,11 @@ const MASTER_GAIN = 0.45;
 /**
  * Extra attenuation for the bundled jingles only (`finish` / `perfect` / `achievement` /
  * `daily`). They're recorded samples that land louder than the quiet synth SFX, so they're
- * pulled down relative to the per-answer cues (owner feedback: the mode-complete jingle was a
- * touch too loud). Applied on top of {@link MASTER_GAIN}; nudge this to retune.
+ * pulled down relative to the per-answer cues. Applied on top of {@link MASTER_GAIN}; nudge
+ * this to retune. Owner feedback trimmed it twice: 1.0 → 0.6 (mode-complete jingle a touch
+ * too loud), then 0.6 → 0.35 (the end-of-session jingle was still too loud, 2026-07-14).
  */
-const JINGLE_GAIN = 0.6;
+const JINGLE_GAIN = 0.35;
 
 /** Equal-tempered frequency for a MIDI note number (69 = A4 = 440 Hz). */
 const hz = (midi: number): number => 440 * Math.pow(2, (midi - 69) / 12);
