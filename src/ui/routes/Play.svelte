@@ -27,8 +27,9 @@
   } from '../stores/game';
   import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
   import { sound } from '../sound';
-  import { streakTier, isStreakMilestone } from '../streak';
+  import { streakTier, isStreakMilestone, streakBurstSpec } from '../streak';
   import Flag from '../components/Flag.svelte';
+  import StreakBurst from '../components/StreakBurst.svelte';
   import PageHero from '../components/PageHero.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
   import SegmentedControl from '../components/SegmentedControl.svelte';
@@ -43,9 +44,40 @@
   const REVEAL_MS = 4500;
 
   // Milestone-pop pulse (Phase 39): bumped each time the streak lands on a milestone, so the
-  // streak indicator replays its celebratory scale-bump + accent flash at that moment only. The
+  // streak indicator replays its celebratory scale-bump + heat flash at that moment only. The
   // sticky streak *tier* (which grows the jingle) lives in `../streak`.
   let milestonePulse = $state(0);
+
+  // Milestone burst (Phase 42): the escalating particle celebration that fires alongside the pill's
+  // heat flash. `streakEl` is the flame pill we measure to anchor the burst; the burst renders in a
+  // fixed overlay (via `StreakBurst`) so it can spill past the play view's clipping scroll container.
+  // `burstKey` remounts the overlay on each milestone so its one-shot animations replay.
+  let streakEl = $state<HTMLElement>();
+  let burstTier = $state(-1);
+  let burstX = $state(0);
+  let burstY = $state(0);
+  let burstKey = $state(0);
+  const reducedMotionQuery =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+
+  // Fire the burst for a milestone tier, anchored on the flame. Skipped entirely under reduced
+  // motion (OS setting or the in-app toggle) — the pill's own animation is neutralised by the
+  // existing reduce-motion CSS, matching how the rest of the app degrades. Measured on the next
+  // frame so the keyed pill has re-rendered and laid out before we read its box.
+  function triggerBurst(tier: number): void {
+    if (get(prefs).reduceMotion || reducedMotionQuery?.matches) return;
+    requestAnimationFrame(() => {
+      const el = streakEl;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      burstX = r.left + Math.min(r.height * 0.5 + 2, r.width); // ~centre of the leading flame glyph
+      burstY = r.top + r.height / 2;
+      burstTier = tier;
+      burstKey += 1;
+    });
+  }
 
   // A reveal is shown — so linger for REVEAL_MS rather than CORRECT_MS — on any wrong
   // answer, and also on a *correct* industries answer (which lists the country's full set
@@ -318,8 +350,12 @@
     if (tier >= 0) sound.play('streak', { level: tier });
     else sound.play('correct');
     // Bump the pop pulse without a *tracked* read of it — reading `milestonePulse` inside this
-    // effect (as `+= 1` would) then writing it back is a self-invalidating loop.
-    if (isStreakMilestone(streak)) milestonePulse = untrack(() => milestonePulse) + 1;
+    // effect (as `+= 1` would) then writing it back is a self-invalidating loop. Reaching a
+    // milestone also fires the escalating burst, anchored on the (now heating) flame pill.
+    if (isStreakMilestone(streak)) {
+      milestonePulse = untrack(() => milestonePulse) + 1;
+      triggerBurst(tier);
+    }
   });
 
   // ISO codes to frame the map on, for a region-scoped map session. Memoized by config
@@ -533,9 +569,17 @@
           {#if s.streak > 1}
             <!-- Keyed on the milestone pulse so the celebratory pop replays only when a new
                  milestone is reached (`at-milestone`); ordinary correct answers just update the
-                 count with the base appear-pop. -->
+                 count with the base appear-pop. At a milestone the pill's heat/scale/glow escalates
+                 by tier via `streakBurstSpec`, in step with the jingle. -->
+            {@const ms = isStreakMilestone(s.streak) ? streakBurstSpec(streakTier(s.streak)) : null}
             {#key milestonePulse}
-              <span class="streak" class:at-milestone={isStreakMilestone(s.streak)}
+              <span
+                class="streak"
+                class:at-milestone={ms !== null}
+                bind:this={streakEl}
+                style={ms
+                  ? `--ms-scale:${ms.peakScale}; --ms-glow:${ms.glow}px; --ms-bright:${ms.bright}; --ms-dur:${ms.durMs}ms; --ms-heat:${ms.heat}`
+                  : ''}
                 ><Icon name="flame" size="0.95em" />
                 {$t('play.progress.streak', { streak: s.streak })}</span
               >
@@ -544,6 +588,14 @@
           <button type="button" class="quit" onclick={quit}>{$t('play.quit')}</button>
         </div>
       </header>
+
+      <!-- Milestone burst overlay (Phase 42). Fixed-position, so its DOM location here is immaterial;
+           `{#key burstKey}` remounts it on each milestone to replay the escalating one-shot burst. -->
+      {#if burstTier >= 0}
+        {#key burstKey}
+          <StreakBurst tier={burstTier} x={burstX} y={burstY} />
+        {/key}
+      {/if}
 
       <div class="prompt">
         {#if PROMPT_FLAG_MODES.includes(cfg.mode)}
@@ -1206,23 +1258,30 @@
     }
   }
 
-  /* Milestone pop (Phase 39): a firmer scale-bump + a brief accent flash/glow, replayed only when
-     the streak reaches a milestone (more specific than `.streak`, so it supersedes the base pop). */
+  /* Milestone pop (Phase 39; escalated Phase 42): a tier-driven scale-bump + heat flash + glow,
+     replayed only when the streak reaches a milestone (more specific than `.streak`, so it supersedes
+     the base pop). The `--ms-*` custom properties are set inline per tier from `streakBurstSpec`, so
+     the flame grows bigger, brighter and hotter the further the streak climbs — in step with the
+     jingle. Values fall back to the original tier-0 feel if the vars are ever absent. */
   .streak.at-milestone {
-    animation: streak-milestone 0.45s ease;
+    animation: streak-milestone var(--ms-dur, 0.45s) cubic-bezier(0.2, 0.9, 0.3, 1);
   }
 
   @keyframes streak-milestone {
     0% {
       transform: scale(1);
+      color: var(--color-accent);
       filter: brightness(1);
     }
-    35% {
-      transform: scale(1.35);
-      filter: brightness(1.7) drop-shadow(0 0 6px var(--color-accent));
+    32% {
+      transform: scale(var(--ms-scale, 1.35));
+      color: var(--ms-heat, var(--color-accent));
+      filter: brightness(var(--ms-bright, 1.7))
+        drop-shadow(0 0 var(--ms-glow, 6px) var(--ms-heat, var(--color-accent)));
     }
     100% {
       transform: scale(1);
+      color: var(--color-accent);
       filter: brightness(1);
     }
   }
