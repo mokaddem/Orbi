@@ -109,7 +109,7 @@
   const SMALL_AREA = 14;
 
   // Zoom + snap tuning (Phase 37).
-  const MAX_ZOOM = 8; // deepest interactive zoom
+  const MAX_ZOOM = 12; // deepest interactive zoom
   const ZOOM_STEP = 1.6; // +/- button factor
   const ZOOM_MS = 350; // animated re-frame duration (0 when reduce-motion)
   const CLICK_DISTANCE = 12; // viewBox units a tap may drift before it counts as a pan
