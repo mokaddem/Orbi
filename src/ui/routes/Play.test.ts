@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Play from './Play.svelte';
-import { play, lastSummary, pendingConfig } from '../stores/game';
+import { play, lastSummary, pendingConfig, playFabAction } from '../stores/game';
 import { mulberry32, type Question } from '../../domain';
 import { setLocale } from '../../i18n';
 
@@ -22,12 +22,14 @@ beforeEach(() => {
   play.reset();
   lastSummary.set(null);
   pendingConfig.set(null);
+  playFabAction.set(null);
 });
 
 afterEach(() => {
   play.reset();
   lastSummary.set(null);
   pendingConfig.set(null);
+  playFabAction.set(null);
 });
 
 describe('Play route', () => {
@@ -42,6 +44,44 @@ describe('Play route', () => {
     // The game HUD is now showing a progress counter.
     expect(get(play).status).toBe('playing');
     expect(screen.getByText(/Question 1 \/ 10/)).toBeInTheDocument();
+  });
+
+  it('publishes a FAB launcher while showing setup, and clears it once playing', async () => {
+    expect(get(playFabAction)).toBeNull();
+    const { unmount } = render(Play);
+    // Setup is showing → the mobile Play FAB has a launch action to run.
+    expect(typeof get(playFabAction)).toBe('function');
+
+    await fireEvent.click(screen.getByText('Start'));
+    // A session is under way → the FAB reverts to a plain link (no action).
+    expect(get(play).status).toBe('playing');
+    expect(get(playFabAction)).toBeNull();
+
+    unmount();
+    expect(get(playFabAction)).toBeNull();
+  });
+
+  it('FAB launch plays the veil flourish, then starts the selected game', async () => {
+    const { container } = render(Play);
+    // Pick a region so we can assert the launched run used the current selection.
+    await fireEvent.click(screen.getByRole('button', { name: 'Europe' }));
+
+    // Press the FAB (its published action). jsdom has no matchMedia and reduceMotion is off,
+    // so this takes the animated path: the veil appears and the game hasn't started yet.
+    get(playFabAction)!();
+    await Promise.resolve();
+    const veil = container.querySelector('.launch-veil');
+    expect(veil).not.toBeNull();
+    expect(get(play).status).toBe('idle');
+
+    // Veil finished wiping in → the game starts underneath (jsdom won't fire animationend itself).
+    await fireEvent(veil!, new Event('animationend'));
+    expect(get(play).status).toBe('playing');
+    expect(get(play).config?.filter).toEqual({ region: 'Europe' });
+
+    // Veil finished fading out → it's removed.
+    await fireEvent(container.querySelector('.launch-veil')!, new Event('animationend'));
+    expect(container.querySelector('.launch-veil')).toBeNull();
   });
 
   it('groups modes into families and swaps the direction options when a family is picked', async () => {

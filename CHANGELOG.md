@@ -17,6 +17,10 @@ the entries below summarize that history, newest first. **v2.1 is the first publ
   genuine one-tap **Install** button where the browser offers one). It shows only on phones, only
   once per visit, and never once Orbi is already installed. Fully localized (EN/FR/DE), and the
   same steps are now documented in the README.
+- ▶️ **Tap-to-launch Play button on phones** — on the mobile setup screen the separate "Start"
+  button is gone; the bottom-bar Play button itself grows and pulses, and pressing it plays a
+  quick launch animation before dropping you straight into a game with your chosen mode, format
+  and region. Desktop keeps its regular Start button.
 
 ## [2.2.2] — 2026-07-14
 

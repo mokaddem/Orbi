@@ -2,6 +2,7 @@
   import { router } from 'svelte-spa-router';
   import { t } from '../../i18n';
   import { navLinks, bottomTabs } from '../routes';
+  import { play as playStore, playFabAction } from '../stores/game';
   import Icon from './Icon.svelte';
   import Mascot from './Mascot.svelte';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
@@ -20,6 +21,22 @@
   const play = navLinks.find((link) => link.primary)!;
   const railMain = navLinks.filter((link) => !link.primary && link.href !== '#/settings');
   const settings = navLinks.find((link) => link.href === '#/settings')!;
+
+  // Eager FAB (Phase 43): on the Play setup screen (mobile), the raised Play FAB stands in for
+  // the removed in-page "Start" button — it pulses and, on press, launches the game with the
+  // current selections instead of navigating. It's "eager" only while the Play route is showing
+  // setup and has published its launcher (`playFabAction`). Everywhere else the FAB is a plain
+  // link. The desktop rail's Play link is untouched (this is the bottom-bar FAB only).
+  const playEager = $derived(
+    router.location === '/play' && $playStore.status === 'idle' && $playFabAction !== null,
+  );
+
+  function onFabClick(e: MouseEvent): void {
+    if (playEager) {
+      e.preventDefault(); // don't navigate — we're already on /play; start the game instead
+      $playFabAction?.();
+    }
+  }
 </script>
 
 <!-- Desktop: left sidebar rail -->
@@ -76,8 +93,10 @@
       <a
         class="tab tab-fab"
         class:active={isActive(link.href, router.location)}
+        class:eager={playEager}
         href={link.href}
         aria-current={isActive(link.href, router.location) ? 'page' : undefined}
+        onclick={onFabClick}
       >
         <span class="fab-disc"><Icon name={link.icon} size={24} /></span>
         <span class="tab-label">{$t(link.labelKey)}</span>
@@ -276,6 +295,43 @@
       0 0 0 3px var(--color-accent-weak);
   }
 
+  /* Eager state (Phase 43): on the Play setup screen this FAB replaces the removed in-page
+     "Start" button, so it grows a touch and breathes — an expanding accent ring — to invite the
+     tap. Pressing it launches the game (see Nav script / Play.svelte). */
+  .tab-fab.eager .fab-disc {
+    width: 60px;
+    height: 60px;
+    margin-top: -30px;
+    animation: fab-eager 1.6s ease-in-out infinite;
+  }
+
+  /* Crisp press feedback while eager (the pulse would otherwise own `transform`). */
+  .tab-fab.eager:active .fab-disc {
+    animation: none;
+    transform: scale(0.94);
+  }
+
+  @keyframes fab-eager {
+    0% {
+      transform: scale(1);
+      box-shadow:
+        var(--shadow-float),
+        0 0 0 0 rgb(16 165 160 / 45%);
+    }
+    50% {
+      transform: scale(1.09);
+      box-shadow:
+        var(--shadow-float),
+        0 0 0 10px rgb(16 165 160 / 0%);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow:
+        var(--shadow-float),
+        0 0 0 0 rgb(16 165 160 / 0%);
+    }
+  }
+
   /* ---- Breakpoint switch -------------------------------------------------------------- */
   @media (min-width: 860px) {
     .rail {
@@ -301,6 +357,11 @@
     .rail-play,
     .fab-disc {
       transition: none;
+    }
+
+    /* Keep the eager FAB's larger size, but drop the breathing pulse. */
+    .tab-fab.eager .fab-disc {
+      animation: none;
     }
   }
 </style>

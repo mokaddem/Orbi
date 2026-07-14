@@ -230,6 +230,15 @@ export const lastSummary = writable<SessionSummary | null>(null);
 export const pendingConfig = writable<RunConfig | null>(null);
 
 /**
+ * The launch action the mobile Play FAB runs when it stands in for the setup screen's "Start"
+ * button (Play route only). The Play route publishes its animated-start function here while it
+ * is showing setup, and clears it otherwise; the nav FAB reads it to (a) morph into its eager,
+ * pulsing state and (b) start the game with the current selections on press. `null` whenever the
+ * FAB should behave as an ordinary link — any other route, or a session already in progress.
+ */
+export const playFabAction = writable<(() => void) | null>(null);
+
+/**
  * Turn a "Next up" {@link Recommendation} into a launchable {@link RunConfig}, filling in
  * the gameplay prefs (choices, fixed length, lives) the pure engine deliberately omits.
  * Returns `null` for a `fresh-start` (no run payload): the caller then routes to the Play

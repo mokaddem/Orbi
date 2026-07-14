@@ -22,6 +22,7 @@
     play,
     lastSummary,
     pendingConfig,
+    playFabAction,
     focusIsosForConfig,
     type RunConfig,
   } from '../stores/game';
@@ -238,20 +239,70 @@
     if (get(play).status === 'finished') play.reset();
   });
 
-  function startGame(): void {
+  /** The run config for the current setup selections (mode / type / region / prefs). */
+  function buildRunConfig(): RunConfig {
     const filter: RegionFilter | undefined = selectedRegion
       ? { region: selectedRegion, ...(selectedSubregion ? { subregion: selectedSubregion } : {}) }
       : undefined;
     const p = $prefs;
-    play.start({
+    return {
       mode,
       type,
       filter,
       fixedLength: p.fixedLength,
       lives: p.survivalLives,
       choices: p.choicesPerQuestion,
-    });
+    };
   }
+
+  // Desktop keeps the plain "Start" button: an immediate launch, no flourish.
+  function startGame(): void {
+    play.start(buildRunConfig());
+  }
+
+  // Mobile launch (Phase 43): the bottom-bar Play FAB stands in for the removed "Start" button
+  // on the setup screen. Pressing it plays a short "launch" flourish — a teal disc wiping up from
+  // the FAB — and then starts the game with the *current* selections. Purely a mobile replacement
+  // for Start; the config is identical. Reduced motion (OS or the in-app toggle) skips straight to
+  // the game with no veil. `pendingCfg` is captured up-front so mid-animation selection changes
+  // can't affect the run that was launched.
+  let launching = $state(false);
+  let launchPhase = $state<'expand' | 'reveal'>('expand');
+  let pendingCfg: RunConfig | null = null;
+
+  function triggerStart(): void {
+    if (launching) return;
+    const cfg = buildRunConfig();
+    if ($prefs.reduceMotion || reducedMotionQuery?.matches) {
+      play.start(cfg);
+      return;
+    }
+    pendingCfg = cfg;
+    launchPhase = 'expand';
+    launching = true;
+  }
+
+  // Drive the two-step veil: once it has wiped over the screen, start the game underneath, then
+  // fade the veil away to reveal it. Ignore the inner badge's own animation (it bubbles here).
+  function onVeilAnimEnd(e: AnimationEvent): void {
+    if (e.target !== e.currentTarget) return;
+    if (launchPhase === 'expand') {
+      if (pendingCfg) play.start(pendingCfg);
+      pendingCfg = null;
+      launchPhase = 'reveal';
+    } else {
+      launching = false;
+    }
+  }
+
+  // Publish the launch action for the nav FAB while (and only while) the setup screen is showing;
+  // clearing it returns the FAB to being an ordinary link (see Nav.svelte / game.ts).
+  $effect(() => {
+    if ($play.status === 'idle') {
+      playFabAction.set(triggerStart);
+      return () => playFabAction.set(null);
+    }
+  });
 
   function onPick(id: string): void {
     const result = play.answer(id);
@@ -372,6 +423,15 @@
     return focusIsos;
   }
 </script>
+
+<!-- Mobile launch flourish (Phase 43): a teal disc that wipes up from the Play FAB, hands over to
+     the game beneath, then fades. Fixed + top-most, so its place in the tree is immaterial; it
+     lives outside the setup/game branches so it survives the swap between them. -->
+{#if launching}
+  <div class="launch-veil {launchPhase}" aria-hidden="true" onanimationend={onVeilAnimEnd}>
+    <span class="launch-badge"><Icon name="play" size={40} /></span>
+  </div>
+{/if}
 
 {#if $play.status === 'idle'}
   <section class="setup">
@@ -1104,6 +1164,81 @@
     box-shadow: var(--shadow-chunky-press);
   }
 
+  /* Launch veil (Phase 43): full-screen teal, wiping up from the FAB (bottom-centre) via a
+     clip-path circle, then fading to reveal the game. Above every other overlay. */
+  .launch-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(
+      130% 130% at 50% 100%,
+      var(--color-accent) 0%,
+      var(--color-accent-strong) 100%
+    );
+    color: var(--color-accent-contrast);
+    will-change: clip-path, opacity;
+  }
+
+  .launch-veil.expand {
+    animation: veil-expand 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Hold full coverage while fading out (the game is now live beneath). */
+  .launch-veil.reveal {
+    clip-path: circle(150% at 50% 100%);
+    animation: veil-fade 0.3s ease-out forwards;
+  }
+
+  @keyframes veil-expand {
+    from {
+      clip-path: circle(0% at 50% 100%);
+    }
+    to {
+      clip-path: circle(150% at 50% 100%);
+    }
+  }
+
+  @keyframes veil-fade {
+    to {
+      opacity: 0;
+    }
+  }
+
+  .launch-badge {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 16%);
+    animation: badge-pop 0.42s ease;
+  }
+
+  @keyframes badge-pop {
+    0% {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* On mobile (where the raised Play FAB is present) the FAB *is* the start control, so the
+     in-page "Start" button is removed. Desktop — which has no FAB, only the rail link — keeps it. */
+  @media (max-width: 859.98px) {
+    .start {
+      display: none;
+    }
+  }
+
   /* Discreet secondary entry into the targeted-practice builder. */
   .practice-link {
     align-self: flex-start;
@@ -1463,7 +1598,9 @@
     .feedback,
     .streak,
     .streak.at-milestone,
-    .dir-tray {
+    .dir-tray,
+    .launch-veil,
+    .launch-badge {
       animation: none;
     }
 
