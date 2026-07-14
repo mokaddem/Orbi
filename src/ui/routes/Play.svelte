@@ -582,36 +582,40 @@
       </div>
 
       {#if isMapMode(cfg.mode)}
-        {#if MapBoard}
-          <!-- On a wrong map-locate answer, resolve the country the player actually clicked
-               so the board can label it (and the feedback can name it below). -->
-          {@const pickedWrong =
-            cfg.mode === 'map-locate' && answered && view.feedback && !view.feedback.correct
-              ? getCountry(view.feedback.pickedIso ?? '')
-              : undefined}
-          <MapBoard
-            highlightIso={cfg.mode === 'map-highlight' ? question.answer.iso2 : null}
-            interactive={cfg.mode === 'map-locate'}
-            disabled={answered}
-            pickedIso={cfg.mode === 'map-locate' ? (view.feedback?.pickedIso ?? null) : null}
-            pickedLabel={pickedWrong && pickedWrong.iso2 !== question.answer.iso2
-              ? $localizedName(pickedWrong)
-              : null}
-            revealIso={cfg.mode === 'map-locate' && answered ? question.answer.iso2 : null}
-            revealLabel={cfg.mode === 'map-locate' && answered
-              ? $localizedName(question.answer)
-              : null}
-            focusIsos={mapFocusIsos(cfg)}
-            projection={$prefs.mapProjection}
-            reduceMotion={$prefs.reduceMotion}
-            questionKey={s.index}
-            onpick={onMapPick}
-          />
-        {:else}
-          <div class="placeholder" role="status">
-            {mapFailed ? $t('play.map.error') : $t('play.map.loading')}
-          </div>
-        {/if}
+        <!-- On phones the map is the primary surface but the content column is narrow, so the
+             board bleeds out to the screen edges (see `.board`) for a meaningfully bigger map. -->
+        <div class="board">
+          {#if MapBoard}
+            <!-- On a wrong map-locate answer, resolve the country the player actually clicked
+                 so the board can label it (and the feedback can name it below). -->
+            {@const pickedWrong =
+              cfg.mode === 'map-locate' && answered && view.feedback && !view.feedback.correct
+                ? getCountry(view.feedback.pickedIso ?? '')
+                : undefined}
+            <MapBoard
+              highlightIso={cfg.mode === 'map-highlight' ? question.answer.iso2 : null}
+              interactive={cfg.mode === 'map-locate'}
+              disabled={answered}
+              pickedIso={cfg.mode === 'map-locate' ? (view.feedback?.pickedIso ?? null) : null}
+              pickedLabel={pickedWrong && pickedWrong.iso2 !== question.answer.iso2
+                ? $localizedName(pickedWrong)
+                : null}
+              revealIso={cfg.mode === 'map-locate' && answered ? question.answer.iso2 : null}
+              revealLabel={cfg.mode === 'map-locate' && answered
+                ? $localizedName(question.answer)
+                : null}
+              focusIsos={mapFocusIsos(cfg)}
+              projection={$prefs.mapProjection}
+              reduceMotion={$prefs.reduceMotion}
+              questionKey={s.index}
+              onpick={onMapPick}
+            />
+          {:else}
+            <div class="placeholder" role="status">
+              {mapFailed ? $t('play.map.error') : $t('play.map.loading')}
+            </div>
+          {/if}
+        </div>
       {/if}
 
       {#if question.options}
@@ -1430,6 +1434,17 @@
     .cat-grid,
     .dir-row {
       grid-template-columns: 1fr;
+    }
+  }
+
+  /* The map is the primary surface, but on a phone the content column is narrow (and further
+     inset by the content's 1rem side padding), so the map ends up small. Let the board bleed
+     out to the screen edges there — canceling that padding — for a noticeably bigger map,
+     without touching the projection (which stays memoized at its fixed 980×500 viewBox).
+     Desktop keeps the framed, centred column. */
+  @media (max-width: 640px) {
+    .board {
+      margin-inline: -1rem;
     }
   }
 </style>
