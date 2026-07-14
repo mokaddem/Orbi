@@ -114,7 +114,11 @@
   const ZOOM_MS = 350; // animated re-frame duration (0 when reduce-motion)
   const CLICK_DISTANCE = 12; // viewBox units a tap may drift before it counts as a pan
   const SNAP_CAP = 44; // nearest-country snap radius, in logical units
-  const DOT_SNAP_CAP = 30; // micro-state aim-dot magnet radius (logical units, Phase 40)
+  // Micro-state aim-dot magnet radius (logical units). The dot magnet wins over a direct hit on
+  // a country, so too wide a radius steals taps meant for a big neighbour (tapping Switzerland
+  // grabbed Liechtenstein's dot). Tightened 30 → 18 so a body tap lands on the country you're on,
+  // while a near-the-dot tap still snaps the micro-state (Phase 40, narrowed later).
+  const DOT_SNAP_CAP = 18;
   const DOT_R = 9; // aim-dot radius at k=1 (counter-scaled so it stays ~constant on screen)
   const REVEAL_FONT = 22; // reveal label px at k=1 (counter-scaled while zoomed)
   const PICKED_FONT = 20; // wrong-pick label px at k=1
