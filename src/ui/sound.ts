@@ -57,6 +57,14 @@ export interface SoundController {
 /** Master attenuation — keeps every cue gentle, since there's no volume slider. */
 const MASTER_GAIN = 0.45;
 
+/**
+ * Extra attenuation for the bundled jingles only (`finish` / `perfect` / `achievement` /
+ * `daily`). They're recorded samples that land louder than the quiet synth SFX, so they're
+ * pulled down relative to the per-answer cues (owner feedback: the mode-complete jingle was a
+ * touch too loud). Applied on top of {@link MASTER_GAIN}; nudge this to retune.
+ */
+const JINGLE_GAIN = 0.6;
+
 /** Equal-tempered frequency for a MIDI note number (69 = A4 = 440 Hz). */
 const hz = (midi: number): number => 440 * Math.pow(2, (midi - 69) / 12);
 
@@ -260,7 +268,11 @@ export function createSound(deps: SoundDeps): SoundController {
     if (!buf) return; // not decoded yet (or failed) — drop rather than stall
     const src = ctx.createBufferSource();
     src.buffer = buf;
-    src.connect(master);
+    // Route through a jingle gain so the sampled cues sit below the synth SFX (see JINGLE_GAIN).
+    const g = ctx.createGain();
+    g.gain.value = JINGLE_GAIN;
+    src.connect(g);
+    g.connect(master);
     src.start();
   }
 
