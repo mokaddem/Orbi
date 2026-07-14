@@ -268,6 +268,24 @@ knowledge"). As before, the PRD **requires the clarifying round + explicit build
 |---|---|---|---|---|---|
 | 41 | Mode-aware (per-family) mastery — Map · Flags · Capitals combined | [phase-41-mode-aware-mastery.md](phases/archive/phase-41-mode-aware-mastery.md) | 16, 24, 7, 2 | ✅ Done | 100% (per-family combined mastery: `computeFamilyMastery` + `FAMILIES` — both-directions rule, blended % + fully-mastered + in-progress counts, Map N/A for geometry-less TV; capitals promoted to core; continent/`century` badges retargeted to fully-mastered (monotonic, non-regressing). New `FamilyMasteryMeter` + `FamilyRegionBreakdown` with striped "learning" bands + state key — **Option A stacked** on Progress, **Option B toggle** on Home (owner picks, prototype-driven). Suite 585 green; headless verify of both pages, zero console errors. Merged to main + archived) |
 
+### v2.6 — Momentum & progression (Blitz + Explorer rank)
+
+Owner-picked from an engagement brainstorm (2026-07-14): two complementary levers on top of the
+existing depth — a time-pressure **Blitz** session format with a local personal best (the "one more
+run" pull), and an **Explorer rank / XP** spine that turns already-tracked play into one
+continuously-climbing number with named tiers (the retention line *between* the milestone badges).
+Both are **no-backend**: Blitz is a new session *format* over the existing eight modes (like Grand
+Tour, Phase 35), and XP is *derived from already-persisted history + mastery* (like the mastery meter
+and weekly recap, Phase 16). As before, each PRD **requires a clarifying-questions round with the
+owner before implementation** (see the callout at the top of each file). Independent of each other and
+buildable in any order; **42 (Blitz) recommended first** so the XP model can score blitz runs from day
+one.
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 42 | Blitz mode (timed speed run + personal best) | [phase-42-blitz-mode.md](phases/phase-42-blitz-mode.md) | 2, 35, 6 (36 for cues) | ⬜ Not started | 0% |
+| 43 | Explorer rank & XP (progression spine) | [phase-43-explorer-rank-xp.md](phases/phase-43-explorer-rank-xp.md) | 6, 16, 41 (30 for placement) | ⬜ Not started | 0% |
+
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
