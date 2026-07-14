@@ -89,7 +89,7 @@
         href={link.href}
         aria-current={isActive(link.href, router.location) ? 'page' : undefined}
       >
-        <Icon name={link.icon} size={22} />
+        <span class="tab-ico"><Icon name={link.icon} size={22} /></span>
         <span class="tab-label">{$t(link.labelKey)}</span>
       </a>
     {/if}
@@ -226,6 +226,23 @@
 
   .tab.active {
     color: var(--color-accent-strong);
+  }
+
+  /* Active-tab indicator: an accent-weak pill behind the icon. The active *colour* shift alone
+     (muted → accent-strong) was too subtle to read on a phone, so mirror the desktop rail's
+     accent-weak active background — both presentations now mark the current page the same way. */
+  .tab-ico {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 26px;
+    border-radius: 999px;
+    transition: background 0.12s ease;
+  }
+
+  .tab.active .tab-ico {
+    background: var(--color-accent-weak);
   }
 
   /* Raised centre FAB: a chunky teal disc that lifts above the bar, with its label tucked
