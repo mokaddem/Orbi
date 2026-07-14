@@ -65,7 +65,7 @@
   // Camera distances (globe radius = 1) and interaction tuning.
   const WORLD_DIST = 3.2;
   const COUNTRY_DIST = 2.2; // framing a single prompt/answer country
-  const MIN_DIST = 1.45;
+  const MIN_DIST = 1.08; // closest dolly (globe radius = 1) — surface fills the view up close
   const MAX_DIST = 5.5;
   const FLY_MS = 900;
   const ZOOM_STEP = 1.5;
@@ -705,7 +705,9 @@
     container.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    // Near plane well below MIN_DIST − LIFT_MAX so the raised hover tile (radius ≤ 1.026)
+    // isn't clipped when the camera dollies right up to the surface.
+    camera = new THREE.PerspectiveCamera(42, 1, 0.01, 100);
     camera.position.set(0, 0, WORLD_DIST);
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.55));
