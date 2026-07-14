@@ -218,6 +218,19 @@
         <div class="panel">
           <h2>{$t('progress.extras.title')}</h2>
           <p class="panel-sub">{$t('progress.extras.subtitle')}</p>
+          {#if hasExtras}
+            <!-- Visible key for the topic meters below (solid = mastered, lighter fill =
+                 learning), so the two-tone bars are legible on touch, where they carry no
+                 tooltip. Swatches match WorldMasteryMeter's accent / accent-weak fills. -->
+            <div class="extra-key">
+              <span class="ek-item"
+                ><span class="ek-sw ek-mastered"></span>{$t('progress.mastery.mastered')}</span
+              >
+              <span class="ek-item"
+                ><span class="ek-sw ek-learning"></span>{$t('progress.mastery.learning')}</span
+              >
+            </div>
+          {/if}
           <div class="topics">
             {#if languageMastery && hasLanguageActivity}
               <ExtraMasteryTopic
@@ -362,6 +375,37 @@
     margin: -0.25rem 0 0.25rem;
     font-size: 0.85rem;
     color: var(--color-muted);
+  }
+
+  /* Visible state key for the extra-knowledge topic meters (mobile-friendly). */
+  .extra-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+
+  .ek-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ek-sw {
+    width: 0.85rem;
+    height: 0.62rem;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+  }
+
+  .ek-mastered {
+    background: var(--color-accent);
+  }
+
+  .ek-learning {
+    background: var(--color-accent-weak);
   }
 
   .topics {

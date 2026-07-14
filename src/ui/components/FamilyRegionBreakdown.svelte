@@ -64,6 +64,20 @@
   </div>
 {/if}
 
+{#if variant === 'stacked'}
+  <!-- Visible state key (mobile-friendly): the solid "mastered" vs striped "learning" band is
+       otherwise explained only by title tooltips, which never appear on touch devices. Mirrors
+       the key inside FamilyMasteryMeter so the whole mastery section reads consistently. -->
+  <div class="key">
+    <span class="key-item"
+      ><span class="sw sw-mastered"></span>{$t('progress.mastery.mastered')}</span
+    >
+    <span class="key-item"
+      ><span class="sw sw-learning"></span>{$t('progress.mastery.learning')}</span
+    >
+  </div>
+{/if}
+
 <ul class="regions" data-testid="family-region-mastery">
   {#each regions as r (r.region)}
     <li>
@@ -199,6 +213,43 @@
     color: var(--color-muted);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Visible state key (Progress / stacked): names the solid "mastered" vs striped "learning" bar
+     segments so the encoding is legible on touch, where the title tooltip never shows. */
+  .key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+
+  .key-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .sw {
+    width: 0.85rem;
+    height: 0.62rem;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+  }
+
+  .sw-mastered {
+    background: var(--color-accent);
+  }
+
+  .sw-learning {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--color-accent) 0 2px,
+      var(--color-accent-weak) 2px 6px
+    );
+    opacity: 0.72;
   }
 
   /* Family palette shared by both variants. */
