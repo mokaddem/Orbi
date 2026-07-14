@@ -7,6 +7,18 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.2.2] — 2026-07-14
+
+### Fixed
+
+- 📌 **Bottom bar stays put on mobile** — the tab bar (and top bar) no longer detach or drift
+  while scrolling on iOS. The app now scrolls its content inside a fixed shell instead of scrolling
+  the whole page, so the bars are always where you expect them.
+- 🗺️ **Easier taps next to tiny neighbours** — tapping a country beside a micro-state (e.g.
+  Switzerland next to Liechtenstein) no longer snaps to the micro-state. The aim-dot magnet is
+  tighter, so a tap lands on the country under your finger; tap the visible dot to pick the
+  micro-state.
+
 ## [2.2.1] — 2026-07-14
 
 ### Fixed
