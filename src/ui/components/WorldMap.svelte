@@ -259,10 +259,14 @@
 
   // The single resolver every interactive tap routes through — country path, micro-state
   // aim-dot, and the ocean-hit rect alike (Phase 40). Priority order:
-  //   1. Nearest micro-state aim-dot within DOT_SNAP_CAP → pick it. The *magnet*: a fingertip
-  //      near a tiny country's dot selects it even when the tap lands on its big neighbour
-  //      (Vatican over Italy). Touch has no hover to confirm the target, and a fingertip is far
-  //      larger than the dot, so without this the neighbour's path wins the raw hit.
+  //   1. Nearest micro-state aim-dot within DOT_SNAP_CAP → pick it, but ONLY when the tap didn't
+  //      land on a country at all (open water / a gap) or landed on that micro-state itself. The
+  //      magnet must never *override a direct tap on another country's body*: it was snapping a
+  //      tap on Switzerland to the tiny Liechtenstein dot on its border — maddening in a game
+  //      that's meant to be fun. (We can't just keep the magnet for true enclaves like Vatican:
+  //      the bundled map cuts enclave-shaped holes in the host country, so a point-in-host test
+  //      is always false — there's no reliable geometric tell.) A micro-state is still selected
+  //      by tapping its own visible aim-dot, or by pinch-zooming in for a precise tap.
   //   2. Else the directly-hit country path (`fallbackIso`) → pick it.
   //   3. Else the existing ocean snap: nearest country within SNAP_CAP → pick it.
   //   4. Else a no-op (a clear miss past every cap leaves the question open).
@@ -273,7 +277,7 @@
     if (!interactive || disabled || !zoomLayer) return;
     const [x, y] = pointer(event, zoomLayer);
     const dot = nearestCountryWithinCap(x, y, hitDots, DOT_SNAP_CAP);
-    if (dot) {
+    if (dot && (!fallbackIso || dot === fallbackIso)) {
       pick(dot);
       return;
     }
