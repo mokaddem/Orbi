@@ -10,6 +10,11 @@
   import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
   import { sound } from './ui/sound';
 
+  // The scrolling region (app-shell layout): the shell is pinned to the viewport and only
+  // `.content` scrolls, so the top/bottom bars can't detach on scroll. Because the document
+  // itself no longer scrolls, reset this region to the top on each navigation (hash routing).
+  let contentEl = $state<HTMLElement>();
+
   onMount(() => {
     void initPersistence();
 
@@ -23,9 +28,15 @@
     };
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
+
+    // Land each new page at the top (the document doesn't scroll in the app-shell layout).
+    const resetScroll = (): void => contentEl?.scrollTo({ top: 0 });
+    window.addEventListener('hashchange', resetScroll);
+
     return () => {
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
+      window.removeEventListener('hashchange', resetScroll);
     };
   });
 
@@ -62,9 +73,7 @@
     </div>
   </header>
 
-  <Nav />
-
-  <main class="content">
+  <main class="content" id="app-scroll" bind:this={contentEl}>
     <div class="content-inner">
       {#if $storageReady && !$persistent}
         <p class="storage-warning" role="alert">{$t('storage.unavailable')}</p>
@@ -72,18 +81,23 @@
       <Router {routes} />
     </div>
   </main>
+
+  <Nav />
 </div>
 
 <style>
   .app-shell {
-    min-height: 100vh;
+    flex: 1 1 auto;
+    min-height: 0; /* allow the flex child to shrink so `.content` can own the scroll */
+    display: flex;
+    flex-direction: column;
   }
 
   /* ---- Mobile top app-bar ------------------------------------------------------------- */
+  /* A structural top row (no longer sticky): the shell doesn't scroll, `.content` does, so the
+     bar is simply always above the scroll region. */
   .appbar {
-    position: sticky;
-    top: 0;
-    z-index: 40;
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -128,10 +142,14 @@
     color: var(--color-accent-strong);
   }
 
-  /* ---- Content ------------------------------------------------------------------------ */
+  /* ---- Content (the app's single scroll region) --------------------------------------- */
   .content {
-    /* Clear the fixed bottom tab bar on mobile. */
-    padding: 1.25rem 1rem calc(var(--bottombar-h) + env(safe-area-inset-bottom, 0px) + 1.5rem);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* momentum scroll inside the region on iOS */
+    overscroll-behavior-y: contain; /* don't chain the scroll to the (non-scrolling) document */
+    padding: 1.25rem 1rem 1.5rem;
   }
 
   .content-inner {

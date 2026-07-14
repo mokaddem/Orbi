@@ -184,13 +184,11 @@
   }
 
   /* ---- Mobile bottom tab bar (shown <860px) ------------------------------------------- */
+  /* Bottom tab bar: a structural bottom row of the app-shell flex column (not `position: fixed`),
+     so it can't detach during an iOS momentum scroll — the scroll lives in `.content` above it. */
   .bottombar {
     display: flex;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 50;
+    flex: 0 0 auto;
     justify-content: space-around;
     align-items: stretch;
     height: calc(var(--bottombar-h) + env(safe-area-inset-bottom, 0px));

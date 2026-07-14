@@ -161,8 +161,9 @@
     setName = set.name;
     editingId = set.id;
     query = '';
-    // Bring the picker back to a known state so the loaded set is visible.
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Bring the picker back to a known state so the loaded set is visible. The app-shell layout
+    // scrolls `#app-scroll` (the content region), not the window.
+    document.getElementById('app-scroll')?.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /** Clear the working area to start a fresh, unnamed set. */
