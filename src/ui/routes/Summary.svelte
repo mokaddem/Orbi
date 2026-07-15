@@ -13,6 +13,7 @@
   import {
     pickSummaryReaction,
     sessionXp,
+    sessionXpBreakdown,
     type MascotPose,
     type Recommendation,
   } from '../../domain';
@@ -25,6 +26,7 @@
   import ModeIcon from '../components/ModeIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
+  import SessionXpCard from '../components/SessionXpCard.svelte';
   import StreakBurst from '../components/StreakBurst.svelte';
 
   // A forward-looking "Next up" suggestion, computed from the player's overall state
@@ -37,7 +39,20 @@
   // from the just-finished results (exact regardless of when the history write settles). The rank
   // snapshot drives the one-time "rank up!" — committed here, the primary post-session moment.
   const xpEarned = $derived($lastSummary ? sessionXp($lastSummary.results) : 0);
+  const xpBreakdown = $derived($lastSummary ? sessionXpBreakdown($lastSummary.results) : []);
   let rank = $state<RankState | null>(null);
+
+  // The rank bar's fill *before* this run, within the current rank, so the card can animate it
+  // growing forward by exactly the "+N XP" earned. Reconstruct the pre-run total (current total −
+  // the play-derived run XP) and clamp into [0, current fraction] — a run that crossed a rank
+  // threshold lands below the new rank's floor, so the bar simply fills the fresh rank from empty.
+  const startFraction = $derived.by(() => {
+    if (!rank) return 0;
+    const p = rank.progress;
+    if (!p.next || p.rankSpan <= 0) return p.fraction; // top rank — already full
+    const beforeIntoRank = rank.xp.total - xpEarned - p.rank.minXp;
+    return Math.max(0, Math.min(p.fraction, beforeIntoRank / p.rankSpan));
+  });
 
   $effect(() => {
     if ($storageReady) {
@@ -280,11 +295,15 @@
       </div>
     </div>
 
-    <!-- Explorer XP earned this run (Phase 43): the play-derived "+N XP", exact from the results. -->
-    <div class="xp-earned" data-testid="xp-earned">
-      <Icon name="sparkles" size="1em" />
-      {$t('rank.earned', { xp: xpEarned.toLocaleString() })}
-    </div>
+    <!-- Explorer XP earned this run (Phase 43): the play-derived "+N XP" itemized by source, above
+         the rank bar animating from its pre-run fill to now (once the async rank load settles). -->
+    <SessionXpCard
+      earned={xpEarned}
+      breakdown={xpBreakdown}
+      progress={rank?.progress ?? null}
+      {startFraction}
+      reduceMotion={$prefs.reduceMotion}
+    />
 
     <!-- One-time "Rank up!" (Phase 43): shown when this run crossed a rank threshold. -->
     {#if rank?.justRankedUp}
@@ -515,25 +534,6 @@
     color: var(--color-correct);
     font-weight: 800;
     font-size: 0.9rem;
-  }
-
-  /* "+N XP" earned this run: a centred accent pill under the stat tiles. */
-  .xp-earned {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    align-self: center;
-    margin: -0.25rem 0 0;
-    padding: 0.3rem 0.9rem;
-    border-radius: 999px;
-    background: var(--color-accent-weak);
-    color: var(--color-accent-strong);
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .xp-earned :global(.icon) {
-    color: var(--color-accent);
   }
 
   /* Rank-up celebration: cheering Orbi beside the "you reached X" line, on the accent tint. */

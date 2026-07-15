@@ -48,11 +48,16 @@ afterEach(() => {
 });
 
 describe('Summary route — Explorer XP (Phase 43)', () => {
-  it('shows the play-derived "+N XP" earned this run', () => {
-    // 3 questions, 1 correct → 3·3 + 1·10 + 25 (session) = 44 XP.
+  it('shows the play-derived "+N XP" earned this run, itemized by source', () => {
+    // 3 questions, 1 correct → 1·10 + 3·3 + 25 (session) = 44 XP.
     lastSummary.set(summary({ mode: 'flag-to-country' }));
     render(Summary);
     expect(screen.getByTestId('xp-earned')).toHaveTextContent('+44 XP');
+    // The XP card itemizes the run: correct answers, questions, and the session bonus.
+    expect(screen.getByTestId('session-xp-card')).toBeInTheDocument();
+    expect(screen.getByText('Correct answers')).toBeInTheDocument();
+    expect(screen.getByText('Questions answered')).toBeInTheDocument();
+    expect(screen.getByText('Session bonus')).toBeInTheDocument();
   });
 });
 

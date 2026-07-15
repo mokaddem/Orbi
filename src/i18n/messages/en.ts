@@ -471,6 +471,8 @@ const en = {
     max: 'Top rank reached!',
     earned: '+{xp} XP',
     breakdownTitle: 'Where your XP comes from',
+    runBreakdown: 'Earned this session',
+    sessionBonus: 'Session bonus',
     rankUp: 'Rank up!',
     rankUpBody: 'You reached {rank}!',
     source: {

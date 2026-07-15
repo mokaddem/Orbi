@@ -194,6 +194,7 @@ export {
   RANKS,
   computeXp,
   sessionXp,
+  sessionXpBreakdown,
   rankForXp,
 } from './xp';
 

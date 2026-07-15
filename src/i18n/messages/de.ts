@@ -489,6 +489,8 @@ const de: typeof en = {
     max: 'Höchster Rang erreicht!',
     earned: '+{xp} XP',
     breakdownTitle: 'Woher deine XP kommen',
+    runBreakdown: 'Diese Sitzung erhalten',
+    sessionBonus: 'Sitzungsbonus',
     rankUp: 'Neuer Rang!',
     rankUpBody: 'Du hast {rank} erreicht!',
     source: {

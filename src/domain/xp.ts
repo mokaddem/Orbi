@@ -89,17 +89,32 @@ export function computeXp(input: XpInput): XpResult {
 }
 
 /**
+ * The per-source breakdown of a single finished run's play-derived XP (Phase 43) — the components
+ * of the Summary "+N XP", in display order: correct answers, questions answered, and the flat
+ * session bonus. Mirrors {@link computeXp}'s `correct` / `questions` / `sessions` sources (same
+ * keys), but scoped to *this run*, so the Summary can itemize where the run's XP came from. Sums
+ * exactly to {@link sessionXp}. An empty run yields all-zero sources (`count` and `xp` both 0).
+ */
+export function sessionXpBreakdown(results: readonly QuestionResult[]): XpSource[] {
+  const questions = results.length;
+  const correct = results.reduce((n, r) => (r.correct ? n + 1 : n), 0);
+  const sessions = questions === 0 ? 0 : 1;
+  return [
+    { key: 'correct', count: correct, xp: correct * XP_PER_CORRECT },
+    { key: 'questions', count: questions, xp: questions * XP_PER_QUESTION },
+    { key: 'sessions', count: sessions, xp: sessions * XP_PER_SESSION },
+  ];
+}
+
+/**
  * The play-derived XP a single finished run contributes — the Summary "+N XP" (Phase 43). It's the
  * per-answer portion only (correct + questions + the session bonus); the streak/badge chunks are
  * celebrated through their own moments and would double-count here. Always equals the run's exact
- * contribution to {@link computeXp}'s `correct` + `questions` + `sessions` sources. Blitz runs use
- * the same rule — no special case. Returns 0 for an empty run.
+ * contribution to {@link computeXp}'s `correct` + `questions` + `sessions` sources — it's the sum
+ * of {@link sessionXpBreakdown}. Blitz runs use the same rule — no special case. 0 for an empty run.
  */
 export function sessionXp(results: readonly QuestionResult[]): number {
-  const questions = results.length;
-  if (questions === 0) return 0;
-  const correct = results.reduce((n, r) => (r.correct ? n + 1 : n), 0);
-  return questions * XP_PER_QUESTION + correct * XP_PER_CORRECT + XP_PER_SESSION;
+  return sessionXpBreakdown(results).reduce((sum, s) => sum + s.xp, 0);
 }
 
 // --- Rank ladder (Phase 43) ---------------------------------------------------------------------

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   computeXp,
   sessionXp,
+  sessionXpBreakdown,
   rankForXp,
   RANKS,
   XP_PER_CORRECT,
@@ -161,6 +162,38 @@ describe('sessionXp — the Summary "+N XP"', () => {
       input({ stats: { totalCorrect: 6, totalQuestions: 8, sessionCount: 1 } }),
     ).total;
     expect(after - before).toBe(sessionXp(run));
+  });
+});
+
+describe('sessionXpBreakdown — the Summary itemization', () => {
+  it('is all-zero for an empty run', () => {
+    expect(sessionXpBreakdown([])).toEqual([
+      { key: 'correct', count: 0, xp: 0 },
+      { key: 'questions', count: 0, xp: 0 },
+      { key: 'sessions', count: 0, xp: 0 },
+    ]);
+  });
+
+  it('splits into correct answers, questions, and a single session bonus', () => {
+    // 10 questions, 7 correct.
+    expect(sessionXpBreakdown(results(10, 7))).toEqual([
+      { key: 'correct', count: 7, xp: 7 * XP_PER_CORRECT },
+      { key: 'questions', count: 10, xp: 10 * XP_PER_QUESTION },
+      { key: 'sessions', count: 1, xp: XP_PER_SESSION },
+    ]);
+  });
+
+  it('sums exactly to sessionXp', () => {
+    for (const [n, c] of [
+      [0, 0],
+      [1, 0],
+      [5, 5],
+      [12, 9],
+    ] as const) {
+      const run = results(n, c);
+      const sum = sessionXpBreakdown(run).reduce((t, s) => t + s.xp, 0);
+      expect(sum).toBe(sessionXp(run));
+    }
   });
 });
 
