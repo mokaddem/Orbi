@@ -283,7 +283,7 @@ one.
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 42 | Blitz mode (timed speed run + personal best) | [phase-42-blitz-mode.md](phases/phase-42-blitz-mode.md) | 2, 35, 6 (36 for cues) | ✅ Done | 100% |
+| 42 | Blitz mode (timed speed run + personal best) | [phase-42-blitz-mode.md](phases/archive/phase-42-blitz-mode.md) | 2, 35, 6 (36 for cues) | ✅ Done | 100% |
 | 43 | Explorer rank & XP (progression spine) | [phase-43-explorer-rank-xp.md](phases/phase-43-explorer-rank-xp.md) | 6, 16, 41 (30 for placement) | ⬜ Not started | 0% |
 
 ### v2.7 — Mastery capstone

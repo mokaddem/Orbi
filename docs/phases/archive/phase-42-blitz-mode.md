@@ -1,6 +1,6 @@
 # Phase 42 — Blitz mode (timed speed run + personal best)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v2.6 — Momentum & progression
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
