@@ -9,7 +9,9 @@
     isMultiSelectMode,
     BLITZ_START_SECONDS,
     BLITZ_CAP_SECONDS,
+    BLITZ_COMBO_TIME_MS,
     blitzCombo,
+    blitzComboStreak,
     blitzRemainingMs,
     computeBlitzPoints,
     computeBlitzBest,
@@ -482,9 +484,11 @@
     const streak = $play.state?.streak ?? 0;
     // Blitz has its own voice (this task): the per-answer cue escalates with the *combo multiplier*,
     // not the streak milestones — so it stays snappy and decoupled from the learning-mode celebration.
-    // No milestone pulse/burst here; the multiplier badge carries the Blitz escalation instead.
+    // The level uses the time-aware combo streak (results now include this answer), so a slow-but-
+    // correct tap plays the x1 cue, matching its reset. No milestone pulse/burst here — the badge does.
     if ($play.config?.type === 'blitz') {
-      sound.play('blitz', { level: blitzCombo(streak) - 1 });
+      const comboStreak = blitzComboStreak($play.state?.results ?? []);
+      sound.play('blitz', { level: blitzCombo(comboStreak) - 1 });
       return;
     }
     const tier = streakTier(streak);
@@ -506,6 +510,9 @@
   // also fires the final-seconds tick and detects the end.
   let blitzStart = $state(0);
   let blitzNow = $state(0);
+  // When the *current* Blitz question was presented (perf.now), so the combo can expire if the
+  // player dawdles on it. Reset per question by the effect below; 0 while no question is timing.
+  let blitzQStart = $state(0);
 
   const blitzActive = $derived(
     $play.config?.type === 'blitz' && ($play.status === 'playing' || $play.status === 'answered'),
@@ -514,7 +521,30 @@
   const blitzPoints = $derived(
     $play.config?.type === 'blitz' ? computeBlitzPoints($play.state?.results ?? []) : 0,
   );
-  const blitzComboMult = $derived(blitzCombo($play.state?.streak ?? 0));
+  // Live, time-aware combo. The base is the tail run of fast-correct answers (`blitzComboStreak`);
+  // it drops to x1 the moment the current question sits unanswered past the reaction window, so the
+  // badge visibly drains if the player hesitates — matching how that slow answer will actually score.
+  const blitzComboStreakVal = $derived(blitzComboStreak($play.state?.results ?? []));
+  const comboExpired = $derived(
+    blitzActive &&
+      $play.status === 'playing' &&
+      blitzQStart > 0 &&
+      blitzNow - blitzQStart >= BLITZ_COMBO_TIME_MS,
+  );
+  const blitzComboMult = $derived(blitzCombo(comboExpired ? 0 : blitzComboStreakVal));
+
+  // Combo "reaction meter" (owner request): a reverse progress bar under the badge that drains over
+  // the reaction window, warning that the combo is about to reset. Shown only while a question is live
+  // and there's a combo worth protecting (a running streak). `blitzNow` ticks it (every ~100 ms, eased
+  // by a short CSS transition); it turns urgent near empty. Full (100 %) whenever it isn't ticking.
+  const comboTimeLeftPct = $derived.by(() => {
+    if (!blitzActive || $play.status !== 'playing' || blitzQStart <= 0) return 100;
+    const elapsed = blitzNow - blitzQStart;
+    return Math.max(0, Math.min(100, (1 - elapsed / BLITZ_COMBO_TIME_MS) * 100));
+  });
+  const showComboTimer = $derived(
+    blitzActive && $play.status === 'playing' && blitzComboStreakVal >= 1,
+  );
 
   // The Blitz multiplier badge (this task) is the run's centrepiece now the streak pill is hidden —
   // so it *escalates* with the combo. Each tier warms the badge along a heat ramp (teal → gold →
@@ -546,6 +576,14 @@
     blitzActive ? blitzRemainingMs(blitzNow - blitzStart, $play.state?.correct ?? 0) : 0,
   );
   const blitzRemainingSec = $derived(Math.max(0, Math.ceil(blitzRemaining / 1000)));
+
+  // Restart the per-question combo timer whenever a fresh Blitz question is presented, so
+  // `comboExpired` measures each question's own reaction time. Blitz-only; a no-op elsewhere.
+  $effect(() => {
+    if ($play.config?.type !== 'blitz') return;
+    const key = $play.status === 'playing' ? ($play.question?.itemKey ?? null) : null;
+    if (key) blitzQStart = performance.now();
+  });
 
   // Run the clock while a blitz session is live — across both `playing` and `answered`, so it
   // never pauses on the reveal. `blitzActive` stays true through question↔reveal transitions, so
@@ -876,16 +914,26 @@
               >{blitzPoints.toLocaleString()} <small>{$t('play.blitz.pts')}</small></span
             >
             {@const cs = blitzComboStyle}
-            {#key comboPulse}
-              <span
-                class="blitz-combo"
-                class:hot={cs.hot}
-                style="--combo-heat:{cs.heat}; --combo-glow:{cs.glow}px; --combo-peak:{cs.peak}"
-              >
-                <Icon name="flame" size="0.95em" />
-                <span class="combo-num">{$t('play.blitz.combo', { mult: cs.mult })}</span>
+            <span
+              class="combo-wrap"
+              style="--combo-heat:{cs.heat}; --combo-glow:{cs.glow}px; --combo-peak:{cs.peak}"
+            >
+              {#key comboPulse}
+                <span class="blitz-combo" class:hot={cs.hot}>
+                  <Icon name="flame" size="0.95em" />
+                  <span class="combo-num">{$t('play.blitz.combo', { mult: cs.mult })}</span>
+                </span>
+              {/key}
+              <!-- Reaction meter: a reverse bar that drains over the combo window; keeping it topped
+                   up (answering fast) protects the combo, and it turns urgent as it empties. -->
+              <span class="combo-timer" class:shown={showComboTimer} aria-hidden="true">
+                <span
+                  class="combo-timer-fill"
+                  class:urgent={comboTimeLeftPct <= 40}
+                  style="transform:scaleX({comboTimeLeftPct / 100})"
+                ></span>
               </span>
-            {/key}
+            </span>
           {:else}
             <span>{$t('play.progress.score', { correct: s.correct, total: s.results.length })}</span
             >
@@ -1744,6 +1792,48 @@
     }
   }
 
+  /* The badge stacks over its reaction meter; `--combo-*` live here so both inherit the tier heat. */
+  .combo-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Reaction meter: a slim reverse-progress bar under the badge that drains over the combo window.
+     Always in the layout (so nothing jumps); faded in only while a combo is at stake. */
+  .combo-timer {
+    width: 100%;
+    height: 3px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-muted) 28%, transparent);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .combo-timer.shown {
+    opacity: 1;
+  }
+
+  .combo-timer-fill {
+    display: block;
+    height: 100%;
+    width: 100%;
+    transform-origin: left center;
+    border-radius: 999px;
+    background: var(--combo-heat, var(--color-accent));
+    /* Eases the ~100 ms clock ticks into a smooth drain; colour eases on tier change. */
+    transition:
+      transform 0.12s linear,
+      background 0.2s ease;
+  }
+
+  /* Near-empty: the meter flushes to the "wrong" red — answer now or the combo drops. */
+  .combo-timer-fill.urgent {
+    background: var(--color-wrong);
+  }
+
   .lives {
     display: flex;
     align-items: center;
@@ -2021,6 +2111,11 @@
     .region-opt,
     .start,
     .heart {
+      transition: none;
+    }
+
+    /* Keep the reaction meter draining (it's informational), just without the easing tween. */
+    .combo-timer-fill {
       transition: none;
     }
 

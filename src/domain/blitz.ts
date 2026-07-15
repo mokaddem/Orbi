@@ -26,6 +26,15 @@ export const BLITZ_BASE_POINTS = 100;
 export const BLITZ_MAX_COMBO = 5;
 
 /**
+ * The combo "reaction window": how long the player may take to pick an answer (measured from when the
+ * question is shown, i.e. a result's `answerMs`) before the combo is treated as broken. A correct
+ * answer *slower* than this still scores, but it *restarts* the combo at x1 rather than extending it —
+ * just like a wrong answer breaks it. Kept short (owner: "faster is better") so Blitz rewards *fast*
+ * recall, not merely accurate recall.
+ */
+export const BLITZ_COMBO_TIME_MS = 2300;
+
+/**
  * The streak-combo multiplier for a given current streak (consecutive correct answers): it steps up
  * every two answers — x1 at streak 1–2, x2 at 3–4, x3 at 5–6, x4 at 7–8, x5 at 9+ (the cap, see
  * {@link BLITZ_MAX_COMBO}). A wrong answer resets the streak to 0, so the next correct scores at x1
@@ -47,25 +56,52 @@ export function blitzPointsForCorrect(streak: number): number {
   return BLITZ_BASE_POINTS * blitzCombo(streak);
 }
 
+/** A result carrying just what the combo replay needs: the verdict and how long it took to answer. */
+type ComboResult = Pick<QuestionResult, 'correct' | 'answerMs'>;
+
+/** Whether a result kept the combo alive: correct *and* answered within {@link BLITZ_COMBO_TIME_MS}.
+ * A missing `answerMs` counts as in-time, so it never punishes (e.g. records written without timing). */
+function keptCombo(r: ComboResult): boolean {
+  return r.correct && (r.answerMs ?? 0) <= BLITZ_COMBO_TIME_MS;
+}
+
 /**
- * Total Blitz points for an ordered results list, replaying the combo: each correct answer adds
- * base × combo(running streak); a wrong answer breaks the streak. Pure of the clock — the +1 s
- * bonuses extend the *run length*, not the score — so points depend only on the answer sequence,
- * which is exactly what history persists. Accepts anything carrying `correct` (a `QuestionResult`,
- * or a `SessionRecord`'s `questions`).
+ * Replay an ordered results list, tracking the running combo streak and the points it earns. Each
+ * correct answer scores base × combo(streak): a *fast* correct extends the streak (streak + 1); a
+ * *slow* correct (past {@link BLITZ_COMBO_TIME_MS}) restarts it at 1, scoring x1; a wrong answer
+ * breaks it to 0. Shared by {@link computeBlitzPoints} and {@link blitzComboStreak} so the points and
+ * the displayed multiplier can never disagree. Pure of the wall clock — timing is read from each
+ * result's `answerMs`, exactly what history persists (the +1 s time bonuses only extend the *run*).
  */
-export function computeBlitzPoints(results: readonly Pick<QuestionResult, 'correct'>[]): number {
+function replayCombo(results: readonly ComboResult[]): { points: number; streak: number } {
   let streak = 0;
   let points = 0;
   for (const r of results) {
-    if (r.correct) {
-      streak += 1;
-      points += blitzPointsForCorrect(streak);
-    } else {
+    if (!r.correct) {
       streak = 0;
+      continue;
     }
+    streak = keptCombo(r) ? streak + 1 : 1; // slow-but-correct restarts the combo at x1
+    points += blitzPointsForCorrect(streak);
   }
-  return points;
+  return { points, streak };
+}
+
+/**
+ * Total Blitz points for an ordered results list (see {@link replayCombo}). Accepts anything carrying
+ * `correct` + `answerMs` (a `QuestionResult`, or a `SessionRecord`'s `questions`).
+ */
+export function computeBlitzPoints(results: readonly ComboResult[]): number {
+  return replayCombo(results).points;
+}
+
+/**
+ * The current running combo streak for a results list — the tail run of answers that were correct
+ * *and* fast enough (within {@link BLITZ_COMBO_TIME_MS}); a wrong or slow answer restarts/breaks it.
+ * Feed it to {@link blitzCombo} for the live multiplier. Shares {@link computeBlitzPoints}'s replay.
+ */
+export function blitzComboStreak(results: readonly ComboResult[]): number {
+  return replayCombo(results).streak;
 }
 
 /**

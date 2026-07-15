@@ -169,6 +169,17 @@ Phase 43 (Explorer rank); if built first, blitz `SessionRecord`s feed XP automat
   full blitz run.
 
 ## Progress log
+- **2026-07-15 — Owner follow-up: the combo now also breaks on a slow answer.** Beyond a wrong
+  answer, the combo resets to ×1 if the player **takes too long to pick** — a per-answer *reaction
+  window* (`BLITZ_COMBO_TIME_MS`, **2.3 s** — owner: "faster is better" — measured from when the question
+  is shown via the result's `answerMs`). A correct-but-slow tap still scores, but at ×1 (it *restarts*
+  the combo). The scoring is authoritative in the domain: `computeBlitzPoints`/`blitzComboStreak` share
+  a `replayCombo` that only extends the streak on a *fast* correct. The HUD shows this **live** two
+  ways: a slim **reaction meter** (a reverse-progress bar under the badge) drains over the window and
+  flushes red near empty, and the badge itself drops to ×1 the moment the window lapses (`comboExpired`
+  off the UI-owned per-question timer) — so hesitation is felt, not just penalised on submit. Tests
+  added; headless-Chrome drive confirmed the meter draining, the badge dropping to ×1 mid-question, and
+  the slow tap scoring ×1.
 - **2026-07-15 — Owner follow-up: Blitz combo made the centrepiece (UI + sound).** Four tweaks
   requested after review, all Blitz-only: (1) the **streak pill is hidden in Blitz** — redundant with
   the multiplier; (2) the **multiplier badge is redesigned** — always shown, larger, with a per-tier

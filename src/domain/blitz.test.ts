@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   BLITZ_BASE_POINTS,
   BLITZ_CAP_SECONDS,
+  BLITZ_COMBO_TIME_MS,
   BLITZ_START_SECONDS,
   blitzCombo,
+  blitzComboStreak,
   blitzPointsForCorrect,
   blitzRemainingMs,
   blitzRunSeconds,
@@ -64,6 +66,43 @@ describe('computeBlitzPoints', () => {
     // 3 correct (100+100+200=400), miss (reset), then 1 correct (100) → 500
     const results = [...streakOf(3), q(false), q(true)];
     expect(computeBlitzPoints(results)).toBe(500);
+  });
+});
+
+describe('combo reaction window', () => {
+  const fast = (): QuestionResult => ({ ...q(true), answerMs: 900 });
+  const slow = (): QuestionResult => ({ ...q(true), answerMs: BLITZ_COMBO_TIME_MS + 500 });
+
+  it('restarts the combo at x1 on a slow (but correct) answer', () => {
+    // 3 fast (100+100+200=400), then a slow correct restarts → scores x1 (100) = 500
+    const results = [fast(), fast(), fast(), slow()];
+    expect(computeBlitzPoints(results)).toBe(500);
+    expect(blitzComboStreak(results)).toBe(1);
+  });
+
+  it('rebuilds the combo from x1 after a slow answer', () => {
+    // slow (x1, 100), fast (streak 2 → x1, 100), fast (streak 3 → x2, 200) = 400
+    const results = [slow(), fast(), fast()];
+    expect(computeBlitzPoints(results)).toBe(400);
+    expect(blitzComboStreak(results)).toBe(3);
+  });
+
+  it('counts an answer exactly at the window as in-time', () => {
+    const at = (): QuestionResult => ({ ...q(true), answerMs: BLITZ_COMBO_TIME_MS });
+    expect(blitzComboStreak([at(), at(), at()])).toBe(3);
+  });
+
+  it('treats a missing answerMs as in-time (never punishes untimed records)', () => {
+    const noTime = { itemKey: 'k', countryIso2: 'FR', correct: true } as QuestionResult;
+    expect(blitzComboStreak([noTime, noTime])).toBe(2);
+  });
+});
+
+describe('blitzComboStreak', () => {
+  it('is 0 when empty or ending on a wrong answer, else the fast-correct tail', () => {
+    expect(blitzComboStreak([])).toBe(0);
+    expect(blitzComboStreak([...streakOf(4), q(false)])).toBe(0);
+    expect(blitzComboStreak(streakOf(4))).toBe(4);
   });
 });
 
