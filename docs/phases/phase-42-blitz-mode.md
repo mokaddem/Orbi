@@ -1,6 +1,6 @@
 # Phase 42 — Blitz mode (timed speed run + personal best)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v2.6 — Momentum & progression
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -57,9 +57,13 @@ HUD, and a local personal best gives self-competition without any backend.*
 - **Blitz format card** on the Play setup screen (icon + hint, e.g. "Beat the clock · 60 s"), sitting
   beside Fixed / Survival / Grand Tour.
 - **Personal best** per (mode × region [× sub-region]) — **derived from history** (recommended, OQ4),
-  surfaced on the setup card ("Best: 23"), and celebrated in the Summary on a new best.
+  surfaced on the setup card ("Best: 23"), celebrated in the Summary on a new best, and listed on the
+  **Progress page** ("Blitz best" panel, top score per slot — the OQ6 chip, built as a panel).
 - **Blitz Summary** — score, correct / answered, best in-run streak, and a **new-personal-best**
   celebration reusing the existing `finish`/`perfect` jingle + `StreakBurst`.
+- **Decoupled from spaced-repetition** (owner decision, 2026-07-15) — Blitz **never writes SR
+  state**, so a mistap under time pressure can't demote mastery (and fast correct taps can't inflate
+  it). It still writes a `SessionRecord` (history + personal best); other formats are unchanged.
 - **Sound** — a gentle synthesized per-second tick in the final ~5 s + a distinct "time's-up" cue,
   gated by the existing sound pref; reduce-motion / sound-off respected. **No new audio files.**
 - **i18n EN/FR/DE** — `sessionType.blitz`, setup hint, clock / "Time's up!" / personal-best labels;
@@ -84,19 +88,25 @@ source for a **derived** personal best). Phase 36 for the synthesized clock cues
 Phase 43 (Explorer rank); if built first, blitz `SessionRecord`s feed XP automatically.
 
 ## Deliverables checklist
-- [ ] `SessionType` extended with `'blitz'`; engine treats blitz as uncapped with a **refilling**
-      draw bag (reshuffle + continue when the pool is exhausted) so only the clock ends the run.
-- [ ] UI-owned session clock (default 60 s) driven off `performance.now()` deltas; calls `finish()`
-      at zero; a low-time visual + synthesized aural cue.
-- [ ] Blitz **format card** on the Play setup screen (icon + region-reactive hint).
-- [ ] `computeBlitzBest(sessions, {mode, region, subregion})` pure helper (history-derived PB) +
-      surfacing on the setup card and in the Summary; new-best celebration (existing jingle + burst).
-- [ ] Blitz-specific Summary (score / correct / answered / best streak / new-PB banner).
-- [ ] Synthesized tick + time's-up cues in `sound.ts`, gated by the sound pref; reduce-motion aware.
-- [ ] EN/FR/DE strings (`sessionType.blitz`, clock / time's-up / personal-best copy); parity green.
-- [ ] Tests: domain (time-based finish via injected clock, bag refill/loop, PB from history) +
-      component (clock countdown, time's-up ends run, PB display) + headless full-run verify.
-- [ ] Verified in the real app (headless Chrome) across a couple of modes + regions, EN/FR/DE.
+- [x] `SessionType` extended with `'blitz'`; engine treats blitz as uncapped with a **refilling**
+      draw bag (the existing `drawAnswer` reshuffle+no-repeat already refills; blitz's `shouldFinish`
+      just returns `false`) so only the clock ends the run — via a new public `QuizSession.end()`.
+- [x] UI-owned session clock (starts 60 s, +1 s per correct, **capped at 90 s**) driven off
+      `performance.now()` deltas; calls `play.endBlitz()` at zero; a low-time visual + synth tick.
+- [x] Blitz **format card** on the Play setup screen (flame icon + hint / "Best: N"); the mode
+      picker restricts to the five allowed quick-tap modes when Blitz is selected.
+- [x] `computeBlitzBest(sessions, {mode, region, subregion})` pure helper (history-derived PB, keyed
+      by slot) + surfacing on the setup card and in the Summary; new-best celebration (jingle + burst).
+- [x] Blitz-specific Summary (points headline / score / accuracy / time / best streak / new-PB banner).
+- [x] Synthesized `tick` + `timesup` cues in `sound.ts`, gated by the sound pref; reduce-motion aware
+      (final-seconds pulse neutralised by the app-wide `data-reduce-motion` rule).
+- [x] EN/FR/DE strings (`sessionType.blitz`, `play.blitz.*` clock/points/combo, setup + summary copy);
+      parity green.
+- [x] Tests: domain (`blitz.test.ts` — combo/points/run-seconds/remaining/PB-slot matching; session
+      never-finishes + `end()`), store (`endBlitz` finishes; advance never does), component
+      (`Summary.test.ts` — PB display + new-best banner) + headless full-run verify.
+- [x] Verified in the real app (headless Chrome): setup card + mode restriction, live clock (+1 s,
+      90 s cap), points/combo HUD, low-time state, finish → Summary → new-PB then standing-PB.
 
 ## Technical notes
 - **Keep time out of the pure engine.** The domain is deterministic and count-based today; per-answer
@@ -159,6 +169,63 @@ Phase 43 (Explorer rank); if built first, blitz `SessionRecord`s feed XP automat
   full blitz run.
 
 ## Progress log
+- **2026-07-15 — Owner follow-up: "Blitz best" now on the Progress page.** The OQ6 optional
+  Home/Progress chip is built as a **Progress panel** ("Blitz best" / "Records Blitz" /
+  "Blitz-Rekorde"): a new pure `computeBlitzBests(sessions)` returns the top score per
+  (mode × region × sub-region) slot, sorted desc; Progress renders them as a list (mode glyph +
+  localized mode/region label + points), top row emphasised. Reuses the history already loaded
+  there — no new loader. Tested (`blitz.test.ts`) + headless-screenshot verified (EN/FR).
+- **2026-07-15 — Owner follow-up: Blitz is decoupled from spaced-repetition.** A mistap under time
+  pressure must not demote a country's mastery, so (owner decision) Blitz **never writes SR state at
+  all** — neither a wrong answer (no demotion) nor a correct one (no promotion; this also stops fast
+  correct taps inflating mastery, since SM-2 has no same-run guard). Implemented in `Play.svelte`
+  via a `recordSR()` gate that skips `recordAnswer` when `config.type === 'blitz'` (the three answer
+  paths route through it). Mastery is derived purely from SR items, so this fully protects it; Blitz
+  still writes its `SessionRecord` (for history + the personal best) and other formats are unchanged.
+- **2026-07-15 — ✅ Built, tested & verified.** Implemented per the decisions below.
+  - **Domain:** `SessionType += 'blitz'`; `QuizSession.shouldFinish()` returns `false` for blitz
+    (the existing `drawAnswer` reshuffle already refills a small pool with no back-to-back repeat)
+    and a new public `end()` drops any pending question. New pure `src/domain/blitz.ts`:
+    `blitzCombo` (x1/x2/x3/x4), `computeBlitzPoints` (replays the streak), `blitzRunSeconds`
+    (60 + correct, cap 90), `blitzRemainingMs`, and `computeBlitzBest` + `blitzSlotMatches`
+    (history-derived PB keyed by mode × region × sub-region). Exported from the domain barrel.
+  - **Persistence:** optional `points?` cached on blitz `SessionRecord`s (`summaryToRecord`);
+    `computeBlitzBest` falls back to replaying `questions` when absent.
+  - **UI:** `play.endBlitz()` store action + `lastBlitzResult` handoff store. Play setup gains the
+    Blitz card (best via `computeBlitzBest`) and restricts the family/direction picker to the five
+    allowed modes (`selectType` snaps to Flags→Flag-Country off an excluded mode). In-run: a UI-owned
+    `performance.now()` clock (interval), a 90 s-scaled time bar with a 60 s start tick + MAX cap
+    label + low-time state, points + live combo chip in the HUD, near-instant auto-advance
+    (`BLITZ_DWELL_MS`), and the per-question dwell bar hidden. Summary shows a points hero + PB line
+    or the "New personal best!" banner with a `StreakBurst`.
+  - **Sound:** synth `tick` (final-5 s heartbeat) + `timesup` (descending fall), gated by the sound
+    pref; the jingle (`perfect` on a new best, else `finish`) plays a beat after time's-up.
+  - **i18n:** `sessionType.blitz`, `play.setup.blitz*`, `play.blitz.*`, `summary.points/personalBest/
+    newBest` in EN/FR/DE; parity test green.
+  - **Verification:** `npm run test` (641 pass, 66 files), `check`, `lint` all green. Headless-Chrome drive of
+    two real runs on 5180 confirmed: mode restriction (map=highlight only, no Extra family), the
+    live clock extending +1 s/correct (64 s mid-run), 1,200 pts ×3 combo HUD, low-time state, and
+    finish → Summary showing "New personal best!" (2,400 pts, 1:09) then a weaker replay showing the
+    standing "Personal best: 2,400" — with the setup card then reading "Best: 2,400". No console errors.
+  - **Out of MVP (as scoped):** no achievements (OQ7 → Phase 43), no leaderboard, no volume slider.
+- **2026-07-15 — Clarified & approved; implementation started.** Owner answers to OQ1–OQ8:
+  - **OQ1 Clock:** fixed **60 s** start.
+  - **OQ2 Time dynamics:** **+1 s on each correct**, no wrong-penalty. **NEW: hard cap** — a run
+    never exceeds **90 s** total (deadline = start + `min(60 + correctCount, 90)` s; earned time
+    stops mattering after ~30 correct). UI shows **both** remaining time and the 90 s cap.
+  - **OQ3 Scoring:** **points** (not raw count). Base **100** per correct × a **streak combo**
+    multiplier: x1 @ streak 1–2, x2 @ 3–4, x3 @ 5–6, x4 @ 7+ (cap); a wrong answer resets the combo
+    to x1. → persist a `points` field on the blitz `SessionRecord`.
+  - **OQ4 Personal best:** **derive from history** (no new store); best **points** keyed by
+    `mode × region (× sub-region when one is selected)`.
+  - **OQ5 Cadence:** clock runs continuously through the reveal; Blitz **auto-advances immediately**
+    on answer (no dwell) to reward speed.
+  - **OQ6 PB placement:** setup card + Summary new-best celebration only (no Home/Progress chip).
+  - **OQ7 Achievements:** **deferred to Phase 43** (Explorer rank/XP) — combo/points feed XP there.
+  - **OQ8 Modes:** **5 allowed** — `flag-to-country`, `country-to-flag`, `map-highlight`,
+    `capital-to-country`, `country-to-capital`. **Excluded:** `country-to-languages` (multi-select,
+    slow), `map-locate` (slower than tap), `country-to-industry` (nichier). Setup hides Blitz for
+    excluded modes (or the picker restricts modes when Blitz is chosen).
 - **2026-07-14 — PRD drafted** from the engagement brainstorm (owner picked Blitz + Explorer rank/XP
   off the idea menu and asked for a PRD each). Grounded in the current code: `SessionType`
   (`src/domain/types.ts:41`), the session-format pattern from Phase 35 (`full` + `answerCount`),

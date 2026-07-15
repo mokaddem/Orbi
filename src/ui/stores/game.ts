@@ -178,6 +178,24 @@ function createPlayStore() {
     },
 
     /**
+     * End a running Blitz session now — its UI-owned countdown hit zero (Phase 42). Blitz never
+     * finishes on its own (the engine's `shouldFinish` is always false for it), so this is the
+     * sole path to its summary. Emits `finished`; a no-op with no live/already-finished session.
+     */
+    endBlitz(): void {
+      if (!session || session.isFinished()) return;
+      session.end();
+      set({
+        status: 'finished',
+        config,
+        state: snapshot(),
+        question: null,
+        feedback: null,
+        answerCount: session.answerCount,
+      });
+    },
+
+    /**
      * Leave the feedback view: present the next question, or finish. Returns `true`
      * when the session is over (the caller then reads {@link summary} and routes on).
      */
@@ -225,6 +243,19 @@ export const play = createPlayStore();
 
 /** The most recent finished session's summary, handed off to the Summary route. */
 export const lastSummary = writable<SessionSummary | null>(null);
+
+/** A finished Blitz run's score vs. its personal best, handed to the Summary route (Phase 42). */
+export interface BlitzResult {
+  /** Points scored this run. */
+  points: number;
+  /** The best score for this slot, including this run (so ≥ `points`). */
+  best: number;
+  /** `true` when this run set a new personal best (fires the celebration). */
+  isNewBest: boolean;
+}
+
+/** The most recent Blitz result, or `null` after any non-blitz run. Read by the Summary route. */
+export const lastBlitzResult = writable<BlitzResult | null>(null);
 
 /** A config staged for the Play route to auto-start (e.g. a Retry from Summary). */
 export const pendingConfig = writable<RunConfig | null>(null);

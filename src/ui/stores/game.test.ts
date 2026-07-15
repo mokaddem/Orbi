@@ -122,6 +122,23 @@ describe('play store', () => {
     expect(play.summary()!.correct).toBe(0);
   });
 
+  it('runs a blitz session until endBlitz() is called — advance() never finishes it', () => {
+    play.start(baseConfig({ type: 'blitz', filter: { region: 'Europe' } }));
+    // Answer several questions; blitz keeps going (advance returns false every time).
+    for (let i = 0; i < 6; i++) {
+      answerCorrect();
+      expect(play.advance()).toBe(false);
+      expect(get(play).status).toBe('playing');
+    }
+    // The UI clock hits zero → endBlitz ends the run and emits 'finished'.
+    play.endBlitz();
+    expect(get(play).status).toBe('finished');
+    expect(play.summary()!.correct).toBe(6);
+    // A second endBlitz is a harmless no-op.
+    play.endBlitz();
+    expect(get(play).status).toBe('finished');
+  });
+
   it('restricts questions and distractors to the selected region', () => {
     play.start(baseConfig({ filter: { region: 'Europe' } }));
     // Sample several questions; every answer and every option stays inside Europe.

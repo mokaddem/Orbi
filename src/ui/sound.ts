@@ -20,8 +20,8 @@ import achievementUrl from './assets/sound/achievement.ogg?url';
 import dailyUrl from './assets/sound/daily.ogg?url';
 import { STREAK_MILESTONES } from './streak';
 
-/** Synthesized short SFX. */
-export type SynthCue = 'correct' | 'wrong' | 'streak';
+/** Synthesized short SFX. `tick` / `timesup` are the Blitz clock cues (Phase 42). */
+export type SynthCue = 'correct' | 'wrong' | 'streak' | 'tick' | 'timesup';
 /** Bundled marimba jingles. */
 export type JingleCue = 'finish' | 'perfect' | 'achievement' | 'daily';
 export type SoundCue = SynthCue | JingleCue;
@@ -96,6 +96,20 @@ function synthVoices(cue: SynthCue, level = 0): Voice[] {
     case 'wrong': {
       // Soft, low, muted tone that gently sags — a mellow "not quite", never a buzzer (~250 ms).
       return [{ freq: hz(53), at: 0, dur: 0.3, gain: 0.14, type: 'sine', glideTo: hz(50) }];
+    }
+    case 'tick': {
+      // Blitz final-seconds heartbeat (Phase 42): a single crisp, quiet high blip (~60 ms). Fired
+      // once per second over the last five, so it stays subtle rather than nagging — a soft urgency.
+      return [{ freq: hz(90), at: 0, dur: 0.05, gain: 0.06, type: 'triangle' }];
+    }
+    case 'timesup': {
+      // Blitz "time's up" (Phase 42): a short descending three-note fall — a clear, gentle "done"
+      // that's distinct from the wrong-answer sag and the celebratory jingles (~360 ms).
+      return [
+        { freq: hz(72), at: 0, dur: 0.14, gain: 0.14, type: 'triangle' }, // C5
+        { freq: hz(67), at: 0.12, dur: 0.14, gain: 0.14, type: 'triangle' }, // G4
+        { freq: hz(60), at: 0.24, dur: 0.22, gain: 0.15, type: 'triangle' }, // C4
+      ];
     }
     case 'streak':
       return streakVoices(level);

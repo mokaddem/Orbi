@@ -1,8 +1,11 @@
 <script lang="ts">
   import { push } from 'svelte-spa-router';
-  import { t } from '../../i18n';
+  import { t, localizedRegion } from '../../i18n';
   import {
     computeStats,
+    computeBlitzBests,
+    type BlitzBestEntry,
+    type GameMode,
     type FamilyMasteryResult,
     type MasteryFamily,
     type MasteryResult,
@@ -30,6 +33,7 @@
   import Mascot from '../components/Mascot.svelte';
   import MascotScene from '../components/MascotScene.svelte';
   import PageHero from '../components/PageHero.svelte';
+  import ModeIcon from '../components/ModeIcon.svelte';
   import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
   import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
@@ -78,6 +82,27 @@
     });
     push('/play');
   }
+
+  // Blitz personal bests (Phase 42): the top score per mode × region slot, derived from the same
+  // history already loaded here. Shown only once the player has played at least one Blitz run.
+  const blitzBests = $derived(computeBlitzBests(sessions));
+  const BLITZ_MODE_LABEL: Record<GameMode, string> = {
+    'flag-to-country': 'modes.flagToCountry',
+    'country-to-flag': 'modes.countryToFlag',
+    'map-highlight': 'modes.mapHighlight',
+    'map-locate': 'modes.mapLocate',
+    'capital-to-country': 'modes.capitalToCountry',
+    'country-to-capital': 'modes.countryToCapital',
+    'country-to-languages': 'modes.countryToLanguages',
+    'country-to-industry': 'modes.mainIndustries',
+  };
+  // The slot's region label: the sub-region if scoped to one, else the region, else "World".
+  const blitzSlotRegion = (b: BlitzBestEntry): string =>
+    b.subregion
+      ? $localizedRegion(b.subregion)
+      : b.region
+        ? $localizedRegion(b.region)
+        : $t('progress.blitz.world');
 
   const countryAchievements = $derived(achievements.filter((a) => !a.topic));
   const extraAchievements = $derived(achievements.filter((a) => a.topic));
@@ -200,6 +225,28 @@
             variant="stacked"
             onPractise={practiseRegionFamily}
           />
+        </div>
+      {/if}
+
+      <!-- Blitz personal bests (Phase 42): top score per mode × region, best first. -->
+      {#if blitzBests.length > 0}
+        <div class="panel">
+          <h2><Icon name="flame" size="1em" /> {$t('progress.blitz.title')}</h2>
+          <p class="panel-sub">{$t('progress.blitz.subtitle')}</p>
+          <ul class="blitz-bests">
+            {#each blitzBests as b, i (b.mode + '|' + (b.region ?? '') + '|' + (b.subregion ?? ''))}
+              <li class="bb-row" class:bb-top={i === 0}>
+                <span class="bb-ico" aria-hidden="true"><ModeIcon mode={b.mode} /></span>
+                <span class="bb-label">
+                  <span class="bb-mode">{$t(BLITZ_MODE_LABEL[b.mode])}</span>
+                  <span class="bb-region">{blitzSlotRegion(b)}</span>
+                </span>
+                <span class="bb-points">
+                  {b.points.toLocaleString()}<small>{$t('play.blitz.pts')}</small>
+                </span>
+              </li>
+            {/each}
+          </ul>
         </div>
       {/if}
 
@@ -412,6 +459,69 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+
+  /* Blitz personal-best list (Phase 42): a mode glyph, the slot label, and the score. The top
+     row is emphasised (accent tint) so the headline best reads at a glance. */
+  .blitz-bests {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .bb-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+  }
+
+  .bb-top {
+    border-color: var(--color-accent);
+    background: var(--color-accent-weak);
+  }
+
+  .bb-ico {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--color-accent);
+  }
+
+  .bb-label {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .bb-mode {
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .bb-region {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  .bb-points {
+    flex: 0 0 auto;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-accent-strong);
+  }
+
+  .bb-points small {
+    margin-left: 0.15rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-muted);
   }
 
   /* Overview tiles */

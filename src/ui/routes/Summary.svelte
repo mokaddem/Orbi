@@ -2,7 +2,7 @@
   import { push } from 'svelte-spa-router';
   import { t, localizedName, localizedRegion } from '../../i18n';
   import { formatDuration, formatPercent } from '../format';
-  import { play, lastSummary, pendingConfig } from '../stores/game';
+  import { play, lastSummary, lastBlitzResult, pendingConfig } from '../stores/game';
   import { loadRecommendations, prefs, storageReady } from '../stores/persistence';
   import { pickSummaryReaction, type MascotPose, type Recommendation } from '../../domain';
   import { getCountry, type Country } from '../../data';
@@ -13,6 +13,7 @@
   import ModeIcon from '../components/ModeIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
+  import StreakBurst from '../components/StreakBurst.svelte';
 
   // A forward-looking "Next up" suggestion, computed from the player's overall state
   // (distinct from the session-specific Retry / Train-these actions below). Refreshed on
@@ -22,6 +23,37 @@
 
   $effect(() => {
     if ($storageReady) void loadRecommendations().then((r) => (recs = r));
+  });
+
+  // New-personal-best celebration (Phase 42): a Blitz run that beat its best fires the escalating
+  // StreakBurst once, anchored on the "New personal best!" banner. Gated on reduced motion (OS or
+  // the in-app toggle), like Play's milestone burst; the celebratory jingle already played on the
+  // Play route as the run ended.
+  const reducedMotionQuery =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+  let bestBannerEl = $state<HTMLElement>();
+  let burstTier = $state(-1);
+  let burstX = $state(0);
+  let burstY = $state(0);
+  let burstKey = $state(0);
+  let burstFired = false;
+
+  $effect(() => {
+    const br = $lastBlitzResult;
+    if (!br?.isNewBest || burstFired || !bestBannerEl) return;
+    if ($prefs.reduceMotion || reducedMotionQuery?.matches) return;
+    burstFired = true;
+    requestAnimationFrame(() => {
+      const el = bestBannerEl;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      burstX = r.left + r.width / 2;
+      burstY = r.top + r.height / 2;
+      burstTier = 6; // a big, coral-hot burst — a "peak" feel without the tier-8 screen flash
+      burstKey += 1;
+    });
   });
 
   // Orbi's reaction to the result (Phase 33): the pose/motion come from a pure helper; the
@@ -156,6 +188,27 @@
       {/if}
     </div>
 
+    <!-- Blitz result (Phase 42): points are the headline, with the personal best beneath — or a
+         celebratory "new best!" banner (which the burst above anchors to) when it was beaten. -->
+    {#if s.type === 'blitz' && $lastBlitzResult}
+      {@const br = $lastBlitzResult}
+      <div class="blitz-result" class:is-new-best={br.isNewBest}>
+        <p class="blitz-score">
+          {br.points.toLocaleString()}<span class="blitz-unit">{$t('summary.points')}</span>
+        </p>
+        {#if br.isNewBest}
+          <p class="blitz-best-banner" bind:this={bestBannerEl}>
+            <Icon name="trophy" size="1em" />
+            {$t('summary.newBest')}
+          </p>
+        {:else}
+          <p class="blitz-best">
+            {$t('summary.personalBest', { points: br.best.toLocaleString() })}
+          </p>
+        {/if}
+      </div>
+    {/if}
+
     <div class="stats">
       <div class="stat">
         <span class="stat-ico" aria-hidden="true"><Icon name="trophy" size={18} /></span>
@@ -231,6 +284,14 @@
         {$t('summary.newGame')}
       </button>
     </div>
+
+    <!-- New-best burst overlay (Phase 42): fixed-position, so its place in the tree is immaterial;
+         `{#key}` mounts a fresh instance so the one-shot animation plays once. -->
+    {#if burstTier >= 0}
+      {#key burstKey}
+        <StreakBurst tier={burstTier} x={burstX} y={burstY} />
+      {/key}
+    {/if}
   {/if}
 </section>
 
@@ -381,6 +442,68 @@
     color: var(--color-correct);
     font-weight: 800;
     font-size: 0.9rem;
+  }
+
+  /* Blitz result (Phase 42): the points score as the hero, with the personal best beneath. */
+  .blitz-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.3rem;
+    margin-top: -0.25rem;
+  }
+
+  .blitz-score {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    margin: 0;
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--color-accent-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .blitz-unit {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .blitz-best {
+    margin: 0;
+    color: var(--color-muted);
+    font-weight: 600;
+  }
+
+  .blitz-best-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    font-weight: 800;
+    box-shadow: var(--shadow-card);
+    animation: new-best-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  @keyframes new-best-pop {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.12);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   .perfect-state {

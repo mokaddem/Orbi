@@ -114,6 +114,7 @@ const en = {
     survival: 'Survival',
     training: 'Training',
     full: 'Grand Tour',
+    blitz: 'Blitz',
   },
   play: {
     title: 'Play',
@@ -129,6 +130,8 @@ const en = {
       fixedHint: '{count} questions',
       survivalHint: '{lives} lives',
       fullHint: 'All {count} countries',
+      blitzHint: 'Beat the clock · {seconds}s',
+      blitzBest: 'Best: {points}',
       start: 'Start',
       targetedPractice: 'Targeted practice',
     },
@@ -161,6 +164,14 @@ const en = {
       livesRemaining: '{remaining} of {total} lives',
       score: 'Score: {correct}/{total}',
       streak: 'Streak: {streak}',
+    },
+    blitz: {
+      timeLeft: '{seconds}s',
+      cap: 'max {seconds}s',
+      max: 'MAX',
+      pts: 'pts',
+      combo: '×{mult}',
+      clockAria: '{remaining} seconds left, up to {cap} seconds',
     },
     feedback: {
       correct: 'Correct!',
@@ -225,6 +236,9 @@ const en = {
     accuracy: 'Accuracy',
     time: 'Time',
     bestStreak: 'Best streak',
+    points: 'Points',
+    personalBest: 'Personal best: {points}',
+    newBest: 'New personal best!',
     missedTitle: 'Missed ({count})',
     noneMissed: 'Perfect — nothing missed!',
     regionCleared: 'Region cleared!',
@@ -306,6 +320,11 @@ const en = {
       badgesTitle: 'Badges',
       showRegions: 'By region',
       hideRegions: 'Hide regions',
+    },
+    blitz: {
+      title: 'Blitz best',
+      subtitle: 'Your top score in each mode & region.',
+      world: 'World',
     },
     achievements: {
       title: 'Achievements',

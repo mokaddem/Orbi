@@ -147,6 +147,16 @@ export class QuizSession {
   }
 
   /**
+   * End the session immediately, regardless of the normal finish conditions. This is the only
+   * way a `blitz` run ends — its {@link shouldFinish} never trips (the draw bag refills forever),
+   * so the UI-owned countdown calls this at zero. Idempotent and safe to call at any time; a
+   * pending unanswered question is simply dropped (never counted). No-op once finished.
+   */
+  end(): void {
+    this.finish();
+  }
+
+  /**
    * Present the next question and start its timer. Returns the current unanswered
    * question if one is already pending, or `null` once the session is finished.
    */
@@ -248,6 +258,10 @@ export class QuizSession {
   }
 
   private shouldFinish(): boolean {
+    // Blitz (Phase 42) is time-boxed, not count-boxed: the pure engine never ends it. The draw
+    // bag simply reshuffles and continues (see `drawAnswer` — a small pool refills rather than
+    // exhausting), so only the UI's countdown, via `end()`, stops the run.
+    if (this.type === 'blitz') return false;
     // Survival ends in a **loss** at 0 lives, or a **win** once the region is *cleared* —
     // every country in the answer pool answered correctly at least once (Phase 40). Without
     // the clear, a flawless run reshuffles the draw bag forever.

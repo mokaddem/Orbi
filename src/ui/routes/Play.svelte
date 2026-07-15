@@ -7,7 +7,14 @@
     hasOptions,
     isMapMode,
     isMultiSelectMode,
+    BLITZ_START_SECONDS,
+    BLITZ_CAP_SECONDS,
+    blitzCombo,
+    blitzRemainingMs,
+    computeBlitzPoints,
+    computeBlitzBest,
     type GameMode,
+    type QuestionResult,
     type RegionFilter,
     type SessionType,
   } from '../../domain';
@@ -17,16 +24,25 @@
     getCountry,
     getRegionTree,
     type RegionNode,
+    type SessionRecord,
   } from '../../data';
   import {
     play,
     lastSummary,
+    lastBlitzResult,
     pendingConfig,
     playFabAction,
     focusIsosForConfig,
     type RunConfig,
   } from '../stores/game';
-  import { prefs, saveSession, saveDailyResult, recordAnswer } from '../stores/persistence';
+  import {
+    prefs,
+    saveSession,
+    saveDailyResult,
+    recordAnswer,
+    loadSessions,
+    storageReady,
+  } from '../stores/persistence';
   import { sound } from '../sound';
   import { streakTier, isStreakMilestone, streakBurstSpec } from '../streak';
   import Flag from '../components/Flag.svelte';
@@ -43,6 +59,9 @@
   // whenever there's a reveal to read. Fixed by design (not a setting).
   const CORRECT_MS = 1500;
   const REVEAL_MS = 4500;
+  // Blitz (Phase 42, OQ5) advances near-instantly — just long enough to register the
+  // verdict colour — so the clock, not the reveal, sets the pace.
+  const BLITZ_DWELL_MS = 350;
 
   // Milestone-pop pulse (Phase 39): bumped each time the streak lands on a milestone, so the
   // streak indicator replays its celebratory scale-bump + heat flash at that moment only. The
@@ -132,16 +151,52 @@
     },
   ];
 
+  // Blitz (Phase 42, OQ8) is a quick-tap format, so it allows only the five tap-a-card modes:
+  // flags↔country, map-highlight, and capitals↔country. Excluded: map-locate (slower to click),
+  // country-to-languages (multi-select) and country-to-industry (nichier) — the whole "extra"
+  // family plus the "locate" half of the map family.
+  const BLITZ_MODES: readonly GameMode[] = [
+    'flag-to-country',
+    'country-to-flag',
+    'map-highlight',
+    'capital-to-country',
+    'country-to-capital',
+  ];
+  const blitzAllows = (m: GameMode): boolean => BLITZ_MODES.includes(m);
+
+  // The families/directions offered by the current format. Blitz trims each family to its
+  // allowed modes and drops families left empty (so "extra" disappears and the map family shows
+  // only "highlight"); every other format offers the full set.
+  const visibleGroups = $derived(
+    type === 'blitz'
+      ? MODE_GROUPS.map((g) => ({
+          ...g,
+          modes: g.modes.filter((m) => blitzAllows(m.mode)),
+        })).filter((g) => g.modes.length > 0)
+      : MODE_GROUPS,
+  );
+
   // The family whose direction modes are shown in the tray. Falls back defensively to the first.
-  const activeGroup = $derived(MODE_GROUPS.find((g) => g.key === category) ?? MODE_GROUPS[0]);
+  const activeGroup = $derived(visibleGroups.find((g) => g.key === category) ?? visibleGroups[0]);
 
   // Selecting a family shows its directions; if the current `mode` doesn't belong to the new
-  // family, land on that family's first direction so `mode` is always valid and in-scope.
+  // family (or isn't allowed by the current format), land on that family's first *visible*
+  // direction so `mode` is always valid and in-scope.
   function selectCategory(key: ModeGroup): void {
     category = key;
-    const group = MODE_GROUPS.find((g) => g.key === key);
+    const group = visibleGroups.find((g) => g.key === key);
     if (group && !group.modes.some((m) => m.mode === mode)) {
       mode = group.modes[0].mode;
+    }
+  }
+
+  // Choosing a format. Switching to Blitz while on an excluded mode snaps back to the default
+  // Flags → "Flag → Country" (always allowed), so the picker never shows a mode Blitz can't run.
+  function selectType(next: SessionType): void {
+    type = next;
+    if (next === 'blitz' && !blitzAllows(mode)) {
+      category = 'flags';
+      mode = 'flag-to-country';
     }
   }
 
@@ -207,6 +262,21 @@
   // of choices can't fill N options, so the question shrinks to what it can supply.
   const effectiveChoices = $derived(Math.min($prefs.choicesPerQuestion, poolSize));
   const optionsReduced = $derived(hasOptions(mode) && effectiveChoices < $prefs.choicesPerQuestion);
+
+  // Personal best for the Blitz card (Phase 42): the top score for the current mode × region
+  // (× sub-region) slot, derived from history. Loaded once storage is ready; recomputed as the
+  // selection changes. 0 until a first run exists — the card then shows the generic hint.
+  let blitzSessions = $state<SessionRecord[]>([]);
+  $effect(() => {
+    if ($storageReady) void loadSessions().then((s) => (blitzSessions = s));
+  });
+  const blitzBest = $derived(
+    computeBlitzBest(blitzSessions, {
+      mode,
+      region: selectedRegion || undefined,
+      subregion: selectedSubregion || undefined,
+    }),
+  );
 
   function selectRegion(region: string): void {
     selectedRegion = region;
@@ -304,9 +374,16 @@
     }
   });
 
+  // Feed an answer to spaced-repetition — **except in Blitz** (Phase 42, owner decision): Blitz is
+  // a pure score format, fully decoupled from the learning model, so a mistap under time pressure
+  // can't demote a country's mastery (and fast correct taps can't inflate it). Every other format
+  // records each answer to SR as usual.
+  function recordSR(result: QuestionResult | null): void {
+    if (result && get(play).config?.type !== 'blitz') void recordAnswer(result);
+  }
+
   function onPick(id: string): void {
-    const result = play.answer(id);
-    if (result) void recordAnswer(result);
+    recordSR(play.answer(id));
   }
 
   // Multi-select (country-to-languages): the player toggles several options, then submits.
@@ -326,15 +403,13 @@
   }
 
   function submitMulti(): void {
-    const result = play.answer([...selected]);
-    if (result) void recordAnswer(result);
+    recordSR(play.answer([...selected]));
   }
 
   // map-locate: the map is the answer surface. `play.answer` no-ops once the current
   // question is graded, so a stray click after answering is harmless.
   function onMapPick(iso2: string): void {
-    const result = play.answer(iso2);
-    if (result) void recordAnswer(result);
+    recordSR(play.answer(iso2));
   }
 
   function onContinue(): void {
@@ -342,6 +417,7 @@
     if (finished) {
       const summary = play.summary();
       lastSummary.set(summary);
+      lastBlitzResult.set(null); // a normal finish clears any prior blitz result
       if (summary) {
         void saveSession(summary);
         // If this was the Daily Challenge, record its result so Home shows "done today".
@@ -377,7 +453,9 @@
   // quit, or unmount), so it can never double-advance.
   $effect(() => {
     if ($play.status !== 'answered') return;
-    const id = setTimeout(onContinue, dwellMs($play.feedback));
+    // Blitz races on: a near-instant dwell (just the verdict flash), the clock never pausing.
+    const ms = $play.config?.type === 'blitz' ? BLITZ_DWELL_MS : dwellMs($play.feedback);
+    const id = setTimeout(onContinue, ms);
     return () => clearTimeout(id);
   });
 
@@ -408,6 +486,79 @@
       triggerBurst(tier);
     }
   });
+
+  // ---- Blitz clock (Phase 42) --------------------------------------------------------------
+  // The countdown is UI-owned — the domain stays clock-free. Drive it off `performance.now()`
+  // deltas, let the live correct-count climb the deadline (+1 s each, capped at 90 s), and call
+  // `play.endBlitz()` at zero. `blitzStart`/`blitzNow` feed the reactive time bar; the interval
+  // also fires the final-seconds tick and detects the end.
+  let blitzStart = $state(0);
+  let blitzNow = $state(0);
+
+  const blitzActive = $derived(
+    $play.config?.type === 'blitz' && ($play.status === 'playing' || $play.status === 'answered'),
+  );
+  // Live values for the HUD: the running points total and the current combo multiplier.
+  const blitzPoints = $derived(
+    $play.config?.type === 'blitz' ? computeBlitzPoints($play.state?.results ?? []) : 0,
+  );
+  const blitzComboMult = $derived(blitzCombo($play.state?.streak ?? 0));
+  const blitzRemaining = $derived(
+    blitzActive ? blitzRemainingMs(blitzNow - blitzStart, $play.state?.correct ?? 0) : 0,
+  );
+  const blitzRemainingSec = $derived(Math.max(0, Math.ceil(blitzRemaining / 1000)));
+
+  // Run the clock while a blitz session is live — across both `playing` and `answered`, so it
+  // never pauses on the reveal. `blitzActive` stays true through question↔reveal transitions, so
+  // this effect starts once at run start and tears down at finish (one interval per run).
+  $effect(() => {
+    if (!blitzActive) return;
+    const start = performance.now();
+    blitzStart = start;
+    blitzNow = start;
+    let lastWhole = Number.POSITIVE_INFINITY;
+    const id = setInterval(() => {
+      const now = performance.now();
+      blitzNow = now;
+      const correct = get(play).state?.correct ?? 0;
+      const remaining = blitzRemainingMs(now - start, correct);
+      // A soft heartbeat once per whole second crossed in the final five (never a nag).
+      const whole = Math.ceil(remaining / 1000);
+      if (whole < lastWhole && whole >= 1 && whole <= 5) sound.play('tick');
+      lastWhole = whole;
+      if (remaining <= 0) {
+        clearInterval(id);
+        endBlitzRun();
+      }
+    }, 100);
+    return () => clearInterval(id);
+  });
+
+  // End a blitz run: stop the engine, score it against the previous best (history here still
+  // excludes this run — it isn't saved yet), stash the result for the Summary, persist, and route.
+  function endBlitzRun(): void {
+    if (get(play).status === 'finished') return;
+    play.endBlitz();
+    const summary = play.summary();
+    lastSummary.set(summary);
+    if (!summary) {
+      push('/summary');
+      return;
+    }
+    const points = computeBlitzPoints(summary.results);
+    const prevBest = computeBlitzBest(blitzSessions, {
+      mode: summary.mode,
+      region: summary.regionFilter?.region,
+      subregion: summary.regionFilter?.subregion,
+    });
+    const isNewBest = points > 0 && points > prevBest;
+    lastBlitzResult.set({ points, best: Math.max(points, prevBest), isNewBest });
+    void saveSession(summary);
+    // Time's-up cue now; the celebratory jingle a beat later so the two don't muddy each other.
+    sound.play('timesup');
+    setTimeout(() => sound.play(isNewBest ? 'perfect' : 'finish'), 700);
+    push('/summary');
+  }
 
   // ISO codes to frame the map on, for a region-scoped map session. Memoized by config
   // identity so it returns a *stable* array within a session — the config object is set
@@ -442,7 +593,7 @@
 
       <!-- Category-first (Phase 35): pick a family, then a direction. -->
       <div class="cat-grid" role="group" aria-labelledby="mode-legend">
-        {#each MODE_GROUPS as group (group.key)}
+        {#each visibleGroups as group (group.key)}
           <button
             type="button"
             class="cat-card {group.key}"
@@ -490,7 +641,7 @@
           class="opt"
           class:selected={type === 'fixed'}
           aria-pressed={type === 'fixed'}
-          onclick={() => (type = 'fixed')}
+          onclick={() => selectType('fixed')}
         >
           <span class="opt-title"
             ><Icon name="fixed" size="1.05em" /> {$t('sessionType.fixed')}</span
@@ -502,7 +653,7 @@
           class="opt"
           class:selected={type === 'survival'}
           aria-pressed={type === 'survival'}
-          onclick={() => (type = 'survival')}
+          onclick={() => selectType('survival')}
         >
           <span class="opt-title"
             ><Icon name="survival" size="1.05em" /> {$t('sessionType.survival')}</span
@@ -515,11 +666,29 @@
           class="opt fmt-full"
           class:selected={type === 'full'}
           aria-pressed={type === 'full'}
-          onclick={() => (type = 'full')}
+          onclick={() => selectType('full')}
         >
           <span class="opt-title"><Icon name="globe" size="1.05em" /> {$t('sessionType.full')}</span
           >
           <small>{$t('play.setup.fullHint', { count: poolSize })}</small>
+        </button>
+        <!-- Blitz (Phase 42): a 60 s countdown (extending to a 90 s cap), points × combo, and a
+             local personal best. Restricts the mode picker to the five quick-tap modes. -->
+        <button
+          type="button"
+          class="opt fmt-blitz"
+          class:selected={type === 'blitz'}
+          aria-pressed={type === 'blitz'}
+          onclick={() => selectType('blitz')}
+        >
+          <span class="opt-title"
+            ><Icon name="flame" size="1.05em" /> {$t('sessionType.blitz')}</span
+          >
+          {#if blitzBest > 0}
+            <small>{$t('play.setup.blitzBest', { points: blitzBest.toLocaleString() })}</small>
+          {:else}
+            <small>{$t('play.setup.blitzHint', { seconds: BLITZ_START_SECONDS })}</small>
+          {/if}
         </button>
       </div>
     </div>
@@ -581,7 +750,42 @@
 
     <section class="game">
       <header class="hud">
-        {#if cfg.type !== 'survival'}
+        {#if cfg.type === 'blitz'}
+          <!-- Blitz clock (Phase 42): the track spans the full 90 s cap so its length *is* the
+               ceiling; the fill is the time left, and a tick marks the 60 s starting line — fill
+               to its right is banked bonus time. Turns urgent (`.low`) in the final five seconds. -->
+          {@const capMs = BLITZ_CAP_SECONDS * 1000}
+          {@const fillPct = Math.max(0, Math.min(100, (blitzRemaining / capMs) * 100))}
+          {@const atCap = blitzRemaining >= capMs - 250}
+          <div
+            class="blitz-clock"
+            class:low={blitzRemainingSec <= 5}
+            role="timer"
+            aria-label={$t('play.blitz.clockAria', {
+              remaining: blitzRemainingSec,
+              cap: BLITZ_CAP_SECONDS,
+            })}
+          >
+            <div class="clock-head">
+              <span class="clock-time">
+                <Icon name="clock" size="0.95em" />
+                {$t('play.blitz.timeLeft', { seconds: blitzRemainingSec })}
+              </span>
+              <span class="clock-cap">
+                {atCap
+                  ? $t('play.blitz.max')
+                  : $t('play.blitz.cap', { seconds: BLITZ_CAP_SECONDS })}
+              </span>
+            </div>
+            <div class="clock-track">
+              <div class="clock-fill" style="width:{fillPct}%"></div>
+              <div
+                class="clock-startmark"
+                style="left:{(BLITZ_START_SECONDS / BLITZ_CAP_SECONDS) * 100}%"
+              ></div>
+            </div>
+          </div>
+        {:else if cfg.type !== 'survival'}
           <div class="progress">
             <div class="bar">
               <div class="fill" style="width:{(s.results.length / total) * 100}%"></div>
@@ -625,7 +829,18 @@
         {/if}
 
         <div class="score">
-          <span>{$t('play.progress.score', { correct: s.correct, total: s.results.length })}</span>
+          {#if cfg.type === 'blitz'}
+            <!-- Points are the headline in Blitz; the combo chip shows the live multiplier. -->
+            <span class="blitz-points"
+              >{blitzPoints.toLocaleString()} <small>{$t('play.blitz.pts')}</small></span
+            >
+            {#if blitzComboMult > 1}
+              <span class="blitz-combo">{$t('play.blitz.combo', { mult: blitzComboMult })}</span>
+            {/if}
+          {:else}
+            <span>{$t('play.progress.score', { correct: s.correct, total: s.results.length })}</span
+            >
+          {/if}
           {#if s.streak > 1}
             <!-- Keyed on the milestone pulse so the celebratory pop replays only when a new
                  milestone is reached (`at-milestone`); ordinary correct answers just update the
@@ -857,9 +1072,11 @@
               </div>
             {/if}
           {/if}
-          <div class="countdown" style="--countdown-ms: {dwellMs(fb)}ms" aria-hidden="true">
-            <div class="countdown-fill"></div>
-          </div>
+          {#if cfg.type !== 'blitz'}
+            <div class="countdown" style="--countdown-ms: {dwellMs(fb)}ms" aria-hidden="true">
+              <div class="countdown-fill"></div>
+            </div>
+          {/if}
         </div>
       {/if}
     </section>
@@ -1013,7 +1230,8 @@
   /* Format cards (Fixed / Survival / Grand Tour) — three across, stacking when narrow. */
   .format-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* Four formats now (Phase 42): fit as many across as comfortably fit, wrapping to rows. */
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
     gap: 0.75rem;
   }
 
@@ -1333,6 +1551,109 @@
     color: var(--color-muted);
   }
 
+  /* Blitz clock (Phase 42). The track spans the full 90 s cap; the fill is the time left, and a
+     thin tick marks the 60 s starting line (fill to its right = banked bonus time). */
+  .blitz-clock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 12rem;
+    flex: 1;
+  }
+
+  .clock-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .clock-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.2s ease;
+  }
+
+  .clock-cap {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .clock-track {
+    position: relative;
+    height: 10px;
+    background: var(--color-border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .clock-fill {
+    height: 100%;
+    background: var(--progress-gradient);
+    border-radius: 999px;
+    transition: width 0.15s linear;
+  }
+
+  /* The 60 s starting line — a slim segment divider cut into the bar, visible over fill or track. */
+  .clock-startmark {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--color-surface);
+    transform: translateX(-1.5px);
+  }
+
+  /* Final five seconds: the numeral and fill turn urgent and the fill breathes. The app-wide
+     `:root[data-reduce-motion]` rule (and the OS query below) neutralise the pulse. */
+  .blitz-clock.low .clock-time {
+    color: var(--color-wrong);
+  }
+
+  .blitz-clock.low .clock-fill {
+    background: var(--color-wrong);
+    animation: blitz-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes blitz-pulse {
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Blitz score HUD: points headline + live combo chip. */
+  .blitz-points {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .blitz-points small {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .blitz-combo {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    font-weight: 800;
+    font-size: 0.8rem;
+  }
+
   .lives {
     display: flex;
     align-items: center;
@@ -1622,7 +1943,8 @@
 
   @media (max-width: 560px) {
     .format-grid {
-      grid-template-columns: 1fr;
+      /* Two-up on phones so the four format cards stay a compact 2×2, not a long stack. */
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 

@@ -24,6 +24,13 @@ export interface SessionRecord {
   regionFilter?: RegionFilter;
   total: number;
   correct: number;
+  /**
+   * Blitz (Phase 42) points for this run — base × the streak-combo multiplier, summed over the
+   * answers. Present only on `type: 'blitz'` records; the personal best is the max of these. It's
+   * fully derivable from `questions` (see `computeBlitzPoints`), so it's an optional cache — a
+   * record without it (or a non-blitz record) is simply scored 0 / recomputed on read.
+   */
+  points?: number;
   /** Per-question outcomes, in the order they were answered. */
   questions: QuestionResult[];
 }

@@ -178,3 +178,20 @@ export {
   isStreakMilestone,
   pickStreakReaction,
 } from './mascot';
+
+export {
+  type BlitzBestQuery,
+  type BlitzBestEntry,
+  BLITZ_START_SECONDS,
+  BLITZ_CAP_SECONDS,
+  BLITZ_BONUS_SECONDS,
+  BLITZ_BASE_POINTS,
+  blitzCombo,
+  blitzPointsForCorrect,
+  computeBlitzPoints,
+  blitzRunSeconds,
+  blitzRemainingMs,
+  computeBlitzBest,
+  computeBlitzBests,
+  blitzSlotMatches,
+} from './blitz';

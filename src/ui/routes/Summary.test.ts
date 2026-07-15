@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Summary from './Summary.svelte';
-import { lastSummary, pendingConfig, play } from '../stores/game';
+import { lastBlitzResult, lastSummary, pendingConfig, play } from '../stores/game';
 import { getCountry } from '../../data';
 import type { GameMode, SessionSummary, SessionType } from '../../domain';
 import { setLocale } from '../../i18n';
@@ -43,6 +43,7 @@ beforeEach(() => {
 afterEach(() => {
   play.reset();
   lastSummary.set(null);
+  lastBlitzResult.set(null);
   pendingConfig.set(null);
 });
 
@@ -103,5 +104,32 @@ describe('Summary route — visual sweep imagery', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Train these' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'New game' })).toBeInTheDocument();
+  });
+});
+
+describe('Summary route — Blitz result (Phase 42)', () => {
+  it('shows the points score and celebrates a new personal best', () => {
+    lastSummary.set(summary({ mode: 'flag-to-country', type: 'blitz' }));
+    lastBlitzResult.set({ points: 1240, best: 1240, isNewBest: true });
+    const { container } = render(Summary);
+
+    expect(container.querySelector('.blitz-score')?.textContent).toContain('1,240');
+    expect(screen.getByText('New personal best!')).toBeInTheDocument();
+  });
+
+  it('shows the standing personal best when it was not beaten', () => {
+    lastSummary.set(summary({ mode: 'flag-to-country', type: 'blitz' }));
+    lastBlitzResult.set({ points: 800, best: 1780, isNewBest: false });
+    render(Summary);
+
+    expect(screen.getByText('Personal best: 1,780')).toBeInTheDocument();
+    expect(screen.queryByText('New personal best!')).not.toBeInTheDocument();
+  });
+
+  it('shows no blitz result block for a non-blitz session', () => {
+    lastSummary.set(summary({ mode: 'flag-to-country', type: 'fixed' }));
+    lastBlitzResult.set(null);
+    const { container } = render(Summary);
+    expect(container.querySelector('.blitz-result')).not.toBeInTheDocument();
   });
 });

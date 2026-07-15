@@ -36,9 +36,11 @@ export interface AttributeOption {
 /**
  * How a session ends. `training` (SR-driven) is wired up in Phase 7. `full` (Phase 35, the
  * "Grand Tour") asks about **every** country in the selected scope exactly once — uncapped,
- * no lives — finishing when the answer pool is exhausted.
+ * no lives — finishing when the answer pool is exhausted. `blitz` (Phase 42) is time-boxed:
+ * the pure engine never ends it (its draw bag refills so only the *clock* stops the run — see
+ * `session.ts`), and the UI calls {@link QuizSession.end} when its countdown hits zero.
  */
-export type SessionType = 'fixed' | 'survival' | 'training' | 'full';
+export type SessionType = 'fixed' | 'survival' | 'training' | 'full' | 'blitz';
 
 /** Optional region / sub-region narrowing of the country pool. */
 export interface RegionFilter {

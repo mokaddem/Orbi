@@ -29,6 +29,7 @@ import {
   INDUSTRY_MODES,
   REVIEW_MODES,
   buildDailyChallenge,
+  computeBlitzPoints,
   computeMastery,
   computeFamilyMastery,
   computeStats,
@@ -101,6 +102,9 @@ export function summaryToRecord(summary: SessionSummary, id: string = newId()): 
     ...(summary.regionFilter ? { regionFilter: { ...summary.regionFilter } } : {}),
     total: summary.total,
     correct: summary.correct,
+    // Cache the Blitz score (base × streak-combo) so the personal best is a cheap max over
+    // history; derivable from `questions`, so only blitz runs carry it (Phase 42).
+    ...(summary.type === 'blitz' ? { points: computeBlitzPoints(summary.results) } : {}),
     questions: summary.results,
   };
 }

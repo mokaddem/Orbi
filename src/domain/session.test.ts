@@ -292,6 +292,56 @@ describe('QuizSession — full ("Grand Tour") sessions', () => {
   });
 });
 
+describe('QuizSession — blitz sessions', () => {
+  it('never finishes on its own — the pool refills instead of exhausting', () => {
+    const s = new QuizSession(base({ type: 'blitz', filter: { subregion: 'S2' } }));
+    // Only two countries in S2, but blitz keeps drawing well past that without ending.
+    const asked: string[] = [];
+    for (let i = 0; i < 20; i += 1) {
+      const q = s.next();
+      expect(q).not.toBeNull();
+      asked.push(q!.answer.iso2);
+      s.submit(q!.answer);
+      expect(s.isFinished()).toBe(false);
+    }
+    expect(asked.length).toBe(20); // drew 20 from a 2-country pool — it refilled
+    expect(s.state.livesRemaining).toBe(Infinity);
+  });
+
+  it('never repeats the same country back-to-back, even across a bag refill', () => {
+    const s = new QuizSession(base({ type: 'blitz', filter: { subregion: 'S2' } }));
+    let prev: string | null = null;
+    for (let i = 0; i < 30; i += 1) {
+      const q = s.next()!;
+      expect(q.answer.iso2).not.toBe(prev); // no immediate repeat across reshuffles
+      prev = q.answer.iso2;
+      s.submit(q.answer);
+    }
+  });
+
+  it('end() finishes the run immediately and drops any pending question', () => {
+    const s = new QuizSession(base({ type: 'blitz' }));
+    s.submit(s.next()!.answer); // 1 answered
+    s.next(); // a question is now pending, unanswered
+    s.end();
+    expect(s.isFinished()).toBe(true);
+    expect(s.state.current).toBeNull();
+    expect(s.next()).toBeNull();
+    // The pending, unanswered question is not counted.
+    expect(s.summary().total).toBe(1);
+    expect(s.summary().cleared).toBe(false);
+  });
+
+  it('end() is idempotent', () => {
+    const s = new QuizSession(base({ type: 'blitz' }));
+    s.submit(s.next()!.answer);
+    s.end();
+    const finishedAt = s.state.finishedAt;
+    s.end();
+    expect(s.state.finishedAt).toBe(finishedAt);
+  });
+});
+
 describe('QuizSession — scoring & streaks', () => {
   it('tracks correct count, accuracy, and best streak', () => {
     const s = new QuizSession(base({ fixedLength: 5 }));

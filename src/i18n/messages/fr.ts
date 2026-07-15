@@ -117,6 +117,7 @@ const fr: typeof en = {
     survival: 'Survie',
     training: 'Entraînement',
     full: 'Grand Tour',
+    blitz: 'Blitz',
   },
   play: {
     title: 'Jouer',
@@ -132,6 +133,8 @@ const fr: typeof en = {
       fixedHint: '{count} questions',
       survivalHint: '{lives} vies',
       fullHint: 'Les {count} pays',
+      blitzHint: 'Course contre la montre · {seconds} s',
+      blitzBest: 'Record : {points}',
       start: 'Commencer',
       targetedPractice: 'Entraînement ciblé',
     },
@@ -164,6 +167,14 @@ const fr: typeof en = {
       livesRemaining: '{remaining} vies sur {total}',
       score: 'Score : {correct}/{total}',
       streak: 'Série : {streak}',
+    },
+    blitz: {
+      timeLeft: '{seconds} s',
+      cap: 'max {seconds} s',
+      max: 'MAX',
+      pts: 'pts',
+      combo: '×{mult}',
+      clockAria: '{remaining} secondes restantes, jusqu’à {cap} secondes',
     },
     feedback: {
       correct: 'Correct !',
@@ -230,6 +241,9 @@ const fr: typeof en = {
     accuracy: 'Précision',
     time: 'Temps',
     bestStreak: 'Meilleure série',
+    points: 'Points',
+    personalBest: 'Record personnel : {points}',
+    newBest: 'Nouveau record personnel !',
     missedTitle: 'Manqués ({count})',
     noneMissed: 'Parfait — aucun manqué !',
     regionCleared: 'Région maîtrisée !',
@@ -311,6 +325,11 @@ const fr: typeof en = {
       badgesTitle: 'Badges',
       showRegions: 'Par région',
       hideRegions: 'Masquer les régions',
+    },
+    blitz: {
+      title: 'Records Blitz',
+      subtitle: 'Votre meilleur score par mode et région.',
+      world: 'Monde',
     },
     achievements: {
       title: 'Réussites',
