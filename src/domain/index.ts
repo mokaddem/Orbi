@@ -192,6 +192,8 @@ export {
   blitzPointsForCorrect,
   computeBlitzPoints,
   blitzComboStreak,
+  blitzTiersLost,
+  blitzDecayedCombo,
   blitzRunSeconds,
   blitzRemainingMs,
   computeBlitzBest,

@@ -169,6 +169,17 @@ Phase 43 (Explorer rank); if built first, blitz `SessionRecord`s feed XP automat
   full blitz run.
 
 ## Progress log
+- **2026-07-15 — Owner follow-up: slow answers *decay* the combo by tier, they don't reset it.**
+  Refines the entry below: resetting a slow-but-correct answer all the way to ×1 was too punishing —
+  being right-but-slow should beat a rushed wrong guess, not tie it. Now a **wrong answer still wipes to
+  ×1**, but sitting on a question **drops one combo tier per reaction window** (`BLITZ_COMBO_TIME_MS`,
+  **2.3 s**) elapsed, floored at ×1 — so 5 s of dithering costs two tiers, not the whole combo, and the
+  answer scores at the decayed tier. Domain: `replayCombo` climbs on a fast correct and demotes
+  `blitzTiersLost(answerMs)` tiers on a slow one (landing at the foot of the new tier); new pure
+  `blitzTiersLost` + `blitzDecayedCombo` helpers drive both scoring and the live HUD. The **reaction
+  meter** now restarts each tier (drains → refills as a tier drops) and hides at ×1; the badge ticks
+  down live x5→…→x1 as you wait. Tests reworked (tier decay, multi-tier, floor, rebuild); headless-Chrome
+  drive confirmed the badge stepping down one tier per ~2.3 s with the meter refilling each tier.
 - **2026-07-15 — Owner follow-up: the combo now also breaks on a slow answer.** Beyond a wrong
   answer, the combo resets to ×1 if the player **takes too long to pick** — a per-answer *reaction
   window* (`BLITZ_COMBO_TIME_MS`, **2.3 s** — owner: "faster is better" — measured from when the question

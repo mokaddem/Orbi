@@ -6,10 +6,12 @@ import {
   BLITZ_START_SECONDS,
   blitzCombo,
   blitzComboStreak,
+  blitzDecayedCombo,
   blitzPointsForCorrect,
   blitzRemainingMs,
   blitzRunSeconds,
   blitzSlotMatches,
+  blitzTiersLost,
   computeBlitzBest,
   computeBlitzBests,
   computeBlitzPoints,
@@ -69,32 +71,75 @@ describe('computeBlitzPoints', () => {
   });
 });
 
-describe('combo reaction window', () => {
+describe('combo tier decay (slow answers)', () => {
   const fast = (): QuestionResult => ({ ...q(true), answerMs: 900 });
-  const slow = (): QuestionResult => ({ ...q(true), answerMs: BLITZ_COMBO_TIME_MS + 500 });
-
-  it('restarts the combo at x1 on a slow (but correct) answer', () => {
-    // 3 fast (100+100+200=400), then a slow correct restarts → scores x1 (100) = 500
-    const results = [fast(), fast(), fast(), slow()];
-    expect(computeBlitzPoints(results)).toBe(500);
-    expect(blitzComboStreak(results)).toBe(1);
+  // A correct answer that took `tiers` full reaction windows to pick (loses `tiers` tiers).
+  const slowBy = (tiers: number): QuestionResult => ({
+    ...q(true),
+    answerMs: BLITZ_COMBO_TIME_MS * tiers + 200,
   });
 
-  it('rebuilds the combo from x1 after a slow answer', () => {
-    // slow (x1, 100), fast (streak 2 → x1, 100), fast (streak 3 → x2, 200) = 400
-    const results = [slow(), fast(), fast()];
-    expect(computeBlitzPoints(results)).toBe(400);
+  it('drops one tier (not to x1) on a slow-but-correct answer', () => {
+    // Build to x4 at streak 7 (100+100+200+200+300+300+400 = 1600), then a 1-tier-slow correct
+    // demotes x4 → x3 (streak 5) and scores x3 = 300 → 1900.
+    const results = [...streakOf(7), slowBy(1)];
+    expect(computeBlitzPoints(results)).toBe(1900);
+    expect(blitzComboStreak(results)).toBe(5);
+    expect(blitzCombo(blitzComboStreak(results))).toBe(3);
+  });
+
+  it('drops multiple tiers when very slow', () => {
+    // From x4 (streak 7), a 2-tier-slow correct demotes x4 → x2 (streak 3), scoring x2 = 200.
+    const results = [...streakOf(7), slowBy(2)];
     expect(blitzComboStreak(results)).toBe(3);
+    expect(blitzCombo(blitzComboStreak(results))).toBe(2);
+    expect(computeBlitzPoints(results)).toBe(1600 + 200);
   });
 
-  it('counts an answer exactly at the window as in-time', () => {
-    const at = (): QuestionResult => ({ ...q(true), answerMs: BLITZ_COMBO_TIME_MS });
-    expect(blitzComboStreak([at(), at(), at()])).toBe(3);
+  it('never falls below x1 from slowness, however long', () => {
+    const results = [...streakOf(7), slowBy(9)]; // way past x1
+    expect(blitzComboStreak(results)).toBe(1);
+    expect(blitzCombo(blitzComboStreak(results))).toBe(1);
+  });
+
+  it('a slow-but-correct answer beats a wrong one (keeps a tier vs. a full reset)', () => {
+    const slowStreak = blitzComboStreak([...streakOf(7), slowBy(1)]); // x3
+    const wrongStreak = blitzComboStreak([...streakOf(7), q(false)]); // x1 / 0
+    expect(blitzCombo(slowStreak)).toBeGreaterThan(blitzCombo(wrongStreak));
+    expect(wrongStreak).toBe(0);
+  });
+
+  it('rebuilds by climbing after a decay', () => {
+    // x4 (streak 7) → 1-tier-slow → x3 (streak 5) → two fast → streak 7 → back to x4.
+    const results = [...streakOf(7), slowBy(1), fast(), fast()];
+    expect(blitzComboStreak(results)).toBe(7);
+    expect(blitzCombo(blitzComboStreak(results))).toBe(4);
   });
 
   it('treats a missing answerMs as in-time (never punishes untimed records)', () => {
     const noTime = { itemKey: 'k', countryIso2: 'FR', correct: true } as QuestionResult;
     expect(blitzComboStreak([noTime, noTime])).toBe(2);
+  });
+});
+
+describe('blitzTiersLost', () => {
+  it('is one tier lost per full reaction window elapsed', () => {
+    expect(blitzTiersLost(0)).toBe(0);
+    expect(blitzTiersLost(BLITZ_COMBO_TIME_MS - 1)).toBe(0);
+    expect(blitzTiersLost(BLITZ_COMBO_TIME_MS)).toBe(1);
+    expect(blitzTiersLost(BLITZ_COMBO_TIME_MS * 2 + 500)).toBe(2);
+    expect(blitzTiersLost(-100)).toBe(0);
+  });
+});
+
+describe('blitzDecayedCombo', () => {
+  it('decays the live multiplier one tier per window, floored at x1', () => {
+    // streak 9 → x5 with no wait; then one tier per window down to x1.
+    expect(blitzDecayedCombo(9, 0)).toBe(5);
+    expect(blitzDecayedCombo(9, BLITZ_COMBO_TIME_MS)).toBe(4);
+    expect(blitzDecayedCombo(9, BLITZ_COMBO_TIME_MS * 2)).toBe(3);
+    expect(blitzDecayedCombo(9, BLITZ_COMBO_TIME_MS * 9)).toBe(1);
+    expect(blitzDecayedCombo(1, BLITZ_COMBO_TIME_MS * 3)).toBe(1); // already x1
   });
 });
 

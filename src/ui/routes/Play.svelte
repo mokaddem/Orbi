@@ -12,6 +12,7 @@
     BLITZ_COMBO_TIME_MS,
     blitzCombo,
     blitzComboStreak,
+    blitzDecayedCombo,
     blitzRemainingMs,
     computeBlitzPoints,
     computeBlitzBest,
@@ -521,30 +522,32 @@
   const blitzPoints = $derived(
     $play.config?.type === 'blitz' ? computeBlitzPoints($play.state?.results ?? []) : 0,
   );
-  // Live, time-aware combo. The base is the tail run of fast-correct answers (`blitzComboStreak`);
-  // it drops to x1 the moment the current question sits unanswered past the reaction window, so the
-  // badge visibly drains if the player hesitates — matching how that slow answer will actually score.
+  // Live, time-aware combo. `blitzComboStreakVal` is the committed streak (the combo you've banked);
+  // while a question sits unanswered it *decays a tier per reaction window* (`blitzDecayedCombo`),
+  // down to x1 — so the badge visibly ticks down if the player hesitates, matching how a slow answer
+  // scores. During the answered dwell the committed combo shows (the just-answered result is folded in).
   const blitzComboStreakVal = $derived(blitzComboStreak($play.state?.results ?? []));
-  const comboExpired = $derived(
-    blitzActive &&
-      $play.status === 'playing' &&
-      blitzQStart > 0 &&
-      blitzNow - blitzQStart >= BLITZ_COMBO_TIME_MS,
+  const blitzQElapsed = $derived(
+    blitzActive && $play.status === 'playing' && blitzQStart > 0
+      ? Math.max(0, blitzNow - blitzQStart)
+      : 0,
   );
-  const blitzComboMult = $derived(blitzCombo(comboExpired ? 0 : blitzComboStreakVal));
+  const blitzComboMult = $derived(
+    $play.config?.type === 'blitz' && $play.status === 'playing'
+      ? blitzDecayedCombo(blitzComboStreakVal, blitzQElapsed)
+      : blitzCombo(blitzComboStreakVal),
+  );
 
-  // Combo "reaction meter" (owner request): a reverse progress bar under the badge that drains over
-  // the reaction window, warning that the combo is about to reset. Shown only while a question is live
-  // and there's a combo worth protecting (a running streak). `blitzNow` ticks it (every ~100 ms, eased
-  // by a short CSS transition); it turns urgent near empty. Full (100 %) whenever it isn't ticking.
+  // Combo "reaction meter" (owner request): a reverse progress bar under the badge showing the timer
+  // for the *current* tier. It drains over one window then refills as a tier is lost, repeating down
+  // to x1; hidden once there's no tier left to lose. `blitzNow` ticks it (~100 ms, eased by a short CSS
+  // transition); it turns urgent near empty.
+  const showComboTimer = $derived(blitzComboMult > 1 && $play.status === 'playing');
   const comboTimeLeftPct = $derived.by(() => {
-    if (!blitzActive || $play.status !== 'playing' || blitzQStart <= 0) return 100;
-    const elapsed = blitzNow - blitzQStart;
-    return Math.max(0, Math.min(100, (1 - elapsed / BLITZ_COMBO_TIME_MS) * 100));
+    if (!showComboTimer) return 100;
+    const intoWindow = blitzQElapsed % BLITZ_COMBO_TIME_MS;
+    return Math.max(0, Math.min(100, (1 - intoWindow / BLITZ_COMBO_TIME_MS) * 100));
   });
-  const showComboTimer = $derived(
-    blitzActive && $play.status === 'playing' && blitzComboStreakVal >= 1,
-  );
 
   // The Blitz multiplier badge (this task) is the run's centrepiece now the streak pill is hidden —
   // so it *escalates* with the combo. Each tier warms the badge along a heat ramp (teal → gold →
