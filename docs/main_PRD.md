@@ -284,7 +284,7 @@ one.
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
 | 42 | Blitz mode (timed speed run + personal best) | [phase-42-blitz-mode.md](phases/archive/phase-42-blitz-mode.md) | 2, 35, 6 (36 for cues) | ✅ Done | 100% |
-| 43 | Explorer rank & XP (progression spine) | [phase-43-explorer-rank-xp.md](phases/phase-43-explorer-rank-xp.md) | 6, 16, 41 (30 for placement) | ✅ Done | 100% (append-only XP — 10·correct + 3·questions + 25·sessions + 20·streak + 150·badges — into a 10-tier escalating Explorer ladder Novice→Legendary Explorer; `RankPanel` on Progress + `RankChip` on Home + "+N XP" on Summary; one-time "Rank up!" jingle+burst; `progression` store DB v5; trilingual `rank.*`. **Awaiting merge.**) |
+| 43 | Explorer rank & XP (progression spine) | [phase-43-explorer-rank-xp.md](phases/archive/phase-43-explorer-rank-xp.md) | 6, 16, 41 (30 for placement) | ✅ Done | 100% (append-only XP — 10·correct + 3·questions + 25·sessions + 20·streak + 150·badges — into a 10-tier escalating Explorer ladder Novice→Legendary Explorer; `RankPanel` on Progress + `RankChip` on Home + "+N XP" on Summary; one-time "Rank up!" jingle+burst; `progression` store DB v5; trilingual `rank.*`.) |
 
 ### v2.7 — Mastery capstone
 

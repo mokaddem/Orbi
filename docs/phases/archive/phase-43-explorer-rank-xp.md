@@ -1,6 +1,6 @@
 # Phase 43 — Explorer rank & XP (progression spine)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v2.6 — Momentum & progression
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -155,6 +155,13 @@ of Phase 42 (Blitz); if Blitz ships, its `SessionRecord`s feed XP automatically 
   Progress + Home render rank/XP; a simulated rank-up celebrates once).
 
 ## Progress log
+- **2026-07-15 — Merged to `main` & archived.** Rebased the branch onto `main` (which had since gained
+  `dad3384` "show bonus time earned on Blitz rows"). One conflict, in `src/ui/routes/History.svelte`:
+  both changes add a chip to each Recent-sessions row — resolved by keeping **both** (main's blitz
+  bonus-time chip inside `.recent-sub`, and this phase's "+N XP" chip as the 5th grid column), and
+  merging the shared `domain` import to pull in both `blitzEarnedSeconds` and `sessionXp`. Fast loop
+  re-run green post-merge (**694 tests**, `check` 0/0, `lint` clean). Fast-forwarded `main`, archived
+  this PRD, repointed the Status-Table link.
 - **2026-07-15 — Built & verified (awaiting merge).** Clarifying round resolved with the owner, then
   implemented on explicit approval. **Open-question resolutions:**
   - **OQ1/OQ2 (sources + monotonic strategy):** owner picked **append-only only** — XP =
