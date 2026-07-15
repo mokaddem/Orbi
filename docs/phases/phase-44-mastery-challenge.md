@@ -1,6 +1,6 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~75% (domain, store, i18n, capstones, `/challenge` shell, Summary pass/fail)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In review · **Progress:** ~100% — feature-complete (pending owner review + merge)
 · **Track:** v2.7 — Mastery capstone
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -130,8 +130,9 @@ supporting. Independent of Phases 42 (Blitz) and 43 (Explorer rank) — if 43 sh
 challenge is a natural XP event.
 
 ## Deliverables checklist
-- [ ] Unlock predicate — a pure `isChallengeUnlocked(familyMastery, {family, region, subregion})`
-      (family × region mastered per Phase 41), + a locked/unlocked entry-point affordance.
+- [x] Unlock predicate — `isChallengeUnlocked` (family × region mastered per Phase 41, stage 1) +
+      the entry-point affordance: a fully-mastered family × continent's **"prove it" launch** in the
+      World Mastery breakdown. *(affordance stage ③d)*
 - [x] Challenge run model — a new `SessionType: 'challenge'` (additive like `full`); the resolved
       **Gauntlet** model (one life, **no recycle**) draws every country once in **both** directions
       and finishes on a clean sweep or the first miss; `cleared / total` exposed. *(stage 1–2 domain + store)*
@@ -143,12 +144,16 @@ challenge is a natural XP event.
       (`perfect` jingle + `StreakBurst`). *(grading stage 1; 15 capstones stage ③a; Summary pass/fail + celebration stage ③c)*
 - [x] Large-pool selection UX — a type-ahead **search list** for name/capital picks + a scrollable
       **flag grid** for country→flag; map-locate stays map-click. *(stage ③b — `ChallengeSearchList`)*
-- [ ] Entry points: Progress (family × region breakdown) + Play setup challenge card (+ optional Home chip).
+- [x] Entry points — **Progress only** (owner pick): the "prove it" launch + gilded cells + the
+      "Grandmaster {done}/{total}" prestige headline live in the World Mastery panel. No Play card /
+      Home chip (keeps `Play.svelte` untouched). *(stage ③d)*
 - [x] EN/FR/DE strings (name, lock/unlock, progress, pass/flawless, badge); `messages.test.ts` parity green. *(stage ③a — `challenge.*` + `sessionType.challenge`)*
-- [ ] Tests: domain (unlock predicate, full-region options, clear-the-board queue + recycle + finish,
-      pass/flawless) with injected RNG/clock; component (lock→unlock, full pool, board clear,
-      celebration); headless full-clear drive on a small region.
-- [ ] Verified in the real app (headless Chrome) across ≥2 families + regions, EN/FR/DE.
+- [x] Tests: domain (unlock predicate, full-region options, one-life queue + finish, pass/fail grading)
+      with injected RNG/clock (stage 1–2); component — `ChallengeSearchList`, the `/challenge` route,
+      the Summary pass/fail branch, and the breakdown prove-it/gilded/certified states (stages ③b–③d).
+- [x] Verified in the real app (headless Chrome / Puppeteer): Progress prove-it + prestige → run →
+      fail Summary → certified reward (gilded cell + `1/15`), across **Flags + Map** families in
+      **EN + FR** (DE via `messages.test.ts` parity + composed labels). *(stage ③e)*
 
 ## Technical notes
 - **Separate the two pools (the key fix).** The *queue* of countries-still-to-clear shrinks (drives the
@@ -319,8 +324,27 @@ challenge is a natural XP event.
   tokens added to `app.css` (`--color-gold*`, `--gold-metal`) for reuse by the ③d panel gilding.
   Fast loop: **750 tests**, `check` 0/0, `lint` clean.
 
-  Still to do (stages ③d–③e): the Progress A+C reward (prestige bar + gilded cells + prove-it launch);
-  the integrated headless drive + PRD/status close-out.
+  **Stage ③d landed** (the Progress reward — design A + C). `AchievementView` now carries
+  `capstone`/`family`, so the 15 capstones are pulled out of the badges grid and drive the World
+  Mastery panel instead. `FamilyRegionBreakdown` (stacked) grows the fully-mastered → **prove-it** →
+  **gilded** ladder per family cell: a fully-mastered-but-uncertified family shows a gold "prove it"
+  launch (→ `pendingChallenge` + `/challenge`) in place of the practise shortcut; a **certified**
+  family gilds in place (metallic-gold bar + crown, **permanent** — it stays gilded even if SR
+  mastery later lapses, honouring the monotonic capstone); a continent with every family certified
+  wears a gold ring + "Grandmaster" tag. `Progress.svelte` adds the **"Grandmaster {done}/{total}"
+  prestige bar** as the panel headline (shown once a run is certified or unlockable, so beginners
+  never see "0/15"; gilds fully at 15/15), and composes the capstone title for the unlock banner.
+
+  **Stage ③e — verified in the real app** (Puppeteer against the 5180 dev server, seeding one
+  continent's SR state): Progress shows the prestige bar + the Oceania "prove it"; launching drives
+  `/challenge` (the one-life HUD + the whole-continent flag grid / name search-list), a miss ends the
+  run to the fail Summary ("cleared 1 of 28 — then missed New Zealand", XP still earned), and a
+  passed run gilds the Flags × Oceania cell with the prestige at **1/15** and the composed
+  "Grandmaster — Flags · Oceania" badge in the unlock banner (+150 badge XP). Confirmed across the
+  **Flags + Map** families in **EN + FR** (the Map run correctly shows 26 slots — Tuvalu excluded —
+  with the map board + name search-list). Fast loop: **754 tests**, `check` 0/0, `lint` clean.
+
+  Phase 44 is **feature-complete**, pending owner review + merge to `main`.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the

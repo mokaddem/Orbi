@@ -299,7 +299,7 @@ implementation** (see the callout at the top of the file).
 
 | # | Phase | Detailed PRD | Depends on | Status | Progress |
 |---|---|---|---|---|---|
-| 44 | Mastery Challenge (capstone / "prove-it" run) | [phase-44-mastery-challenge.md](phases/phase-44-mastery-challenge.md) | 41, 16, 2, 35, 5 | 🚧 In progress | ~30% (owner-scoped as **"Grandmaster Run"**: one-life Gauntlet, both directions, continents only; domain `challenge.ts` + `ChallengeSession` + unlock/queue/grading, and the `challenge` controller store + persistence bridge — all tested. UI shell / pickers / entry points / badges / i18n still to build.) |
+| 44 | Mastery Challenge (capstone / "prove-it" run) | [phase-44-mastery-challenge.md](phases/phase-44-mastery-challenge.md) | 41, 16, 2, 35, 5 | 🚧 In review | Feature-complete (**"Grandmaster Run"**: one-life Gauntlet, both directions, continents only). Domain + store (unlock/queue/grading), 15 monotonic capstones + `challenge.*` EN/FR/DE, the `/challenge` shell (full-continent search-list + flag grid, `cleared/total` HUD, `saveSession`-only finish), the pass/fail Summary, and the Progress reward (prove-it launch + gilded cells + "Grandmaster X/15" prestige bar). 754 tests; verified in-app (Flags+Map, EN+FR). Pending owner review + merge. |
 
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).

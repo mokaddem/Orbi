@@ -514,6 +514,10 @@ export interface AchievementView {
   region?: string;
   /** For extra-knowledge badges (capitals / languages), the topic; groups them out of the main grid. */
   topic?: ExtraTopic;
+  /** A Grandmaster Run capstone (Phase 44) — surfaced in the mastery panel, not the badges grid. */
+  capstone?: boolean;
+  /** The family a capstone certifies (Grandmaster badges only) — with `region`, keys the gilded cell. */
+  family?: MasteryFamily;
 }
 
 /**
@@ -558,6 +562,8 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
   const unlockedAtById = new Map(persisted.map((p) => [p.id, p.unlockedAt]));
   const regionById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.region]));
   const topicById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.topic]));
+  const capstoneById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.capstone]));
+  const familyById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.family]));
   const newlyUnlocked: AchievementUnlock[] = [];
 
   const views = statuses.map((st): AchievementView => {
@@ -576,6 +582,8 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
       justUnlocked,
       region: regionById.get(st.id),
       topic: topicById.get(st.id),
+      capstone: capstoneById.get(st.id),
+      family: familyById.get(st.id),
     };
   });
 

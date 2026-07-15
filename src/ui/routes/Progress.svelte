@@ -4,6 +4,7 @@
   import {
     computeStats,
     computeBlitzBests,
+    GRANDMASTER_TOTAL,
     type BlitzBestEntry,
     type GameMode,
     type FamilyMasteryResult,
@@ -15,6 +16,7 @@
   import type { SessionRecord } from '../../data';
   import { formatDuration, formatPercent } from '../format';
   import { pendingConfig } from '../stores/game';
+  import { challenge, lastChallengeSummary, pendingChallenge } from '../stores/challenge';
   import {
     loadSessions,
     loadMastery,
@@ -108,8 +110,48 @@
         ? $localizedRegion(b.region)
         : $t('progress.blitz.world');
 
-  const countryAchievements = $derived(achievements.filter((a) => !a.topic));
+  // The main grid excludes extra-topic badges (their own panel) and the Grandmaster capstones
+  // (surfaced in the World Mastery panel below as gilded cells, not as grid badges).
+  const countryAchievements = $derived(achievements.filter((a) => !a.topic && !a.capstone));
   const extraAchievements = $derived(achievements.filter((a) => a.topic));
+
+  // Grandmaster Run reward (Phase 44, design A + C). The capstones drive the World Mastery panel:
+  // `certifiedSet` gilds each passed family × continent cell; `certifiedCount` feeds the prestige
+  // headline. The prestige bar only appears once a run is either certified or unlockable (a family ×
+  // continent is fully mastered), so it never shows a discouraging "0 / 15" to a fresh player.
+  const grandmasters = $derived(achievements.filter((a) => a.capstone));
+  const certifiedCount = $derived(grandmasters.filter((a) => a.unlocked).length);
+  const certifiedSet = $derived(
+    new Set(
+      grandmasters
+        .filter((a) => a.unlocked && a.family && a.region)
+        .map((a) => `${a.family}|${a.region}`),
+    ),
+  );
+  const hasUnlockableChallenge = $derived(
+    !!mastery &&
+      mastery.byRegion.some((r) => r.families.some((f) => f.total > 0 && f.mastered === f.total)),
+  );
+  const showPrestige = $derived(certifiedCount > 0 || hasUnlockableChallenge);
+  const prestigePct = $derived(Math.round((certifiedCount / GRANDMASTER_TOTAL) * 100));
+
+  /** Launch the family × continent Grandmaster Run from its "prove it" cell. */
+  function launchChallenge(region: string, family: MasteryFamily): void {
+    challenge.reset();
+    lastChallengeSummary.set(null);
+    pendingChallenge.set({ family, region });
+    push('/challenge');
+  }
+
+  // The unlock banner names each just-earned badge. Grandmaster capstones have no per-id copy (their
+  // title is composed from the family + continent labels); everything else uses its `badges.<id>` key.
+  const badgeTitle = (a: AchievementView): string =>
+    a.capstone && a.family && a.region
+      ? $t('challenge.badge.title', {
+          family: $t(`modes.group.${a.family}`),
+          region: $localizedRegion(a.region),
+        })
+      : $t(`progress.achievements.badges.${a.id}.title`);
   // Badges that unlocked on this load — celebrated once via a dismissible banner.
   let unlockDismissed = $state(false);
   const justUnlocked = $derived(achievements.filter((a) => a.justUnlocked));
@@ -177,7 +219,7 @@
         <span class="unlock-text">
           {$t('progress.achievements.unlocked')}
           <strong>
-            {justUnlocked.map((a) => $t(`progress.achievements.badges.${a.id}.title`)).join(', ')}
+            {justUnlocked.map(badgeTitle).join(', ')}
           </strong>
         </span>
         <button
@@ -234,11 +276,46 @@
         <div class="panel">
           <h2>{$t('progress.mastery.title')}</h2>
           <FamilyMasteryMeter {mastery} />
+
+          <!-- Grandmaster prestige bar (Phase 44, design C): how many family × continent runs are
+               certified, toward all 15. Gilds fully at 15/15 — the reason to chase the last one.
+               Hidden until a run is certified or unlockable, so beginners never see "0 / 15". -->
+          {#if showPrestige}
+            <div class="prestige" class:complete={certifiedCount === GRANDMASTER_TOTAL}>
+              <div class="prestige-head">
+                <span class="prestige-title">
+                  <Icon name="crown" size="1em" />
+                  {certifiedCount === GRANDMASTER_TOTAL
+                    ? $t('challenge.prestigeComplete')
+                    : $t('challenge.prestige')}
+                </span>
+                <span class="prestige-count">
+                  {$t('challenge.prestigeCount', {
+                    done: certifiedCount,
+                    total: GRANDMASTER_TOTAL,
+                  })}
+                </span>
+              </div>
+              <div
+                class="prestige-track"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax={GRANDMASTER_TOTAL}
+                aria-valuenow={certifiedCount}
+                aria-label={$t('challenge.prestige')}
+              >
+                <span class="prestige-fill" style="width:{prestigePct}%"></span>
+              </div>
+            </div>
+          {/if}
+
           <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
           <FamilyRegionBreakdown
             regions={mastery.byRegion}
             variant="stacked"
             onPractise={practiseRegionFamily}
+            onChallenge={launchChallenge}
+            certified={certifiedSet}
           />
         </div>
       {/if}
@@ -430,6 +507,80 @@
     margin: 0.25rem 0 0;
     font-size: 0.9rem;
     color: var(--color-muted);
+  }
+
+  /* Grandmaster prestige bar (Phase 44, design C): the capstone headline inside the World Mastery
+     panel. A soft gold card that gilds fully once all 15 are certified. */
+  .prestige {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--color-gold-weak), var(--color-surface));
+    border: 1px solid var(--color-gold);
+  }
+
+  .prestige.complete {
+    background: var(--gold-metal);
+    border-color: var(--color-gold-deep);
+  }
+
+  .prestige-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .prestige-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 800;
+    color: var(--color-gold-ink);
+  }
+
+  .prestige-title :global(.icon) {
+    color: var(--color-gold-deep);
+  }
+
+  .prestige.complete .prestige-title,
+  .prestige.complete .prestige-count,
+  .prestige.complete .prestige-title :global(.icon) {
+    color: var(--color-gold-ink);
+  }
+
+  .prestige-count {
+    font-weight: 800;
+    color: var(--color-gold-deep);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .prestige-track {
+    height: 0.6rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-gold);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .prestige.complete .prestige-track {
+    background: rgb(255 255 255 / 55%);
+    border-color: var(--color-gold-deep);
+  }
+
+  .prestige-fill {
+    display: block;
+    height: 100%;
+    background: var(--gold-metal);
+    transition: width 0.35s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .prestige-fill {
+      transition: none;
+    }
   }
 
   /* Combined extra-knowledge panel */
