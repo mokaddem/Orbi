@@ -542,6 +542,8 @@ const fr: typeof en = {
     },
     notPersisted:
       'Le stockage est indisponible — les paramètres et l’historique ne seront pas enregistrés.',
+    about: 'À propos',
+    version: 'Version',
     data: {
       title: 'Données',
       historyLabel: 'Historique de jeu',

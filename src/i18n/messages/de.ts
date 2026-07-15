@@ -540,6 +540,8 @@ const de: typeof en = {
     },
     notPersisted:
       'Der Speicher ist nicht verfügbar — Einstellungen und Verlauf werden nicht gesichert.',
+    about: 'Über',
+    version: 'Version',
     data: {
       title: 'Daten',
       historyLabel: 'Spielverlauf',

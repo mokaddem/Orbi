@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'node:fs';
 
 // Deployed to GitHub Pages under a project subpath, so the production build (and the
 // preview server that mimics it) are served from `/Orbi/`. The dev server stays
@@ -10,9 +11,21 @@ import { VitePWA } from 'vite-plugin-pwa';
 // because routing is hash-based and all asset URLs go through Vite's `base`.
 const BASE = '/Orbi/';
 
+// Single source of truth for the app version is package.json. Read it here and inject it
+// as a compile-time constant (see `define` below) so it can be shown in the UI (Settings →
+// About) without any client module importing package.json (which would trip TS rootDir).
+const APP_VERSION: string = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
+).version;
+
 // https://vite.dev/config/
 export default defineConfig(({ command, isPreview }) => ({
   base: command === 'build' || isPreview ? BASE : '/',
+  // Compile-time textual replacement, so it applies to the client build and the Vitest
+  // transform alike (Settings.svelte reads `__APP_VERSION__` directly).
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   plugins: [
     svelte(),
     svelteTesting(),

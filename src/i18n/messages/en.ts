@@ -521,6 +521,8 @@ const en = {
       globe: '3D Globe',
     },
     notPersisted: 'Storage is unavailable — settings and history won’t be saved.',
+    about: 'About',
+    version: 'Version',
     data: {
       title: 'Data',
       historyLabel: 'Play history',
