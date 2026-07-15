@@ -60,14 +60,41 @@
   // Only the sources that actually contributed (a 0-correct run drops the "correct" row).
   const rows = $derived(breakdown.filter((s) => s.xp > 0));
 
-  // Grow the bar once, a beat after mount, so the eye registers the pre-run fill before the CSS
-  // width transition animates it forward. Reduced motion jumps straight to the target, no delay.
   const GROW_DELAY_MS = 1000;
+  let cardEl = $state<HTMLDivElement>();
+  let visible = $state(false);
   let grown = $state(false);
-  const fillPct = $derived(grown ? targetPct : startPct);
 
+  // The bar is two segments of the current rank's span: a static `base` (what was banked before
+  // this run, teal) and the `gain` this run added (gold). The gain grows in from the base edge, so
+  // the eye sees exactly how much the session contributed.
+  const gainPct = $derived(Math.max(0, targetPct - startPct));
+  const gainWidth = $derived(grown ? gainPct : 0);
+
+  // Reveal-gated: the hold-then-grow only starts once the card is actually on screen. On a long
+  // Summary the card can begin below the fold, and the fill must not have already finished by the
+  // time the player scrolls down to it. No IntersectionObserver (jsdom / very old browsers) → treat
+  // the card as immediately visible.
   $effect(() => {
-    if (!progress || grown) return;
+    if (visible || !cardEl) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      visible = true;
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) visible = true;
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(cardEl);
+    return () => io.disconnect();
+  });
+
+  // Once visible (and the async rank load has settled), hold a beat so the eye registers the pre-run
+  // fill, then grow the gain in. Reduced motion jumps straight to the target, no delay.
+  $effect(() => {
+    if (!progress || grown || !visible) return;
     if (reduceMotion) {
       grown = true;
       return;
@@ -77,7 +104,7 @@
   });
 </script>
 
-<div class="xp-card" data-testid="session-xp-card">
+<div class="xp-card" data-testid="session-xp-card" bind:this={cardEl}>
   {#if progress}
     <div class="rank-head">
       <span class="badge" aria-hidden="true"><Icon name={rankIcon} size={22} /></span>
@@ -98,7 +125,13 @@
       aria-valuenow={targetPct}
       aria-label={$t('rank.title')}
     >
-      <div class="fill" class:animate={!reduceMotion} style="width:{fillPct}%"></div>
+      <!-- Banked before this run (teal), then the gold gain this run added, growing in from it. -->
+      <div class="seg base" style="width:{startPct}%"></div>
+      <div
+        class="seg gain"
+        class:animate={!reduceMotion}
+        style="left:{startPct}%; width:{gainWidth}%"
+      ></div>
     </div>
     <span class="to-next">
       {#if progress.next}
@@ -197,6 +230,7 @@
   }
 
   .track {
+    position: relative;
     height: 0.7rem;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
@@ -204,14 +238,28 @@
     overflow: hidden;
   }
 
-  .fill {
+  .seg {
+    position: absolute;
+    top: 0;
     height: 100%;
-    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
-    border-radius: 999px;
   }
 
-  /* The one-time grow of the bar as the run's XP lands. Longer/eased so it reads as "filling". */
-  .fill.animate {
+  /* What the player had banked in this rank before the run. */
+  .seg.base {
+    left: 0;
+    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
+    border-radius: 999px 0 0 999px;
+  }
+
+  /* This session's contribution — a distinct gold segment growing out from the base edge, so the
+     XP gained is visible as its own bar. */
+  .seg.gain {
+    background: linear-gradient(90deg, var(--color-sun), var(--color-coral));
+    border-radius: 0 999px 999px 0;
+  }
+
+  /* The one-time grow of the gain as the run's XP lands. Longer/eased so it reads as "filling". */
+  .seg.gain.animate {
     transition: width 0.9s cubic-bezier(0.2, 0.8, 0.3, 1);
   }
 

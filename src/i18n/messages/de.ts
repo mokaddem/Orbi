@@ -482,6 +482,7 @@ const de: typeof en = {
   },
   rank: {
     title: 'Entdecker-Rang',
+    openDetails: 'Rangdetails ansehen',
     level: 'Rang {n} von {total}',
     xp: '{xp} XP',
     xpTotal: '{xp} XP insgesamt',

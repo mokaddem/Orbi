@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { push } from 'svelte-spa-router';
+  import { push, router } from 'svelte-spa-router';
   import { t, localizedRegion } from '../../i18n';
   import {
     computeStats,
@@ -52,6 +52,20 @@
   let achievements = $state<AchievementView[]>([]);
   let rank = $state<RankState | null>(null);
   let loading = $state(true);
+
+  // Deep-link from Home's rank chip (`#/progress?focus=rank`): once the rank panel has rendered,
+  // scroll it into view. One-shot per mount; smooth unless reduced motion is on.
+  let rankPanelEl = $state<HTMLElement>();
+  let rankScrolled = false;
+  $effect(() => {
+    if (rankScrolled || !rankPanelEl) return;
+    if (new URLSearchParams(router.querystring ?? '').get('focus') !== 'rank') return;
+    rankScrolled = true;
+    rankPanelEl.scrollIntoView({
+      behavior: $prefs.reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  });
 
   // Combined "extra knowledge" surface (Phase 23): capitals + languages (+ industries later)
   // each get a compact meter, but only once that topic has been played, so they never clutter
@@ -214,7 +228,7 @@
 
     <!-- Explorer rank & XP (Phase 43): the continuous progression headline above the panels. -->
     {#if rank}
-      <div class="panel">
+      <div class="panel rank-panel" bind:this={rankPanelEl}>
         <h2>{$t('rank.title')}</h2>
         <RankPanel xp={rank.xp} progress={rank.progress} />
       </div>
@@ -586,6 +600,11 @@
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
     min-width: 0;
+  }
+
+  /* Leave a little headroom when deep-linked into via scrollIntoView (from Home's rank chip). */
+  .rank-panel {
+    scroll-margin-top: 1rem;
   }
 
   .panel h2 {

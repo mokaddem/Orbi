@@ -484,6 +484,7 @@ const fr: typeof en = {
   },
   rank: {
     title: 'Rang d’explorateur',
+    openDetails: 'Voir les détails du rang',
     level: 'Rang {n} sur {total}',
     xp: '{xp} XP',
     xpTotal: '{xp} XP au total',

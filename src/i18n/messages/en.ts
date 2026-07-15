@@ -464,6 +464,7 @@ const en = {
   },
   rank: {
     title: 'Explorer rank',
+    openDetails: 'View rank details',
     level: 'Rank {n} of {total}',
     xp: '{xp} XP',
     xpTotal: '{xp} XP total',
