@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t, locale, localizedName, localizedRegion } from '../../i18n';
-  import { computeStats, blitzEarnedSeconds, type StatsOverview } from '../../domain';
+  import { computeStats, blitzEarnedSeconds, sessionXp, type StatsOverview } from '../../domain';
   import { getCountry, type SessionRecord } from '../../data';
   import { formatPercent } from '../format';
   import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
@@ -149,6 +149,7 @@
         <ul class="recent-list">
           {#each recent as r (r.id)}
             {@const regionKey = r.regionFilter?.subregion ?? r.regionFilter?.region ?? null}
+            {@const xp = sessionXp(r.questions)}
             <li>
               <span class="recent-mode-ico" aria-hidden="true"><ModeIcon mode={r.mode} /></span>
               <span class="recent-date">{formatDate(r.finishedAt, $locale)}</span>
@@ -179,6 +180,10 @@
                     </span>
                   {/if}
                 </small>
+              </span>
+              <span class="recent-xp" title={$t('rank.earned', { xp: xp.toLocaleString() })}>
+                <Icon name="sparkles" size="0.85em" />
+                {$t('rank.earned', { xp: xp.toLocaleString() })}
               </span>
               <span class="recent-score">
                 {r.correct}/{r.total}
@@ -403,10 +408,30 @@
 
   .recent-list li {
     display: grid;
-    grid-template-columns: auto auto 1fr auto;
+    grid-template-columns: auto auto 1fr auto auto;
     align-items: center;
     gap: 0.75rem;
     padding: 0.55rem 0.2rem;
+  }
+
+  /* Per-session XP gain (Phase 43): the same "+N XP" as the Summary, as a compact accent chip
+     so each row shows what it contributed to the Explorer rank. */
+  .recent-xp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--color-accent-weak);
+    color: var(--color-accent-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .recent-xp :global(.icon) {
+    color: var(--color-accent);
   }
 
   .recent-mode-ico {

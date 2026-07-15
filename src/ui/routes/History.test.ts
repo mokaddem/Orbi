@@ -60,6 +60,15 @@ describe('History route (activity log)', () => {
     expect(screen.queryByText('Accuracy')).not.toBeInTheDocument();
   });
 
+  it('shows the XP gained on each recent-session row', async () => {
+    // 2 questions, 1 correct → 2×3 (questions) + 1×10 (correct) + 25 (session) = 41 XP.
+    await saveSession(summary());
+    render(History);
+
+    await screen.findByText('Recent sessions', {}, { timeout: 3000 });
+    expect(screen.getByText('+41 XP')).toBeInTheDocument();
+  });
+
   it('shows a mode glyph and a region silhouette on recent-session rows', async () => {
     await saveSession(summary({ mode: 'map-highlight', regionFilter: { region: 'Europe' } }));
     const { container } = render(History);
