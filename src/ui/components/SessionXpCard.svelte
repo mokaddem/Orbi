@@ -62,7 +62,7 @@
 
   // Grow the bar once, a beat after mount, so the eye registers the pre-run fill before the CSS
   // width transition animates it forward. Reduced motion jumps straight to the target, no delay.
-  const GROW_DELAY_MS = 500;
+  const GROW_DELAY_MS = 1000;
   let grown = $state(false);
   const fillPct = $derived(grown ? targetPct : startPct);
 
