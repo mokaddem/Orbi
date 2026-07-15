@@ -270,10 +270,17 @@ challenge is a natural XP event.
   `type==='challenge' && correct===total`). Handoff writables `lastChallengeSummary` / `pendingChallenge`
   added. Fast loop: **726 tests**, `check` 0/0, `lint` clean.
 
+  **Decision (owner, 2026-07-15): a Grandmaster Run does NOT feed spaced-repetition.** It is a
+  read-only *test* over mastery, not a training drill — so the stage-③ Play wiring records the finished
+  run to **history** (for XP / badges / stats via `saveSession`) but must **not** call `recordAnswer`.
+  This guarantees the single fatal miss can never create an SR lapse that demotes the very country/
+  mastery the challenge required to unlock. (`SessionType: 'challenge'` records are already excluded
+  from SR by construction — nothing writes SR for them once `recordAnswer` is skipped.)
+
   Still to do (stage ③+): the visual Play shell (full-region **search-list** + **flag-grid** pickers,
-  `cleared/total` HUD, one-life feedback, pass/fail Summary) wired to `saveSession`/`recordAnswer` on
-  finish; entry points (Progress family × continent + a Play challenge card, locked→unlocked); the 15
-  monotonic capstone achievements; EN/FR/DE `challenge.*` copy; headless verify.
+  `cleared/total` HUD, one-life feedback, pass/fail Summary) wired to `saveSession` **only** (no
+  `recordAnswer`) on finish; entry points (Progress family × continent + a Play challenge card,
+  locked→unlocked); the 15 monotonic capstone achievements; EN/FR/DE `challenge.*` copy; headless verify.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the
