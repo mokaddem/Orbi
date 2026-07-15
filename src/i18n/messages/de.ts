@@ -124,6 +124,7 @@ const de: typeof en = {
     training: 'Training',
     full: 'Grand Tour',
     blitz: 'Blitz',
+    challenge: 'Großmeister-Lauf',
   },
   play: {
     title: 'Spielen',
@@ -192,6 +193,38 @@ const de: typeof en = {
       didYouKnow: 'Schon gewusst?',
     },
     quit: 'Beenden',
+  },
+  challenge: {
+    name: 'Großmeister-Lauf',
+    proveIt: 'Großmeister-Lauf',
+    proveItAria: 'Großmeister-Lauf {family} für {region} starten',
+    certified: 'Großmeister',
+    lockedHint: 'Meistere {family} in {region}, um den Großmeister-Lauf freizuschalten',
+    prestige: 'Großmeister',
+    prestigeCount: '{done} / {total}',
+    prestigeComplete: 'Großmeister der Welt',
+    hud: {
+      cleared: '{cleared} / {total} geschafft',
+      oneLife: 'Ein Leben',
+      quit: 'Lauf beenden',
+    },
+    search: {
+      countryPlaceholder: 'Land eingeben…',
+      capitalPlaceholder: 'Hauptstadt eingeben…',
+      noMatch: 'Kein Treffer',
+      resultsAria: '{count} Länder',
+    },
+    summary: {
+      passTitle: 'Großmeister!',
+      passBody: '{family} · {region} — zertifiziert',
+      failTitle: 'Lauf beendet',
+      failBody: '{cleared} von {total} geschafft — dann {country} verpasst',
+      tryAgain: 'Erneut versuchen',
+    },
+    badge: {
+      title: 'Großmeister — {family} · {region}',
+      desc: 'Den {family}-Großmeister-Lauf in {region} geschafft — jedes Land, in beide Richtungen, ein Leben.',
+    },
   },
   practice: {
     title: 'Gezieltes Üben',

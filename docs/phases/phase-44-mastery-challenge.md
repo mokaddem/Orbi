@@ -1,6 +1,6 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~30% (domain + controller/persistence)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~45% (domain, controller/persistence, i18n + capstone achievements)
 · **Track:** v2.7 — Mastery capstone
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -143,7 +143,7 @@ challenge is a natural XP event.
       (existing jingle + `StreakBurst`); optional per-challenge best record (Daily-Challenge-style) per OQ.
 - [ ] Large-pool selection UX for big regions (type-ahead / searchable list / map-click fallback) per OQ6/7.
 - [ ] Entry points: Progress (family × region breakdown) + Play setup challenge card (+ optional Home chip).
-- [ ] EN/FR/DE strings (name, lock/unlock, progress, pass/flawless, badge); `messages.test.ts` parity green.
+- [x] EN/FR/DE strings (name, lock/unlock, progress, pass/flawless, badge); `messages.test.ts` parity green. *(stage ③a — `challenge.*` + `sessionType.challenge`)*
 - [ ] Tests: domain (unlock predicate, full-region options, clear-the-board queue + recycle + finish,
       pass/flawless) with injected RNG/clock; component (lock→unlock, full pool, board clear,
       celebration); headless full-clear drive on a small region.
@@ -281,6 +281,25 @@ challenge is a natural XP event.
   `cleared/total` HUD, one-life feedback, pass/fail Summary) wired to `saveSession` **only** (no
   `recordAnswer`) on finish; entry points (Progress family × continent + a Play challenge card,
   locked→unlocked); the 15 monotonic capstone achievements; EN/FR/DE `challenge.*` copy; headless verify.
+- **2026-07-15 — Stage ③ started; two remaining UI forks resolved with the owner.**
+  - **Entry points → Progress only.** No Play-setup card / Home chip: the Grandmaster Run launches from
+    the World Mastery breakdown, where a fully-mastered family × continent row's "prove it" launch
+    replaces the practise shortcut. (Keeps `Play.svelte` untouched, matching the separate-store design.)
+  - **Capstone reward → folded into the World Mastery panel** (not a separate badges grid), design
+    **A + C** from a faithful glance-prototype (owner pick): *quiet in-place gilded cells* (a certified
+    family bar gilds gold + crown) **plus** a *"Grandmaster · X/15" prestige counter* as the panel
+    headline, gilding fully at 15/15. The 15 capstones live here, not in the achievements grid.
+  - **Stage ③a landed** (i18n + rewards domain): `masteryFamilyOf(mode)` (`modes.ts`); the 15 monotonic
+    `grandmaster-{family}-{continent}` capstones in `ACHIEVEMENTS` (`capstone`/`family` flags,
+    `grandmasterId`, `GRANDMASTER_TOTAL = 15`), unlocked purely by a clean-sweep `type:'challenge'`
+    `SessionRecord` for that family × continent (fail/quit never certify); a top-level `challenge.*`
+    EN/FR/DE section (run name, prove-it/prestige, one-life HUD, search-list, pass/fail Summary, and a
+    **composed** badge title/desc from existing family/region labels — no 90 hand-written strings) plus
+    `sessionType.challenge`. Fast loop: **736 tests**, `check` 0/0, `lint` clean.
+
+  Still to do (stages ③b–③e): the `/challenge` Play shell + `ChallengeSearchList` + finish wiring;
+  the Summary pass/fail branch; the Progress A+C reward (prestige bar + gilded cells + prove-it launch);
+  headless verify + PRD/status close-out.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the

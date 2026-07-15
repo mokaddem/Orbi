@@ -115,6 +115,7 @@ const en = {
     training: 'Training',
     full: 'Grand Tour',
     blitz: 'Blitz',
+    challenge: 'Grandmaster Run',
   },
   play: {
     title: 'Play',
@@ -183,6 +184,44 @@ const en = {
       didYouKnow: 'Did you know?',
     },
     quit: 'Quit',
+  },
+  challenge: {
+    name: 'Grandmaster Run',
+    // Entry point in the World Mastery panel: shown on a fully-mastered family × continent.
+    proveIt: 'Grandmaster Run',
+    proveItAria: 'Start the {family} Grandmaster Run for {region}',
+    certified: 'Grandmaster',
+    lockedHint: 'Master {family} in {region} to unlock its Grandmaster Run',
+    // The prestige headline: how many family × continent runs are certified.
+    prestige: 'Grandmaster',
+    prestigeCount: '{done} / {total}',
+    prestigeComplete: 'Grandmaster of the World',
+    // In-run HUD.
+    hud: {
+      cleared: '{cleared} / {total} cleared',
+      oneLife: 'One life',
+      quit: 'Quit run',
+    },
+    // Full-region pickers (no 4-choice crutch): a type-ahead over the whole continent.
+    search: {
+      countryPlaceholder: 'Type a country…',
+      capitalPlaceholder: 'Type a capital…',
+      noMatch: 'No match',
+      resultsAria: '{count} countries',
+    },
+    // Pass / fail on the Summary.
+    summary: {
+      passTitle: 'Grandmaster!',
+      passBody: '{family} · {region} — certified',
+      failTitle: 'Run ended',
+      failBody: 'Cleared {cleared} of {total} — then missed {country}',
+      tryAgain: 'Try again',
+    },
+    // Composed capstone-badge copy (family + region come from existing labels).
+    badge: {
+      title: 'Grandmaster — {family} · {region}',
+      desc: 'Cleared the {region} {family} Grandmaster Run — every country, both directions, one life.',
+    },
   },
   practice: {
     title: 'Targeted practice',

@@ -13,6 +13,7 @@
 
 import type { SessionRecord } from '../data/persistence/types';
 import type { MasteryResult } from './mastery';
+import { FAMILIES, type MasteryFamily, masteryFamilyOf } from './modes';
 import type { StatsOverview } from './stats';
 import type { StreakInfo } from './streak';
 
@@ -58,11 +59,17 @@ export interface AchievementContext {
 }
 
 /** One badge definition. `region` is set only for the per-continent badges; `topic` only for
- *  the extra-knowledge badges (capitals / languages), which the UI groups out of the main grid. */
+ *  the extra-knowledge badges (capitals / languages), which the UI groups out of the main grid;
+ *  `capstone` + `family` mark the Phase-44 Grandmaster Run badges, which the UI surfaces inside
+ *  the World Mastery panel (as gilded cells) rather than in the achievements grid. */
 export interface AchievementDef {
   id: string;
   region?: (typeof CONTINENTS)[number];
   topic?: ExtraTopic;
+  /** A Grandmaster Run capstone (Phase 44) — shown in the mastery panel, not the badges grid. */
+  capstone?: boolean;
+  /** The core family a capstone certifies (Grandmaster badges only). */
+  family?: MasteryFamily;
   predicate: (ctx: AchievementContext) => boolean;
 }
 
@@ -82,6 +89,36 @@ function sessionAvgMs(rec: SessionRecord): number {
 function regionComplete(mastery: MasteryResult, region: string): boolean {
   const r = mastery.byRegion.find((x) => x.region === region);
   return !!r && r.total > 0 && r.mastered === r.total;
+}
+
+/** The stable badge id for a family × continent Grandmaster Run capstone (Phase 44). */
+export function grandmasterId(family: MasteryFamily, region: string): string {
+  return `grandmaster-${family}-${region.toLowerCase()}`;
+}
+
+/** How many Grandmaster Run capstones exist — one per core family × continent (3 × 5 = 15). */
+export const GRANDMASTER_TOTAL = FAMILIES.length * CONTINENTS.length;
+
+/**
+ * Whether a **clean-sweep** Grandmaster Run for `family × region` is present in history — the
+ * capstone-unlock signal (Phase 44). A run persists as an ordinary `SessionRecord` tagged
+ * `type: 'challenge'` with a representative `mode` (the family's first direction) and the
+ * continent as its `regionFilter.region`; a pass is the one-life clean sweep (`correct === total`).
+ * A failed run (a single miss ⇒ `correct < total`) or a quit never certifies.
+ */
+function grandmasterCertified(
+  sessions: readonly SessionRecord[],
+  family: MasteryFamily,
+  region: string,
+): boolean {
+  return sessions.some(
+    (s) =>
+      s.type === 'challenge' &&
+      s.total > 0 &&
+      s.correct === s.total &&
+      s.regionFilter?.region === region &&
+      masteryFamilyOf(s.mode) === family,
+  );
 }
 
 /**
@@ -171,6 +208,18 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   ...extraTopicBadges('capitals', (ctx) => ctx.capitalMastery),
   ...extraTopicBadges('languages', (ctx) => ctx.languageMastery),
   ...extraTopicBadges('industries', (ctx) => ctx.industryMastery),
+  // Grandmaster Run capstones (Phase 44) — one per core family × continent (3 × 5 = 15). Monotonic
+  // like the mastery badges (never revoked), but surfaced in the World Mastery panel as gilded
+  // cells rather than in the badges grid (hence `capstone`). Unlocked by a clean-sweep one-life run.
+  ...FAMILIES.flatMap((f) =>
+    CONTINENTS.map((region): AchievementDef => ({
+      id: grandmasterId(f.key, region),
+      region,
+      family: f.key,
+      capstone: true,
+      predicate: ({ sessions }) => grandmasterCertified(sessions, f.key, region),
+    })),
+  ),
 ];
 
 /** All badge ids, in display order — handy for i18n parity checks and iteration. */

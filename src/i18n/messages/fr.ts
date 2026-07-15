@@ -118,6 +118,7 @@ const fr: typeof en = {
     training: 'Entraînement',
     full: 'Grand Tour',
     blitz: 'Blitz',
+    challenge: 'Défi du grand maître',
   },
   play: {
     title: 'Jouer',
@@ -186,6 +187,38 @@ const fr: typeof en = {
       didYouKnow: 'Le saviez-vous ?',
     },
     quit: 'Quitter',
+  },
+  challenge: {
+    name: 'Défi du grand maître',
+    proveIt: 'Défi du grand maître',
+    proveItAria: 'Lancer le défi du grand maître {family} pour {region}',
+    certified: 'Grand maître',
+    lockedHint: 'Maîtrisez {family} en {region} pour débloquer son défi du grand maître',
+    prestige: 'Grand maître',
+    prestigeCount: '{done} / {total}',
+    prestigeComplete: 'Grand maître du monde',
+    hud: {
+      cleared: '{cleared} / {total} validés',
+      oneLife: 'Une seule vie',
+      quit: 'Quitter le défi',
+    },
+    search: {
+      countryPlaceholder: 'Tapez un pays…',
+      capitalPlaceholder: 'Tapez une capitale…',
+      noMatch: 'Aucun résultat',
+      resultsAria: '{count} pays',
+    },
+    summary: {
+      passTitle: 'Grand maître !',
+      passBody: '{family} · {region} — certifié',
+      failTitle: 'Défi terminé',
+      failBody: '{cleared} sur {total} validés — puis {country} manqué',
+      tryAgain: 'Réessayer',
+    },
+    badge: {
+      title: 'Grand maître — {family} · {region}',
+      desc: 'Défi du grand maître {family} en {region} réussi — chaque pays, dans les deux sens, une seule vie.',
+    },
   },
   practice: {
     title: 'Entraînement ciblé',

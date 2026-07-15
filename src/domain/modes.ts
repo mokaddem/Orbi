@@ -137,3 +137,12 @@ export function isIndustryMode(mode: GameMode): boolean {
 export function isMasteryMode(mode: GameMode): boolean {
   return MASTERY_MODES.includes(mode);
 }
+
+/**
+ * The core {@link FAMILIES} family a mode belongs to (Map / Flags / Capitals), or `null` for the
+ * extra-knowledge modes (languages / industries) that aren't part of a core family. Used to map a
+ * challenge {@link SessionRecord}'s representative mode back to its family for the capstone badges.
+ */
+export function masteryFamilyOf(mode: GameMode): MasteryFamily | null {
+  return FAMILIES.find((f) => f.modes.includes(mode))?.key ?? null;
+}
