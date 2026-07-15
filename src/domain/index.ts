@@ -220,3 +220,16 @@ export {
   computeBlitzBests,
   blitzSlotMatches,
 } from './blitz';
+
+export {
+  type ChallengeSlot,
+  type ChallengeState,
+  type ChallengeConfig,
+  type ChallengeSummary,
+  familyModes,
+  isChallengeUnlocked,
+  buildChallengeQueue,
+  buildChallengeQuestion,
+  ChallengeSession,
+  createChallenge,
+} from './challenge';

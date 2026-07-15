@@ -1,6 +1,6 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~15% (domain layer)
 · **Track:** v2.7 — Mastery capstone
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -230,6 +230,36 @@ challenge is a natural XP event.
   drive of a small region.
 
 ## Progress log
+- **2026-07-15 — Clarifying round resolved; domain build started (on explicit owner approval).**
+  Open-question resolutions (owner picks):
+  - **OQ1 (flavor/strictness) → The Gauntlet (one life).** A single miss ends the run; a clean
+    sweep = pass. This settles **OQ5 (no recycle — one life)** and **OQ4 (no error budget — a perfect
+    pass is required)**. Since every finish is flawless-by-definition, there is **one** capstone tier,
+    not a separate gold tier.
+  - **OQ3/OQ4 (direction) → both, interleaved** — matches Phase 41's "both directions ⇒ mastered".
+    Each country is asked in both of the family's directions (2N question-slots).
+  - **OQ6/OQ7 (large pools + World) → continents only; World excluded.** Only the 5 UN continents
+    (Africa/Asia/Europe/Americas/Oceania) — no sub-region runs, no World (too long to complete). Runs
+    are ~28 (Oceania) to ~108 (Africa) one-life questions. A type-ahead **search list** handles the
+    1-of-N pick for name/capital directions; a searchable **flag grid** for country→flag; map-locate
+    stays map-click.
+  - **OQ2 (unlock gate) → existing Phase 41 mastery** — a family × continent is unlocked once that
+    continent's family is fully mastered (both directions of every applicable country). Pure function
+    of `computeFamilyMastery`; no new store to gate.
+  - **OQ8 (reward/retention) → single monotonic capstone badge** per family × continent (3 × 5 = 15);
+    **no decay** (defer — it would break the never-revoked invariant). A "Grand Slam: all 15" meta is a
+    possible later add.
+  - **OQ9 (naming) → "Grandmaster Run"** (internal `SessionType: 'challenge'`).
+  - **OQ10 (timed/PB) → MVP pass/fail, no timer.** A timed variant is a possible fast-follow.
+
+  **Domain layer landed** (`src/domain/challenge.ts` + `challenge.test.ts`): `'challenge'` added to
+  `SessionType`; `isChallengeUnlocked(mastery, family, region)` (pure over `computeFamilyMastery`);
+  `buildChallengeQueue` (2N both-direction, mode-eligible slots, shuffled via injected RNG);
+  `buildChallengeQuestion` (fixed full-continent options that never shrink — `map-locate` gets none,
+  `country-to-capital` gets attribute options); and a one-life `ChallengeSession` driver (clear-the-board,
+  fail-fast on a miss, pass = clean sweep) — deterministic given injected `rng`/`now`, `QuizSession`
+  left untouched. Still to do: full-region option UI (search list + flag grid), engine/launch wiring,
+  entry points, capstone achievements, i18n, headless verify.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the
