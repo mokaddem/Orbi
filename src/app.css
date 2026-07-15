@@ -26,6 +26,16 @@
   --color-violet: #7b6bd6; /* Phase 35: "Extra" mode family + the Grand Tour badge */
   --color-violet-weak: #ece9fb;
 
+  /* Grandmaster gold (Phase 44) — the capstone reward hue. Deliberately *metallic* (a gradient
+     with a deep stroke + sheen) so a certified family × continent reads as premium, distinct from
+     the flat sun-yellow used for the Capitals family. Used by the Grandmaster Run Summary + the
+     gilded World Mastery cells / prestige bar. */
+  --color-gold: #e8a913;
+  --color-gold-deep: #a86e08;
+  --color-gold-ink: #5e3d02;
+  --color-gold-weak: #fbeecb;
+  --gold-metal: linear-gradient(135deg, #ffe083 0%, #f5c542 42%, #e0a020 100%);
+
   /* Map palette (Phase 34): cool off-white land on a soft teal sea with a legible cool
      border, so every country reads on the mint ground. The highlighted country keeps the
      turquoise tint + darker outline (unchanged from the signed-off Playful reveal). */

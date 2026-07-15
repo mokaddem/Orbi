@@ -1,6 +1,6 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~60% (domain, store, i18n, capstones, `/challenge` Play shell)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~75% (domain, store, i18n, capstones, `/challenge` shell, Summary pass/fail)
 · **Track:** v2.7 — Mastery capstone
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -139,8 +139,8 @@ challenge is a natural XP event.
       for pick-from-list modes (bypassing `choicesPerQuestion` / `selectDistractors`); map-locate
       unchanged (click-only). No elimination shrink of options. *(stage 1)*
 - [x] Both-directions interleave for the run. *(stage 1 — `buildChallengeQueue`, 2N slots)*
-- [ ] Pass grading + capstone achievement(s) in `ACHIEVEMENTS`, celebrated on finish
-      (existing jingle + `StreakBurst`). *(grading stage 1; 15 capstones stage ③a; celebration stage ③c)*
+- [x] Pass grading + capstone achievement(s) in `ACHIEVEMENTS`, celebrated on finish
+      (`perfect` jingle + `StreakBurst`). *(grading stage 1; 15 capstones stage ③a; Summary pass/fail + celebration stage ③c)*
 - [x] Large-pool selection UX — a type-ahead **search list** for name/capital picks + a scrollable
       **flag grid** for country→flag; map-locate stays map-click. *(stage ③b — `ChallengeSearchList`)*
 - [ ] Entry points: Progress (family × region breakdown) + Play setup challenge card (+ optional Home chip).
@@ -309,8 +309,18 @@ challenge is a natural XP event.
   a quit abandons with no write. Tests: `ChallengeSearchList` (filter/pick/Enter/reveal) + the route
   (boots, clears, one-miss→failed summary, quit→idle). Fast loop: **747 tests**, `check` 0/0, `lint` clean.
 
-  Still to do (stages ③c–③e): the Summary pass/fail branch + pass celebration; the Progress A+C reward
-  (prestige bar + gilded cells + prove-it launch); the integrated headless drive + PRD/status close-out.
+  **Stage ③c landed** (the Summary): a `type === 'challenge'` branch reading the rich
+  `lastChallengeSummary`. A **pass** shows a metallic-gold crown hero — "Grandmaster! · {family} ·
+  {region} — certified" + a one-shot `StreakBurst` (the `perfect` jingle already played as the run
+  ended) + a played-flags fan; a **fail** shows an encouraging Orbi + "Run ended · cleared {cleared}
+  of {total}" and the country the run died on. The meta line names the run + continent (not a single
+  mode); the XP / rank-up cards stay (a run still earns XP); actions are **Try again** (re-stage the
+  same family × continent) + **New game** — no "train these" (a run is a test). Shared metallic-gold
+  tokens added to `app.css` (`--color-gold*`, `--gold-metal`) for reuse by the ③d panel gilding.
+  Fast loop: **750 tests**, `check` 0/0, `lint` clean.
+
+  Still to do (stages ③d–③e): the Progress A+C reward (prestige bar + gilded cells + prove-it launch);
+  the integrated headless drive + PRD/status close-out.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the

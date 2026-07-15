@@ -4,8 +4,9 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Summary from './Summary.svelte';
 import { lastBlitzResult, lastSummary, pendingConfig, play } from '../stores/game';
+import { lastChallengeSummary, pendingChallenge } from '../stores/challenge';
 import { getCountry } from '../../data';
-import type { GameMode, SessionSummary, SessionType } from '../../domain';
+import type { ChallengeSummary, GameMode, SessionSummary, SessionType } from '../../domain';
 import { setLocale } from '../../i18n';
 
 const bg = getCountry('BG')!;
@@ -145,5 +146,103 @@ describe('Summary route — Blitz result (Phase 42)', () => {
     lastBlitzResult.set(null);
     const { container } = render(Summary);
     expect(container.querySelector('.blitz-result')).not.toBeInTheDocument();
+  });
+});
+
+describe('Summary route — Grandmaster Run (Phase 44)', () => {
+  const fr = getCountry('FR')!;
+
+  function challengeSummary(over: Partial<ChallengeSummary> = {}): ChallengeSummary {
+    return {
+      type: 'challenge',
+      family: 'flags',
+      region: 'Oceania',
+      total: 28,
+      cleared: 28,
+      passed: true,
+      missed: null,
+      startedAt: 0,
+      finishedAt: 1000,
+      durationMs: 1000,
+      results: [],
+      ...over,
+    };
+  }
+
+  afterEach(() => {
+    lastChallengeSummary.set(null);
+    pendingChallenge.set(null);
+  });
+
+  it('a passed run shows the certified crown hero + "Try again", not the pose reaction', () => {
+    lastSummary.set(
+      summary({
+        type: 'challenge',
+        mode: 'flag-to-country',
+        total: 28,
+        correct: 28,
+        missed: [],
+        regionFilter: { region: 'Oceania' },
+      }),
+    );
+    lastChallengeSummary.set(challengeSummary());
+    render(Summary);
+
+    // Meta names the run + continent (not a single mode) and the pass hero certifies.
+    expect(screen.getByText('Grandmaster Run')).toBeInTheDocument();
+    expect(screen.getByText('Grandmaster!')).toBeInTheDocument();
+    expect(screen.getByText(/Flags · Oceania — certified/)).toBeInTheDocument();
+    // Challenge actions: retry the run, no "train these".
+    expect(screen.getByText('Try again')).toBeInTheDocument();
+    expect(screen.queryByText('Train')).not.toBeInTheDocument();
+  });
+
+  it('a failed run shows how far it got and the country it died on', () => {
+    lastSummary.set(
+      summary({
+        type: 'challenge',
+        mode: 'map-highlight',
+        total: 90,
+        correct: 42,
+        missed: [fr],
+        regionFilter: { region: 'Europe' },
+      }),
+    );
+    lastChallengeSummary.set(
+      challengeSummary({
+        family: 'map',
+        region: 'Europe',
+        total: 90,
+        cleared: 42,
+        passed: false,
+        missed: fr,
+      }),
+    );
+    render(Summary);
+
+    expect(screen.getByText('Run ended')).toBeInTheDocument();
+    expect(screen.getByText(/Cleared 42 of 90/)).toBeInTheDocument();
+    // The fatal country is named (in the body and the chip).
+    expect(screen.getAllByText(fr.name.en).length).toBeGreaterThan(0);
+    // The generic "Missed (N)" list is suppressed — the hero owns the miss.
+    expect(screen.queryByText(/Missed \(/)).not.toBeInTheDocument();
+  });
+
+  it('"Try again" re-stages the same family × continent and routes to the run', async () => {
+    lastSummary.set(
+      summary({
+        type: 'challenge',
+        mode: 'flag-to-country',
+        total: 28,
+        correct: 28,
+        missed: [],
+        regionFilter: { region: 'Oceania' },
+      }),
+    );
+    lastChallengeSummary.set(challengeSummary());
+    render(Summary);
+
+    await fireEvent.click(screen.getByText('Try again'));
+    expect(get(pendingChallenge)).toEqual({ family: 'flags', region: 'Oceania' });
   });
 });

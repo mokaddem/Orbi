@@ -3,6 +3,7 @@
   import { t, localizedName, localizedRegion } from '../../i18n';
   import { formatDuration, formatPercent } from '../format';
   import { play, lastSummary, lastBlitzResult, pendingConfig } from '../stores/game';
+  import { challenge, lastChallengeSummary, pendingChallenge } from '../stores/challenge';
   import {
     loadRank,
     loadRecommendations,
@@ -11,6 +12,7 @@
     type RankState,
   } from '../stores/persistence';
   import {
+    masteryFamilyOf,
     pickSummaryReaction,
     sessionXp,
     sessionXpBreakdown,
@@ -41,6 +43,23 @@
   const xpEarned = $derived($lastSummary ? sessionXp($lastSummary.results) : 0);
   const xpBreakdown = $derived($lastSummary ? sessionXpBreakdown($lastSummary.results) : []);
   let rank = $state<RankState | null>(null);
+
+  // Grandmaster Run summary (Phase 44): a challenge finishes as an ordinary `type: 'challenge'`
+  // SessionSummary (so XP / rank still apply), with the richer pass/fail detail carried alongside in
+  // `lastChallengeSummary`. Fall back to the standard summary if that handoff was lost (e.g. reload):
+  // a pass is the clean sweep (`correct === total`), and the family/region are recoverable from it.
+  const isChallenge = $derived($lastSummary?.type === 'challenge');
+  const gm = $derived(isChallenge ? $lastChallengeSummary : null);
+  const gmFamily = $derived(
+    gm?.family ?? ($lastSummary ? masteryFamilyOf($lastSummary.mode) : null),
+  );
+  const gmRegion = $derived(gm?.region ?? $lastSummary?.regionFilter?.region ?? null);
+  const gmPassed = $derived(
+    gm
+      ? gm.passed
+      : !!$lastSummary && $lastSummary.total > 0 && $lastSummary.correct === $lastSummary.total,
+  );
+  const gmMissed: Country | null = $derived(gm?.missed ?? $lastSummary?.missed[0] ?? null);
 
   // The rank bar's fill *before* this run, within the current rank, so the card can animate it
   // growing forward by exactly the "+N XP" earned. Reconstruct the pre-run total (current total −
@@ -118,6 +137,40 @@
       rankBurstKey += 1;
     });
   });
+
+  // "Grandmaster!" celebration (Phase 44): a passed run fires the escalating burst once, anchored on
+  // the crown. The `perfect` jingle already played as the run ended (on the Challenge route), so this
+  // is visual only. Obeys reduced motion, like the Blitz / rank-up bursts; its own anchor + guard.
+  let gmCrownEl = $state<HTMLElement>();
+  let gmBurstTier = $state(-1);
+  let gmBurstX = $state(0);
+  let gmBurstY = $state(0);
+  let gmBurstKey = $state(0);
+  let gmBurstFired = false;
+
+  $effect(() => {
+    if (!isChallenge || !gmPassed || gmBurstFired || !gmCrownEl) return;
+    gmBurstFired = true;
+    if ($prefs.reduceMotion || reducedMotionQuery?.matches) return;
+    requestAnimationFrame(() => {
+      const el = gmCrownEl;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      gmBurstX = r.left + r.width / 2;
+      gmBurstY = r.top + r.height / 2;
+      gmBurstTier = 6; // a big, warm burst — a "peak" without the tier-8 screen flash
+      gmBurstKey += 1;
+    });
+  });
+
+  // Re-stage the just-played Grandmaster Run (same family × continent) and relaunch it.
+  function retryChallenge(): void {
+    if (!gmFamily || !gmRegion) return;
+    challenge.reset();
+    lastChallengeSummary.set(null);
+    pendingChallenge.set({ family: gmFamily, region: gmRegion });
+    push('/challenge');
+  }
 
   // Orbi's reaction to the result (Phase 33): the pose/motion come from a pure helper; the
   // matching headline is looked up here. Only the four finished-session poses appear.
@@ -219,37 +272,97 @@
     {@const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region ?? null}
     {@const reaction = pickSummaryReaction({ accuracy: s.accuracy, total: s.total })}
     <p class="meta">
-      <span class="meta-ico" aria-hidden="true"><ModeIcon mode={s.mode} /></span>
-      <span>{$t(MODE_LABEL[s.mode] ?? s.mode)}</span>
-      <span class="dot" aria-hidden="true">·</span>
-      <span>{$t(`sessionType.${s.type}`)}</span>
-      {#if regionKey}
+      {#if isChallenge}
+        <!-- A Grandmaster Run interleaves both directions, so name the run + its continent
+             rather than a single mode. -->
+        <span class="meta-ico" aria-hidden="true"><Icon name="crown" size="1.15em" /></span>
+        <span>{$t('challenge.name')}</span>
+        {#if gmRegion}
+          <span class="dot" aria-hidden="true">·</span>
+          <span class="meta-region">
+            <span class="meta-region-ico" aria-hidden="true"><RegionIcon region={gmRegion} /></span>
+            {$localizedRegion(gmRegion)}
+          </span>
+        {/if}
+      {:else}
+        <span class="meta-ico" aria-hidden="true"><ModeIcon mode={s.mode} /></span>
+        <span>{$t(MODE_LABEL[s.mode] ?? s.mode)}</span>
         <span class="dot" aria-hidden="true">·</span>
-        <span class="meta-region">
-          <span class="meta-region-ico" aria-hidden="true"
-            ><RegionIcon region={s.regionFilter?.region ?? ''} /></span
-          >
-          {$localizedRegion(regionKey)}
-        </span>
+        <span>{$t(`sessionType.${s.type}`)}</span>
+        {#if regionKey}
+          <span class="dot" aria-hidden="true">·</span>
+          <span class="meta-region">
+            <span class="meta-region-ico" aria-hidden="true"
+              ><RegionIcon region={s.regionFilter?.region ?? ''} /></span
+            >
+            {$localizedRegion(regionKey)}
+          </span>
+        {/if}
       {/if}
     </p>
 
-    <!-- Reactive Orbi (Phase 33): pose + motion chosen from how the run went. Decorative —
-         the headline carries the meaning for assistive tech. -->
-    <div class="result-hero">
-      <Mascot pose={reaction.pose} animate={reaction.animate} size={104} />
-      {#if REACTION_HEADLINE[reaction.pose]}
-        <p class="result-headline">{$t(REACTION_HEADLINE[reaction.pose] as string)}</p>
-      {/if}
-      <!-- Survival "region cleared" win (Phase 40): a small badge marking that every country
-           in the pool was answered correctly, distinct from the pose-driven score reaction. -->
-      {#if s.cleared}
-        <p class="cleared-badge">
-          <Icon name="trophy" size="0.95em" />
-          {$t('summary.regionCleared')}
-        </p>
-      {/if}
-    </div>
+    {#if isChallenge}
+      <!-- Grandmaster Run result (Phase 44): a crowned "certified" hero on a clean sweep, or an
+           encouraging "run ended — you missed X" on the fatal miss. All-or-nothing, so this
+           replaces the accuracy-graded pose reaction. -->
+      <div class="gm-result" class:passed={gmPassed} class:failed={!gmPassed}>
+        {#if gmPassed}
+          <span class="gm-crown" bind:this={gmCrownEl} aria-hidden="true">
+            <Icon name="crown" size={56} />
+          </span>
+          <p class="gm-title">{$t('challenge.summary.passTitle')}</p>
+          <p class="gm-body">
+            {$t('challenge.summary.passBody', {
+              family: gmFamily ? $t(`modes.group.${gmFamily}`) : '',
+              region: gmRegion ? $localizedRegion(gmRegion) : '',
+            })}
+          </p>
+          {@const flags = sessionFlags(s.results)}
+          {#if flags.length > 1}
+            <div class="flag-fan" aria-hidden="true">
+              {#each flags as country, i (country.iso2)}
+                <span class="fan-flag" style="--i: {i - (flags.length - 1) / 2}">
+                  <Flag {country} />
+                </span>
+              {/each}
+            </div>
+          {/if}
+        {:else}
+          <Mascot pose="encouraging" animate="wiggle" size={96} />
+          <p class="gm-title fail">{$t('challenge.summary.failTitle')}</p>
+          <p class="gm-body">
+            {$t('challenge.summary.failBody', {
+              cleared: gm?.cleared ?? s.correct,
+              total: gm?.total ?? s.total,
+              country: gmMissed ? $localizedName(gmMissed) : '',
+            })}
+          </p>
+          {#if gmMissed}
+            <span class="gm-missed">
+              <span class="gm-missed-flag"><Flag country={gmMissed} /></span>
+              {$localizedName(gmMissed)}
+            </span>
+          {/if}
+        {/if}
+      </div>
+    {:else}
+      <!-- Reactive Orbi (Phase 33): pose + motion chosen from how the run went. Decorative —
+           the headline carries the meaning for assistive tech. -->
+      <div class="result-hero">
+        <Mascot pose={reaction.pose} animate={reaction.animate} size={104} />
+        {#if REACTION_HEADLINE[reaction.pose]}
+          <p class="result-headline">{$t(REACTION_HEADLINE[reaction.pose] as string)}</p>
+        {/if}
+        <!-- Survival "region cleared" win (Phase 40): a small badge marking that every country
+             in the pool was answered correctly, distinct from the pose-driven score reaction. -->
+        {#if s.cleared}
+          <p class="cleared-badge">
+            <Icon name="trophy" size="0.95em" />
+            {$t('summary.regionCleared')}
+          </p>
+        {/if}
+      </div>
+    {/if}
 
     <!-- Blitz result (Phase 42): points are the headline, with the personal best beneath — or a
          celebratory "new best!" banner (which the burst above anchors to) when it was beaten. -->
@@ -316,57 +429,71 @@
       </div>
     {/if}
 
-    <div class="missed">
-      {#if s.missed.length === 0}
-        {@const flags = sessionFlags(s.results)}
-        <div class="perfect-state">
-          <p class="perfect">{$t('summary.noneMissed')}</p>
-          {#if flags.length > 1}
-            <div class="flag-fan" aria-hidden="true">
-              {#each flags as country, i (country.iso2)}
-                <span class="fan-flag" style="--i: {i - (flags.length - 1) / 2}">
-                  <Flag {country} />
-                </span>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {:else}
-        <h2>{$t('summary.missedTitle', { count: s.missed.length })}</h2>
-        <ul class="missed-list">
-          {#each s.missed as country (country.iso2)}
-            <li>
-              <span class="missed-flag"><Flag {country} alt={$localizedName(country)} /></span>
-              <span class="missed-name">{$localizedName(country)}</span>
-            </li>
-          {/each}
-        </ul>
-      {/if}
-    </div>
+    {#if !isChallenge}
+      <div class="missed">
+        {#if s.missed.length === 0}
+          {@const flags = sessionFlags(s.results)}
+          <div class="perfect-state">
+            <p class="perfect">{$t('summary.noneMissed')}</p>
+            {#if flags.length > 1}
+              <div class="flag-fan" aria-hidden="true">
+                {#each flags as country, i (country.iso2)}
+                  <span class="fan-flag" style="--i: {i - (flags.length - 1) / 2}">
+                    <Flag {country} />
+                  </span>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {:else}
+          <h2>{$t('summary.missedTitle', { count: s.missed.length })}</h2>
+          <ul class="missed-list">
+            {#each s.missed as country (country.iso2)}
+              <li>
+                <span class="missed-flag"><Flag {country} alt={$localizedName(country)} /></span>
+                <span class="missed-name">{$localizedName(country)}</span>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+    {/if}
 
     {#if recs && recs.length}
       <NextUpCard rec={recs[0]} />
     {/if}
 
     <div class="actions">
-      <button type="button" class="primary" onclick={retry}>
-        <Icon name="repeat" size="1em" />
-        {$t('summary.retry')}
-      </button>
-      <button
-        type="button"
-        class="secondary"
-        onclick={trainMissed}
-        disabled={s.missed.length === 0}
-        title={s.missed.length === 0 ? $t('summary.trainNone') : $t('summary.trainThese')}
-      >
-        <Icon name="train" size="1em" />
-        {$t('summary.train')}
-      </button>
-      <button type="button" class="ghost" onclick={newGame}>
-        <Icon name="play" size="1em" />
-        {$t('summary.newGame')}
-      </button>
+      {#if isChallenge}
+        <!-- A Grandmaster Run is a test, not a drill: retry the same run; no "train these". -->
+        <button type="button" class="primary" onclick={retryChallenge}>
+          <Icon name="crown" size="1em" />
+          {$t('challenge.summary.tryAgain')}
+        </button>
+        <button type="button" class="ghost" onclick={newGame}>
+          <Icon name="play" size="1em" />
+          {$t('summary.newGame')}
+        </button>
+      {:else}
+        <button type="button" class="primary" onclick={retry}>
+          <Icon name="repeat" size="1em" />
+          {$t('summary.retry')}
+        </button>
+        <button
+          type="button"
+          class="secondary"
+          onclick={trainMissed}
+          disabled={s.missed.length === 0}
+          title={s.missed.length === 0 ? $t('summary.trainNone') : $t('summary.trainThese')}
+        >
+          <Icon name="train" size="1em" />
+          {$t('summary.train')}
+        </button>
+        <button type="button" class="ghost" onclick={newGame}>
+          <Icon name="play" size="1em" />
+          {$t('summary.newGame')}
+        </button>
+      {/if}
     </div>
 
     <!-- New-best burst overlay (Phase 42): fixed-position, so its place in the tree is immaterial;
@@ -382,6 +509,13 @@
     {#if rankBurstTier >= 0}
       {#key rankBurstKey}
         <StreakBurst tier={rankBurstTier} x={rankBurstX} y={rankBurstY} />
+      {/key}
+    {/if}
+
+    <!-- Grandmaster "certified!" burst overlay (Phase 44): fires once on a passed run. -->
+    {#if gmBurstTier >= 0}
+      {#key gmBurstKey}
+        <StreakBurst tier={gmBurstTier} x={gmBurstX} y={gmBurstY} />
       {/key}
     {/if}
   {/if}
@@ -534,6 +668,92 @@
     color: var(--color-correct);
     font-weight: 800;
     font-size: 0.9rem;
+  }
+
+  /* Grandmaster Run result hero (Phase 44). */
+  .gm-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    margin-top: -0.25rem;
+  }
+
+  /* Certified: a metallic gold crown disc, echoing the gilded World Mastery cells. */
+  .gm-crown {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 999px;
+    background: var(--gold-metal);
+    border: 2px solid var(--color-gold-deep);
+    color: var(--color-gold-ink);
+    box-shadow: 0 6px 16px -4px rgb(168 110 8 / 55%);
+    animation: gm-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  @keyframes gm-pop {
+    0% {
+      transform: scale(0.6) rotate(-8deg);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.12) rotate(2deg);
+    }
+    100% {
+      transform: scale(1) rotate(0);
+      opacity: 1;
+    }
+  }
+
+  .gm-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .gm-result.passed .gm-title {
+    color: var(--color-gold-deep);
+  }
+
+  .gm-title.fail {
+    color: var(--color-text);
+  }
+
+  .gm-body {
+    margin: 0;
+    color: var(--color-muted);
+    font-weight: 600;
+  }
+
+  .gm-result.passed .gm-body {
+    color: var(--color-gold-deep);
+  }
+
+  /* The country the fatal miss died on — its flag + name, tinted "wrong". */
+  .gm-missed {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.1rem;
+    padding: 0.3rem 0.7rem 0.3rem 0.4rem;
+    border-radius: 999px;
+    background: var(--color-wrong-bg);
+    color: var(--color-wrong);
+    font-weight: 700;
+  }
+
+  .gm-missed-flag {
+    width: 34px;
+    flex: 0 0 auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gm-crown {
+      animation: none;
+    }
   }
 
   /* Rank-up celebration: cheering Orbi beside the "you reached X" line, on the accent tint. */
