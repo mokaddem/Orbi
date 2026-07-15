@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_PREFS, MAP_PROJECTIONS, clampPrefs, isMapProjection, type Prefs } from './types';
+import {
+  DEFAULT_PREFS,
+  MAP_PROJECTIONS,
+  PREFS_BOUNDS,
+  clampPrefs,
+  isMapProjection,
+  type Prefs,
+} from './types';
 
 const base: Prefs = {
   language: 'en',
@@ -39,6 +46,29 @@ describe('mapProjection pref (Phase 28)', () => {
       clampPrefs({ ...base, mapProjection: undefined as unknown as Prefs['mapProjection'] })
         .mapProjection,
     ).toBe('naturalEarth');
+  });
+});
+
+describe('numeric prefs bounds', () => {
+  it('caps survival lives to 3–10', () => {
+    expect(PREFS_BOUNDS.survivalLives).toEqual({ min: 3, max: 10 });
+    expect(clampPrefs({ ...base, survivalLives: 1 }).survivalLives).toBe(3);
+    expect(clampPrefs({ ...base, survivalLives: 12 }).survivalLives).toBe(10);
+    expect(clampPrefs({ ...base, survivalLives: 7 }).survivalLives).toBe(7);
+  });
+
+  it('caps answer choices per question to 4–8', () => {
+    expect(PREFS_BOUNDS.choicesPerQuestion).toEqual({ min: 4, max: 8 });
+    expect(clampPrefs({ ...base, choicesPerQuestion: 2 }).choicesPerQuestion).toBe(4);
+    expect(clampPrefs({ ...base, choicesPerQuestion: 10 }).choicesPerQuestion).toBe(8);
+    expect(clampPrefs({ ...base, choicesPerQuestion: 6 }).choicesPerQuestion).toBe(6);
+  });
+
+  it('keeps both defaults inside their new bounds', () => {
+    expect(clampPrefs({ ...DEFAULT_PREFS }).survivalLives).toBe(DEFAULT_PREFS.survivalLives);
+    expect(clampPrefs({ ...DEFAULT_PREFS }).choicesPerQuestion).toBe(
+      DEFAULT_PREFS.choicesPerQuestion,
+    );
   });
 });
 
