@@ -282,6 +282,8 @@ const fr: typeof en = {
     },
     recent: {
       title: 'Sessions récentes',
+      bonusTime: '+{seconds}s',
+      bonusTimeTitle: '{seconds}s de temps bonus gagné grâce aux bonnes réponses',
     },
     clear: 'Effacer l’historique',
     clearConfirm: 'Supprimer toutes les sessions enregistrées ? Cette action est irréversible.',

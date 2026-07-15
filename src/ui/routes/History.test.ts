@@ -69,4 +69,30 @@ describe('History route (activity log)', () => {
     expect(container.querySelector('.recent-list .mode-icon')).toBeInTheDocument();
     expect(container.querySelector('.recent-list .region-icon')).toBeInTheDocument();
   });
+
+  it('shows the bonus time a Blitz run earned, only on blitz rows', async () => {
+    // A blitz run with 7 correct → +7s of clock time (1 s per correct, under the cap).
+    await saveSession(
+      summary({
+        type: 'blitz',
+        mode: 'flag-to-country',
+        total: 9,
+        correct: 7,
+        accuracy: 7 / 9,
+      }),
+    );
+    const { container } = render(History);
+
+    await screen.findByText('Recent sessions', {}, { timeout: 3000 });
+    expect(screen.getByText('+7s')).toBeInTheDocument();
+    expect(container.querySelector('.recent-blitz-time')).toBeInTheDocument();
+  });
+
+  it('shows no bonus-time chip on a non-blitz row', async () => {
+    await saveSession(summary({ type: 'fixed', mode: 'flag-to-country' }));
+    const { container } = render(History);
+
+    await screen.findByText('Recent sessions', {}, { timeout: 3000 });
+    expect(container.querySelector('.recent-blitz-time')).not.toBeInTheDocument();
+  });
 });

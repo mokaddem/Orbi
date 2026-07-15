@@ -195,6 +195,7 @@ export {
   blitzTiersLost,
   blitzDecayedCombo,
   blitzRunSeconds,
+  blitzEarnedSeconds,
   blitzRemainingMs,
   computeBlitzBest,
   computeBlitzBests,

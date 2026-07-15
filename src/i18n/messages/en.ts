@@ -277,6 +277,8 @@ const en = {
     },
     recent: {
       title: 'Recent sessions',
+      bonusTime: '+{seconds}s',
+      bonusTimeTitle: '{seconds}s of bonus time earned from correct answers',
     },
     clear: 'Clear history',
     clearConfirm: 'Delete all saved sessions? This cannot be undone.',

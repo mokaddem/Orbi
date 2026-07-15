@@ -8,6 +8,7 @@ import {
   blitzComboStreak,
   blitzDecayedCombo,
   blitzPointsForCorrect,
+  blitzEarnedSeconds,
   blitzRemainingMs,
   blitzRunSeconds,
   blitzSlotMatches,
@@ -160,6 +161,19 @@ describe('blitzRunSeconds', () => {
   it('caps at 90 s (maxing out at 30 correct)', () => {
     expect(blitzRunSeconds(30)).toBe(BLITZ_CAP_SECONDS);
     expect(blitzRunSeconds(100)).toBe(BLITZ_CAP_SECONDS);
+  });
+});
+
+describe('blitzEarnedSeconds', () => {
+  it('is the bonus time added beyond the start (1 s per correct)', () => {
+    expect(blitzEarnedSeconds(0)).toBe(0);
+    expect(blitzEarnedSeconds(10)).toBe(10);
+  });
+
+  it('is bounded by the cap headroom (reveals cap-hitting runs)', () => {
+    const headroom = BLITZ_CAP_SECONDS - BLITZ_START_SECONDS; // 30
+    expect(blitzEarnedSeconds(30)).toBe(headroom);
+    expect(blitzEarnedSeconds(100)).toBe(headroom);
   });
 });
 

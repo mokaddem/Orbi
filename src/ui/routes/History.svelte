@@ -1,10 +1,11 @@
 <script lang="ts">
   import { t, locale, localizedName, localizedRegion } from '../../i18n';
-  import { computeStats, type StatsOverview } from '../../domain';
+  import { computeStats, blitzEarnedSeconds, type StatsOverview } from '../../domain';
   import { getCountry, type SessionRecord } from '../../data';
   import { formatPercent } from '../format';
   import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
   import Flag from '../components/Flag.svelte';
+  import Icon from '../components/Icon.svelte';
   import MascotScene from '../components/MascotScene.svelte';
   import PageHero from '../components/PageHero.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
@@ -155,6 +156,19 @@
                 {$t(MODE_LABEL[r.mode] ?? r.mode)}
                 <small class="recent-sub">
                   <span>{$t(`sessionType.${r.type}`)}</span>
+                  {#if r.type === 'blitz'}
+                    {@const bonus = blitzEarnedSeconds(r.correct)}
+                    <span class="dot" aria-hidden="true">·</span>
+                    <span
+                      class="recent-blitz-time"
+                      title={$t('history.recent.bonusTimeTitle', { seconds: bonus })}
+                    >
+                      <span class="recent-blitz-ico" aria-hidden="true"
+                        ><Icon name="clock" size="0.85em" /></span
+                      >
+                      {$t('history.recent.bonusTime', { seconds: bonus })}
+                    </span>
+                  {/if}
                   {#if regionKey}
                     <span class="dot" aria-hidden="true">·</span>
                     <span class="recent-region">
@@ -411,6 +425,22 @@
 
   .recent-sub .dot {
     opacity: 0.6;
+  }
+
+  /* Blitz-only: the bonus time the run's correct answers added to the clock. Accent-tinted so it
+     reads as a small "earned" reward, distinct from the muted region label. */
+  .recent-blitz-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-accent-strong);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .recent-blitz-ico {
+    display: inline-flex;
+    color: var(--color-accent);
   }
 
   .recent-region {

@@ -133,6 +133,17 @@ export function blitzRunSeconds(correctCount: number): number {
 }
 
 /**
+ * The bonus time a Blitz run gained from correct answers — the seconds added to the clock beyond
+ * the {@link BLITZ_START_SECONDS} start, i.e. `blitzRunSeconds(correct) − start`. Bounded by the
+ * cap headroom ({@link BLITZ_CAP_SECONDS} − start): a run that answered enough correct to pin the
+ * clock at the cap reports the full bonus and no more (so this reveals cap-hitting runs, unlike the
+ * raw correct count). 0 for a run with no correct answers.
+ */
+export function blitzEarnedSeconds(correctCount: number): number {
+  return blitzRunSeconds(correctCount) - BLITZ_START_SECONDS;
+}
+
+/**
  * Milliseconds left `elapsedMs` into a run that has `correctCount` correct answers so far
  * (clamped ≥ 0). The UI drives `elapsedMs` off `performance.now()` deltas and lets `correctCount`
  * climb live as answers land, so each correct visibly adds a second — until the 90 s cap, after

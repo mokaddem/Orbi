@@ -289,6 +289,8 @@ const de: typeof en = {
     },
     recent: {
       title: 'Letzte Runden',
+      bonusTime: '+{seconds}s',
+      bonusTimeTitle: '{seconds}s Bonuszeit durch richtige Antworten',
     },
     clear: 'Verlauf löschen',
     clearConfirm: 'Alle gespeicherten Runden löschen? Das kann nicht rückgängig gemacht werden.',
