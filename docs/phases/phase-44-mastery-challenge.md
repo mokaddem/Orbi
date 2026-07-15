@@ -1,6 +1,6 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~45% (domain, controller/persistence, i18n + capstone achievements)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~60% (domain, store, i18n, capstones, `/challenge` Play shell)
 · **Track:** v2.7 — Mastery capstone
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -132,16 +132,17 @@ challenge is a natural XP event.
 ## Deliverables checklist
 - [ ] Unlock predicate — a pure `isChallengeUnlocked(familyMastery, {family, region, subregion})`
       (family × region mastered per Phase 41), + a locked/unlocked entry-point affordance.
-- [ ] Challenge run model — a new format (recommended `SessionType: 'challenge'`, additive like `full`)
-      that draws **every** country in the region once, **recycles a missed country** to the queue's
-      back, and finishes only when the board is cleared; `cleared / total` progress exposed.
-- [ ] Whole-region option builder — a `questions.ts` path that produces **fixed, full-region** options
+- [x] Challenge run model — a new `SessionType: 'challenge'` (additive like `full`); the resolved
+      **Gauntlet** model (one life, **no recycle**) draws every country once in **both** directions
+      and finishes on a clean sweep or the first miss; `cleared / total` exposed. *(stage 1–2 domain + store)*
+- [x] Whole-region option builder — `buildChallengeQuestion` produces **fixed, full-continent** options
       for pick-from-list modes (bypassing `choicesPerQuestion` / `selectDistractors`); map-locate
-      unchanged (click-only). No elimination shrink of options.
-- [ ] Both-directions interleave for the run (if OQ4 = both).
-- [ ] Pass / flawless grading + capstone achievement(s) in `ACHIEVEMENTS`, celebrated on finish
-      (existing jingle + `StreakBurst`); optional per-challenge best record (Daily-Challenge-style) per OQ.
-- [ ] Large-pool selection UX for big regions (type-ahead / searchable list / map-click fallback) per OQ6/7.
+      unchanged (click-only). No elimination shrink of options. *(stage 1)*
+- [x] Both-directions interleave for the run. *(stage 1 — `buildChallengeQueue`, 2N slots)*
+- [ ] Pass grading + capstone achievement(s) in `ACHIEVEMENTS`, celebrated on finish
+      (existing jingle + `StreakBurst`). *(grading stage 1; 15 capstones stage ③a; celebration stage ③c)*
+- [x] Large-pool selection UX — a type-ahead **search list** for name/capital picks + a scrollable
+      **flag grid** for country→flag; map-locate stays map-click. *(stage ③b — `ChallengeSearchList`)*
 - [ ] Entry points: Progress (family × region breakdown) + Play setup challenge card (+ optional Home chip).
 - [x] EN/FR/DE strings (name, lock/unlock, progress, pass/flawless, badge); `messages.test.ts` parity green. *(stage ③a — `challenge.*` + `sessionType.challenge`)*
 - [ ] Tests: domain (unlock predicate, full-region options, clear-the-board queue + recycle + finish,
@@ -297,9 +298,19 @@ challenge is a natural XP event.
     **composed** badge title/desc from existing family/region labels — no 90 hand-written strings) plus
     `sessionType.challenge`. Fast loop: **736 tests**, `check` 0/0, `lint` clean.
 
-  Still to do (stages ③b–③e): the `/challenge` Play shell + `ChallengeSearchList` + finish wiring;
-  the Summary pass/fail branch; the Progress A+C reward (prestige bar + gilded cells + prove-it launch);
-  headless verify + PRD/status close-out.
+  **Stage ③b landed** (the Play shell): a dedicated `/challenge` route (`Challenge.svelte`, driven by
+  the separate one-life `challenge` store so `Play.svelte` stays untouched), auto-started from
+  `pendingChallenge`. A `cleared / total` + one-life HUD; the anti-crutch pickers — a type-ahead
+  **`ChallengeSearchList`** over the whole continent for the name/capital picks (accent-insensitive,
+  Enter commits the top match), a scrollable full **flag grid** (`ChoiceGrid variant="flag"`) for
+  country→flag, and **`MapBoard`** for map-highlight/locate; correct→advance / miss→reveal→fail pacing.
+  On finish it records to history via **`saveSession` only** (no `recordAnswer`), stashes the rich
+  `lastChallengeSummary` + a standard `lastSummary`, plays `perfect` on a pass, and routes to `/summary`;
+  a quit abandons with no write. Tests: `ChallengeSearchList` (filter/pick/Enter/reveal) + the route
+  (boots, clears, one-miss→failed summary, quit→idle). Fast loop: **747 tests**, `check` 0/0, `lint` clean.
+
+  Still to do (stages ③c–③e): the Summary pass/fail branch + pass celebration; the Progress A+C reward
+  (prestige bar + gilded cells + prove-it launch); the integrated headless drive + PRD/status close-out.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the
