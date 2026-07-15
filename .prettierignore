@@ -2,6 +2,7 @@ dist/
 dev-dist/
 coverage/
 node_modules/
+.claude/
 src/data/generated/
 pnpm-lock.yaml
 package-lock.json

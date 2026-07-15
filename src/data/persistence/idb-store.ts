@@ -14,6 +14,7 @@ import type {
   CustomSet,
   DailyResult,
   Prefs,
+  ProgressionState,
   QuizStore,
   SessionRecord,
   SRItem,
@@ -21,14 +22,16 @@ import type {
 
 const DB_NAME = 'geo-quiz';
 // v2 (Phase 15): add `dailyChallenge`. v3 (Phase 16): add `achievements`. v4 (Phase 27):
-// add `customSets`. Upgrades are additive (only missing stores are created), so existing
-// data is preserved across bumps.
-const DB_VERSION = 4;
+// add `customSets`. v5 (Phase 43): add `progression`. Upgrades are additive (only missing
+// stores are created), so existing data is preserved across bumps.
+const DB_VERSION = 5;
 
 /** The single prefs row lives under a fixed, out-of-line key. */
 const PREFS_KEY = 'app';
 /** The single Daily Challenge result row, likewise under a fixed key. */
 const DAILY_KEY = 'current';
+/** The single progression (rank/XP) row, likewise under a fixed key. */
+const PROGRESSION_KEY = 'current';
 
 interface GeoQuizDB extends DBSchema {
   sessions: {
@@ -56,6 +59,10 @@ interface GeoQuizDB extends DBSchema {
   customSets: {
     key: string;
     value: CustomSet;
+  };
+  progression: {
+    key: string;
+    value: ProgressionState;
   };
 }
 
@@ -87,6 +94,9 @@ export class IdbQuizStore implements QuizStore {
         }
         if (!db.objectStoreNames.contains('customSets')) {
           db.createObjectStore('customSets', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('progression')) {
+          db.createObjectStore('progression');
         }
       },
     });
@@ -168,5 +178,17 @@ export class IdbQuizStore implements QuizStore {
 
   async clearCustomSets(): Promise<void> {
     await this.db.clear('customSets');
+  }
+
+  async getProgression(): Promise<ProgressionState | undefined> {
+    return this.db.get('progression', PROGRESSION_KEY);
+  }
+
+  async saveProgression(state: ProgressionState): Promise<void> {
+    await this.db.put('progression', state, PROGRESSION_KEY);
+  }
+
+  async clearProgression(): Promise<void> {
+    await this.db.delete('progression', PROGRESSION_KEY);
   }
 }

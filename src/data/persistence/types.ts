@@ -78,6 +78,19 @@ export interface AchievementUnlock {
 }
 
 /**
+ * Progression state (Phase 43) — a persisted singleton for the Explorer rank / XP spine. XP itself
+ * is *derived* from append-only history + sticky badges (never stored, like the streak), so the
+ * only thing that must persist is the **last rank that was celebrated** — enough to fire the
+ * one-time "Rank up!" moment exactly once and, seeded to the computed rank on first run, to
+ * suppress a retroactive burst for pre-existing history. Cleared by the Settings progress resets
+ * alongside earned badges.
+ */
+export interface ProgressionState {
+  /** Index into the XP rank ladder (`RANKS`) that has already been celebrated. */
+  lastCelebratedRank: number;
+}
+
+/**
  * A player-authored country set for targeted practice (Phase 27). Stores *only* the
  * countries — the mode is chosen at play time, so one set ("these 8 Balkans") is reusable
  * across modes (flags today, capitals tomorrow). Persisted as authored content (like prefs),
@@ -225,4 +238,10 @@ export interface QuizStore {
   deleteCustomSet(id: string): Promise<void>;
   /** Erase all saved sets (not part of the progress resets; exposed for completeness). */
   clearCustomSets(): Promise<void>;
+
+  // Progression (Phase 43 — a singleton row: the last-celebrated Explorer rank)
+  getProgression(): Promise<ProgressionState | undefined>;
+  saveProgression(state: ProgressionState): Promise<void>;
+  /** Erase the progression state (cleared alongside a progress reset). */
+  clearProgression(): Promise<void>;
 }

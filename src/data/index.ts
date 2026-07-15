@@ -41,6 +41,7 @@ export type {
   DailyResult,
   MapProjection,
   Prefs,
+  ProgressionState,
   QuizStore,
   SessionRecord,
   SRItem,

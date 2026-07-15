@@ -19,6 +19,7 @@ import {
   type CustomSet,
   type DailyResult,
   type Prefs,
+  type ProgressionState,
   type QuizStore,
   type SessionRecord,
 } from '../../data';
@@ -35,6 +36,8 @@ import {
   computeStats,
   computeStreak,
   computeWeeklyRecap,
+  computeXp,
+  rankForXp,
   dominantTrainingMode,
   evaluateAchievements,
   isIndustryQuizEligible,
@@ -55,6 +58,7 @@ import {
   type RegionFamilyPractice,
   type MasteryRollup,
   type QuestionResult,
+  type RankProgress,
   type Recommendation,
   type RegionResolver,
   type RegionReview,
@@ -64,6 +68,7 @@ import {
   type StreakInfo,
   type TrainingItem,
   type WeeklyRecap,
+  type XpResult,
 } from '../../domain';
 import { locale, setLocale } from '../../i18n';
 
@@ -586,6 +591,72 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
   return views;
 }
 
+/** The Explorer rank / XP snapshot the UI renders, plus a one-time "rank up!" flag (Phase 43). */
+export interface RankState {
+  /** Total XP + per-source breakdown, from append-only history + sticky badges. */
+  xp: XpResult;
+  /** Current rank + progress toward the next. */
+  progress: RankProgress;
+  /** `true` only on the load that first crossed into a higher rank than last celebrated. */
+  justRankedUp: boolean;
+  /** The rank index celebrated before this load — for a "you reached X" message. */
+  previousRankIndex: number;
+}
+
+/**
+ * Compute the Explorer rank + XP from append-only history + sticky badges (Phase 43) and manage the
+ * once-only "Rank up!" moment.
+ *
+ * XP is derived, never stored: `computeStats` over history (sessions/questions/correct), the
+ * monotonic longest streak, and the count of *earned* badges (sticky). Only the **last-celebrated
+ * rank** is persisted. On the first run (no persisted state) it's **seeded to the currently-computed
+ * rank**, so a returning player's whole back-catalogue of XP never triggers a retroactive burst.
+ *
+ * `commit` (the celebrating surfaces — Summary and Home) advances the persisted rank when it has
+ * risen, so exactly one surface fires the one-time celebration; display-only readers (Progress)
+ * pass `commit: false` and never consume the flag. Returns rank 0 / zero XP before init.
+ */
+export async function loadRank(
+  now = Date.now(),
+  options: { commit?: boolean } = {},
+): Promise<RankState> {
+  const commit = options.commit ?? false;
+
+  const [sessions, badges, stored] = store
+    ? await Promise.all([store.getAllSessions(), store.getAchievements(), store.getProgression()])
+    : [[] as SessionRecord[], [] as AchievementUnlock[], undefined];
+
+  const stats = computeStats(sessions);
+  const streak = computeStreak(
+    sessions.map((s) => localDayKey(s.startedAt)),
+    localDayKey(now),
+  );
+  const xp = computeXp({ stats, streak, achievementsUnlocked: badges.length });
+  const progress = rankForXp(xp.total);
+  const currentIndex = progress.rank.index;
+
+  // First run: seed the celebrated rank to *now*, so pre-existing history isn't celebrated
+  // retroactively. Otherwise the persisted value is the last rank we celebrated.
+  const previousRankIndex = stored?.lastCelebratedRank ?? currentIndex;
+  const justRankedUp = currentIndex > previousRankIndex;
+
+  if (store) {
+    // Persist the seed on first run always; on a committing read, advance the celebrated rank so
+    // the "rank up!" fires exactly once and never re-fires for the same rank. Best-effort.
+    const shouldWrite = !stored || (commit && currentIndex > previousRankIndex);
+    if (shouldWrite) {
+      const next: ProgressionState = { lastCelebratedRank: currentIndex };
+      try {
+        await store.saveProgression(next);
+      } catch {
+        // Storage became unwritable — the rank-up just isn't remembered across reloads.
+      }
+    }
+  }
+
+  return { xp, progress, justRankedUp, previousRankIndex };
+}
+
 /**
  * Erase all play history (leaves prefs and SR state intact). The Daily Challenge result is
  * cleared alongside it — the streak derives from history, so wiping history should reset the
@@ -597,6 +668,9 @@ export async function clearHistory(): Promise<void> {
   await store?.clearSessions();
   await store?.clearDailyResult();
   await store?.clearAchievements();
+  // XP is history-derived, so it drops to zero here; clear the celebrated-rank seed too so a
+  // fresh climb re-celebrates rather than staying suppressed at the old high rank (Phase 43).
+  await store?.clearProgression();
 }
 
 /**
@@ -607,4 +681,7 @@ export async function clearHistory(): Promise<void> {
 export async function clearTraining(): Promise<void> {
   await store?.clearSRItems();
   await store?.clearAchievements();
+  // Badges (an XP source) are cleared above, so the celebrated-rank seed is reset too, matching
+  // clearHistory: XP re-seeds to the recomputed rank and future climbs celebrate again (Phase 43).
+  await store?.clearProgression();
 }

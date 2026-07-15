@@ -6,7 +6,10 @@ import svelteConfig from './svelte.config.js';
 
 export default ts.config(
   {
-    ignores: ['dist/', 'dev-dist/', 'node_modules/', '.svelte-kit/', 'coverage/'],
+    // `.claude/` holds agent scratch and (locked) git worktrees — nested repo copies with their
+    // own tsconfig. Linting into them makes typescript-eslint's project service see multiple
+    // candidate roots and fail to parse; never lint them.
+    ignores: ['dist/', 'dev-dist/', 'node_modules/', '.svelte-kit/', 'coverage/', '.claude/'],
   },
   js.configs.recommended,
   ...ts.configs.recommended,
@@ -21,6 +24,9 @@ export default ts.config(
     languageOptions: {
       parserOptions: {
         projectService: true,
+        // Pin the project-service root to this config's directory, so a nested worktree copy
+        // can't make the root ambiguous (see the `.claude/` ignore above).
+        tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: ['.svelte'],
         parser: ts.parser,
         svelteConfig,

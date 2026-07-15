@@ -10,6 +10,7 @@ import {
   initPersistence,
   loadAchievements,
   loadMastery,
+  loadRank,
   loadSessions,
   loadStats,
   loadTrainingItems,
@@ -250,5 +251,94 @@ describe('progress & rewards wiring (Phase 16)', () => {
 
     const after = await loadAchievements();
     expect(after.find((a) => a.id === 'first-round')!.unlocked).toBe(false);
+  });
+});
+
+describe('Explorer rank & XP wiring (Phase 43)', () => {
+  // A session of `n` questions, all correct — enough XP to move ranks in one go.
+  const bigSummary = (n: number, now = Date.now()): SessionSummary =>
+    summary({
+      total: n,
+      correct: n,
+      accuracy: 1,
+      startedAt: now,
+      finishedAt: now,
+      results: Array.from({ length: n }, (_, i) => ({
+        itemKey: `flag-to-country:C${i}`,
+        countryIso2: `C${i}`,
+        correct: true,
+        answerMs: 500,
+      })),
+    });
+
+  beforeAll(async () => {
+    await initPersistence();
+  });
+
+  beforeEach(async () => {
+    await clearHistory(); // clears sessions + badges + the celebrated-rank seed
+    await clearTraining();
+  });
+
+  it('derives XP from history and lands on the right rank', async () => {
+    const now = Date.now();
+    await saveSession(bigSummary(30, now)); // 30·10 + 30·3 + 25 + 20(streak) = 435 XP
+    const state = await loadRank(now, { commit: false });
+    expect(state.xp.total).toBe(435);
+    expect(state.progress.rank.key).toBe('scout'); // 400 ≤ 435 < 1000
+  });
+
+  it('seeds the celebrated rank on first run — no retroactive rank-up for old history', async () => {
+    const now = Date.now();
+    // A returning player already has plenty of XP before the feature ever runs.
+    await saveSession(bigSummary(30, now));
+    const first = await loadRank(now, { commit: true });
+    expect(first.progress.rank.index).toBeGreaterThanOrEqual(1);
+    expect(first.justRankedUp).toBe(false); // seeded to the computed rank, so nothing to celebrate
+  });
+
+  it('fires "rank up!" exactly once when the rank rises', async () => {
+    const now = Date.now();
+    await loadRank(now, { commit: true }); // first run with no history → seed at Novice (0)
+
+    await saveSession(bigSummary(30, now)); // now enough for Scout
+    const up = await loadRank(now, { commit: true });
+    expect(up.previousRankIndex).toBe(0);
+    expect(up.progress.rank.key).toBe('scout');
+    expect(up.justRankedUp).toBe(true);
+
+    // A second committing read of the same rank must not celebrate again.
+    const again = await loadRank(now, { commit: true });
+    expect(again.justRankedUp).toBe(false);
+  });
+
+  it('a display-only read (commit:false) does not consume the rank-up', async () => {
+    const now = Date.now();
+    await loadRank(now, { commit: true }); // seed at Novice
+    await saveSession(bigSummary(30, now)); // Scout-worthy
+
+    // Progress reads without committing: it sees the pending rank-up but must not persist it …
+    const display = await loadRank(now, { commit: false });
+    expect(display.justRankedUp).toBe(true);
+
+    // … so a committing surface (Summary/Home) still gets to celebrate it.
+    const commit = await loadRank(now, { commit: true });
+    expect(commit.justRankedUp).toBe(true);
+    const after = await loadRank(now, { commit: true });
+    expect(after.justRankedUp).toBe(false);
+  });
+
+  it('zeroes XP and re-seeds the rank on a history reset', async () => {
+    const now = Date.now();
+    await loadRank(now, { commit: true }); // seed at Novice
+    await saveSession(bigSummary(30, now));
+    await loadRank(now, { commit: true }); // celebrate up to Scout
+
+    await clearHistory(); // XP source gone + celebrated-rank seed cleared
+
+    const reset = await loadRank(now, { commit: true });
+    expect(reset.xp.total).toBe(0);
+    expect(reset.progress.rank.index).toBe(0);
+    expect(reset.justRankedUp).toBe(false); // re-seeded at Novice, no spurious celebration
   });
 });

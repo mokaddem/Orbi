@@ -3,12 +3,15 @@
   import {
     loadDailyState,
     loadMastery,
+    loadRank,
     loadRecommendations,
     loadRegionReviews,
     loadStreak,
     loadTrainingPlan,
+    prefs,
     storageReady,
     type DailyState,
+    type RankState,
     type TrainingPlan,
   } from '../stores/persistence';
   import {
@@ -19,15 +22,18 @@
     type RegionReview,
     type StreakInfo,
   } from '../../domain';
+  import { sound } from '../sound';
   import Demo from '../components/Demo.svelte';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
   import ReviewByRegion from '../components/ReviewByRegion.svelte';
   import StreakIndicator from '../components/StreakIndicator.svelte';
+  import StreakBurst from '../components/StreakBurst.svelte';
   import DailyChallengeCard from '../components/DailyChallengeCard.svelte';
   import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
+  import RankChip from '../components/RankChip.svelte';
 
   // The review hero (Phase 14, region-scoped in Phase 26): reads the player's own state and
   // surfaces what to review. When there are mistakes queued, the "Time to review" list offers
@@ -41,6 +47,7 @@
   let streak = $state<StreakInfo | null>(null);
   let daily = $state<DailyState | null>(null);
   let mastery = $state<FamilyMasteryResult | null>(null);
+  let rank = $state<RankState | null>(null);
 
   // "All caught up": the player has made some progress but has nothing queued to review — the
   // positive complement to the review list, shown with the relaxed globe. Gated on mastery so
@@ -71,7 +78,41 @@
       void loadStreak().then((s) => (streak = s));
       void loadDailyState().then((d) => (daily = d));
       void loadMastery().then((m) => (mastery = m));
+      // Home commits the rank read (like Summary): it's the backstop that fires the one-time
+      // "rank up!" for a crossing not already celebrated on the Summary screen (Phase 43).
+      void loadRank(Date.now(), { commit: true }).then((r) => (rank = r));
     }
+  });
+
+  // "Rank up!" celebration (Phase 43): the sticky achievement jingle plus the escalating burst,
+  // anchored on the rank-up banner — mirroring Summary's new-best moment. Fired once; the jingle
+  // obeys the sound toggle inside `sound.play`, and the burst is gated on reduced motion (OS or
+  // the in-app toggle) exactly like the streak/blitz bursts.
+  const reducedMotionQuery =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+  let rankUpEl = $state<HTMLElement>();
+  let rankBurstTier = $state(-1);
+  let rankBurstX = $state(0);
+  let rankBurstY = $state(0);
+  let rankBurstKey = $state(0);
+  let rankUpFired = false;
+
+  $effect(() => {
+    if (!rank?.justRankedUp || rankUpFired) return;
+    rankUpFired = true;
+    sound.play('achievement');
+    if ($prefs.reduceMotion || reducedMotionQuery?.matches) return;
+    requestAnimationFrame(() => {
+      const el = rankUpEl;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      rankBurstX = r.left + r.width / 2;
+      rankBurstY = r.top + r.height / 2;
+      rankBurstTier = 6; // a warm, celebratory burst matching the achievement moment
+      rankBurstKey += 1;
+    });
   });
 </script>
 
@@ -84,9 +125,28 @@
     </div>
   </header>
 
-  {#if streak}
-    <div class="streak-row">
-      <StreakIndicator {streak} />
+  {#if streak || rank}
+    <div class="top-stats">
+      {#if streak}
+        <div class="streak-cell">
+          <StreakIndicator {streak} />
+        </div>
+      {/if}
+      {#if rank}
+        <div class="rank-cell">
+          <RankChip xp={rank.xp} progress={rank.progress} />
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  {#if rank?.justRankedUp}
+    <div class="rank-up" role="status" bind:this={rankUpEl}>
+      <Mascot pose="cheer" animate="bounce-in" size={64} />
+      <div class="rank-up-text">
+        <strong>{$t('rank.rankUp')}</strong>
+        <span>{$t('rank.rankUpBody', { rank: $t(`rank.names.${rank.progress.rank.key}`) })}</span>
+      </div>
     </div>
   {/if}
 
@@ -151,6 +211,14 @@
       <span>{$t('home.playCustom')}</span>
     </a>
   </div>
+
+  <!-- Rank-up burst overlay (Phase 43): fixed-position, so its place in the tree is immaterial;
+       `{#key}` mounts a fresh instance so the one-shot animation plays exactly once. -->
+  {#if rankBurstTier >= 0}
+    {#key rankBurstKey}
+      <StreakBurst tier={rankBurstTier} x={rankBurstX} y={rankBurstY} />
+    {/key}
+  {/if}
 </section>
 
 <style>
@@ -178,9 +246,55 @@
     margin: 0;
   }
 
-  /* A block row so the inline streak pill sits left-aligned with controlled spacing. */
-  .streak-row {
+  /* Streak pill + rank chip share one row: the pill keeps its natural width and the rank chip
+     fills the rest. Stays side-by-side down to ~narrow-phone width, then wraps to a stacked
+     layout (chip on its own line) only on very small screens. */
+  .top-stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
     margin: 0.25rem 0 0;
+  }
+
+  .top-stats .streak-cell {
+    flex: 0 0 auto;
+  }
+
+  .top-stats .rank-cell {
+    /* basis 0 so the chip always shares the streak's row (shrinking to fit) rather than
+       wrapping onto its own line on normal phone widths; text reflows if space gets tight. */
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Rank-up celebration: cheering Orbi beside the "you reached X" line, on the accent tint —
+     the inline sibling to the burst overlay, mirroring the streak-milestone block. */
+  .rank-up {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.6rem;
+    padding: 0.6rem 1rem;
+    background: var(--color-accent-weak);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius);
+  }
+
+  .rank-up-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .rank-up-text strong {
+    color: var(--color-accent-strong);
+    font-size: 1.05rem;
+  }
+
+  .rank-up-text span {
+    color: var(--color-muted);
+    font-size: 0.85rem;
   }
 
   /* Milestone celebration: proud Orbi beside a short cheer, on a soft accent tint. */

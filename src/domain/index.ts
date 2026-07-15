@@ -180,6 +180,24 @@ export {
 } from './mascot';
 
 export {
+  type XpSourceKey,
+  type XpSource,
+  type XpResult,
+  type XpInput,
+  type Rank,
+  type RankProgress,
+  XP_PER_CORRECT,
+  XP_PER_QUESTION,
+  XP_PER_SESSION,
+  XP_PER_STREAK_DAY,
+  XP_PER_BADGE,
+  RANKS,
+  computeXp,
+  sessionXp,
+  rankForXp,
+} from './xp';
+
+export {
   type BlitzBestQuery,
   type BlitzBestEntry,
   BLITZ_START_SECONDS,

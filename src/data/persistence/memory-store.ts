@@ -10,6 +10,7 @@ import type {
   CustomSet,
   DailyResult,
   Prefs,
+  ProgressionState,
   QuizStore,
   SessionRecord,
   SRItem,
@@ -24,6 +25,7 @@ export class MemoryQuizStore implements QuizStore {
   private daily: DailyResult | undefined;
   private achievements = new Map<string, AchievementUnlock>();
   private customSets = new Map<string, CustomSet>();
+  private progression: ProgressionState | undefined;
 
   async addSession(record: SessionRecord): Promise<void> {
     this.sessions.push(record);
@@ -102,5 +104,17 @@ export class MemoryQuizStore implements QuizStore {
 
   async clearCustomSets(): Promise<void> {
     this.customSets.clear();
+  }
+
+  async getProgression(): Promise<ProgressionState | undefined> {
+    return this.progression ? { ...this.progression } : undefined;
+  }
+
+  async saveProgression(state: ProgressionState): Promise<void> {
+    this.progression = { ...state };
+  }
+
+  async clearProgression(): Promise<void> {
+    this.progression = undefined;
   }
 }

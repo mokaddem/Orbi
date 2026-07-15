@@ -3,9 +3,21 @@
   import { t, localizedName, localizedRegion } from '../../i18n';
   import { formatDuration, formatPercent } from '../format';
   import { play, lastSummary, lastBlitzResult, pendingConfig } from '../stores/game';
-  import { loadRecommendations, prefs, storageReady } from '../stores/persistence';
-  import { pickSummaryReaction, type MascotPose, type Recommendation } from '../../domain';
+  import {
+    loadRank,
+    loadRecommendations,
+    prefs,
+    storageReady,
+    type RankState,
+  } from '../stores/persistence';
+  import {
+    pickSummaryReaction,
+    sessionXp,
+    type MascotPose,
+    type Recommendation,
+  } from '../../domain';
   import { getCountry, type Country } from '../../data';
+  import { sound } from '../sound';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
@@ -21,8 +33,17 @@
   // nudge that becomes exact on the next Home visit.
   let recs = $state<Recommendation[] | null>(null);
 
+  // Explorer XP (Phase 43): the "+N XP" for this run is the play-derived portion, computed straight
+  // from the just-finished results (exact regardless of when the history write settles). The rank
+  // snapshot drives the one-time "rank up!" — committed here, the primary post-session moment.
+  const xpEarned = $derived($lastSummary ? sessionXp($lastSummary.results) : 0);
+  let rank = $state<RankState | null>(null);
+
   $effect(() => {
-    if ($storageReady) void loadRecommendations().then((r) => (recs = r));
+    if ($storageReady) {
+      void loadRecommendations().then((r) => (recs = r));
+      void loadRank(Date.now(), { commit: true }).then((r) => (rank = r));
+    }
   });
 
   // New-personal-best celebration (Phase 42): a Blitz run that beat its best fires the escalating
@@ -53,6 +74,33 @@
       burstY = r.top + r.height / 2;
       burstTier = 6; // a big, coral-hot burst — a "peak" feel without the tier-8 screen flash
       burstKey += 1;
+    });
+  });
+
+  // "Rank up!" celebration (Phase 43): Summary is the primary post-session moment. Its own burst
+  // + the achievement jingle fire once when this load crossed a rank threshold; the burst obeys
+  // reduced motion, the jingle the sound toggle (inside `sound.play`). A separate anchor/guard from
+  // the Blitz best above, so a run that is both a new best *and* a rank-up shows each cleanly.
+  let rankUpEl = $state<HTMLElement>();
+  let rankBurstTier = $state(-1);
+  let rankBurstX = $state(0);
+  let rankBurstY = $state(0);
+  let rankBurstKey = $state(0);
+  let rankUpFired = false;
+
+  $effect(() => {
+    if (!rank?.justRankedUp || rankUpFired) return;
+    rankUpFired = true;
+    sound.play('achievement');
+    if ($prefs.reduceMotion || reducedMotionQuery?.matches) return;
+    requestAnimationFrame(() => {
+      const el = rankUpEl;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      rankBurstX = r.left + r.width / 2;
+      rankBurstY = r.top + r.height / 2;
+      rankBurstTier = 6;
+      rankBurstKey += 1;
     });
   });
 
@@ -232,6 +280,23 @@
       </div>
     </div>
 
+    <!-- Explorer XP earned this run (Phase 43): the play-derived "+N XP", exact from the results. -->
+    <div class="xp-earned" data-testid="xp-earned">
+      <Icon name="sparkles" size="1em" />
+      {$t('rank.earned', { xp: xpEarned.toLocaleString() })}
+    </div>
+
+    <!-- One-time "Rank up!" (Phase 43): shown when this run crossed a rank threshold. -->
+    {#if rank?.justRankedUp}
+      <div class="rank-up" role="status" bind:this={rankUpEl}>
+        <Mascot pose="cheer" animate="bounce-in" size={64} />
+        <div class="rank-up-text">
+          <strong>{$t('rank.rankUp')}</strong>
+          <span>{$t('rank.rankUpBody', { rank: $t(`rank.names.${rank.progress.rank.key}`) })}</span>
+        </div>
+      </div>
+    {/if}
+
     <div class="missed">
       {#if s.missed.length === 0}
         {@const flags = sessionFlags(s.results)}
@@ -290,6 +355,14 @@
     {#if burstTier >= 0}
       {#key burstKey}
         <StreakBurst tier={burstTier} x={burstX} y={burstY} />
+      {/key}
+    {/if}
+
+    <!-- Rank-up burst overlay (Phase 43): its own instance/key so it plays once, independently
+         of the Blitz new-best burst above. -->
+    {#if rankBurstTier >= 0}
+      {#key rankBurstKey}
+        <StreakBurst tier={rankBurstTier} x={rankBurstX} y={rankBurstY} />
       {/key}
     {/if}
   {/if}
@@ -442,6 +515,53 @@
     color: var(--color-correct);
     font-weight: 800;
     font-size: 0.9rem;
+  }
+
+  /* "+N XP" earned this run: a centred accent pill under the stat tiles. */
+  .xp-earned {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    align-self: center;
+    margin: -0.25rem 0 0;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    background: var(--color-accent-weak);
+    color: var(--color-accent-strong);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .xp-earned :global(.icon) {
+    color: var(--color-accent);
+  }
+
+  /* Rank-up celebration: cheering Orbi beside the "you reached X" line, on the accent tint. */
+  .rank-up {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    align-self: stretch;
+    padding: 0.6rem 1rem;
+    background: var(--color-accent-weak);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius);
+  }
+
+  .rank-up-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .rank-up-text strong {
+    color: var(--color-accent-strong);
+    font-size: 1.05rem;
+  }
+
+  .rank-up-text span {
+    color: var(--color-muted);
+    font-size: 0.85rem;
   }
 
   /* Blitz result (Phase 42): the points score as the hero, with the personal best beneath. */

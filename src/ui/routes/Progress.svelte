@@ -23,10 +23,12 @@
     loadIndustryMastery,
     loadWeeklyRecap,
     loadAchievements,
+    loadRank,
     persistent,
     prefs,
     storageReady,
     type AchievementView,
+    type RankState,
   } from '../stores/persistence';
   import { sound } from '../sound';
   import Icon from '../components/Icon.svelte';
@@ -34,6 +36,7 @@
   import MascotScene from '../components/MascotScene.svelte';
   import PageHero from '../components/PageHero.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
+  import RankPanel from '../components/RankPanel.svelte';
   import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
   import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
@@ -47,6 +50,7 @@
   let industryMastery = $state<MasteryResult | null>(null);
   let recap = $state<WeeklyRecapData | null>(null);
   let achievements = $state<AchievementView[]>([]);
+  let rank = $state<RankState | null>(null);
   let loading = $state(true);
 
   // Combined "extra knowledge" surface (Phase 23): capitals + languages (+ industries later)
@@ -126,12 +130,15 @@
     stats = computeStats(sessions);
     // Progress surfaces (Phase 16): mastery + recap + achievements, computed from the same
     // persisted state. loadAchievements also persists any first-time unlocks.
-    [mastery, languageMastery, industryMastery, recap, achievements] = await Promise.all([
+    // Progress shows the rank/XP bar but is display-only (commit:false) — it never consumes the
+    // one-time "rank up!" moment, which is celebrated on Summary/Home (Phase 43).
+    [mastery, languageMastery, industryMastery, recap, achievements, rank] = await Promise.all([
       loadMastery(),
       loadLanguageMastery(),
       loadIndustryMastery(),
       loadWeeklyRecap(),
       loadAchievements(),
+      loadRank(Date.now(), { commit: false }),
     ]);
     loading = false;
   }
@@ -204,6 +211,14 @@
         <span class="label"><Icon name="clock" size="0.9em" /> {$t('history.stats.playTime')}</span>
       </div>
     </div>
+
+    <!-- Explorer rank & XP (Phase 43): the continuous progression headline above the panels. -->
+    {#if rank}
+      <div class="panel">
+        <h2>{$t('rank.title')}</h2>
+        <RankPanel xp={rank.xp} progress={rank.progress} />
+      </div>
+    {/if}
 
     <!-- This week's recap -->
     {#if recap}

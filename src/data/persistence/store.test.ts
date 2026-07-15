@@ -9,6 +9,7 @@ import {
   type CustomSet,
   type DailyResult,
   type Prefs,
+  type ProgressionState,
   type QuizStore,
   type SessionRecord,
   type SRItem,
@@ -206,6 +207,19 @@ function contractTests(name: string, makeStore: () => Promise<QuizStore>): void 
       fetched[0].iso2.push('MUTATED');
       // The store's backing row must not have absorbed the caller's mutation.
       expect((await store.getCustomSets())[0].iso2).toEqual(['RS', 'HR']);
+    });
+
+    it('round-trips progression (last write wins) and clears it', async () => {
+      expect(await store.getProgression()).toBeUndefined();
+      const state: ProgressionState = { lastCelebratedRank: 3 };
+      await store.saveProgression(state);
+      expect(await store.getProgression()).toEqual(state);
+      // A later climb overwrites the single row.
+      await store.saveProgression({ lastCelebratedRank: 5 });
+      expect((await store.getProgression())?.lastCelebratedRank).toBe(5);
+
+      await store.clearProgression();
+      expect(await store.getProgression()).toBeUndefined();
     });
 
     it('keeps custom sets separate from SR and history resets', async () => {

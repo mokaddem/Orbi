@@ -1,6 +1,6 @@
 # Phase 43 — Explorer rank & XP (progression spine)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100%
 · **Track:** v2.6 — Momentum & progression
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -77,18 +77,23 @@ mastery — the newly-mastered signal), Phase 30 (the Progress page — the full
 of Phase 42 (Blitz); if Blitz ships, its `SessionRecord`s feed XP automatically via the per-correct rule.
 
 ## Deliverables checklist
-- [ ] Pure `src/domain/xp.ts`: `computeXp(...)` over monotonic signals → total XP + per-source
-      breakdown; a pure **rank ladder** (data table) → current rank + progress to next.
-- [ ] XP / rank UI: full rank badge + bar + breakdown on **Progress**; compact rank chip on **Home**;
-      "+N XP" on the **Summary**.
-- [ ] One-time **"Rank up!"** celebration (existing jingle + burst), once per rank, non-retroactive.
-- [ ] Persistence of the **last-celebrated rank** (+ optional XP high-water mark) via the Phase 16
-      store pattern; cleared by the existing Settings resets alongside achievements.
-- [ ] EN/FR/DE strings (rank names, XP / "+N XP" / "Rank up!" / breakdown labels); parity green.
-- [ ] Tests: XP per source, **monotonicity**, rank thresholds, once-only rank-up, reset behaviour;
-      component (bar / chip / celebration); headless real-app verify.
-- [ ] Verified in the real app (headless Chrome) — seeded profile renders rank/XP on Progress + Home;
-      a simulated rank-up celebrates exactly once; EN/FR/DE.
+- [x] Pure `src/domain/xp.ts`: `computeXp(...)` over monotonic signals → total XP + per-source
+      breakdown; a pure **rank ladder** (data table) → current rank + progress to next. *(+`sessionXp`
+      for the Summary "+N XP".)*
+- [x] XP / rank UI: full rank badge + bar + breakdown on **Progress** (`RankPanel`); compact rank chip
+      on **Home** (`RankChip`); "+N XP" on the **Summary**.
+- [x] One-time **"Rank up!"** celebration (existing `achievement` jingle + `StreakBurst`), once per
+      rank, non-retroactive (seeded on first run).
+- [x] Persistence of the **last-celebrated rank** via the Phase 16 store pattern (new `progression`
+      singleton store, DB v4→v5); cleared by `clearHistory`/`clearTraining` alongside achievements.
+      *(No XP high-water mark — XP is derived append-only, so none is needed.)*
+- [x] EN/FR/DE strings (rank names, XP / "+N XP" / "Rank up!" / breakdown labels) under a new `rank.*`
+      namespace; parity test green.
+- [x] Tests: XP per source, **monotonicity**, rank thresholds, once-only rank-up, reset behaviour
+      (`xp.test.ts`, `persistence.test.ts`, `store.test.ts`); component (`RankPanel`/`RankChip`) +
+      Summary "+N XP".
+- [x] Verified in the real app (headless Chrome) — seeded profile renders rank/XP on Progress + Home;
+      a simulated rank-up celebrates exactly once; EN/FR/DE (8/8 headless checks, zero console errors).
 
 ## Technical notes
 - **Monotonicity is the crux.** A progression bar must never go *down*, but live mastery can dip (a
@@ -150,6 +155,34 @@ of Phase 42 (Blitz); if Blitz ships, its `SessionRecord`s feed XP automatically 
   Progress + Home render rank/XP; a simulated rank-up celebrates once).
 
 ## Progress log
+- **2026-07-15 — Built & verified (awaiting merge).** Clarifying round resolved with the owner, then
+  implemented on explicit approval. **Open-question resolutions:**
+  - **OQ1/OQ2 (sources + monotonic strategy):** owner picked **append-only only** — XP =
+    `10·correct + 3·questions + 25·sessions + 20·longest-streak + 150·badges`. Mastery enters XP only
+    via the sticky mastery *badges*, never the live rollup, so no play (incl. a lapse) can lower XP.
+    No XP-number store; only the last-celebrated rank persists.
+  - **OQ3/OQ4 (names + curve):** **10 themed titles**, escalating thresholds — Novice 0 · Scout 400 ·
+    Wanderer 1 000 · Pathfinder 2 200 · Navigator 4 200 · Voyager 7 500 · Adventurer 12 500 ·
+    Cartographer 20 000 · Globetrotter 30 000 · Legendary Explorer 45 000.
+  - **OQ5 (retroactive):** grant XP for all past history, but **seed the last-celebrated rank to the
+    computed rank on first run** so returning players see no retroactive celebration spam.
+  - **OQ6 (placement):** **all three** — full `RankPanel` (badge + bar + source breakdown) on Progress,
+    compact `RankChip` on Home, "+N XP" on Summary.
+  - **OQ7 (achievements):** keep **both**; each earned badge grants **+150 XP** (the milestone→line bridge).
+  - **OQ8 (Blitz):** blitz runs grant XP via the same per-correct rule — no special case.
+
+  **What landed:** pure `src/domain/xp.ts` (`computeXp` + `RANKS`/`rankForXp` + `sessionXp`); a
+  `progression` singleton IDB store (DB **v4→v5**, additive) holding only `{ lastCelebratedRank }`, with
+  `get/save/clearProgression` on the port + both adapters; `loadRank(now, { commit })` in the persistence
+  controller (first-run seed, commit-to-celebrate-once, display-only for Progress), cleared by both
+  Settings resets; `RankPanel`/`RankChip` components; Summary "+N XP" + a one-time "Rank up!"
+  (`achievement` jingle + `StreakBurst`, reduce-motion/sound-off aware) fired on Summary (primary) and
+  Home (backstop, race-safe); a new trilingual `rank.*` i18n block. **Verification:** full suite green
+  (**682 tests**, incl. new xp / persistence / store / component / Summary cases), `check` + `lint`
+  clean, and a headless-Chrome drive (**8/8**, zero console errors) confirming rank/XP on Home +
+  Progress from seeded history, a once-only rank-up, and EN/FR/DE rank names. Also fixed the local
+  `eslint`/`prettier` configs to ignore `.claude/` (a locked sibling worktree was breaking
+  `typescript-eslint`'s root detection).
 - **2026-07-14 — PRD drafted** from the engagement brainstorm (owner picked Blitz + Explorer rank/XP
   off the idea menu and asked for a PRD each). Grounded in the current code: milestone-only progression
   today (`achievements.ts`; no XP/levels — Phase 16 deferred them), history + `computeStats` as the XP
