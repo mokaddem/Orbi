@@ -186,6 +186,7 @@ export {
   BLITZ_CAP_SECONDS,
   BLITZ_BONUS_SECONDS,
   BLITZ_BASE_POINTS,
+  BLITZ_MAX_COMBO,
   blitzCombo,
   blitzPointsForCorrect,
   computeBlitzPoints,

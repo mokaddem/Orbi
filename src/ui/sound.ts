@@ -19,16 +19,24 @@ import perfectUrl from './assets/sound/perfect.ogg?url';
 import achievementUrl from './assets/sound/achievement.ogg?url';
 import dailyUrl from './assets/sound/daily.ogg?url';
 import { STREAK_MILESTONES } from './streak';
+import { BLITZ_MAX_COMBO } from '../domain';
 
-/** Synthesized short SFX. `tick` / `timesup` are the Blitz clock cues (Phase 42). */
-export type SynthCue = 'correct' | 'wrong' | 'streak' | 'tick' | 'timesup';
+/**
+ * Synthesized short SFX. `tick` / `timesup` are the Blitz clock cues (Phase 42); `blitz` is the
+ * Blitz per-correct-answer cue, escalating with the live combo multiplier (replacing the shared
+ * `streak` celebration inside Blitz).
+ */
+export type SynthCue = 'correct' | 'wrong' | 'streak' | 'tick' | 'timesup' | 'blitz';
 /** Bundled marimba jingles. */
 export type JingleCue = 'finish' | 'perfect' | 'achievement' | 'daily';
 export type SoundCue = SynthCue | JingleCue;
 
 const JINGLE_CUES: readonly JingleCue[] = ['finish', 'perfect', 'achievement', 'daily'];
 
-/** Options for a played cue. `level` selects the sticky `streak` tier (0-based; see `streakVoices`). */
+/**
+ * Options for a played cue. `level` is the 0-based tier for the escalating cues — the sticky
+ * `streak` tier (see `streakVoices`) or the Blitz combo tier (see `blitzVoices`).
+ */
 export interface PlayOpts {
   level?: number;
 }
@@ -111,9 +119,49 @@ function synthVoices(cue: SynthCue, level = 0): Voice[] {
         { freq: hz(60), at: 0.24, dur: 0.22, gain: 0.15, type: 'triangle' }, // C4
       ];
     }
+    case 'blitz':
+      return blitzVoices(level);
     case 'streak':
       return streakVoices(level);
   }
+}
+
+/**
+ * The Blitz combo cue (this task) — the per-correct-answer celebration in a Blitz run, escalating
+ * with the *live combo multiplier* rather than the streak milestones (Blitz is decoupled from the
+ * learning model, so it wants its own voice). `level` is the 0-based combo tier: 0 = x1 …
+ * {@link BLITZ_MAX_COMBO} - 1 = the top. It grows by density and brightness like the streak cue, but
+ * stays deliberately *snappy* (≤ ~0.35 s) to sit inside Blitz's near-instant advance: a brisk rising
+ * mallet run that gains notes and climbs a whole step per tier, an octave sparkle from x4, and a
+ * bright major-chord stab at the top multiplier.
+ */
+function blitzVoices(level: number): Voice[] {
+  const tier = Math.max(0, Math.min(BLITZ_MAX_COMBO - 1, level)); // 0..4 (x1..x5)
+  const root = 72 + tier * 2; // C5, climbing a whole step per tier
+  const tri: OscillatorType = 'triangle';
+  const step = 0.05; // tight arpeggio spacing — brisk, never draggy
+  const voices: Voice[] = [];
+
+  // Ascending run — a bare rising fifth at x1, filling to a triad, then a full octave from x3.
+  const arp = tier >= 2 ? [0, 4, 7, 12] : tier >= 1 ? [0, 4, 7] : [0, 7];
+  arp.forEach((semi, i) => {
+    voices.push({ freq: hz(root + semi), at: i * step, dur: 0.14, gain: 0.16, type: tri });
+  });
+  const after = arp.length * step;
+
+  // x4+: a delayed high sparkle (the fifth, an octave up) that rings a touch longer.
+  if (tier >= 3) {
+    voices.push({ freq: hz(root + 19), at: after, dur: 0.2, gain: 0.1, type: tri });
+  }
+  // x5: a bright major-chord stab — the peak payoff.
+  if (tier >= 4) {
+    const stabAt = after + 0.04;
+    for (const semi of [0, 4, 7, 12]) {
+      voices.push({ freq: hz(root + semi), at: stabAt, dur: 0.24, gain: 0.08, type: tri });
+    }
+  }
+
+  return voices;
 }
 
 /**

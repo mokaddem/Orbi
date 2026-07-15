@@ -22,12 +22,17 @@ export const BLITZ_BONUS_SECONDS = 1;
 /** Base points for one correct answer, before the streak-combo multiplier. */
 export const BLITZ_BASE_POINTS = 100;
 
+/** The top combo multiplier — the ceiling {@link blitzCombo} climbs to (and its number of tiers). */
+export const BLITZ_MAX_COMBO = 5;
+
 /**
- * The streak-combo multiplier for a given current streak (consecutive correct answers):
- * x1 at streak 1–2, x2 at 3–4, x3 at 5–6, x4 at 7+. A wrong answer resets the streak to 0,
- * so the next correct scores at x1 again. Total; streak 0 (or negative) yields x1.
+ * The streak-combo multiplier for a given current streak (consecutive correct answers): it steps up
+ * every two answers — x1 at streak 1–2, x2 at 3–4, x3 at 5–6, x4 at 7–8, x5 at 9+ (the cap, see
+ * {@link BLITZ_MAX_COMBO}). A wrong answer resets the streak to 0, so the next correct scores at x1
+ * again. Total; streak 0 (or negative) yields x1.
  */
 export function blitzCombo(streak: number): number {
+  if (streak >= 9) return 5;
   if (streak >= 7) return 4;
   if (streak >= 5) return 3;
   if (streak >= 3) return 2;

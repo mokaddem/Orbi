@@ -63,6 +63,11 @@
   // verdict colour — so the clock, not the reveal, sets the pace.
   const BLITZ_DWELL_MS = 350;
 
+  // Heat ramp for the Blitz multiplier badge — one colour per tier (x1..x5), warming from the cool
+  // teal accent through gold to a hot coral at the top, echoing the streak-flame heat ramp so the
+  // two celebrations feel of a piece. Indexed by (multiplier - 1); see `blitzComboStyle`.
+  const BLITZ_COMBO_HEAT = ['#10a5a0', '#25c2b0', '#ffb020', '#ff8a3d', '#ff5c48'];
+
   // Milestone-pop pulse (Phase 39): bumped each time the streak lands on a milestone, so the
   // streak indicator replays its celebratory scale-bump + heat flash at that moment only. The
   // sticky streak *tier* (which grows the jingle) lives in `../streak`.
@@ -475,6 +480,13 @@
       return;
     }
     const streak = $play.state?.streak ?? 0;
+    // Blitz has its own voice (this task): the per-answer cue escalates with the *combo multiplier*,
+    // not the streak milestones — so it stays snappy and decoupled from the learning-mode celebration.
+    // No milestone pulse/burst here; the multiplier badge carries the Blitz escalation instead.
+    if ($play.config?.type === 'blitz') {
+      sound.play('blitz', { level: blitzCombo(streak) - 1 });
+      return;
+    }
     const tier = streakTier(streak);
     if (tier >= 0) sound.play('streak', { level: tier });
     else sound.play('correct');
@@ -503,6 +515,33 @@
     $play.config?.type === 'blitz' ? computeBlitzPoints($play.state?.results ?? []) : 0,
   );
   const blitzComboMult = $derived(blitzCombo($play.state?.streak ?? 0));
+
+  // The Blitz multiplier badge (this task) is the run's centrepiece now the streak pill is hidden —
+  // so it *escalates* with the combo. Each tier warms the badge along a heat ramp (teal → gold →
+  // coral, echoing the streak flame) and grows its glow and pop overshoot. Heat is indexed by
+  // (multiplier - 1); `hot` (x2+) flips the badge from an outlined "base" to a filled, glowing pill.
+  const blitzComboStyle = $derived.by(() => {
+    const m = blitzComboMult; // 1..5
+    const i = m - 1; // 0-based tier
+    return {
+      mult: m,
+      heat: BLITZ_COMBO_HEAT[i] ?? BLITZ_COMBO_HEAT[0],
+      glow: 6 + i * 5, // 6 → 26 px
+      peak: 1.14 + i * 0.05, // pop overshoot grows a touch per tier
+      hot: m > 1,
+    };
+  });
+  // Bump a pulse only when the multiplier *steps up*, so the badge replays its celebratory pop on a
+  // climb but not when a miss quietly resets it to x1. `prevCombo` is a plain local (untracked); the
+  // pulse read is untracked so writing it here can't self-invalidate the effect.
+  let comboPulse = $state(0);
+  let prevCombo = 1;
+  $effect(() => {
+    const m = blitzComboMult;
+    if (m > prevCombo) comboPulse = untrack(() => comboPulse) + 1;
+    prevCombo = m;
+  });
+
   const blitzRemaining = $derived(
     blitzActive ? blitzRemainingMs(blitzNow - blitzStart, $play.state?.correct ?? 0) : 0,
   );
@@ -830,22 +869,33 @@
 
         <div class="score">
           {#if cfg.type === 'blitz'}
-            <!-- Points are the headline in Blitz; the combo chip shows the live multiplier. -->
+            <!-- Points are the headline in Blitz; the multiplier badge (always shown, since the
+                 streak pill is hidden here) is the live combo — it heats up, glows and pops as the
+                 multiplier climbs. Re-keyed on `comboPulse` so the pop replays only on a step-up. -->
             <span class="blitz-points"
               >{blitzPoints.toLocaleString()} <small>{$t('play.blitz.pts')}</small></span
             >
-            {#if blitzComboMult > 1}
-              <span class="blitz-combo">{$t('play.blitz.combo', { mult: blitzComboMult })}</span>
-            {/if}
+            {@const cs = blitzComboStyle}
+            {#key comboPulse}
+              <span
+                class="blitz-combo"
+                class:hot={cs.hot}
+                style="--combo-heat:{cs.heat}; --combo-glow:{cs.glow}px; --combo-peak:{cs.peak}"
+              >
+                <Icon name="flame" size="0.95em" />
+                <span class="combo-num">{$t('play.blitz.combo', { mult: cs.mult })}</span>
+              </span>
+            {/key}
           {:else}
             <span>{$t('play.progress.score', { correct: s.correct, total: s.results.length })}</span
             >
           {/if}
-          {#if s.streak > 1}
-            <!-- Keyed on the milestone pulse so the celebratory pop replays only when a new
-                 milestone is reached (`at-milestone`); ordinary correct answers just update the
-                 count with the base appear-pop. At a milestone the pill's heat/scale/glow escalates
-                 by tier via `streakBurstSpec`, in step with the jingle. -->
+          {#if s.streak > 1 && cfg.type !== 'blitz'}
+            <!-- Non-Blitz only: Blitz hides the streak pill (redundant with the combo multiplier
+                 badge above) and celebrates via that badge instead. Keyed on the milestone pulse so
+                 the celebratory pop replays only when a new milestone is reached (`at-milestone`);
+                 ordinary correct answers just update the count with the base appear-pop. At a
+                 milestone the pill's heat/scale/glow escalates by tier via `streakBurstSpec`. -->
             {@const ms = isStreakMilestone(s.streak) ? streakBurstSpec(streakTier(s.streak)) : null}
             {#key milestonePulse}
               <span
@@ -1643,15 +1693,55 @@
     color: var(--color-muted);
   }
 
+  /* Blitz multiplier badge (this task). It's the run's live-combo centrepiece now the streak pill is
+     gone, so it's larger and *escalates*: at x1 a calm outlined "base" pill; from x2 it lights up —
+     filled in the tier's heat colour with a growing glow — and pops (a scale overshoot that grows a
+     touch per tier) each time the multiplier climbs. The `--combo-*` vars are set inline per tier. */
   .blitz-combo {
     display: inline-flex;
     align-items: center;
-    padding: 0.05rem 0.45rem;
+    gap: 0.28rem;
+    padding: 0.24rem 0.62rem;
     border-radius: 999px;
-    background: var(--color-accent);
-    color: var(--color-accent-contrast);
-    font-weight: 800;
-    font-size: 0.8rem;
+    border: 2px solid var(--combo-heat, var(--color-accent));
+    background: transparent;
+    color: var(--combo-heat, var(--color-accent));
+    font-weight: 900;
+    font-size: 1.15rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    animation: combo-pop 0.34s cubic-bezier(0.2, 0.9, 0.3, 1);
+    transition:
+      color 0.2s ease,
+      background 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  /* x2+: the combo is "lit" — a filled, glowing pill in the tier's heat colour with white numerals. */
+  .blitz-combo.hot {
+    color: #fff;
+    background: var(--combo-heat);
+    border-color: var(--combo-heat);
+    box-shadow:
+      0 0 var(--combo-glow, 8px) color-mix(in srgb, var(--combo-heat) 60%, transparent),
+      0 2px 6px rgb(0 0 0 / 18%);
+  }
+
+  .combo-num {
+    letter-spacing: -0.01em;
+  }
+
+  @keyframes combo-pop {
+    0% {
+      transform: scale(0.7);
+    }
+    55% {
+      transform: scale(var(--combo-peak, 1.14));
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 
   .lives {
@@ -1919,6 +2009,7 @@
     .feedback,
     .streak,
     .streak.at-milestone,
+    .blitz-combo,
     .dir-tray,
     .launch-veil,
     .launch-badge {

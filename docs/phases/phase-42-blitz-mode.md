@@ -169,6 +169,16 @@ Phase 43 (Explorer rank); if built first, blitz `SessionRecord`s feed XP automat
   full blitz run.
 
 ## Progress log
+- **2026-07-15 — Owner follow-up: Blitz combo made the centrepiece (UI + sound).** Four tweaks
+  requested after review, all Blitz-only: (1) the **streak pill is hidden in Blitz** — redundant with
+  the multiplier; (2) the **multiplier badge is redesigned** — always shown, larger, with a per-tier
+  heat ramp (teal outline at ×1 → filled gold → hot coral), a growing glow and a pop on each step-up
+  (`blitzComboStyle` + `comboPulse` in `Play.svelte`); (3) a **dedicated `blitz` synth cue** in
+  `sound.ts` that escalates with the *live multiplier* replaces the shared `streak` celebration inside
+  Blitz (no milestone burst in Blitz); (4) the **combo now climbs to ×5** — `blitzCombo` gains a band
+  (x4 @ streak 7–8, **x5 @ 9+**), `BLITZ_MAX_COMBO = 5`. This **supersedes the x4 cap** recorded in
+  OQ3 below. Tests updated (`blitz.test.ts`), `test`/`check`/`lint` green, headless-Chrome drive
+  confirmed the badge escalating ×1→×5 with the streak pill gone and points correct (streak 9 = 2,500).
 - **2026-07-15 — Owner follow-up: "Blitz best" now on the Progress page.** The OQ6 optional
   Home/Progress chip is built as a **Progress panel** ("Blitz best" / "Records Blitz" /
   "Blitz-Rekorde"): a new pure `computeBlitzBests(sessions)` returns the top score per

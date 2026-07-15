@@ -26,12 +26,13 @@ const q = (correct: boolean): QuestionResult => ({
 const streakOf = (n: number): QuestionResult[] => Array.from({ length: n }, () => q(true));
 
 describe('blitzCombo', () => {
-  it('steps x1 → x4 by streak band, capping at 7+', () => {
-    // streak 0–2 → x1, 3–4 → x2, 5–6 → x3, 7+ → x4
+  it('steps x1 → x5 by streak band, capping at 9+', () => {
+    // streak 0–2 → x1, 3–4 → x2, 5–6 → x3, 7–8 → x4, 9+ → x5
     expect([0, 1, 2].map(blitzCombo)).toEqual([1, 1, 1]);
     expect([3, 4].map(blitzCombo)).toEqual([2, 2]);
     expect([5, 6].map(blitzCombo)).toEqual([3, 3]);
-    expect([7, 8, 20].map(blitzCombo)).toEqual([4, 4, 4]);
+    expect([7, 8].map(blitzCombo)).toEqual([4, 4]);
+    expect([9, 10, 20].map(blitzCombo)).toEqual([5, 5, 5]);
   });
 
   it('treats a negative streak as x1 (total function)', () => {
@@ -40,10 +41,11 @@ describe('blitzCombo', () => {
 });
 
 describe('blitzPointsForCorrect', () => {
-  it('is base × combo — e.g. the 5th correct scores 300', () => {
+  it('is base × combo — e.g. the 5th correct scores 300, the 9th 500', () => {
     expect(blitzPointsForCorrect(1)).toBe(BLITZ_BASE_POINTS); // 100
     expect(blitzPointsForCorrect(5)).toBe(300);
     expect(blitzPointsForCorrect(7)).toBe(400);
+    expect(blitzPointsForCorrect(9)).toBe(500);
   });
 });
 
