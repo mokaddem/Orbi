@@ -1,6 +1,6 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~15% (domain layer)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In progress · **Progress:** ~30% (domain + controller/persistence)
 · **Track:** v2.7 — Mastery capstone
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -258,8 +258,22 @@ challenge is a natural XP event.
   `buildChallengeQuestion` (fixed full-continent options that never shrink — `map-locate` gets none,
   `country-to-capital` gets attribute options); and a one-life `ChallengeSession` driver (clear-the-board,
   fail-fast on a miss, pass = clean sweep) — deterministic given injected `rng`/`now`, `QuizSession`
-  left untouched. Still to do: full-region option UI (search list + flag grid), engine/launch wiring,
-  entry points, capstone achievements, i18n, headless verify.
+  left untouched.
+
+  **Controller + persistence bridge landed** (`src/ui/stores/challenge.ts` + `challenge.test.ts`):
+  a dedicated `challenge` store mirroring `play` (start / answer / advance / summary / reset) but
+  driving `ChallengeSession` — kept **separate** so the normal `play`/`QuizSession` path is untouched;
+  plus `challengeSessionSummary` (domain), which adapts a run's `ChallengeSummary` to a standard
+  `SessionSummary` (`type: 'challenge'`, representative `mode`, `regionFilter`, the fatal miss as the
+  lone `missed`) so a finished run persists through the **existing** `saveSession` → `SessionRecord`
+  path with no persistence changes (feeding XP / stats / history automatically; `passed` recovered as
+  `type==='challenge' && correct===total`). Handoff writables `lastChallengeSummary` / `pendingChallenge`
+  added. Fast loop: **726 tests**, `check` 0/0, `lint` clean.
+
+  Still to do (stage ③+): the visual Play shell (full-region **search-list** + **flag-grid** pickers,
+  `cleared/total` HUD, one-life feedback, pass/fail Summary) wired to `saveSession`/`recordAnswer` on
+  finish; entry points (Progress family × continent + a Play challenge card, locked→unlocked); the 15
+  monotonic capstone achievements; EN/FR/DE `challenge.*` copy; headless verify.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the

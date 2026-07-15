@@ -13,6 +13,7 @@ import {
   ChallengeSession,
   buildChallengeQuestion,
   buildChallengeQueue,
+  challengeSessionSummary,
   createChallenge,
   familyModes,
   isChallengeUnlocked,
@@ -292,5 +293,33 @@ describe('ChallengeSession — clear-the-board', () => {
     expect(s.passed).toBe(true);
     const modes = new Set(s.summary().results.map((r) => r.itemKey.split(':')[0]));
     expect(modes).toEqual(new Set(['capital-to-country', 'country-to-capital']));
+  });
+});
+
+describe('challengeSessionSummary (→ standard SessionSummary for persistence)', () => {
+  it('adapts a passed run: representative mode, region filter, full correct, no misses', () => {
+    const s = createChallenge({ family: 'flags', region: 'AF', countries: AF, rng: seeded() });
+    drive(s);
+    const ss = challengeSessionSummary(s.summary());
+    expect(ss.type).toBe('challenge');
+    expect(ss.mode).toBe('flag-to-country'); // flags family's first direction (representative)
+    expect(ss.regionFilter).toEqual({ region: 'AF' });
+    expect(ss.total).toBe(6);
+    expect(ss.correct).toBe(6);
+    expect(ss.accuracy).toBe(1);
+    expect(ss.bestStreak).toBe(6);
+    expect(ss.missed).toEqual([]);
+    expect(ss.results).toHaveLength(6);
+  });
+
+  it('adapts a failed run: partial correct + the fatal miss as the lone missed country', () => {
+    const s = createChallenge({ family: 'capitals', region: 'AF', countries: AF, rng: seeded() });
+    const { asked } = drive(s, 1); // miss the 2nd question
+    const ss = challengeSessionSummary(s.summary());
+    expect(ss.mode).toBe('capital-to-country'); // capitals family's first direction
+    expect(ss.correct).toBe(1);
+    expect(ss.total).toBe(6);
+    expect(ss.accuracy).toBeCloseTo(1 / 6);
+    expect(ss.missed.map((c) => c.iso2)).toEqual([asked[1].answer.iso2]);
   });
 });

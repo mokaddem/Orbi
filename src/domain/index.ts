@@ -230,6 +230,7 @@ export {
   isChallengeUnlocked,
   buildChallengeQueue,
   buildChallengeQuestion,
+  challengeSessionSummary,
   ChallengeSession,
   createChallenge,
 } from './challenge';
