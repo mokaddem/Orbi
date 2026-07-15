@@ -8,13 +8,14 @@
 //     cues are silently dropped (never queued) until `unlock()` runs inside a gesture.
 // Everything is wrapped so a missing/broken audio backend never throws or blocks the UI.
 //
-// Hybrid audio (owner decision, 2026-07-11): the frequent, short SFX (`correct` / `wrong` /
-// `streak`) are *synthesized* with the Web Audio API — zero bytes, no licensing, offline-trivial
-// — while the celebratory jingles (`finish` / `perfect` / `achievement` / `daily`) are tiny
-// self-made marimba renders bundled as `.ogg` and precached by the service worker. Cues are
-// authored gently/quiet-by-default (a low master gain) so on-by-default is never jarring.
+// Hybrid audio (owner decision, 2026-07-11): the short SFX (`correct` / `wrong` / `streak` / `blitz`
+// / the clock cues) *and* the everyday session-complete flourish (`finish`) are *synthesized* with
+// the Web Audio API — zero bytes, no licensing, offline-trivial — while the remaining celebratory
+// jingles (`perfect` / `achievement` / `daily`) are tiny self-made marimba renders bundled as `.ogg`
+// and precached by the service worker. `finish` was a marimba render too until the owner preferred a
+// synthesized "music box" flourish (2026-07-15). Cues are authored gently/quiet-by-default (a low
+// master gain) so on-by-default is never jarring.
 
-import finishUrl from './assets/sound/finish.ogg?url';
 import perfectUrl from './assets/sound/perfect.ogg?url';
 import achievementUrl from './assets/sound/achievement.ogg?url';
 import dailyUrl from './assets/sound/daily.ogg?url';
@@ -24,14 +25,15 @@ import { BLITZ_MAX_COMBO } from '../domain';
 /**
  * Synthesized short SFX. `tick` / `timesup` are the Blitz clock cues (Phase 42); `blitz` is the
  * Blitz per-correct-answer cue, escalating with the live combo multiplier (replacing the shared
- * `streak` celebration inside Blitz).
+ * `streak` celebration inside Blitz). `finish` — the everyday session-complete flourish — is
+ * synthesized too (a "music box" cue; owner pick 2026-07-15), unlike its `perfect` sibling.
  */
-export type SynthCue = 'correct' | 'wrong' | 'streak' | 'tick' | 'timesup' | 'blitz';
+export type SynthCue = 'correct' | 'wrong' | 'streak' | 'tick' | 'timesup' | 'blitz' | 'finish';
 /** Bundled marimba jingles. */
-export type JingleCue = 'finish' | 'perfect' | 'achievement' | 'daily';
+export type JingleCue = 'perfect' | 'achievement' | 'daily';
 export type SoundCue = SynthCue | JingleCue;
 
-const JINGLE_CUES: readonly JingleCue[] = ['finish', 'perfect', 'achievement', 'daily'];
+const JINGLE_CUES: readonly JingleCue[] = ['perfect', 'achievement', 'daily'];
 
 /**
  * Options for a played cue. `level` is the 0-based tier for the escalating cues — the sticky
@@ -66,11 +68,11 @@ export interface SoundController {
 const MASTER_GAIN = 0.45;
 
 /**
- * Extra attenuation for the bundled jingles only (`finish` / `perfect` / `achievement` /
- * `daily`). They're recorded samples that land louder than the quiet synth SFX, so they're
- * pulled down relative to the per-answer cues. Applied on top of {@link MASTER_GAIN}; nudge
- * this to retune. Owner feedback trimmed it twice: 1.0 → 0.6 (mode-complete jingle a touch
- * too loud), then 0.6 → 0.35 (the end-of-session jingle was still too loud, 2026-07-14).
+ * Extra attenuation for the bundled jingles only (`perfect` / `achievement` / `daily`). They're
+ * recorded samples that land louder than the quiet synth SFX, so they're pulled down relative to
+ * the per-answer cues. Applied on top of {@link MASTER_GAIN}; nudge this to retune. Owner feedback
+ * trimmed it twice: 1.0 → 0.6 (mode-complete jingle a touch too loud), then 0.6 → 0.35 (the
+ * end-of-session `finish` render was still too loud, 2026-07-14 — that cue is now synthesized).
  */
 const JINGLE_GAIN = 0.35;
 
@@ -106,9 +108,10 @@ function synthVoices(cue: SynthCue, level = 0): Voice[] {
       return [{ freq: hz(53), at: 0, dur: 0.3, gain: 0.14, type: 'sine', glideTo: hz(50) }];
     }
     case 'tick': {
-      // Blitz final-seconds heartbeat (Phase 42): a single crisp, quiet high blip (~60 ms). Fired
-      // once per second over the last five, so it stays subtle rather than nagging — a soft urgency.
-      return [{ freq: hz(90), at: 0, dur: 0.05, gain: 0.06, type: 'triangle' }];
+      // Blitz final-seconds heartbeat (Phase 42): a single crisp high blip (~60 ms). Fired once per
+      // second over the last five, so it stays a soft urgency rather than nagging. Gain doubled
+      // 0.06 → 0.12 (owner feedback, 2026-07-15): the ×1 level was too easy to miss under the HUD.
+      return [{ freq: hz(90), at: 0, dur: 0.05, gain: 0.12, type: 'triangle' }];
     }
     case 'timesup': {
       // Blitz "time's up" (Phase 42): a short descending three-note fall — a clear, gentle "done"
@@ -123,6 +126,22 @@ function synthVoices(cue: SynthCue, level = 0): Voice[] {
       return blitzVoices(level);
     case 'streak':
       return streakVoices(level);
+    case 'finish': {
+      // Session complete (owner pick, 2026-07-15): a delicate "music box" flourish — a high three-note
+      // motif (E5–G5–C6) that resolves onto an airy octave with a faint top sparkle (~1 s). Replaces the
+      // former finish.ogg marimba render; plays through the same synth path as the other SFX (no jingle
+      // gain), so it lands at the gentle level the owner auditioned.
+      const tri: OscillatorType = 'triangle';
+      return [
+        { freq: hz(76), at: 0, dur: 0.22, gain: 0.1, type: tri }, // E5
+        { freq: hz(79), at: 0.16, dur: 0.22, gain: 0.1, type: tri }, // G5
+        { freq: hz(84), at: 0.32, dur: 0.22, gain: 0.1, type: tri }, // C6
+        { freq: hz(72), at: 0.5, dur: 0.6, gain: 0.07, type: tri }, // C5 — resolve
+        { freq: hz(84), at: 0.5, dur: 0.6, gain: 0.06, type: tri }, // C6 octave
+        { freq: hz(79), at: 0.5, dur: 0.5, gain: 0.05, type: tri }, // G5 fifth
+        { freq: hz(88), at: 0.58, dur: 0.4, gain: 0.04, type: tri }, // E6 sparkle
+      ];
+    }
   }
 }
 
@@ -343,7 +362,7 @@ export function createSound(deps: SoundDeps): SoundController {
     try {
       if (shouldDrop(cue)) return;
       if (ctx && ctx.state === 'suspended') void ctx.resume();
-      if (cue === 'finish' || cue === 'perfect' || cue === 'achievement' || cue === 'daily') {
+      if (cue === 'perfect' || cue === 'achievement' || cue === 'daily') {
         playJingle(cue);
       } else {
         playSynth(cue, opts);
@@ -370,7 +389,6 @@ function resolveAudioCtx(): (new () => AudioContext) | null {
 export const sound: SoundController = createSound({
   AudioCtx: resolveAudioCtx(),
   sampleUrls: {
-    finish: finishUrl,
     perfect: perfectUrl,
     achievement: achievementUrl,
     daily: dailyUrl,

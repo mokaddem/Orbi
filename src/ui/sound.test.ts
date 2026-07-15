@@ -57,7 +57,6 @@ class FakeAudioContext {
 const AudioCtx = FakeAudioContext as unknown as new () => AudioContext;
 
 const SAMPLE_URLS: Record<JingleCue, string> = {
-  finish: 'finish.ogg',
   perfect: 'perfect.ogg',
   achievement: 'achievement.ogg',
   daily: 'daily.ogg',
@@ -77,6 +76,16 @@ describe('sound service (Phase 36)', () => {
     s.play('correct');
     // "correct" is a two-note rising mallet → two oscillator voices.
     expect(contexts[0].oscStarted).toBe(2);
+  });
+
+  it('plays the session-complete flourish as a synth cue, not a sample (owner pick 2026-07-15)', () => {
+    const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+    s.setEnabled(true);
+    s.unlock();
+    s.play('finish');
+    // `finish` is now the synthesized "music box" cue: a 7-voice flourish, no buffer source.
+    expect(contexts[0].oscStarted).toBe(7);
+    expect(contexts[0].srcStarted).toBe(0);
   });
 
   it('escalates the streak cue: each tier adds voices (Phase 39, extended to streak 50)', () => {
@@ -143,7 +152,7 @@ describe('sound service (Phase 36)', () => {
     s.setEnabled(true);
     s.unlock();
     await flush(); // let the decode promises resolve
-    s.play('finish');
+    s.play('perfect');
     expect(contexts[0].srcStarted).toBe(1);
     expect(contexts[0].oscStarted).toBe(0); // jingles are samples, not synth
   });
@@ -157,7 +166,7 @@ describe('sound service (Phase 36)', () => {
     });
     s.setEnabled(true);
     s.unlock();
-    s.play('finish');
+    s.play('perfect');
     expect(contexts[0].srcStarted).toBe(0);
   });
 
