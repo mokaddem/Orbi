@@ -93,9 +93,9 @@
   // The XP holds off for a beat after the card appears, then lands line by line. The hold's clock
   // starts the moment the card is *visible* (see the reveal gate), so on a long Summary the "+N XP"
   // never begins ticking up before the player has actually reached the card.
-  const REVEAL_HOLD_MS = 1000; // wait after the card is visible before the first row lands
-  const STEP_MS = 530; // per-row cadence (deliberately unhurried — ~2.1s for a 4-row run)
-  const TWEEN_MS = 360; // count-up per row
+  const REVEAL_HOLD_MS = 1500; // wait after the card is visible before the first row lands
+  const STEP_MS = 650; // per-row cadence (unhurried — the run's points land one at a time)
+  const TWEEN_MS = 460; // count-up per row
   let timers: ReturnType<typeof setTimeout>[] = [];
   let raf = 0;
 
@@ -145,7 +145,9 @@
   function tweenEarned(from: number, to: number, done: () => void): void {
     const t0 = performance.now();
     const frame = (now: number): void => {
-      const p = Math.min(1, (now - t0) / TWEEN_MS);
+      // Clamp low as well as high: a first rAF timestamp can land just before t0, which would make
+      // the eased value briefly negative (a flashed "+-1 XP").
+      const p = Math.max(0, Math.min(1, (now - t0) / TWEEN_MS));
       const e = 1 - Math.pow(1 - p, 3);
       displayEarned = Math.round(from + (to - from) * e);
       if (p < 1) raf = requestAnimationFrame(frame);
@@ -302,14 +304,18 @@
     <span class="earned-label">{$t('rank.runBreakdown')}</span>
     <span class="earned-xp" data-testid="xp-earned" bind:this={totalEl}>
       <Icon name="sparkles" size="1em" />
-      {$t('rank.earned', { xp: shownEarned.toLocaleString() })}
+      <span class="earned-amount">{$t('rank.earned', { xp: shownEarned.toLocaleString() })}</span>
     </span>
   </div>
 
   {#if rows.length > 0}
     <ul class="sources" class:tallying={canAnimate}>
       {#each rows as s, i (s.key)}
-        <li class="src-row" class:shown={!canAnimate || i < revealed}>
+        <li
+          class="src-row"
+          class:shown={!canAnimate || i < revealed}
+          class:streak={s.key === 'streakBonus'}
+        >
           <span class="src-ico" aria-hidden="true"
             ><Icon name={SOURCE_ICON[s.key]} size={15} /></span
           >
@@ -330,6 +336,9 @@
 
 <style>
   .xp-card {
+    /* The gold→coral gradient shared by the gain bar segment and the "Earned this session" text,
+       so the label and the bar it fills read as one thing. */
+    --gain-grad: linear-gradient(90deg, var(--color-sun), var(--color-coral));
     position: relative;
     display: flex;
     flex-direction: column;
@@ -421,7 +430,7 @@
   /* This session's contribution — a distinct gold segment. Width is driven frame-by-frame during
      the tally (so no CSS transition), and jumps to its final value when not animating. */
   .seg.gain {
-    background: linear-gradient(90deg, var(--color-sun), var(--color-coral));
+    background: var(--gain-grad);
     border-radius: 0 999px 999px 0;
   }
 
@@ -441,10 +450,19 @@
     border-top: 1px solid var(--color-border);
   }
 
+  /* "Earned this session" + the "+N XP" value take the gain-bar gradient, so they read as the same
+     thing as the gold segment they describe. */
+  .earned-label,
+  .earned-amount {
+    background: var(--gain-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
   .earned-label {
     font-size: 0.9rem;
-    color: var(--color-muted);
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .earned-xp {
@@ -453,14 +471,13 @@
     gap: 0.35rem;
     font-weight: 800;
     font-size: 1.05rem;
-    color: var(--color-accent-strong);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     transform-origin: right center;
   }
 
   .earned-xp :global(.icon) {
-    color: var(--color-accent);
+    color: var(--color-sun);
   }
 
   .sources {
@@ -519,6 +536,27 @@
     font-size: 0.84rem;
     color: var(--color-accent-strong);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Streak milestones are a player *achievement*, not just another XP source — so the row gets its
+     own violet treatment (a tinted pill + bolder violet text/icon), distinct from the warm
+     "earned this session" line and the plain teal source rows. */
+  .src-row.streak {
+    background: var(--color-violet-weak);
+    border-radius: 10px;
+    padding: 0.22rem 0.45rem;
+    margin: 0 -0.45rem;
+  }
+
+  .src-row.streak .src-ico,
+  .src-row.streak .src-name,
+  .src-row.streak .src-xp {
+    color: var(--color-violet);
+  }
+
+  .src-row.streak .src-name,
+  .src-row.streak .src-xp {
+    font-weight: 800;
   }
 
   @media (prefers-reduced-motion: reduce) {
