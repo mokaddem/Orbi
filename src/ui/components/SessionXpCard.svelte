@@ -89,7 +89,17 @@
     !canAnimate ? gainPct : earned > 0 ? gainPct * Math.min(1, displayEarned / earned) : 0,
   );
 
-  // Reveal gate: start the tally once the card is at least half on screen.
+  // --- tally engine timings ---
+  // The XP holds off for a beat after the card appears, then lands line by line. The hold's clock
+  // starts the moment the card is *visible* (see the reveal gate), so on a long Summary the "+N XP"
+  // never begins ticking up before the player has actually reached the card.
+  const REVEAL_HOLD_MS = 1000; // wait after the card is visible before the first row lands
+  const STEP_MS = 530; // per-row cadence (deliberately unhurried — ~2.1s for a 4-row run)
+  const TWEEN_MS = 360; // count-up per row
+  let timers: ReturnType<typeof setTimeout>[] = [];
+  let raf = 0;
+
+  // Reveal gate: mark the card visible once it's at least half on screen.
   $effect(() => {
     if (!canAnimate || visible || !cardEl) return;
     const io = new IntersectionObserver(
@@ -102,20 +112,13 @@
     return () => io.disconnect();
   });
 
-  // Run the tally once, when visible and the rank snapshot has settled.
+  // Once visible and the rank snapshot has settled, hold a beat, then run the tally once.
   let played = false;
   $effect(() => {
     if (!canAnimate || played || !visible || !progress) return;
     played = true;
-    runTally();
+    timers.push(setTimeout(runTally, REVEAL_HOLD_MS));
   });
-
-  // --- tally engine ---
-  const START_MS = 200; // brief beat before the first row
-  const STEP_MS = 530; // per-row cadence (deliberately unhurried — ~2.1s for a 4-row run)
-  const TWEEN_MS = 360; // count-up per row
-  let timers: ReturnType<typeof setTimeout>[] = [];
-  let raf = 0;
 
   function runTally(): void {
     let acc = 0;
@@ -124,21 +127,18 @@
       const to = acc + row.xp;
       acc = to;
       timers.push(
-        setTimeout(
-          () => {
-            revealed = k + 1;
-            tweenEarned(from, to, () => {
-              if (row.key === 'streakBonus') burstFromTotal();
-            });
-          },
-          START_MS + k * STEP_MS,
-        ),
+        setTimeout(() => {
+          revealed = k + 1;
+          tweenEarned(from, to, () => {
+            if (row.key === 'streakBonus') burstFromTotal();
+          });
+        }, k * STEP_MS),
       );
     });
     // Level-up finale: a beat after the last row lands, pop the (already-updated) rank badge and
     // burst off it. No text callout — the badge + rank name already say which rank you reached.
     if (rankedUp) {
-      timers.push(setTimeout(burstFromBadge, START_MS + rows.length * STEP_MS + 120));
+      timers.push(setTimeout(burstFromBadge, rows.length * STEP_MS + 120));
     }
   }
 
