@@ -1,4 +1,4 @@
-// Sound service (Phase 36) — the app's "voice".
+// Sound service (Phase 36; extended for the Grandmaster Challenge in Phase 44) — the app's "voice".
 //
 // A thin, UI-layer module that plays a *named cue* at the existing feedback moments. It is
 // deliberately kept out of the pure domain layer: the domain stays silent and testable, and
@@ -15,20 +15,42 @@
 // and precached by the service worker. `finish` was a marimba render too until the owner preferred a
 // synthesized "music box" flourish (2026-07-15). Cues are authored gently/quiet-by-default (a low
 // master gain) so on-by-default is never jarring.
+//
+// Phase 44 adds the **Grandmaster Challenge** audio (locked design — `docs/gauntlet-audio-spec.md`):
+// four one-shot cues (`settle` / `fatal` / `enter` / `surge`), a ceremonial `victory` fanfare, and
+// the first *looping* music the engine has carried — "the Rising Bed" (`sound.bed.ts` + the
+// look-ahead scheduler below). To render these the voice vocabulary grows filters, noise, bells,
+// swept whooshes and a pad envelope, plus a shared reverb / delay / compressor FX bus.
 
 import perfectUrl from './assets/sound/perfect.ogg?url';
 import achievementUrl from './assets/sound/achievement.ogg?url';
 import dailyUrl from './assets/sound/daily.ogg?url';
 import { STREAK_MILESTONES } from './streak';
 import { BLITZ_MAX_COMBO } from '../domain';
+import { hz, SEC16, BED_STEPS, bedVoices } from './sound.bed';
 
 /**
  * Synthesized short SFX. `tick` / `timesup` are the Blitz clock cues (Phase 42); `blitz` is the
  * Blitz per-correct-answer cue, escalating with the live combo multiplier (replacing the shared
  * `streak` celebration inside Blitz). `finish` — the everyday session-complete flourish — is
- * synthesized too (a "music box" cue; owner pick 2026-07-15), unlike its `perfect` sibling.
+ * synthesized too (a "music box" cue; owner pick 2026-07-15), unlike its `perfect` sibling. The
+ * Grandmaster Challenge cues (Phase 44): `settle` (the relief-tinged correct cue), `fatal` (the
+ * descending-bell knell that ends a run), `enter` (the arena hit on accepting), `surge` (a tier-up
+ * hit), and `victory` (the D-major fanfare on a clean sweep).
  */
-export type SynthCue = 'correct' | 'wrong' | 'streak' | 'tick' | 'timesup' | 'blitz' | 'finish';
+export type SynthCue =
+  | 'correct'
+  | 'wrong'
+  | 'streak'
+  | 'tick'
+  | 'timesup'
+  | 'blitz'
+  | 'finish'
+  | 'settle'
+  | 'fatal'
+  | 'enter'
+  | 'surge'
+  | 'victory';
 /** Bundled marimba jingles. */
 export type JingleCue = 'perfect' | 'achievement' | 'daily';
 export type SoundCue = SynthCue | JingleCue;
@@ -54,12 +76,20 @@ export interface SoundDeps {
 }
 
 export interface SoundController {
-  /** Reflect the `Prefs.sound` master toggle. When off, every cue is silent. */
+  /** Reflect the `Prefs.sound` master toggle. When off, every cue — and the bed — is silent. */
   setEnabled(enabled: boolean): void;
   /** Create/resume the audio backend inside a user gesture; safe to call repeatedly. */
   unlock(): void;
   /** Play a named cue, if enabled and unlocked; otherwise a no-op. Never throws. */
   play(cue: SoundCue, opts?: PlayOpts): void;
+  /** Start the Grandmaster Challenge's looping bed at tier 0 (Phase 44). Safe pre-unlock. */
+  startBed(): void;
+  /** Set the bed's live intensity tier (0..9); the caller normalizes progress → tier. */
+  setBedTier(tier: number): void;
+  /** Fade the bed to silence over `fadeMs` (default gentle) and stop the scheduler. */
+  stopBed(fadeMs?: number): void;
+  /** The fatal-miss sequence: cut the bed, play `wrong`, then (after a beat) the descending bells. */
+  gauntletFatal(): void;
 }
 
 // ---- Cue authoring ---------------------------------------------------------------------
@@ -76,22 +106,57 @@ const MASTER_GAIN = 0.45;
  */
 const JINGLE_GAIN = 0.35;
 
-/** Equal-tempered frequency for a MIDI note number (69 = A4 = 440 Hz). */
-const hz = (midi: number): number => 440 * Math.pow(2, (midi - 69) / 12);
+/**
+ * The Rising Bed's bus level, below the master so the bed sits under the answer cues. It is also
+ * the node the bed ducks / cuts on — a fatal miss ramps it to silence in ~60 ms so the knell rings
+ * clear. Tune in-app against real cues (see the audio spec's "ducking amounts" open item).
+ */
+const BED_GAIN = 0.6;
 
 interface Voice {
-  /** Frequency in Hz. */
+  /** Sound source. `osc` (default) = an oscillator; `noise`/`whoosh` = filtered noise; `bell` = a
+   * sum of inharmonic sine partials (see {@link BELL_PARTIALS}). */
+  kind?: 'osc' | 'noise' | 'bell' | 'whoosh';
+  /** Frequency in Hz — the oscillator pitch, or the bell fundamental. */
   freq: number;
   /** Start offset from the cue's t0, seconds. */
   at: number;
   /** Duration, seconds. */
   dur: number;
-  /** Peak gain (pre-master), ~0..0.3. */
+  /** Peak gain (pre-master), ~0..0.6. */
   gain: number;
   type?: OscillatorType;
-  /** Optional linear glide to this frequency by the note's end (for the soft "wrong" bend). */
+  /** Exponential pitch sweep to this frequency by the note's end (membrane drops, the surge riser). */
+  freqTo?: number;
+  /** Linear pitch glide to this frequency by the note's end (the soft "wrong" bend). */
   glideTo?: number;
+  /** Envelope shape: `perc` (default, the marimba attack/decay) or `pad` (attack/hold/release). */
+  env?: 'perc' | 'pad';
+  /** Pad attack, seconds (env === 'pad'). */
+  attack?: number;
+  /** Pad release, seconds (env === 'pad'); defaults to a fraction of `dur`. */
+  release?: number;
+  /** Detune in cents — for stacked/detuned pad voices (horns, choir). */
+  detune?: number;
+  /** Optional filter in the voice's chain, with an optional swept cutoff (whoosh / cymbal). */
+  filter?: { type?: BiquadFilterType; freq: number; q?: number; freqTo?: number };
+  /** Route a copy through a shared FX send, in addition to the dry signal. */
+  send?: 'reverb' | 'delay';
+  /** The send level (0..1); defaults per send. */
+  sendGain?: number;
 }
+
+export type { Voice };
+
+/** Bell partial table: `[ratio, gain×, dur×]` — a minor-third *tierce* gives a somber cast. */
+const BELL_PARTIALS: readonly (readonly [number, number, number])[] = [
+  [0.5, 0.42, 1.0],
+  [1.0, 1.0, 0.95],
+  [1.2, 0.55, 0.78],
+  [1.5, 0.4, 0.62],
+  [2.0, 0.3, 0.48],
+  [2.4, 0.18, 0.38],
+];
 
 /** Build the voices for a synth cue. Kept pure so it's trivial to reason about / test. */
 function synthVoices(cue: SynthCue, level = 0): Voice[] {
@@ -142,6 +207,16 @@ function synthVoices(cue: SynthCue, level = 0): Voice[] {
         { freq: hz(88), at: 0.58, dur: 0.4, gain: 0.04, type: tri }, // E6 sparkle
       ];
     }
+    case 'settle':
+      return settleVoices();
+    case 'fatal':
+      return fatalVoices();
+    case 'enter':
+      return enterVoices();
+    case 'surge':
+      return surgeVoices();
+    case 'victory':
+      return victoryVoices();
   }
 }
 
@@ -258,6 +333,357 @@ function streakVoices(level: number): Voice[] {
 /** Highest streak tier index — tracks {@link STREAK_MILESTONES} so the two never drift. */
 const STREAK_TIER_MAX = STREAK_MILESTONES.length - 1;
 
+// ---- Grandmaster Challenge cues (Phase 44; params locked in docs/gauntlet-audio-spec.md) --------
+
+/**
+ * `settle` — the correct-answer cue in a run: *relief*, not triumph. A gentle suspension (A5)
+ * resolving downward to G5 over a held warm E5, so a right answer reads as "phew, survived — next"
+ * rather than a celebration. Lands in the same register as the everyday `correct`, softened.
+ */
+function settleVoices(): Voice[] {
+  const rv = 0.16; // shared reverb send — a little air
+  return [
+    {
+      freq: hz(76),
+      at: 0,
+      dur: 0.44,
+      gain: 0.07,
+      type: 'sine',
+      env: 'pad',
+      attack: 0.03,
+      release: 0.2,
+      send: 'reverb',
+      sendGain: rv,
+    }, // warm bed E5
+    {
+      freq: hz(81),
+      at: 0,
+      dur: 0.14,
+      gain: 0.1,
+      type: 'triangle',
+      env: 'pad',
+      attack: 0.012,
+      release: 0.08,
+      send: 'reverb',
+      sendGain: rv,
+    }, // suspension A5
+    {
+      freq: hz(79),
+      at: 0.12,
+      dur: 0.34,
+      gain: 0.12,
+      type: 'triangle',
+      env: 'pad',
+      attack: 0.02,
+      release: 0.16,
+      send: 'reverb',
+      sendGain: rv,
+    }, // resolution G5
+  ];
+}
+
+/**
+ * `fatal` — the descending-bell knell that ends a run. Three struck bells falling A2→F2→D2 with the
+ * volume *reversed* to fade loud→soft: a strong opening strike (with a low body thump) receding into
+ * a quiet, long-ringing final D. Weightier than the everyday `wrong` sag, but never a harsh buzzer.
+ */
+function fatalVoices(): Voice[] {
+  const rv = 0.28;
+  return [
+    { kind: 'bell', freq: hz(45), at: 0, dur: 1.8, gain: 0.15, send: 'reverb', sendGain: rv }, // A2 (loudest)
+    { kind: 'osc', type: 'sine', freq: hz(45) * 1.3, freqTo: hz(20), at: 0, dur: 0.7, gain: 0.3 }, // body thump
+    { kind: 'bell', freq: hz(41), at: 0.55, dur: 1.9, gain: 0.11, send: 'reverb', sendGain: rv }, // F2
+    { kind: 'bell', freq: hz(38), at: 1.15, dur: 2.8, gain: 0.075, send: 'reverb', sendGain: rv }, // D2 (softest, longest)
+  ];
+}
+
+/** `enter` — the arena hit on accepting the challenge: a rising whoosh into a deep gong + war-horn. */
+function enterVoices(): Voice[] {
+  const rv = 0.22;
+  const horn = (midi: number, detune: number): Voice => ({
+    kind: 'osc',
+    type: 'sawtooth',
+    freq: hz(midi),
+    detune,
+    at: 0.82,
+    dur: 1.4,
+    gain: 0.05,
+    env: 'pad',
+    attack: 0.2,
+    release: 0.4,
+    filter: { type: 'lowpass', freq: 1200 },
+  });
+  return [
+    {
+      kind: 'whoosh',
+      freq: 300,
+      at: 0,
+      dur: 0.85,
+      gain: 0.11,
+      env: 'pad',
+      attack: 0.35,
+      release: 0.3,
+      filter: { type: 'bandpass', freq: 300, freqTo: 3400, q: 0.8 },
+      send: 'reverb',
+      sendGain: rv,
+    },
+    {
+      kind: 'osc',
+      type: 'sine',
+      freq: hz(38) * 1.7,
+      freqTo: hz(20),
+      at: 0.82,
+      dur: 1.0,
+      gain: 0.5,
+    }, // gong
+    { kind: 'bell', freq: hz(38), at: 0.82, dur: 2.0, gain: 0.09, send: 'reverb', sendGain: rv }, // low bell
+    horn(38, -7), // war-horn swell [D2±7, A2]
+    horn(38, 7),
+    horn(45, 0),
+    {
+      kind: 'noise',
+      freq: 4000,
+      at: 0.8,
+      dur: 0.3,
+      gain: 0.06,
+      filter: { type: 'highpass', freq: 4000 },
+    }, // sparkle
+  ];
+}
+
+/** `surge` — the tier-up hit: a rising riser into a bright D-minor stab and a boom. */
+function surgeVoices(): Voice[] {
+  const rv = 0.22;
+  const stab = (midi: number): Voice => ({
+    freq: hz(midi),
+    at: 0.82,
+    dur: 0.6,
+    gain: 0.05,
+    type: 'triangle',
+  });
+  return [
+    {
+      kind: 'whoosh',
+      freq: 400,
+      at: 0,
+      dur: 0.8,
+      gain: 0.075,
+      env: 'pad',
+      attack: 0.3,
+      release: 0.2,
+      filter: { type: 'bandpass', freq: 400, freqTo: 4200, q: 0.9 },
+      send: 'reverb',
+      sendGain: rv,
+    },
+    {
+      kind: 'osc',
+      type: 'sawtooth',
+      freq: hz(50),
+      freqTo: hz(74),
+      at: 0,
+      dur: 0.8,
+      gain: 0.05,
+      env: 'pad',
+      attack: 0.05,
+      release: 0.1,
+      filter: { type: 'lowpass', freq: 1800 },
+    }, // pitched riser
+    stab(50),
+    stab(53),
+    stab(57),
+    stab(62), // chord stab [D3 F3 A3 D4]
+    {
+      kind: 'osc',
+      type: 'sine',
+      freq: hz(38) * 1.6,
+      freqTo: hz(22),
+      at: 0.82,
+      dur: 0.5,
+      gain: 0.34,
+    }, // boom
+    {
+      kind: 'noise',
+      freq: 5000,
+      at: 0.82,
+      dur: 0.3,
+      gain: 0.05,
+      filter: { type: 'highpass', freq: 5000 },
+    }, // crash sheen
+  ];
+}
+
+/**
+ * `victory` — the ceremonial fanfare on clearing a run: the moment that resolves the whole gauntlet's
+ * D minor into **D major**. ~4 s in five parts: an accelerating timpani roll + cymbal swell into a
+ * grand landing (gong + crash + full D-major chord + low brass), the heraldic "Ascent" call (a rising
+ * D-major arpeggio climbing to a held crown D6), a bell peal, and a sustained choir/organ bloom.
+ */
+function victoryVoices(): Voice[] {
+  const land = 0.5; // the landing beat (t0 + 0.5); anticipation fills the run-up
+  const v: Voice[] = [];
+
+  // 1 · Anticipation — an accelerating, crescendoing timpani roll + a bright cymbal swell.
+  [0, 0.13, 0.24, 0.33, 0.4, 0.45].forEach((at, i) => {
+    v.push({
+      kind: 'osc',
+      type: 'sine',
+      freq: hz(38) * 1.4,
+      freqTo: hz(20),
+      at,
+      dur: 0.3,
+      gain: 0.12 + i * 0.045,
+    });
+  });
+  v.push({
+    kind: 'noise',
+    freq: 1200,
+    at: 0,
+    dur: 0.5,
+    gain: 0.06,
+    filter: { type: 'highpass', freq: 1200, freqTo: 7000 },
+  });
+
+  // 2 · The landing — gong, crash, the full D-major chord, and a low brass swell.
+  v.push({
+    kind: 'osc',
+    type: 'sine',
+    freq: hz(38) * 1.8,
+    freqTo: hz(19),
+    at: land,
+    dur: 1.3,
+    gain: 0.5,
+    send: 'reverb',
+    sendGain: 0.24,
+  }); // gong
+  v.push({
+    kind: 'noise',
+    freq: 4200,
+    at: land,
+    dur: 0.7,
+    gain: 0.08,
+    filter: { type: 'highpass', freq: 4200 },
+  }); // crash
+  for (const m of [50, 54, 57, 62, 66, 69]) {
+    v.push({
+      freq: hz(m),
+      at: land,
+      dur: 1.1,
+      gain: 0.044,
+      type: 'triangle',
+      send: 'reverb',
+      sendGain: 0.22,
+    });
+  }
+  for (const m of [38, 42, 45]) {
+    for (const detune of [-6, 6]) {
+      v.push({
+        kind: 'osc',
+        type: 'sawtooth',
+        freq: hz(m),
+        detune,
+        at: land,
+        dur: 2.8,
+        gain: 0.05,
+        env: 'pad',
+        attack: 0.06,
+        release: 0.8,
+        filter: { type: 'lowpass', freq: 1500 },
+      });
+    }
+  }
+
+  // 3 · The heraldic call "Ascent" (owner pick) — the rising arpeggio keeps climbing to a held crown.
+  [62, 66, 69, 74, 78, 81].forEach((m, i) => {
+    v.push({
+      kind: 'osc',
+      type: 'sawtooth',
+      freq: hz(m),
+      at: land + i * 0.13,
+      dur: 0.34,
+      gain: 0.056,
+      env: 'pad',
+      attack: 0.02,
+      release: 0.12,
+      filter: { type: 'lowpass', freq: 2300 },
+      send: 'reverb',
+      sendGain: 0.2,
+    });
+  });
+  v.push({
+    kind: 'osc',
+    type: 'sawtooth',
+    freq: hz(86),
+    at: land + 0.82,
+    dur: 1.0,
+    gain: 0.075,
+    env: 'pad',
+    attack: 0.03,
+    release: 0.4,
+    filter: { type: 'lowpass', freq: 2600 },
+    send: 'reverb',
+    sendGain: 0.22,
+  }); // crown D6
+  v.push({
+    kind: 'osc',
+    type: 'sawtooth',
+    freq: hz(74),
+    at: land + 0.82,
+    dur: 1.0,
+    gain: 0.046,
+    env: 'pad',
+    attack: 0.03,
+    release: 0.4,
+    filter: { type: 'lowpass', freq: 2600 },
+  }); // D5 an octave below
+
+  // 4 · Bell peal.
+  [74, 78, 81, 86].forEach((m, i) => {
+    v.push({
+      freq: hz(m),
+      at: land + 0.85 + i * 0.07,
+      dur: 0.55,
+      gain: 0.033,
+      type: 'triangle',
+      send: 'reverb',
+      sendGain: 0.2,
+    });
+  });
+
+  // 5 · Choir bloom — the sustained "arrival" that holds and resolves, + a final high shimmer.
+  for (const m of [38, 50, 54, 57, 62]) {
+    for (const detune of [-4, 4]) {
+      v.push({
+        kind: 'osc',
+        type: 'triangle',
+        freq: hz(m),
+        detune,
+        at: land + 0.15,
+        dur: 3.6,
+        gain: 0.025,
+        env: 'pad',
+        attack: 0.7,
+        release: 1.5,
+        filter: { type: 'lowpass', freq: 2400 },
+      });
+    }
+  }
+  v.push({
+    kind: 'osc',
+    type: 'triangle',
+    freq: hz(86),
+    at: land + 1.4,
+    dur: 1.6,
+    gain: 0.02,
+    env: 'pad',
+    attack: 0.3,
+    release: 0.8,
+    send: 'reverb',
+    sendGain: 0.2,
+  });
+
+  return v;
+}
+
 // ---- Controller ------------------------------------------------------------------------
 
 /**
@@ -268,10 +694,27 @@ export function createSound(deps: SoundDeps): SoundController {
   let enabled = true;
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
+  // The FX bus (built once at unlock): a shared reverb + delay send, a bed bus, and a noise buffer.
+  let reverbSend: GainNode | null = null;
+  let delaySend: GainNode | null = null;
+  let bedBus: GainNode | null = null;
+  let noiseBuffer: AudioBuffer | null = null;
   let unlocked = false;
   const samples = new Map<JingleCue, AudioBuffer>();
   /** Debounce identical cues so a double-call can't stack into a doubled hit. */
   const lastPlayed = new Map<SoundCue, number>();
+
+  // Bed scheduler state (Phase 44). The look-ahead scheduler renders `bedVoices(liveTier, step)` a
+  // window ahead on a coarse timer; `bedActive` is the *intent* (a run is on), reconciled against
+  // `enabled`/`unlocked` so muting mid-run silences it and an unlock after start still catches.
+  const LOOKAHEAD = 0.2; // seconds scheduled ahead
+  const TICK_MS = 25; // scheduler wakeup interval
+  let bedActive = false;
+  let liveTier = 0;
+  let stepIndex = 0;
+  let nextStepTime = 0;
+  let schedulerId: ReturnType<typeof setInterval> | null = null;
+  let fatalTimer: ReturnType<typeof setTimeout> | null = null;
 
   const load =
     deps.loadSample ??
@@ -293,8 +736,80 @@ export function createSound(deps: SoundDeps): SoundController {
     }
   }
 
+  /** A short white-noise buffer, shared by every `noise` / `whoosh` voice (looped as needed). */
+  function makeNoise(c: AudioContext): AudioBuffer {
+    const len = Math.max(1, Math.floor(c.sampleRate * 2));
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  /** A procedurally-generated reverb impulse: exponentially-decaying noise. */
+  function makeImpulse(c: AudioContext, seconds: number, decay: number): AudioBuffer {
+    const len = Math.max(1, Math.floor(c.sampleRate * seconds));
+    const buf = c.createBuffer(2, len, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+
+  /** Wire the master → compressor → destination chain and the shared reverb / delay / bed buses. */
+  function buildGraph(c: AudioContext): void {
+    master = c.createGain();
+    master.gain.value = MASTER_GAIN;
+
+    // A gentle compressor glues stacked bed layers + cue peaks; its high threshold leaves the quiet
+    // one-shot SFX essentially untouched, only taming the dense bed.
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -10;
+    comp.knee.value = 6;
+    comp.ratio.value = 3;
+    comp.attack.value = 0.003;
+    comp.release.value = 0.25;
+    master.connect(comp);
+    comp.connect(c.destination);
+
+    noiseBuffer = makeNoise(c);
+
+    // Reverb: a unity send bus → convolver → master (per-voice `sendGain` sets the wet amount).
+    const conv = c.createConvolver();
+    conv.buffer = makeImpulse(c, 3.0, 2.5);
+    reverbSend = c.createGain();
+    reverbSend.gain.value = 1;
+    reverbSend.connect(conv);
+    conv.connect(master);
+
+    // Delay: a dotted-eighth feedback delay for the bed's drift / sky-echo layers.
+    const delay = c.createDelay(1.0);
+    delay.delayTime.value = SEC16 * 3; // dotted eighth ≈ 0.469 s
+    const fb = c.createGain();
+    fb.gain.value = 0.34;
+    delaySend = c.createGain();
+    delaySend.gain.value = 1;
+    delaySend.connect(delay);
+    delay.connect(fb);
+    fb.connect(delay);
+    delay.connect(master);
+
+    // The bed rides its own bus below the master, so it can duck / cut under the cues.
+    bedBus = c.createGain();
+    bedBus.gain.value = BED_GAIN;
+    bedBus.connect(master);
+  }
+
   function setEnabled(next: boolean): void {
     enabled = next;
+    if (ctx && bedBus) {
+      // The bed is a continuous source (unlike one-shot cues gated per-play), so muting must
+      // silence its bus directly; re-enabling mid-run restores it.
+      const now = ctx.currentTime;
+      bedBus.gain.cancelScheduledValues(now);
+      bedBus.gain.setValueAtTime(next && bedActive ? BED_GAIN : 0.0001, now);
+    }
+    reconcileBed();
   }
 
   function unlock(): void {
@@ -302,15 +817,21 @@ export function createSound(deps: SoundDeps): SoundController {
     try {
       if (!ctx) {
         ctx = new deps.AudioCtx();
-        master = ctx.createGain();
-        master.gain.value = MASTER_GAIN;
-        master.connect(ctx.destination);
+        buildGraph(ctx);
         decodeAll(ctx);
       }
       if (ctx.state === 'suspended') void ctx.resume();
       unlocked = true;
+      reconcileBed(); // a bed started before the first gesture catches up here
     } catch {
-      /* backend refused — leave the service inert */
+      // backend refused — leave the service fully inert (not half-built).
+      ctx = null;
+      master = null;
+      reverbSend = null;
+      delaySend = null;
+      bedBus = null;
+      noiseBuffer = null;
+      unlocked = false;
     }
   }
 
@@ -323,25 +844,114 @@ export function createSound(deps: SoundDeps): SoundController {
     return false;
   }
 
-  function playSynth(cue: SynthCue, opts?: PlayOpts): void {
-    if (!ctx || !master) return;
-    const t0 = ctx.currentTime + 0.001;
-    for (const v of synthVoices(cue, opts?.level ?? 0)) {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = v.type ?? 'triangle';
-      const start = t0 + v.at;
-      const end = start + v.dur;
-      osc.frequency.setValueAtTime(v.freq, start);
-      if (v.glideTo !== undefined) osc.frequency.linearRampToValueAtTime(v.glideTo, end);
+  /** Apply a voice's amplitude envelope to its gain node between `start` and `end`. */
+  function applyEnv(g: GainNode, v: Voice, start: number, end: number): void {
+    if ((v.env ?? 'perc') === 'pad') {
+      const a = v.attack ?? 0.02;
+      const r = v.release ?? Math.min(0.25, v.dur * 0.35);
+      const peakAt = start + a;
+      const relAt = Math.max(peakAt, end - r);
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.linearRampToValueAtTime(v.gain, peakAt);
+      g.gain.setValueAtTime(v.gain, relAt);
+      g.gain.linearRampToValueAtTime(0.0001, end);
+    } else {
       // Percussive marimba-ish envelope: near-instant attack, exponential decay to silence.
       g.gain.setValueAtTime(0.0001, start);
       g.gain.exponentialRampToValueAtTime(v.gain, start + 0.006);
       g.gain.exponentialRampToValueAtTime(0.0001, end);
-      osc.connect(g).connect(master);
-      osc.start(start);
-      osc.stop(end + 0.03);
     }
+  }
+
+  /** Route a voice's gain node to a shared FX send at the voice's send level. */
+  function sendTo(g: GainNode, target: GainNode, amount: number): void {
+    if (!ctx) return;
+    const s = ctx.createGain();
+    s.gain.value = amount;
+    g.connect(s);
+    s.connect(target);
+  }
+
+  /** Render one bell voice: a sum of inharmonic sine partials (a somber struck bell). */
+  function renderBell(v: Voice, start: number, dest: AudioNode): void {
+    if (!ctx) return;
+    const sum = ctx.createGain();
+    sum.gain.value = 1;
+    sum.connect(dest);
+    if (v.send === 'reverb' && reverbSend) sendTo(sum, reverbSend, v.sendGain ?? 0.28);
+    for (const [ratio, gainMul, durMul] of BELL_PARTIALS) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(v.freq * ratio, start);
+      const g = ctx.createGain();
+      const end = start + v.dur * durMul;
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, v.gain * gainMul), start + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
+      osc.connect(g).connect(sum);
+      osc.start(start);
+      osc.stop(end + 0.05);
+    }
+  }
+
+  /** Render one voice at absolute time `start` into `dest` (+ any FX send). Never throws on its own. */
+  function renderVoice(v: Voice, start: number, dest: AudioNode): void {
+    if (!ctx) return;
+    const kind = v.kind ?? 'osc';
+    if (kind === 'bell') {
+      renderBell(v, start, dest);
+      return;
+    }
+    const end = start + v.dur;
+    const isNoise = kind === 'noise' || kind === 'whoosh';
+    if (isNoise && !noiseBuffer) return;
+
+    // Source.
+    let source: OscillatorNode | AudioBufferSourceNode;
+    if (isNoise) {
+      const src = ctx.createBufferSource();
+      src.buffer = noiseBuffer;
+      src.loop = true;
+      source = src;
+    } else {
+      const osc = ctx.createOscillator();
+      osc.type = v.type ?? 'triangle';
+      osc.frequency.setValueAtTime(v.freq, start);
+      if (v.freqTo !== undefined) osc.frequency.exponentialRampToValueAtTime(v.freqTo, end);
+      if (v.glideTo !== undefined) osc.frequency.linearRampToValueAtTime(v.glideTo, end);
+      if (v.detune) osc.detune.setValueAtTime(v.detune, start);
+      source = osc;
+    }
+
+    // Optional filter (with an optional swept cutoff — the whoosh band-pass, the cymbal high-pass).
+    let node: AudioNode = source;
+    if (v.filter) {
+      const f = ctx.createBiquadFilter();
+      f.type = v.filter.type ?? 'lowpass';
+      f.frequency.setValueAtTime(v.filter.freq, start);
+      if (v.filter.freqTo !== undefined)
+        f.frequency.exponentialRampToValueAtTime(v.filter.freqTo, end);
+      if (v.filter.q !== undefined) f.Q.value = v.filter.q;
+      node.connect(f);
+      node = f;
+    }
+
+    // Envelope → dry destination (+ FX sends).
+    const g = ctx.createGain();
+    applyEnv(g, v, start, end);
+    node.connect(g);
+    g.connect(dest);
+    if (v.send === 'reverb' && reverbSend) sendTo(g, reverbSend, v.sendGain ?? 0.2);
+    else if (v.send === 'delay' && delaySend) sendTo(g, delaySend, v.sendGain ?? 0.3);
+
+    source.start(start);
+    source.stop(end + 0.05);
+  }
+
+  function playSynth(cue: SynthCue, opts?: PlayOpts): void {
+    if (!ctx || !master) return;
+    const t0 = ctx.currentTime + 0.001;
+    for (const v of synthVoices(cue, opts?.level ?? 0)) renderVoice(v, t0 + v.at, master);
   }
 
   function playJingle(cue: JingleCue): void {
@@ -372,7 +982,84 @@ export function createSound(deps: SoundDeps): SoundController {
     }
   }
 
-  return { setEnabled, unlock, play };
+  // ---- The Rising Bed lifecycle (Phase 44) ---------------------------------------------
+
+  /** Schedule every bed step whose time falls inside the look-ahead window. */
+  function schedulerTick(): void {
+    if (!ctx || !bedBus) return;
+    // If we've fallen behind (a backgrounded tab throttles timers), skip forward rather than
+    // burst-scheduling a flood of catch-up steps.
+    if (nextStepTime < ctx.currentTime) nextStepTime = ctx.currentTime + 0.02;
+    const horizon = ctx.currentTime + LOOKAHEAD;
+    while (nextStepTime < horizon) {
+      for (const v of bedVoices(liveTier, stepIndex)) renderVoice(v, nextStepTime + v.at, bedBus);
+      nextStepTime += SEC16;
+      stepIndex = (stepIndex + 1) % BED_STEPS;
+    }
+  }
+
+  /** Start / stop the scheduler to match intent (`bedActive`) against `enabled` + `unlocked`. */
+  function reconcileBed(): void {
+    const shouldRun = bedActive && enabled && unlocked && !!ctx && !!bedBus;
+    if (shouldRun && schedulerId === null) {
+      if (nextStepTime < ctx!.currentTime) nextStepTime = ctx!.currentTime + 0.08;
+      schedulerId = setInterval(schedulerTick, TICK_MS);
+      schedulerTick(); // schedule the first window immediately, don't wait a tick
+    } else if (!shouldRun && schedulerId !== null) {
+      clearInterval(schedulerId);
+      schedulerId = null;
+    }
+  }
+
+  function startBed(): void {
+    bedActive = true;
+    liveTier = 0;
+    stepIndex = 0;
+    if (ctx && bedBus) {
+      const now = ctx.currentTime;
+      nextStepTime = now + 0.08;
+      bedBus.gain.cancelScheduledValues(now);
+      bedBus.gain.setValueAtTime(enabled ? BED_GAIN : 0.0001, now);
+    }
+    if (fatalTimer !== null) {
+      clearTimeout(fatalTimer);
+      fatalTimer = null;
+    }
+    reconcileBed();
+  }
+
+  function setBedTier(tier: number): void {
+    liveTier = Math.max(0, Math.min(9, Math.floor(tier)));
+  }
+
+  function stopBed(fadeMs = 140): void {
+    bedActive = false;
+    if (ctx && bedBus) {
+      const now = ctx.currentTime;
+      const g = bedBus.gain;
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(g.value, now);
+      g.linearRampToValueAtTime(0.0001, now + Math.max(0.01, fadeMs / 1000));
+    }
+    reconcileBed(); // bedActive === false → the scheduler stops
+  }
+
+  function gauntletFatal(): void {
+    try {
+      stopBed(60); // a clean ~60 ms cut so the knell rings in silence
+      play('wrong'); // the answer being graded
+      if (fatalTimer !== null) clearTimeout(fatalTimer);
+      // The descending bells land ~0.48 s after the sag.
+      fatalTimer = setTimeout(() => {
+        fatalTimer = null;
+        play('fatal');
+      }, 480);
+    } catch {
+      /* audio must never break gameplay */
+    }
+  }
+
+  return { setEnabled, unlock, play, startBed, setBedTier, stopBed, gauntletFatal };
 }
 
 /** Resolve the platform `AudioContext` constructor, or `null` under SSR / jsdom. */

@@ -236,6 +236,24 @@ challenge is a natural XP event.
   drive of a small region.
 
 ## Progress log
+- **2026-07-16 — Grandmaster Challenge audio built (explicit owner go-ahead).** The locked audio
+  design (`docs/gauntlet-audio-spec.md`) is now implemented — a scope expansion over this PRD's
+  original "reuse the `perfect` jingle" celebration deliverable. New pure bed model
+  (`src/ui/sound.bed.ts`: `bedTierFor`, `bedVoices` over a foundation groove + 10 accumulating tiers)
+  and an extended engine (`src/ui/sound.ts`): a richer declarative `Voice` (noise/bell/whoosh kinds,
+  a pad envelope, swept filters, pitch sweeps, reverb/delay sends), a shared reverb/delay/compressor
+  FX bus, five new cues (`settle` relief / `fatal` descending-bell knell / `enter` arena hit /
+  `surge` tier-up / `victory` D-major fanfare), and the first *looping* music the engine carries —
+  "the Rising Bed", driven by a look-ahead scheduler + a `startBed`/`setBedTier`/`stopBed`/
+  `gauntletFatal` lifecycle. `Challenge.svelte` wires the triggers: Enter + delayed bed on start,
+  Settle on a correct clear, the fatal sequence on the one miss, Surge + tier bump on each crossed
+  `N/10` boundary, and stop-bed + Victory on a clean sweep (replacing the old `perfect`). All gated
+  on `Prefs.sound` + the autoplay unlock; a broken/absent backend never throws. Owner forks resolved:
+  Enter at run start (no visual transition in the shell), split `sound.bed.ts`, hard-cut fatal, a
+  constant Settle, static gain-staging. Fast loop: **774 tests** (+20), `check` 0/0, `lint` clean;
+  a real-browser (headless Chrome) check confirms the Web Audio graph + every cue + the whole bed
+  render without throwing. **Sound can't be heard headless — the live audition on 5180 is the
+  acceptance step.**
 - **2026-07-15 — Clarifying round resolved; domain build started (on explicit owner approval).**
   Open-question resolutions (owner picks):
   - **OQ1 (flavor/strictness) → The Gauntlet (one life).** A single miss ends the run; a clean

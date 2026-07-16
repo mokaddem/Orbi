@@ -1,11 +1,13 @@
 # Grandmaster Run — Audio Design Spec
 
-**Status:** 🎨 Design locked (prototype), **not implemented** · **Last updated:** 2026-07-16 · **Owner:** Sami
+**Status:** ✅ Implemented (on `phase-44-mastery-challenge`, pending owner audition) · **Last updated:** 2026-07-16 · **Owner:** Sami
 
-> ⚠️ **This is a design reference, not a green light.** Every parameter below was auditioned and
-> locked by the owner as an interactive Web-Audio prototype. Nothing is wired into the app yet —
-> implementation needs Sami's explicit go-ahead (see [main_PRD](main_PRD.md) → *How to work on this
-> project*). This doc exists so the eventual implementer has the full picture in one place.
+> ✅ **Built 2026-07-16** on the `phase-44-mastery-challenge` branch (explicit owner go-ahead): the
+> engine (`src/ui/sound.ts` + the pure bed model `src/ui/sound.bed.ts`) and the `Challenge.svelte`
+> triggers. Every parameter below was auditioned and locked by the owner as an interactive Web-Audio
+> prototype; this doc is the authoritative reference the implementation follows. **The live audition
+> (Sami, on 5180) is the real acceptance step** — headless can't play sound, so the automated checks
+> only confirm the graph builds and the right cues fire. See the *Implementation notes* at the end.
 
 The **Grandmaster Run** ("the gauntlet") is the phase-44 mastery challenge: a long run (N questions)
 where **one wrong answer ends everything**. This spec covers the audio that makes it feel like an
@@ -320,3 +322,52 @@ with the bespoke Victory fanfare.
   unlock. Cues are dropped silently until unlocked; a broken audio backend must never throw.
 - The Grandmaster Run does **not** feed spaced-repetition (existing decision, commit `2e9079c`);
   audio changes nothing about that.
+
+---
+
+## Implementation notes (2026-07-16)
+
+Where the spec landed in code, and the deliberate simplifications made when unifying five separate
+prototype pages into one engine. All parameters above are honoured; the notes below are the *shared
+infrastructure* decisions that weren't in any single prototype.
+
+**Files.**
+- `src/ui/sound.bed.ts` — the pure bed model: `hz`, `SEC16`, `BED_STEPS`, `bedTierFor(cleared,total)`,
+  and `bedVoices(tier, p)` (the foundation groove + 10 accumulating layers). No audio; fully unit-tested.
+- `src/ui/sound.ts` — the engine: a richer declarative `Voice` (adds `kind` noise/bell/whoosh, a `pad`
+  envelope, `filter` with a swept cutoff, `freqTo` pitch sweeps, `detune`, and reverb/delay `send`s),
+  a single `renderVoice()` interpreter, the shared FX bus, the five new cues, and the bed lifecycle
+  API (`startBed` / `setBedTier` / `stopBed` / `gauntletFatal`) with the look-ahead scheduler.
+- `src/ui/routes/Challenge.svelte` — the triggers (below).
+
+**Trigger map (re-confirmed on the branch).** `enter` + a delayed `startBed` (~950 ms) at run start
+(`onMount`); `settle` on a correct clear and `gauntletFatal()` on the one miss (verdict `$effect`);
+`surge` + `setBedTier` when `bedTierFor(cleared,total)` crosses a boundary (a dedicated `$effect`);
+`stopBed` + `victory` on a clean sweep (`finalize` pass), `stopBed` on quit / fail. Because there is
+**no visual arena transition in the current shell**, "Enter" plays at run start and the bed swells in
+after a beat — the audio stands in for the transition (owner decision A, 2026-07-16).
+
+**Shared-infrastructure decisions (not per-prototype):**
+- **One reverb, not five.** The prototypes each tuned their own tail length (1.6–3.2 s). The engine
+  uses a *single* shared convolver (~3 s impulse, decay 2.5) and reproduces the relative wetness via
+  each voice's per-voice `sendGain` (0.16–0.3). A longer tail at a low send is inaudible, so the
+  compromise is transparent.
+- **Compressor.** A gentle `DynamicsCompressor` (threshold −10 dB) sits `master → compressor →
+  destination` to glue the dense bed; its high threshold leaves the quiet one-shot SFX untouched.
+- **Bed bus + ducking.** The bed rides its own `bedBus` gain (`BED_GAIN = 0.6`) below the master, so
+  it can cut (~60 ms on a fatal miss) and be silenced instantly on mute. Static gain-staging only —
+  no dynamic per-cue duck yet (owner decision E); revisit live if `settle` gets buried.
+- **`drum`'s pitch drop is exponential** (`freqTo`), distinct from the everyday `wrong` cue's *linear*
+  `glideTo` (preserved verbatim).
+
+**Tunables (nudge live on 5180):** `BED_GAIN`, `MASTER_GAIN`, the compressor threshold, the reverb
+impulse length/decay, `BED_START_DELAY_MS` (the Enter→bed gap, in `Challenge.svelte`), and per-voice
+`sendGain`s. The open decisions above resolved to: hard-cut fatal transition (C), constant `settle`
+(D), static gain-staging (E).
+
+**Verification.** Fast loop green (`test` / `check` / `lint`); the engine is unit-tested against a
+fake `AudioContext` (per-cue voice counts, the bed scheduler start/stop + mute, tier accumulation),
+the pure bed model is unit-tested (tier normalization + layer growth), and `Challenge.svelte`'s
+triggers are asserted with a mocked `sound`. A real-browser check (headless Chrome against the dev
+server) confirms the actual Web Audio graph builds and every cue + the whole bed render without
+throwing. **Audio can't be heard headless — Sami's live audition is the acceptance step.**

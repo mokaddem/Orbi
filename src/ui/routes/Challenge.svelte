@@ -9,6 +9,7 @@
   import { lastSummary, lastBlitzResult } from '../stores/game';
   import { prefs, saveSession } from '../stores/persistence';
   import { sound } from '../sound';
+  import { bedTierFor } from '../sound.bed';
   import Flag from '../components/Flag.svelte';
   import ChoiceGrid from '../components/ChoiceGrid.svelte';
   import ChallengeSearchList from '../components/ChallengeSearchList.svelte';
@@ -26,6 +27,16 @@
   const CORRECT_MS = 1200;
   const REVEAL_MS = 3200;
   const dwellMs = (correct: boolean): number => (correct ? CORRECT_MS : REVEAL_MS);
+
+  // Audio (Phase 44 — the Grandmaster Challenge score, see docs/gauntlet-audio-spec.md). The shell
+  // has no visual arena transition, so "Enter the Arena" plays at run start and the looping bed
+  // swells in a beat later — the audio stands in for the transition. Tunable in-app.
+  const BED_START_DELAY_MS = 950;
+  let bedStartTimer: ReturnType<typeof setTimeout> | null = null;
+  // The last bed intensity tier seen, so a tier-up (a crossed N/10 boundary) triggers the Surge
+  // once. `-1` = uninitialized: the first observation just syncs the bed (no Surge), which also
+  // keeps a resumed mid-run run from firing a spurious Surge. Per component instance.
+  let lastBedTier = -1;
 
   // The country's flag anchors the prompt for country-to-capital (the answer is the capital, so the
   // flag is a study aid, not the answer). Its flag is shown beside the reveal for the map/capital
@@ -69,13 +80,27 @@
       pendingChallenge.set(null);
       lastChallengeSummary.set(null);
       challenge.start(pending);
-      return;
+      // Enter the Arena on accept, then swell the bed in after a beat (the audio transition).
+      sound.play('enter');
+      bedStartTimer = setTimeout(() => {
+        bedStartTimer = null;
+        sound.startBed();
+      }, BED_START_DELAY_MS);
+    } else {
+      const view = get(challenge);
+      if (view.status === 'idle' || view.status === 'finished') {
+        challenge.reset();
+        push('/progress');
+      } else {
+        // Resuming an in-flight run (navigated back mid-run): restore the bed, no Enter cue.
+        sound.startBed();
+      }
     }
-    const status = get(challenge).status;
-    if (status === 'idle' || status === 'finished') {
-      challenge.reset();
-      push('/progress');
-    }
+    // The bed must never outlive the route; quit/finalize handle the normal stops, this is the net.
+    return () => {
+      if (bedStartTimer !== null) clearTimeout(bedStartTimer);
+      sound.stopBed(0);
+    };
   });
 
   // Grade a pick (no SR write — see the file header). The store no-ops once a question is graded,
@@ -101,13 +126,15 @@
     lastBlitzResult.set(null); // a challenge finish clears any prior blitz result
     // History / XP / capstone badges only — never `recordAnswer` (a run must not touch SR).
     if (summary) void saveSession(summary);
-    // A clean sweep certifies — the celebratory peak; a failed run gets no extra flourish beyond
-    // the wrong-answer cue already played (a pleasant jingle would misread the loss).
-    if (rich?.passed) sound.play('perfect');
+    // Silence the bed, then crown a clean sweep with the victory fanfare. A failed run needs no extra
+    // flourish — its descending-bell knell already rang at the fatal miss (see the verdict effect).
+    sound.stopBed(rich?.passed ? 160 : 120);
+    if (rich?.passed) sound.play('victory');
     push('/summary');
   }
 
   function quit(): void {
+    sound.stopBed(120);
     challenge.reset();
     push('/progress');
   }
@@ -121,13 +148,34 @@
     return () => clearTimeout(id);
   });
 
-  // Verdict cue: a warm rising mallet on a correct clear, a soft low tone on the miss. Fires once
-  // per graded question (same 'answered' gate as the auto-advance), so it can't double-fire; the
-  // end-of-run 'perfect' (on a pass) comes later in finalize and never overlaps.
+  // Verdict cue: the relief-tinged 'settle' on a correct clear; on a miss (always fatal — one life),
+  // the gauntlet fatal sequence (cut the bed → 'wrong' sag → descending-bell knell). Fires once per
+  // graded question (same 'answered' gate as the auto-advance), so it can't double-fire.
   $effect(() => {
     if ($challenge.status !== 'answered') return;
     const fb = $challenge.feedback;
-    if (fb) sound.play(fb.correct ? 'correct' : 'wrong');
+    if (!fb) return;
+    if (fb.correct) sound.play('settle');
+    else sound.gauntletFatal();
+  });
+
+  // Tier-up (Phase 44): the bed escalates through 10 tiers as the board clears; each crossed N/10
+  // boundary raises the live bed intensity and fires the 'surge' hit in step with it. Runs off the
+  // live cleared/total, so it stays correct even if the run is resumed after navigating back.
+  $effect(() => {
+    const st = $challenge.state;
+    if (!st) return;
+    const tier = bedTierFor(st.cleared, st.total);
+    if (lastBedTier === -1) {
+      // First observation — sync the bed's tier without a Surge (covers start + resume).
+      sound.setBedTier(tier);
+      lastBedTier = tier;
+      return;
+    }
+    if (tier === lastBedTier) return;
+    if (tier > lastBedTier) sound.play('surge');
+    sound.setBedTier(tier);
+    lastBedTier = tier;
   });
 </script>
 
