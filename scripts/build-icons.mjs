@@ -42,6 +42,15 @@ const ICONS = {
   crown: 'crown',
   medal: 'medal',
   globe: 'globe',
+  // explorer rank medals — the per-rank "journey" glyphs embossed on each rank's medal
+  // (Novice → Legend). map/globe/crown above are reused for the top three rungs.
+  flag: 'flag', // Novice — first flag planted
+  compass: 'compass', // Scout
+  signpost: 'signpost-big', // Wanderer
+  route: 'route', // Pathfinder
+  navigation: 'navigation', // Navigator
+  sailboat: 'sailboat', // Voyager
+  mountain: 'mountain-snow', // Adventurer
   landmark: 'landmark', // capital-mastery meter + capital achievements (Phase 24)
   languages: 'languages', // language-mastery meter + language achievements (Phase 23)
   factory: 'factory', // industry-mastery meter + industry achievements (Phase 25)

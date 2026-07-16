@@ -4,6 +4,7 @@
   import { RANKS, type RankProgress, type XpSource, type XpSourceKey } from '../../domain';
   import Icon from './Icon.svelte';
   import type { IconName } from './icons';
+  import RankMedal from './RankMedal.svelte';
 
   // Post-session Explorer-XP card (Phase 43+). The run's XP lands **line by line**: each source
   // tallies in one at a time — the running "+N XP" counts up and the gold gain segment steps the
@@ -37,22 +38,6 @@
   const startPct = $derived(
     progress ? Math.round(Math.max(0, Math.min(progress.fraction, startFraction)) * 100) : 0,
   );
-
-  // The badge escalates with the ladder — shield for the early ranks up to a crown at the top
-  // (matches RankChip / RankPanel).
-  const RANK_ICONS: readonly IconName[] = [
-    'shield',
-    'shield',
-    'award',
-    'award',
-    'medal',
-    'medal',
-    'gem',
-    'gem',
-    'crown',
-    'crown',
-  ];
-  const rankIcon = $derived(progress ? (RANK_ICONS[progress.rank.index] ?? 'award') : 'award');
 
   const SOURCE_ICON: Record<XpSourceKey, IconName> = {
     correct: 'check',
@@ -268,7 +253,7 @@
   {#if progress}
     <div class="rank-head">
       <span class="badge" aria-hidden="true" bind:this={badgeEl}
-        ><Icon name={rankIcon} size={22} /></span
+        ><RankMedal index={progress.rank.index} size={46} /></span
       >
       <div class="rank-id">
         <span class="rank-name">{rankName}</span>
@@ -366,17 +351,11 @@
     gap: 0.65rem;
   }
 
+  /* Wrapper is just the confetti anchor now — the medal is self-contained. */
   .badge {
     flex: 0 0 auto;
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 999px;
-    background: var(--color-accent-weak);
-    color: var(--color-accent-strong);
-    border: 2px solid var(--color-accent);
+    transform-origin: center;
   }
 
   .rank-id {
