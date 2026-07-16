@@ -92,31 +92,16 @@
     });
   });
 
-  // "Rank up!" celebration (Phase 43): Summary is the primary post-session moment. Its own burst
-  // + the achievement jingle fire once when this load crossed a rank threshold; the burst obeys
-  // reduced motion, the jingle the sound toggle (inside `sound.play`). A separate anchor/guard from
-  // the Blitz best above, so a run that is both a new best *and* a rank-up shows each cleanly.
-  let rankUpEl = $state<HTMLElement>();
-  let rankBurstTier = $state(-1);
-  let rankBurstX = $state(0);
-  let rankBurstY = $state(0);
-  let rankBurstKey = $state(0);
+  // "Rank up!" celebration (Phase 43+): Summary is the primary post-session moment. The achievement
+  // jingle fires once when this load crossed a rank threshold (the jingle obeys the sound toggle
+  // inside `sound.play`). The *visual* — a confetti burst off the new-rank badge — is rendered by
+  // SessionXpCard via its `rankedUp` prop, so it's anchored on the badge itself.
   let rankUpFired = false;
 
   $effect(() => {
     if (!rank?.justRankedUp || rankUpFired) return;
     rankUpFired = true;
     sound.play('achievement');
-    if ($prefs.reduceMotion || reducedMotionQuery?.matches) return;
-    requestAnimationFrame(() => {
-      const el = rankUpEl;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      rankBurstX = r.left + r.width / 2;
-      rankBurstY = r.top + r.height / 2;
-      rankBurstTier = 6;
-      rankBurstKey += 1;
-    });
   });
 
   // Orbi's reaction to the result (Phase 33): the pose/motion come from a pure helper; the
@@ -303,16 +288,14 @@
       progress={rank?.progress ?? null}
       {startFraction}
       reduceMotion={$prefs.reduceMotion}
+      rankedUp={rank?.justRankedUp ?? false}
     />
 
     <!-- One-time "Rank up!" (Phase 43): shown when this run crossed a rank threshold. -->
     {#if rank?.justRankedUp}
-      <div class="rank-up" role="status" bind:this={rankUpEl}>
+      <div class="rank-up" role="status">
         <Mascot pose="cheer" animate="bounce-in" size={64} />
-        <div class="rank-up-text">
-          <strong>{$t('rank.rankUp')}</strong>
-          <span>{$t('rank.rankUpBody', { rank: $t(`rank.names.${rank.progress.rank.key}`) })}</span>
-        </div>
+        <strong>{$t('rank.rankUp')}</strong>
       </div>
     {/if}
 
@@ -374,14 +357,6 @@
     {#if burstTier >= 0}
       {#key burstKey}
         <StreakBurst tier={burstTier} x={burstX} y={burstY} />
-      {/key}
-    {/if}
-
-    <!-- Rank-up burst overlay (Phase 43): its own instance/key so it plays once, independently
-         of the Blitz new-best burst above. -->
-    {#if rankBurstTier >= 0}
-      {#key rankBurstKey}
-        <StreakBurst tier={rankBurstTier} x={rankBurstX} y={rankBurstY} />
       {/key}
     {/if}
   {/if}
@@ -536,7 +511,8 @@
     font-size: 0.9rem;
   }
 
-  /* Rank-up celebration: cheering Orbi beside the "you reached X" line, on the accent tint. */
+  /* Rank-up celebration: cheering Orbi beside a compact "Rank up!", on the accent tint. The rank
+     itself isn't spelled out here — the badge + rank name on the XP card above already show it. */
   .rank-up {
     display: flex;
     align-items: center;
@@ -548,20 +524,9 @@
     border-radius: var(--radius);
   }
 
-  .rank-up-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-  }
-
-  .rank-up-text strong {
+  .rank-up strong {
     color: var(--color-accent-strong);
     font-size: 1.05rem;
-  }
-
-  .rank-up-text span {
-    color: var(--color-muted);
-    font-size: 0.85rem;
   }
 
   /* Blitz result (Phase 42): the points score as the hero, with the personal best beneath. */
