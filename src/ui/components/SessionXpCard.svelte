@@ -54,7 +54,8 @@
     correct: 'check',
     questions: 'target',
     sessions: 'play',
-    streak: 'flame',
+    streakBonus: 'flame',
+    streak: 'calendar',
     badges: 'trophy',
   };
   // Only the sources that actually contributed (a 0-correct run drops the "correct" row).

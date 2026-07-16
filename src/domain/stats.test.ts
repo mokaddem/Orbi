@@ -37,12 +37,28 @@ describe('computeStats', () => {
       sessionCount: 0,
       totalQuestions: 0,
       totalCorrect: 0,
+      totalStreakBonus: 0,
+      totalStreakMilestones: 0,
       accuracy: 0,
       avgAnswerMs: 0,
       totalPlayMs: 0,
       byDay: [],
       mostMissed: [],
     });
+  });
+
+  it('sums the in-game streak-milestone bonus across sessions (append-only)', () => {
+    const records = [
+      // 5 correct in a row → bestStreak 5 → crosses milestones 3 & 5 → +25 (2 milestones).
+      record({ questions: [q('A', true), q('B', true), q('C', true), q('D', true), q('E', true)] }),
+      // 3 correct, a miss, 2 correct → bestStreak 3 → crosses milestone 3 → +10 (1 milestone).
+      record({
+        questions: [q('F', true), q('G', true), q('H', true), q('I', false), q('J', true)],
+      }),
+    ];
+    const s = computeStats(records);
+    expect(s.totalStreakBonus).toBe(35);
+    expect(s.totalStreakMilestones).toBe(3);
   });
 
   it('aggregates totals, accuracy, average time, and play time', () => {

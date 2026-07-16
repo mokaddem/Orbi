@@ -282,10 +282,11 @@ describe('Explorer rank & XP wiring (Phase 43)', () => {
 
   it('derives XP from history and lands on the right rank', async () => {
     const now = Date.now();
-    await saveSession(bigSummary(30, now)); // 30·10 + 30·3 + 25 + 20(streak) = 435 XP
+    // 30·10 + 30·3 + 25 + 20(daily streak) + 350(streak milestones: a 30-run crosses 7 tiers) = 785
+    await saveSession(bigSummary(30, now));
     const state = await loadRank(now, { commit: false });
-    expect(state.xp.total).toBe(435);
-    expect(state.progress.rank.key).toBe('scout'); // 400 ≤ 435 < 1000
+    expect(state.xp.total).toBe(785);
+    expect(state.progress.rank.key).toBe('scout'); // 400 ≤ 785 < 1000
   });
 
   it('seeds the celebrated rank on first run — no retroactive rank-up for old history', async () => {

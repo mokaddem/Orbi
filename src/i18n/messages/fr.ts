@@ -500,7 +500,8 @@ const fr: typeof en = {
       correct: 'Bonnes réponses',
       questions: 'Questions répondues',
       sessions: 'Parties jouées',
-      streak: 'Meilleure série',
+      streakBonus: 'Paliers de série',
+      streak: 'Série quotidienne',
       badges: 'Badges obtenus',
     },
     names: {

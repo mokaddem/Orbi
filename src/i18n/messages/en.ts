@@ -480,7 +480,8 @@ const en = {
       correct: 'Correct answers',
       questions: 'Questions answered',
       sessions: 'Sessions played',
-      streak: 'Longest streak',
+      streakBonus: 'Streak milestones',
+      streak: 'Daily streak',
       badges: 'Badges earned',
     },
     names: {

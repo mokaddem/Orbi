@@ -3,6 +3,8 @@ import {
   computeXp,
   sessionXp,
   sessionXpBreakdown,
+  bestStreakOf,
+  streakMilestoneXp,
   rankForXp,
   RANKS,
   XP_PER_CORRECT,
@@ -70,6 +72,7 @@ describe('computeXp — per source', () => {
       'correct',
       'questions',
       'sessions',
+      'streakBonus',
       'streak',
       'badges',
     ]);
@@ -146,20 +149,32 @@ describe('sessionXp — the Summary "+N XP"', () => {
     expect(sessionXp([])).toBe(0);
   });
 
-  it('counts questions + correct + a session bonus', () => {
-    // 10 questions, 7 correct.
-    expect(sessionXp(results(10, 7))).toBe(
-      10 * XP_PER_QUESTION + 7 * XP_PER_CORRECT + XP_PER_SESSION,
+  it('counts questions + correct + a session bonus + the in-game streak bonus', () => {
+    // 10 questions, first 7 correct → bestStreak 7, crossing milestones 3 & 5 (+10 +15 = +25).
+    const run = results(10, 7);
+    expect(bestStreakOf(run)).toBe(7);
+    expect(sessionXp(run)).toBe(
+      10 * XP_PER_QUESTION + 7 * XP_PER_CORRECT + XP_PER_SESSION + streakMilestoneXp(7).xp,
     );
+    expect(streakMilestoneXp(7).xp).toBe(25);
   });
 
-  it("exactly matches the run's contribution to computeXp play sources", () => {
-    const run = results(8, 6);
+  it("exactly matches the run's contribution to computeXp play sources (streak included)", () => {
+    const run = results(8, 6); // bestStreak 6 → crosses 3 & 5
+    const bonus = streakMilestoneXp(bestStreakOf(run));
     const before = computeXp(
       input({ stats: { totalCorrect: 0, totalQuestions: 0, sessionCount: 0 } }),
     ).total;
     const after = computeXp(
-      input({ stats: { totalCorrect: 6, totalQuestions: 8, sessionCount: 1 } }),
+      input({
+        stats: {
+          totalCorrect: 6,
+          totalQuestions: 8,
+          sessionCount: 1,
+          totalStreakBonus: bonus.xp,
+          totalStreakMilestones: bonus.milestones,
+        },
+      }),
     ).total;
     expect(after - before).toBe(sessionXp(run));
   });
@@ -171,15 +186,17 @@ describe('sessionXpBreakdown — the Summary itemization', () => {
       { key: 'correct', count: 0, xp: 0 },
       { key: 'questions', count: 0, xp: 0 },
       { key: 'sessions', count: 0, xp: 0 },
+      { key: 'streakBonus', count: 0, xp: 0 },
     ]);
   });
 
-  it('splits into correct answers, questions, and a single session bonus', () => {
-    // 10 questions, 7 correct.
+  it('splits into correct, questions, a session bonus, and the streak-milestone bonus', () => {
+    // 10 questions, first 7 correct → bestStreak 7 crosses 2 milestones (3, 5) for +25.
     expect(sessionXpBreakdown(results(10, 7))).toEqual([
       { key: 'correct', count: 7, xp: 7 * XP_PER_CORRECT },
       { key: 'questions', count: 10, xp: 10 * XP_PER_QUESTION },
       { key: 'sessions', count: 1, xp: XP_PER_SESSION },
+      { key: 'streakBonus', count: 2, xp: 25 },
     ]);
   });
 
@@ -194,6 +211,54 @@ describe('sessionXpBreakdown — the Summary itemization', () => {
       const sum = sessionXpBreakdown(run).reduce((t, s) => t + s.xp, 0);
       expect(sum).toBe(sessionXp(run));
     }
+  });
+});
+
+describe('streak-milestone bonus (in-game streak → XP)', () => {
+  it('bestStreakOf finds the longest unbroken correct run', () => {
+    expect(bestStreakOf([])).toBe(0);
+    // 3 right, 1 wrong, 5 right → longest run is 5.
+    const mixed = [...results(3, 3), ...results(1, 0), ...results(5, 5)];
+    expect(bestStreakOf(mixed)).toBe(5);
+    expect(bestStreakOf(results(10, 10))).toBe(10);
+  });
+
+  it('awards the agreed escalating tiers, summing every milestone crossed', () => {
+    expect(streakMilestoneXp(2)).toEqual({ xp: 0, milestones: 0 }); // below the first
+    expect(streakMilestoneXp(3)).toEqual({ xp: 10, milestones: 1 });
+    expect(streakMilestoneXp(5)).toEqual({ xp: 25, milestones: 2 }); // 10 + 15
+    expect(streakMilestoneXp(10)).toEqual({ xp: 50, milestones: 3 }); // perfect 10/10: 10+15+25
+    expect(streakMilestoneXp(50)).toEqual({ xp: 700, milestones: 9 }); // every tier
+    expect(streakMilestoneXp(999)).toEqual(streakMilestoneXp(50)); // caps at the last tier
+  });
+
+  it('is monotonic — a longer streak never lowers the bonus', () => {
+    let prev = -1;
+    for (let s = 0; s <= 55; s++) {
+      const xp = streakMilestoneXp(s).xp;
+      expect(xp).toBeGreaterThanOrEqual(prev);
+      prev = xp;
+    }
+  });
+
+  it('feeds computeXp as an append-only streakBonus source', () => {
+    const r = computeXp(
+      input({
+        stats: {
+          totalCorrect: 0,
+          totalQuestions: 0,
+          sessionCount: 0,
+          totalStreakBonus: 50,
+          totalStreakMilestones: 3,
+        },
+      }),
+    );
+    expect(r.bySource.find((s) => s.key === 'streakBonus')).toEqual({
+      key: 'streakBonus',
+      count: 3,
+      xp: 50,
+    });
+    expect(r.total).toBe(50);
   });
 });
 

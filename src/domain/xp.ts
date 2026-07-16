@@ -8,7 +8,9 @@
 // **Monotonicity is the design constraint.** A progression bar must never go *down*, but live
 // mastery can dip (a lapse demotes a country — Phase 16/41). So every XP source here is
 // **append-only**: answers / questions / sessions from play history (removed only by a Settings
-// reset), the longest-ever streak (never shrinks), and the count of *earned* (sticky) badges.
+// reset), the summed in-game streak-milestone bonus across those sessions (each session's bonus is
+// non-negative and sessions never un-happen), the longest-ever daily streak (never shrinks), and
+// the count of *earned* (sticky) badges.
 // Mastery enters XP only through those sticky mastery badges, never the live rollup — so no
 // sequence of play can ever lower the total.
 //
@@ -37,8 +39,62 @@ export const XP_PER_STREAK_DAY = 20;
 /** XP per earned (sticky) achievement badge — the milestone → progression bridge. */
 export const XP_PER_BADGE = 150;
 
+/**
+ * In-game **streak milestone** bonus (agreed 2026-07-16). A run's longest unbroken run of correct
+ * answers (`bestStreak`) earns a bonus at each milestone it crosses — the **same** `[3, 5, 10, …]`
+ * ladder the streak jingles escalate on: `ui/streak.ts` derives its `STREAK_MILESTONES` from the
+ * `streak` values here, so the reward and the celebration can never drift apart. Escalating, so a
+ * long clean run pays off (a perfect 10/10 crosses 3·5·10 → +50). Append-only in aggregate: the
+ * cumulative total sums each finished session's bonus (see {@link computeXp}'s `streakBonus`
+ * source), and sessions never un-happen — so it stays monotonic like every other XP source.
+ */
+export const STREAK_MILESTONE_XP: readonly { streak: number; xp: number }[] = [
+  { streak: 3, xp: 10 },
+  { streak: 5, xp: 15 },
+  { streak: 10, xp: 25 },
+  { streak: 15, xp: 40 },
+  { streak: 20, xp: 60 },
+  { streak: 25, xp: 85 },
+  { streak: 30, xp: 115 },
+  { streak: 40, xp: 150 },
+  { streak: 50, xp: 200 },
+];
+
+/** The longest unbroken run of correct answers in a result list — a run's `bestStreak`. Pure. */
+export function bestStreakOf(results: readonly QuestionResult[]): number {
+  let best = 0;
+  let cur = 0;
+  for (const r of results) {
+    if (r.correct) {
+      cur += 1;
+      if (cur > best) best = cur;
+    } else {
+      cur = 0;
+    }
+  }
+  return best;
+}
+
+/**
+ * Streak-milestone XP for a best streak: the summed bonus for every milestone it reached, plus how
+ * many milestones that was (for the "×N" count on the breakdown row). Pure and monotonic in
+ * `bestStreak` (a longer streak can only add milestones).
+ */
+export function streakMilestoneXp(bestStreak: number): { xp: number; milestones: number } {
+  let xp = 0;
+  let milestones = 0;
+  for (const m of STREAK_MILESTONE_XP) {
+    if (bestStreak >= m.streak) {
+      xp += m.xp;
+      milestones += 1;
+    }
+  }
+  return { xp, milestones };
+}
+
 /** The XP sources, in display order — keys drive the Progress breakdown labels + icons. */
-export type XpSourceKey = 'correct' | 'questions' | 'sessions' | 'streak' | 'badges';
+export type XpSourceKey =
+  'correct' | 'questions' | 'sessions' | 'streakBonus' | 'streak' | 'badges';
 
 /** One source's contribution: the underlying count and the XP it yields. */
 export interface XpSource {
@@ -57,8 +113,13 @@ export interface XpResult {
 
 /** Everything {@link computeXp} reads — all append-only rollups. */
 export interface XpInput {
-  /** History rollup (append-only counts). */
-  stats: Pick<StatsOverview, 'totalCorrect' | 'totalQuestions' | 'sessionCount'>;
+  /**
+   * History rollup (append-only counts). The two `totalStreak*` fields (the summed in-game
+   * streak-milestone bonus + milestone count across all sessions) are optional so pre-existing
+   * callers/tests stay valid; absent → 0. `computeStats` always provides them.
+   */
+  stats: Pick<StatsOverview, 'totalCorrect' | 'totalQuestions' | 'sessionCount'> &
+    Partial<Pick<StatsOverview, 'totalStreakBonus' | 'totalStreakMilestones'>>;
   /** Streak rollup — only the monotonic `longest` is used. */
   streak: Pick<StreakInfo, 'longest'>;
   /** Count of *earned* (sticky) achievement badges. */
@@ -74,6 +135,8 @@ export function computeXp(input: XpInput): XpResult {
   const correct = Math.max(0, Math.floor(input.stats.totalCorrect));
   const questions = Math.max(0, Math.floor(input.stats.totalQuestions));
   const sessions = Math.max(0, Math.floor(input.stats.sessionCount));
+  const streakBonus = Math.max(0, Math.floor(input.stats.totalStreakBonus ?? 0));
+  const streakMilestones = Math.max(0, Math.floor(input.stats.totalStreakMilestones ?? 0));
   const streakDays = Math.max(0, Math.floor(input.streak.longest));
   const badges = Math.max(0, Math.floor(input.achievementsUnlocked));
 
@@ -81,6 +144,8 @@ export function computeXp(input: XpInput): XpResult {
     { key: 'correct', count: correct, xp: correct * XP_PER_CORRECT },
     { key: 'questions', count: questions, xp: questions * XP_PER_QUESTION },
     { key: 'sessions', count: sessions, xp: sessions * XP_PER_SESSION },
+    // In-game streak-milestone bonus, summed over sessions (not a fixed weight × count).
+    { key: 'streakBonus', count: streakMilestones, xp: streakBonus },
     { key: 'streak', count: streakDays, xp: streakDays * XP_PER_STREAK_DAY },
     { key: 'badges', count: badges, xp: badges * XP_PER_BADGE },
   ];
@@ -90,28 +155,32 @@ export function computeXp(input: XpInput): XpResult {
 
 /**
  * The per-source breakdown of a single finished run's play-derived XP (Phase 43) — the components
- * of the Summary "+N XP", in display order: correct answers, questions answered, and the flat
- * session bonus. Mirrors {@link computeXp}'s `correct` / `questions` / `sessions` sources (same
- * keys), but scoped to *this run*, so the Summary can itemize where the run's XP came from. Sums
- * exactly to {@link sessionXp}. An empty run yields all-zero sources (`count` and `xp` both 0).
+ * of the Summary "+N XP", in display order: correct answers, questions answered, the flat session
+ * bonus, and the **in-game streak-milestone bonus** for this run's `bestStreak`. Mirrors
+ * {@link computeXp}'s `correct` / `questions` / `sessions` / `streakBonus` sources (same keys), but
+ * scoped to *this run*, so the Summary can itemize where the run's XP came from. Sums exactly to
+ * {@link sessionXp}. An empty run yields all-zero sources (`count` and `xp` both 0).
  */
 export function sessionXpBreakdown(results: readonly QuestionResult[]): XpSource[] {
   const questions = results.length;
   const correct = results.reduce((n, r) => (r.correct ? n + 1 : n), 0);
   const sessions = questions === 0 ? 0 : 1;
+  const streak = streakMilestoneXp(bestStreakOf(results));
   return [
     { key: 'correct', count: correct, xp: correct * XP_PER_CORRECT },
     { key: 'questions', count: questions, xp: questions * XP_PER_QUESTION },
     { key: 'sessions', count: sessions, xp: sessions * XP_PER_SESSION },
+    { key: 'streakBonus', count: streak.milestones, xp: streak.xp },
   ];
 }
 
 /**
- * The play-derived XP a single finished run contributes — the Summary "+N XP" (Phase 43). It's the
- * per-answer portion only (correct + questions + the session bonus); the streak/badge chunks are
- * celebrated through their own moments and would double-count here. Always equals the run's exact
- * contribution to {@link computeXp}'s `correct` + `questions` + `sessions` sources — it's the sum
- * of {@link sessionXpBreakdown}. Blitz runs use the same rule — no special case. 0 for an empty run.
+ * The play-derived XP a single finished run contributes — the Summary "+N XP" (Phase 43+). It's the
+ * per-run portion: correct + questions + the session bonus + the in-game streak-milestone bonus
+ * (this run's `bestStreak`). The **daily**-streak and badge chunks are excluded here — they're
+ * cumulative / celebrated through their own moments and would double-count. Always equals the run's
+ * exact contribution to {@link computeXp}'s `correct` + `questions` + `sessions` + `streakBonus`
+ * sources — the sum of {@link sessionXpBreakdown}. Blitz runs use the same rule. 0 for an empty run.
  */
 export function sessionXp(results: readonly QuestionResult[]): number {
   return sessionXpBreakdown(results).reduce((sum, s) => sum + s.xp, 0);

@@ -498,7 +498,8 @@ const de: typeof en = {
       correct: 'Richtige Antworten',
       questions: 'Beantwortete Fragen',
       sessions: 'Gespielte Runden',
-      streak: 'Längste Serie',
+      streakBonus: 'Serien-Meilensteine',
+      streak: 'Tagesserie',
       badges: 'Erhaltene Abzeichen',
     },
     names: {
