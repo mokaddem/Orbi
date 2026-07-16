@@ -1,7 +1,14 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In review · **Progress:** ~100% — feature-complete (pending owner review + merge)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In review · **Progress:** ~100% — functional mechanic + audio feature-complete (pending review + merge)
 · **Track:** v2.7 — Mastery capstone
+
+> **↪ Presentation handed to [Phase 45](phase-45-grandmaster-cinematic-ui.md) (owner, 2026-07-16).**
+> This PRD remains the record of the **functional** challenge (unlock, one-life queue, grading,
+> pickers, the 15 capstones, and the shipped **audio**). The **cinematic UI**, the **no-XP /
+> no-Summary** standalone end-flow (which supersedes the `saveSession` + `/summary` finish this phase
+> built), and the **daily cooldown** are tracked in Phase 45. Both PRDs are updated together as work
+> lands.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -236,6 +243,12 @@ challenge is a natural XP event.
   drive of a small region.
 
 ## Progress log
+- **2026-07-16 — Presentation split out to [Phase 45](phase-45-grandmaster-cinematic-ui.md).** Owner
+  decisions: build the full locked cinematic UI ([`gauntlet-ui-spec.md`](../gauntlet-ui-spec.md)); the
+  challenge grants **no XP** and shows **no Summary** (in-arena victory bloom / runover instead —
+  superseding this phase's `saveSession` + `/summary` finish); cooldown **once/day per family×region**.
+  Tracked in Phase 45; this PRD stays the record of the functional mechanic + audio. Remaining
+  functional/reward decisions (capstone-XP, certification persistence) are Phase 45 OQ1–OQ2.
 - **2026-07-16 — Audio hardened after an xhigh code review.** A workflow-backed review of the audio
   commit surfaced three confirmed correctness bugs, all fixed: (1) the deferred fatal-knell timer
   wasn't cancelled on stop/quit/teardown, so the knell could ring on the Progress screen — `stopBed()`
