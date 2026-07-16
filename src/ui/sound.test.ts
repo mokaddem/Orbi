@@ -307,6 +307,42 @@ describe('Grandmaster Challenge cues (Phase 44)', () => {
       vi.useRealTimers();
     }
   });
+
+  it('stopBed cancels a pending fatal knell so it never rings after the player leaves', () => {
+    vi.useFakeTimers();
+    try {
+      const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+      s.setEnabled(true);
+      s.unlock();
+      const c = contexts[0];
+      s.gauntletFatal(); // the wrong sag (1 osc); the bells are deferred ~0.48 s
+      expect(c.oscStarted).toBe(1);
+      s.stopBed(); // player quits / the route tears down before the bells land
+      vi.advanceTimersByTime(700);
+      expect(c.oscStarted).toBe(1); // the knell was cancelled — no bells on a later screen
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps the everyday cues alive when the FX bus fails to build', () => {
+    // A backend where an advanced FX node throws must not cost the player their basic SFX.
+    class FailingFx extends FakeAudioContext {
+      createConvolver(): { buffer: AudioBuffer | null; connect(): void } {
+        throw new Error('no convolver on this backend');
+      }
+    }
+    const Ctor = FailingFx as unknown as new () => AudioContext;
+    const s = createSound({ AudioCtx: Ctor, sampleUrls: SAMPLE_URLS });
+    s.setEnabled(true);
+    s.unlock();
+    const c = contexts[0];
+    // A gauntlet cue triggers the (failing) lazy FX build — it must not throw, and must still play dry.
+    expect(() => s.play('settle')).not.toThrow();
+    expect(c.oscStarted).toBe(3); // settle's three voices still start (dry, no reverb send)
+    s.play('correct'); // and the everyday cues are entirely unaffected
+    expect(c.oscStarted).toBe(5);
+  });
 });
 
 describe('the Rising Bed (Phase 44)', () => {

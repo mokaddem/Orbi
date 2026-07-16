@@ -348,15 +348,24 @@ infrastructure* decisions that weren't in any single prototype.
 after a beat — the audio stands in for the transition (owner decision A, 2026-07-16).
 
 **Shared-infrastructure decisions (not per-prototype):**
-- **One reverb, not five.** The prototypes each tuned their own tail length (1.6–3.2 s). The engine
-  uses a *single* shared convolver (~3 s impulse, decay 2.5) and reproduces the relative wetness via
-  each voice's per-voice `sendGain` (0.16–0.3). A longer tail at a low send is inaudible, so the
-  compromise is transparent.
+- **Reverb — one impulse, two convolvers.** The prototypes each tuned their own tail length
+  (1.6–3.2 s); the engine synthesizes a *single* ~3 s impulse (decay 2.5) and feeds it to **two**
+  convolvers — a **cue reverb → master** and a **bed reverb → bedBus** — so the relative wetness is
+  per-voice `sendGain` (0.16–0.3) while the bed's wet stays inside the bed's bus (next bullet).
+- **Lazy FX bus (post-review).** The reverb/delay/bed nodes + the ~265k-sample impulse synthesis
+  build on the *first gauntlet cue or bed start*, never on the app's first-gesture `unlock()` — so
+  players who never open a challenge pay nothing, and if the advanced nodes fail to build the everyday
+  SFX (which route dry through `master`) keep working.
 - **Compressor.** A gentle `DynamicsCompressor` (threshold −10 dB) sits `master → compressor →
-  destination` to glue the dense bed; its high threshold leaves the quiet one-shot SFX untouched.
-- **Bed bus + ducking.** The bed rides its own `bedBus` gain (`BED_GAIN = 0.6`) below the master, so
-  it can cut (~60 ms on a fatal miss) and be silenced instantly on mute. Static gain-staging only —
-  no dynamic per-cue duck yet (owner decision E); revisit live if `settle` gets buried.
+  destination` to glue the dense bed; its high threshold leaves the quiet one-shot SFX untouched (and
+  a backend without it falls back to `master → destination`).
+- **Bed bus + ducking.** The bed (dry **and** its reverb/delay returns) rides its own `bedBus` gain
+  (`BED_GAIN = 0.6`) below the master, so it can cut (~60 ms on a fatal miss) and be silenced
+  instantly on mute *with no lingering wet tail*. Static gain-staging only — no dynamic per-cue duck
+  yet (owner decision E); revisit live if `settle` gets buried.
+- **Deferred-cue lifecycle (post-review).** `stopBed()` cancels any pending fatal-knell timer, and a
+  fatal miss cancels the not-yet-fired bed swell-in — so quitting/leaving right after a miss never
+  rings the knell on a later screen, and a fast miss never lets the bed start over the death reveal.
 - **`drum`'s pitch drop is exponential** (`freqTo`), distinct from the everyday `wrong` cue's *linear*
   `glideTo` (preserved verbatim).
 

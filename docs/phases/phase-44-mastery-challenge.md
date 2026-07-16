@@ -236,6 +236,18 @@ challenge is a natural XP event.
   drive of a small region.
 
 ## Progress log
+- **2026-07-16 — Audio hardened after an xhigh code review.** A workflow-backed review of the audio
+  commit surfaced three confirmed correctness bugs, all fixed: (1) the deferred fatal-knell timer
+  wasn't cancelled on stop/quit/teardown, so the knell could ring on the Progress screen — `stopBed()`
+  now clears it; (2) a miss within ~950 ms of accepting let the pending bed swell-in fire over the
+  death reveal (and cancel the knell) — the verdict effect now cancels `bedStartTimer` on a miss; and
+  (3) the bed's reverb/delay sends bypassed `bedBus`, so a cut/mute left a ~3 s wet tail ringing — the
+  bed now has its own reverb/delay returns *into* `bedBus` (two convolvers sharing one impulse). Also
+  hardened the plausible findings: the FX bus is now built **lazily** (on first gauntlet cue / bed,
+  not on the app's first gesture) and its failure no longer kills the everyday SFX; `startBed(tier)`
+  resumes a suspended context and re-enters at the live tier (no resume dropout); the compressor
+  falls back to `master → destination` if unavailable. +3 regression tests (**777 total**), `check`
+  0/0, `lint` clean, and the real-browser graph check re-passes on the new architecture.
 - **2026-07-16 — Grandmaster Challenge audio built (explicit owner go-ahead).** The locked audio
   design (`docs/gauntlet-audio-spec.md`) is now implemented — a scope expansion over this PRD's
   original "reuse the `perfect` jingle" celebration deliverable. New pure bed model

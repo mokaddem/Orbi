@@ -147,6 +147,22 @@ describe('Challenge audio wiring (Phase 44)', () => {
     expect(soundMock.play).not.toHaveBeenCalledWith('settle');
   });
 
+  it('a quick miss cancels the deferred bed swell-in (no bed over the death reveal)', async () => {
+    vi.useFakeTimers();
+    try {
+      stage();
+      const { container } = render(Challenge);
+      const q = get(challenge).question!;
+      const wrong = q.options!.find((c) => c.iso2 !== q.answer.iso2)!.iso2;
+      await fireEvent.click(pickButton(container, wrong)); // miss well before the 950ms bed start
+      expect(soundMock.gauntletFatal).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(BED_START_DELAY_MS + 200);
+      expect(soundMock.startBed).not.toHaveBeenCalled(); // the pending swell-in was cancelled
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('stops the bed when the run is quit', async () => {
     stage();
     render(Challenge);

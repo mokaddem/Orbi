@@ -57,6 +57,15 @@ export type SoundCue = SynthCue | JingleCue;
 
 const JINGLE_CUES: readonly JingleCue[] = ['perfect', 'achievement', 'daily'];
 
+/** Cues that need the (lazily-built) reverb/delay FX bus — everyday SFX route dry through master. */
+const GAUNTLET_CUES: ReadonlySet<SynthCue> = new Set([
+  'settle',
+  'fatal',
+  'enter',
+  'surge',
+  'victory',
+]);
+
 /**
  * Options for a played cue. `level` is the 0-based tier for the escalating cues — the sticky
  * `streak` tier (see `streakVoices`) or the Blitz combo tier (see `blitzVoices`).
@@ -82,8 +91,9 @@ export interface SoundController {
   unlock(): void;
   /** Play a named cue, if enabled and unlocked; otherwise a no-op. Never throws. */
   play(cue: SoundCue, opts?: PlayOpts): void;
-  /** Start the Grandmaster Challenge's looping bed at tier 0 (Phase 44). Safe pre-unlock. */
-  startBed(): void;
+  /** Start the Grandmaster Challenge's looping bed (Phase 44) at `initialTier` (default 0 — a fresh
+   * run; pass the live tier when resuming a run in progress). Safe pre-unlock. */
+  startBed(initialTier?: number): void;
   /** Set the bed's live intensity tier (0..9); the caller normalizes progress → tier. */
   setBedTier(tier: number): void;
   /** Fade the bed to silence over `fadeMs` (default gentle) and stop the scheduler. */
@@ -694,11 +704,18 @@ export function createSound(deps: SoundDeps): SoundController {
   let enabled = true;
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
-  // The FX bus (built once at unlock): a shared reverb + delay send, a bed bus, and a noise buffer.
-  let reverbSend: GainNode | null = null;
-  let delaySend: GainNode | null = null;
+  // The FX bus, built lazily on the first gauntlet cue / bed (see ensureFxBus) — never on the
+  // everyday unlock gesture (its impulse synthesis is hundreds of thousands of samples, and most
+  // players never open a challenge). Cue reverb returns to master; the bed's reverb + delay return
+  // into bedBus, so cutting/muting the bed silences its wet tail too. A shared noise buffer feeds
+  // every noise/whoosh voice.
+  let cueReverbSend: GainNode | null = null;
+  let bedReverbSend: GainNode | null = null;
+  let bedDelaySend: GainNode | null = null;
   let bedBus: GainNode | null = null;
   let noiseBuffer: AudioBuffer | null = null;
+  let fxReady = false;
+  let fxFailed = false;
   let unlocked = false;
   const samples = new Map<JingleCue, AudioBuffer>();
   /** Debounce identical cues so a double-call can't stack into a doubled hit. */
@@ -756,48 +773,87 @@ export function createSound(deps: SoundDeps): SoundController {
     return buf;
   }
 
-  /** Wire the master → compressor → destination chain and the shared reverb / delay / bed buses. */
+  /**
+   * The core graph — master → compressor → destination. Cheap (no buffers), built at unlock. The
+   * everyday SFX need only this, so it must survive even if the compressor or the lazy FX extras
+   * fail to build.
+   */
   function buildGraph(c: AudioContext): void {
     master = c.createGain();
     master.gain.value = MASTER_GAIN;
+    try {
+      // A gentle compressor glues stacked bed layers + cue peaks; its high threshold leaves the quiet
+      // one-shot SFX essentially untouched, only taming the dense bed.
+      const comp = c.createDynamicsCompressor();
+      comp.threshold.value = -10;
+      comp.knee.value = 6;
+      comp.ratio.value = 3;
+      comp.attack.value = 0.003;
+      comp.release.value = 0.25;
+      master.connect(comp);
+      comp.connect(c.destination);
+    } catch {
+      // No compressor on this backend — wire master straight through so audio still works.
+      master.connect(c.destination);
+    }
+  }
 
-    // A gentle compressor glues stacked bed layers + cue peaks; its high threshold leaves the quiet
-    // one-shot SFX essentially untouched, only taming the dense bed.
-    const comp = c.createDynamicsCompressor();
-    comp.threshold.value = -10;
-    comp.knee.value = 6;
-    comp.ratio.value = 3;
-    comp.attack.value = 0.003;
-    comp.release.value = 0.25;
-    master.connect(comp);
-    comp.connect(c.destination);
+  /**
+   * Build the reverb / delay / bed FX bus lazily — the first time a gauntlet cue or the bed actually
+   * needs it, never on the everyday unlock gesture (the impulse synthesis is hundreds of thousands
+   * of samples). If any advanced node throws, the everyday cues keep working (they route dry through
+   * master); only the gauntlet reverb/delay/bed go silent. Runs at most once.
+   */
+  function ensureFxBus(): void {
+    if (fxReady || fxFailed || !ctx || !master) return;
+    try {
+      noiseBuffer = makeNoise(ctx);
+      const impulse = makeImpulse(ctx, 3.0, 2.5); // one buffer, shared by both convolvers
 
-    noiseBuffer = makeNoise(c);
+      // Cue reverb → master (cues are never ducked). Per-voice `sendGain` sets the wet amount.
+      const cueConv = ctx.createConvolver();
+      cueConv.buffer = impulse;
+      cueReverbSend = ctx.createGain();
+      cueReverbSend.gain.value = 1;
+      cueReverbSend.connect(cueConv);
+      cueConv.connect(master);
 
-    // Reverb: a unity send bus → convolver → master (per-voice `sendGain` sets the wet amount).
-    const conv = c.createConvolver();
-    conv.buffer = makeImpulse(c, 3.0, 2.5);
-    reverbSend = c.createGain();
-    reverbSend.gain.value = 1;
-    reverbSend.connect(conv);
-    conv.connect(master);
+      // The bed rides its own bus below master, so it can duck / cut under the cues.
+      bedBus = ctx.createGain();
+      bedBus.gain.value = BED_GAIN;
+      bedBus.connect(master);
 
-    // Delay: a dotted-eighth feedback delay for the bed's drift / sky-echo layers.
-    const delay = c.createDelay(1.0);
-    delay.delayTime.value = SEC16 * 3; // dotted eighth ≈ 0.469 s
-    const fb = c.createGain();
-    fb.gain.value = 0.34;
-    delaySend = c.createGain();
-    delaySend.gain.value = 1;
-    delaySend.connect(delay);
-    delay.connect(fb);
-    fb.connect(delay);
-    delay.connect(master);
+      // The bed's reverb + delay return *into bedBus* (not master), so cutting/muting the bed
+      // silences its wet tail too — the fatal cut then rings in real silence.
+      const bedConv = ctx.createConvolver();
+      bedConv.buffer = impulse;
+      bedReverbSend = ctx.createGain();
+      bedReverbSend.gain.value = 1;
+      bedReverbSend.connect(bedConv);
+      bedConv.connect(bedBus);
 
-    // The bed rides its own bus below the master, so it can duck / cut under the cues.
-    bedBus = c.createGain();
-    bedBus.gain.value = BED_GAIN;
-    bedBus.connect(master);
+      // Delay: a dotted-eighth feedback delay for the bed's drift / sky-echo layers.
+      const delay = ctx.createDelay(1.0);
+      delay.delayTime.value = SEC16 * 3; // dotted eighth ≈ 0.469 s
+      const fb = ctx.createGain();
+      fb.gain.value = 0.34;
+      bedDelaySend = ctx.createGain();
+      bedDelaySend.gain.value = 1;
+      bedDelaySend.connect(delay);
+      delay.connect(fb);
+      fb.connect(delay);
+      delay.connect(bedBus);
+
+      fxReady = true;
+    } catch {
+      // Advanced nodes unavailable — disable the FX/bed but keep the dry cues alive.
+      fxFailed = true;
+      cueReverbSend = null;
+      bedReverbSend = null;
+      bedDelaySend = null;
+      bedBus = null;
+      noiseBuffer = null;
+    }
   }
 
   function setEnabled(next: boolean): void {
@@ -827,10 +883,13 @@ export function createSound(deps: SoundDeps): SoundController {
       // backend refused — leave the service fully inert (not half-built).
       ctx = null;
       master = null;
-      reverbSend = null;
-      delaySend = null;
+      cueReverbSend = null;
+      bedReverbSend = null;
+      bedDelaySend = null;
       bedBus = null;
       noiseBuffer = null;
+      fxReady = false;
+      fxFailed = false;
       unlocked = false;
     }
   }
@@ -873,12 +932,17 @@ export function createSound(deps: SoundDeps): SoundController {
   }
 
   /** Render one bell voice: a sum of inharmonic sine partials (a somber struck bell). */
-  function renderBell(v: Voice, start: number, dest: AudioNode): void {
+  function renderBell(
+    v: Voice,
+    start: number,
+    dest: AudioNode,
+    reverbTarget: GainNode | null,
+  ): void {
     if (!ctx) return;
     const sum = ctx.createGain();
     sum.gain.value = 1;
     sum.connect(dest);
-    if (v.send === 'reverb' && reverbSend) sendTo(sum, reverbSend, v.sendGain ?? 0.28);
+    if (v.send === 'reverb' && reverbTarget) sendTo(sum, reverbTarget, v.sendGain ?? 0.28);
     for (const [ratio, gainMul, durMul] of BELL_PARTIALS) {
       const osc = ctx.createOscillator();
       osc.type = 'sine';
@@ -894,12 +958,23 @@ export function createSound(deps: SoundDeps): SoundController {
     }
   }
 
-  /** Render one voice at absolute time `start` into `dest` (+ any FX send). Never throws on its own. */
-  function renderVoice(v: Voice, start: number, dest: AudioNode): void {
+  /**
+   * Render one voice at absolute time `start` into `dest` (+ any FX send). `reverbTarget` /
+   * `delayTarget` are the send buses to use — the cue reverb (→ master) for one-shot cues, or the
+   * bed's own reverb/delay (→ bedBus) for bed voices, so the bed's wet tail ducks/cuts with it.
+   * Never throws on its own.
+   */
+  function renderVoice(
+    v: Voice,
+    start: number,
+    dest: AudioNode,
+    reverbTarget: GainNode | null,
+    delayTarget: GainNode | null,
+  ): void {
     if (!ctx) return;
     const kind = v.kind ?? 'osc';
     if (kind === 'bell') {
-      renderBell(v, start, dest);
+      renderBell(v, start, dest, reverbTarget);
       return;
     }
     const end = start + v.dur;
@@ -941,8 +1016,8 @@ export function createSound(deps: SoundDeps): SoundController {
     applyEnv(g, v, start, end);
     node.connect(g);
     g.connect(dest);
-    if (v.send === 'reverb' && reverbSend) sendTo(g, reverbSend, v.sendGain ?? 0.2);
-    else if (v.send === 'delay' && delaySend) sendTo(g, delaySend, v.sendGain ?? 0.3);
+    if (v.send === 'reverb' && reverbTarget) sendTo(g, reverbTarget, v.sendGain ?? 0.2);
+    else if (v.send === 'delay' && delayTarget) sendTo(g, delayTarget, v.sendGain ?? 0.3);
 
     source.start(start);
     source.stop(end + 0.05);
@@ -950,8 +1025,11 @@ export function createSound(deps: SoundDeps): SoundController {
 
   function playSynth(cue: SynthCue, opts?: PlayOpts): void {
     if (!ctx || !master) return;
+    // The gauntlet cues (and only they) use reverb — build the FX bus on first need, not at unlock.
+    if (GAUNTLET_CUES.has(cue)) ensureFxBus();
     const t0 = ctx.currentTime + 0.001;
-    for (const v of synthVoices(cue, opts?.level ?? 0)) renderVoice(v, t0 + v.at, master);
+    for (const v of synthVoices(cue, opts?.level ?? 0))
+      renderVoice(v, t0 + v.at, master, cueReverbSend, null);
   }
 
   function playJingle(cue: JingleCue): void {
@@ -992,7 +1070,8 @@ export function createSound(deps: SoundDeps): SoundController {
     if (nextStepTime < ctx.currentTime) nextStepTime = ctx.currentTime + 0.02;
     const horizon = ctx.currentTime + LOOKAHEAD;
     while (nextStepTime < horizon) {
-      for (const v of bedVoices(liveTier, stepIndex)) renderVoice(v, nextStepTime + v.at, bedBus);
+      for (const v of bedVoices(liveTier, stepIndex))
+        renderVoice(v, nextStepTime + v.at, bedBus, bedReverbSend, bedDelaySend);
       nextStepTime += SEC16;
       stepIndex = (stepIndex + 1) % BED_STEPS;
     }
@@ -1011,19 +1090,20 @@ export function createSound(deps: SoundDeps): SoundController {
     }
   }
 
-  function startBed(): void {
+  function startBed(initialTier = 0): void {
+    ensureFxBus(); // the bed needs its bus/sends; build them on first start, not at unlock
     bedActive = true;
-    liveTier = 0;
+    liveTier = Math.max(0, Math.min(9, Math.floor(initialTier))); // resume enters at the live tier
     stepIndex = 0;
-    if (ctx && bedBus) {
-      const now = ctx.currentTime;
-      nextStepTime = now + 0.08;
-      bedBus.gain.cancelScheduledValues(now);
-      bedBus.gain.setValueAtTime(enabled ? BED_GAIN : 0.0001, now);
-    }
-    if (fatalTimer !== null) {
-      clearTimeout(fatalTimer);
-      fatalTimer = null;
+    if (ctx) {
+      // The resume (navigate-back) path plays no cue, so wake a suspended context here too.
+      if (ctx.state === 'suspended') void ctx.resume();
+      if (bedBus) {
+        const now = ctx.currentTime;
+        nextStepTime = now + 0.08;
+        bedBus.gain.cancelScheduledValues(now);
+        bedBus.gain.setValueAtTime(enabled ? BED_GAIN : 0.0001, now);
+      }
     }
     reconcileBed();
   }
@@ -1034,6 +1114,12 @@ export function createSound(deps: SoundDeps): SoundController {
 
   function stopBed(fadeMs = 140): void {
     bedActive = false;
+    // Cancel any pending fatal knell — stopping the bed (quit / finalize / route teardown) means the
+    // run is over, so a deferred knell must not ring on a later screen.
+    if (fatalTimer !== null) {
+      clearTimeout(fatalTimer);
+      fatalTimer = null;
+    }
     if (ctx && bedBus) {
       const now = ctx.currentTime;
       const g = bedBus.gain;
@@ -1046,10 +1132,9 @@ export function createSound(deps: SoundDeps): SoundController {
 
   function gauntletFatal(): void {
     try {
-      stopBed(60); // a clean ~60 ms cut so the knell rings in silence
+      stopBed(60); // a clean ~60 ms cut so the knell rings in silence (also clears any stale knell)
       play('wrong'); // the answer being graded
-      if (fatalTimer !== null) clearTimeout(fatalTimer);
-      // The descending bells land ~0.48 s after the sag.
+      // The descending bells land ~0.48 s after the sag (a fresh knell, after stopBed cleared any old).
       fatalTimer = setTimeout(() => {
         fatalTimer = null;
         play('fatal');

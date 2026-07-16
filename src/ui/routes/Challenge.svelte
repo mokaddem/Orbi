@@ -91,9 +91,10 @@
       if (view.status === 'idle' || view.status === 'finished') {
         challenge.reset();
         push('/progress');
-      } else {
-        // Resuming an in-flight run (navigated back mid-run): restore the bed, no Enter cue.
-        sound.startBed();
+      } else if (view.state) {
+        // Resuming an in-flight run (navigated back mid-run): restore the bed at its current tier
+        // (no Enter cue, and no tier-0 dropout on re-entry).
+        sound.startBed(bedTierFor(view.state.cleared, view.state.total));
       }
     }
     // The bed must never outlive the route; quit/finalize handle the normal stops, this is the net.
@@ -156,7 +157,15 @@
     const fb = $challenge.feedback;
     if (!fb) return;
     if (fb.correct) sound.play('settle');
-    else sound.gauntletFatal();
+    else {
+      // A miss is fatal: cancel the still-pending bed swell-in first, so it can't start over the
+      // death reveal (nor cancel the knell), then run the cut → sag → knell sequence.
+      if (bedStartTimer !== null) {
+        clearTimeout(bedStartTimer);
+        bedStartTimer = null;
+      }
+      sound.gauntletFatal();
+    }
   });
 
   // Tier-up (Phase 44): the bed escalates through 10 tiers as the board clears; each crossed N/10
