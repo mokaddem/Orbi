@@ -36,8 +36,13 @@ purely the **visual/UX + flow** half. It pairs 1:1 with those cues.
 - **Build the whole locked visual design** (theme, crest, modal, transition, HUD + tier sidebar +
   embers + vignette, teal-glow correct, victory bloom, fail runover). It was prototyped + locked but
   never wired into the app.
-- **No XP.** A challenge run grants **no Explorer XP** and does not feed History stats or the daily
-  play-streak. *(This changes Phase 44's built behavior, which records the run via `saveSession`.)*
+- **No XP — by any path (OQ1+OQ3 locked).** A challenge run grants **no Explorer XP**, feeds no
+  History stats, and does **not** count toward the daily play-streak; and the **capstone badges are
+  XP-neutral** too (earning one adds no XP). *(This changes Phase 44's built behavior, which records
+  the run via `saveSession` and counts the capstone in the XP badge tally.)*
+- **Certification + cooldown in a dedicated `grandmaster` store (OQ2 locked).** The run's certification
+  (which drives the 15 gilded cells + the prestige counter) and the daily cooldown both live in one
+  new IDB store — **not** a `SessionRecord` — so the challenge is fully decoupled from history/XP.
 - **No Summary.** Because there's no XP/stats to show, the challenge **skips the `/summary` route**
   entirely; the end-of-run is presented **in-arena** (victory bloom / fail runover) with a **Return**
   to Progress.
@@ -117,10 +122,13 @@ in fact this phase *removes* the challenge's XP contribution to it.
       accept→dim→title→HUD transition; the `enter` cue moved to the transition.
 - [ ] In-arena **victory bloom** + **runover**; remove the `/summary` challenge branch +
       `retryChallenge()`; Return → `/progress`.
-- [ ] No-XP standalone flow — a run contributes nothing to XP/stats/streak; capstone certification
-      preserved (Technical notes).
-- [ ] Daily cooldown (once/day per family×region): persistence, entry-card badge + countdown, modal
-      gating, "Try again" removed.
+- [ ] Dedicated `grandmaster` IDB store (+ `QuizStore` methods) holding per-`family|region`
+      certified flag/date + last-attempt day-key; the finish writes here, **not** `saveSession`.
+- [ ] No-XP standalone flow — a run contributes nothing to XP/stats/streak; the 15 capstones move off
+      the XP-counted achievements path (XP-neutral); gilding + prestige + the badge toast read the
+      `grandmaster` store.
+- [ ] Daily cooldown (once/day per family×region) off the same store: entry-card badge + countdown,
+      modal gating, "Try again" removed.
 - [ ] EN/FR/DE copy; `messages.test.ts` parity green.
 - [ ] Tests (component + pure + headless real-app clean-sweep & fatal-miss on a small continent).
 - [ ] Fast loop green (`test` / `check` / `lint`); reduced-motion verified; both PRDs + the Status
@@ -134,24 +142,22 @@ in fact this phase *removes* the challenge's XP contribution to it.
   `bedTierFor(cleared, total)` crossing that already drives `sound.play('surge')` + `setBedTier` (the
   `$effect` in `Challenge.svelte`). Extend that effect (or a derived value) to also flash the sidebar
   notch, so audio and visuals escalate in lockstep.
-- **No-XP + preserved certification (the key decision).** Today the finish calls
-  `saveSession(challengeSessionSummary(...))`, creating a `type:'challenge'` `SessionRecord` that
+- **No-XP standalone flow + certification (LOCKED — OQ1–OQ3, owner 2026-07-16).** Today the finish
+  calls `saveSession(challengeSessionSummary(...))`, creating a `type:'challenge'` `SessionRecord` that
   feeds XP (`computeXp`←`computeStats`), History, the streak, *and* the 15 capstones
-  (`evaluateAchievements` reads a clean-sweep challenge record). To grant no XP while keeping the
-  certification, choose:
-  - **(A · recommended) A dedicated `grandmaster` IDB store** (mirror `dailyChallenge`/`DailyResult`):
-    per family×region, store the **last-attempt day-key** (the cooldown) + a **certified** flag/date.
-    The run finish writes here — **not** `saveSession`. Re-point the 15 capstones + the Progress
-    gilding/prestige to read this store instead of a challenge `SessionRecord`. Fully decouples the
-    challenge from history/XP/streak *and* provides the cooldown record in one place. Biggest change,
-    cleanest end state.
-  - **(B · lighter) Keep the `SessionRecord`** (so capstones still evaluate unchanged) but **exclude
-    `type === 'challenge'`** from `computeStats`, `computeXp`, and `computeStreak` inputs, and add a
-    separate cooldown record. Fewer moving parts in the reward path, but challenge runs still linger
-    in the `sessions` store and the exclusion must be applied at every history-derived site.
-  - Either way, confirm **OQ1** (do capstone *badges* grant badge-XP?) — `computeXp` counts
-    `achievementsUnlocked`, so a certified capstone would add XP unless capstones are made
-    XP-neutral. To honor "no XP by any path," recommend excluding capstones from the XP badge count.
+  (`evaluateAchievements` reads a clean-sweep challenge record; `computeXp` counts the capstone badge).
+  Replace that with a **dedicated `grandmaster` IDB store** (mirror `dailyChallenge`/`DailyResult` —
+  a new object store + `QuizStore` methods): per `family|region`, store the **certified** flag/date +
+  the **last-attempt day-key** (one store serves both certification *and* the cooldown). Concretely:
+  - On finish the run writes to this store and **does NOT call `saveSession`** → no `SessionRecord`,
+    so **zero XP / stats / streak** contribution falls out for free (OQ3: never counts as "played
+    today").
+  - Re-point the Progress **gilding + "Grandmaster X/15" prestige** (and the unlock-banner/toast
+    title, composed via the existing `challenge.badge.title` helper) to read the `grandmaster` store
+    instead of a challenge `SessionRecord` / `AchievementView`.
+  - Move the 15 capstones **out of the XP-counted achievements path** so earning one adds no XP
+    (OQ1 — XP-neutral): drive certification from the store, not `ACHIEVEMENTS` + `saveSession`. This
+    supersedes Phase 44's `saveSession`-based certification; **no data migration** (Phase 44 unmerged).
 - **End-flow.** `finalize()` stops routing to `/summary`; instead it reveals the in-arena overlay
   (victory on `passed`, runover otherwise) and Return → `/progress`. The `victory` / fatal audio
   already fire in `finalize()` / the verdict effect — leave those. Delete `Summary.svelte`'s
@@ -167,15 +173,13 @@ in fact this phase *removes* the challenge's XP contribution to it.
   clock is injectable for tests (like `DailyResult`).
 
 ## Open Questions — confirm with the owner
-1. **Capstone badge XP** — make the 15 capstones **XP-neutral** (recommended, to honor "no XP by any
-   path") or let earning one still grant its badge-XP?
-2. **Certification persistence** — the dedicated `grandmaster` store (A, recommended) or the
-   exclude-from-history approach (B)?
-3. **Play-streak** — a challenge should **not** count as "played today" for the daily habit streak
-   (recommended — it's a test, not practice). Confirm.
-4. **Cooldown copy / edge** — confirm the entry badge/countdown wording, and that a spent challenge
-   still lets the player attempt a *different* (un-spent) family×region the same day (per the
-   per-region decision).
+OQ1–OQ3 are **locked** (owner, 2026-07-16) and folded into *Trigger / decisions* + *Technical notes*:
+the capstones are **XP-neutral**, certification + cooldown live in a **dedicated `grandmaster` store**,
+and a run **does not** count toward the play-streak. One minor item remains:
+
+1. **Cooldown copy** — confirm the entry-card badge / midnight-countdown wording (EN/FR/DE). The
+   behaviour is already decided (per family×region): a spent family×region shows the countdown while a
+   *different*, un-spent one stays attemptable the same day; this is just the exact strings.
 
 ## Acceptance criteria
 - Launching a challenge opens the **dark-teal arena** (not the light shell); the **offer modal** gates
@@ -184,17 +188,23 @@ in fact this phase *removes* the challenge's XP contribution to it.
   lockstep with the Surge cue; the single life beats; embers + vignette warm with the tier.
 - A **clean sweep** shows the **in-arena victory bloom** (no `/summary`, no XP/stats/streak change);
   a **fatal miss** shows the **runover**; both Return to Progress.
-- The **capstone still certifies** (badge + gilded cell + prestige increment) with **zero XP** gained
-  from the run (and, per OQ1, from the badge).
+- The **capstone still certifies** (gilded cell + prestige increment, from the `grandmaster` store)
+  with **zero XP** gained — the run writes no `SessionRecord`, and the capstone is XP-neutral.
 - The **cooldown** blocks a second same-day attempt of the *same* family×region (win or lose), resets
   at local midnight, and shows the countdown; a *different* family×region is still attemptable.
 - Reduce-motion neutralizes all arena animation; EN/FR/DE parity holds; fast loop green + a headless
   clean-sweep & fatal-miss drive on a small continent.
 
 ## Progress log
+- **2026-07-16 — OQ1–OQ3 locked (owner).** Capstones are **XP-neutral**; certification **and** the
+  daily cooldown live in a **dedicated `grandmaster` IDB store** (the finish writes there, not
+  `saveSession`); a run **does not** count toward the play-streak. Only the exact cooldown copy
+  (OQ→1) remains. The PRD's decisions / technical notes / deliverables / acceptance were updated to
+  match — the handover is now design-complete; the implementing session need only confirm the copy
+  and get an explicit go.
 - **2026-07-16 — PRD drafted for handover.** Owner resolved the forks: build the full locked
   cinematic UI ([`gauntlet-ui-spec.md`](../gauntlet-ui-spec.md)); challenge grants **no XP** and shows
   **no Summary** (in-arena victory bloom / runover instead); cooldown **once/day per family×region**;
   tracked as a **new phase (45)** with [Phase 44](phase-44-mastery-challenge.md) cross-updated. Audio
-  already shipped (Phase 44 follow-on). Remaining forks captured as OQ1–OQ4. **Not built** — awaiting
-  the implementing session's confirm + explicit go.
+  already shipped (Phase 44 follow-on). **Not built** — awaiting the implementing session's confirm +
+  explicit go.
