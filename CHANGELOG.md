@@ -7,6 +7,53 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.4.0] — 2026-07-17 — _Grandmaster Challenge_
+
+### Added
+
+- 👑 **The Grandmaster Challenge** — a capstone "prove-it" run that unlocks only once you've
+  mastered a whole **region × family** (e.g. all of Europe's flags). It's a **one-life gauntlet**:
+  every country in scope, both directions, and a **single wrong answer ends the run**. A clean sweep
+  **certifies** you — a gilded, permanent badge and a climbing **"Grandmaster X / 15"** prestige.
+  The run plays in a locked, cinematic **arena** (a dark-teal stage with a tier ladder, drifting
+  embers, a heat vignette and a beating "life") with its own **escalating soundtrack** and mascots —
+  a fiery **Challenger** who invites you in and a crest that crowns you on victory. An **offer modal**
+  spells out the stakes (questions, one life, a rough **~N-minute** estimate) before you commit, and
+  a **Home invitation card** surfaces a challenge that's ready today. Runs are **XP-neutral** — they
+  never touch your XP, history or streak — and each region × family is attemptable **once a day**
+  (resets at local midnight). Leaving the arena mid-run **forfeits** the attempt.
+- 🥇 **A medal for every rank** — each of the 10 Explorer ranks now has its own distinct
+  struck-metal medal instead of sharing one emblem.
+- 🔥 **Streak-milestone XP bonus** — reaching an in-game answer-streak milestone now grants a bonus
+  on top of the per-answer XP.
+- ⏱️ **Play remembers your last setup** — the Play screen now re-opens on the same mode, direction,
+  format and region you last launched, instead of always resetting to the defaults.
+- 🎬 **Playful page transitions** — a subtle page-in animation now plays on every route change.
+- ⚙️ **App version in Settings** — Settings now shows which version of Orbi you're running.
+
+### Changed
+
+- ⚡ **Blitz combo pressure scales with the multiplier** — the reaction window before the combo
+  drops a tier now **shortens the higher your multiplier** (tight at ×5, forgiving at ×2), and the
+  reaction meter drains at that tier's pace. Fast recall matters most when the stakes are highest.
+  The Blitz card also always shows the "60 s" hint, with your personal best beneath it.
+- ✨ **Richer session summary** — the "+N XP" now tallies **line by line** with a gold segment for
+  the session's own gain, a **rank-up badge burst** when you climb a tier, a longer hold before the
+  numbers land, and a color-coded breakdown.
+- 🏆 **Trophy-wall achievements** — the Progress achievements are now a compact **tile grid** rather
+  than a stack of cards, so the whole collection reads at a glance.
+- 🎖️ **Compact rank chip on Home** — a bigger rank badge, with the "N XP to next" line dropped for a
+  cleaner header.
+- 🎚️ **Wider gameplay ranges** — survival lives can now be set from **3–10** and answer choices from
+  **4–8**.
+- 🗺️ **Looser map-highlight framing** — "which country is highlighted?" now zooms out a little more,
+  so you keep more surrounding context.
+
+### Fixed
+
+- 🪟 **Modals sit centered again** — the new page-in animation no longer traps fixed-position modals
+  inside the content column after a route change.
+
 ## [2.3.0] — 2026-07-15 — _Momentum & progression_
 
 ### Added
