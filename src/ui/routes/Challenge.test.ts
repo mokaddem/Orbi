@@ -151,14 +151,15 @@ describe('Challenge in-arena end screens (Phase 45 ④)', () => {
     }
   }
 
-  it('victory bloom: Return resets the run and leaves the arena', async () => {
+  it('victory bloom: Onward resets the run and leaves the arena', async () => {
     vi.useFakeTimers();
     try {
       stage();
       const { container } = render(Challenge);
       await clearBoard(container);
       expect(screen.getByText('GRANDMASTER')).toBeInTheDocument();
-      await fireEvent.click(screen.getByText('Return'));
+      // The victory CTA is "Onward" (not the runover screen's anticlimactic "Return").
+      await fireEvent.click(screen.getByText('Onward'));
       expect(get(challenge).status).toBe('idle');
     } finally {
       vi.useRealTimers();

@@ -247,6 +247,9 @@ const en = {
       pill: '★ World Grandmaster',
       title: 'GRANDMASTER',
       body: 'You cleared all {total} — flawless.',
+      // The victory CTA leaves the arena for Progress (where the gilded reward lives). Deliberately
+      // *not* the runover screen's "Return" — that reads as anticlimactic after a flawless run.
+      cta: 'Onward',
     },
     runover: {
       title: 'The challenge ends here',

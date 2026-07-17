@@ -733,7 +733,7 @@
     font:
       600 22px system-ui,
       sans-serif;
-    fill: var(--color-text);
+    fill: var(--map-ink);
     paint-order: stroke;
     stroke: var(--map-water);
     stroke-width: 4;

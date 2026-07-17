@@ -236,6 +236,7 @@ const fr: typeof en = {
       pill: '★ Grand Maître du monde',
       title: 'GRAND MAÎTRE',
       body: 'Vous avez tout réussi — {total} sans faute.',
+      cta: 'En avant',
     },
     runover: {
       title: "Le défi s'arrête ici",

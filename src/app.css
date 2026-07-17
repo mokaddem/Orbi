@@ -69,6 +69,11 @@
   --map-border: #bfded9;
   --map-highlight: #7fd9d3;
   --map-highlight-line: #0b7e7a;
+  /* On-map text ink (reveal / pick name labels). Deliberately its own token, NOT `--color-text`:
+     the map keeps its light palette everywhere (incl. the dark-teal Grandmaster arena, which
+     re-defines `--color-text` to a near-white ink), so an on-map label must stay dark to read on
+     the pale land — otherwise it goes white-on-white in the arena. */
+  --map-ink: #123130;
 
   --radius: 20px; /* rounder than the Phase-12 16px */
 

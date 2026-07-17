@@ -503,9 +503,8 @@
         <h1 class="shimmer-title">{$t('challenge.victory.title')}</h1>
         <p class="end-body">{$t('challenge.victory.body', { total: ended.total })}</p>
         <button type="button" class="end-return" onclick={returnToProgress}>
-          {$t('challenge.endReturn')}
+          {$t('challenge.victory.cta')}
         </button>
-        <p class="end-cooldown">{$t('challenge.endCooldown')}</p>
       </div>
     {:else}
       <div class="runover-inner" role="status">
@@ -735,10 +734,16 @@
     min-height: 0; /* allow this flex child to shrink so it — not the fixed layer — scrolls */
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* A vertical scroll container clips BOTH axes (CSS forces overflow-x to match), so children
+       flush to the edge get their colored box-shadows sliced with a hard vertical line — the search
+       input's teal focus ring and the feedback glow both read as "cut sharp". This inline padding
+       gives those shadows room to render inside the clip box; the max-width is bumped by the same
+       amount (border-box) so the content column stays its intended 640px on desktop. */
+    padding-inline: 0.75rem;
     display: flex;
     flex-direction: column;
     gap: 1.1rem;
-    max-width: 640px;
+    max-width: 664px;
     margin-inline: auto;
     width: 100%;
     opacity: 1;

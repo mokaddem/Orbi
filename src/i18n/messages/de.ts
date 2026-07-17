@@ -242,6 +242,7 @@ const de: typeof en = {
       pill: '★ Großmeister der Welt',
       title: 'GROSSMEISTER',
       body: 'Alle {total} geschafft — makellos.',
+      cta: 'Vorwärts',
     },
     runover: {
       title: 'Hier endet die Herausforderung',
