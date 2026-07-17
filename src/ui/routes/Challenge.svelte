@@ -942,10 +942,14 @@
     color: var(--g-dim);
   }
 
-  /* The country-to-flag pool is the whole continent — scroll the flag grid inside its own box so a
-     54-flag Africa run never runs the page long. */
+  /* The country-to-flag pool is the whole continent. Fill the space left in the arena column rather
+     than pinning to a fixed slice of the viewport: the grid grows to use everything below the prompt
+     — reclaiming the empty lower third on phones — while its own overflow-y still keeps a 54-flag
+     Africa run from ever running the page long. min-height:0 lets this flex child shrink so the
+     *inner* box scrolls (mirrors the .arena-main pattern), not the outer one. */
   .flag-scroll {
-    max-height: 46vh;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     margin-inline: -0.25rem;
     /* Extra bottom padding so the last row scrolls clear of the fade; the mask dissolves overflow
