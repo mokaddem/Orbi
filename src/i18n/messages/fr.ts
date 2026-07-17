@@ -203,6 +203,12 @@ const fr: typeof en = {
       oneLife: 'Une seule vie',
       quit: 'Abandonner',
     },
+    forfeitConfirm: {
+      title: 'Abandonner le défi ?',
+      message: 'Cela compte comme un échec — vous ne pourrez pas réessayer avant demain.',
+      confirm: 'Abandonner',
+      cancel: 'Continuer',
+    },
     offer: {
       title: 'Le défi du Grand Maître',
       questionsLabel: 'Questions',

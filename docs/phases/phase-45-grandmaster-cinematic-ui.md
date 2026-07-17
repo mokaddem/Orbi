@@ -219,6 +219,29 @@ and a run **does not** count toward the play-streak. One minor item remains:
   clean-sweep & fatal-miss drive on a small continent.
 
 ## Progress log
+- **2026-07-17 — Forfeit now counts as a failed attempt → in-arena game-over (owner request).** The
+  HUD's **Forfeit** control no longer abandons the run silently back to Progress; it opens a guard
+  `ConfirmDialog` ("Forfeit the challenge? — counts as a failed attempt, no retry until tomorrow"), and
+  on confirm the run **ends as a failure**: `challenge.end()` (mid-run, so `summary().passed` is false)
+  → the shared `finalize()` path, which **spends today's family×region attempt**
+  (`recordChallengeResult(..., false)`) and reveals the **runover** ("game over") screen (no missed-
+  country pill — a forfeit has no miss). The confirm renders inside the arena so it inherits the dark-
+  teal `--color-*` remaps; a scoped `--color-wrong: #cf3b2c` keeps the crimson confirm button's white
+  label legible (the arena's softer death-crimson fell below contrast). Robustness: `finalize()` now
+  also cancels a still-pending bed swell, and `forfeit()` no-ops if the run finished on its own while
+  the confirm was open (no double-record). New i18n `challenge.forfeitConfirm` (EN/FR/DE). Tests:
+  rewrote the old "forfeit → idle" case to the guarded fail→game-over flow, added a cancel-path case,
+  updated the bed-stop case. **799 tests**, check/lint clean; headless capture confirms the dialog.
+- **2026-07-17 — Post-⑥ arena polish (owner feedback): map label, clipped shadow, win-screen copy.**
+  Four fixes to the shipped arena. **(1)** On-map reveal labels went white-on-white — the arena flips
+  `--color-text` to a near-white ink while the map keeps its light palette; added a dedicated
+  `--map-ink` token (`app.css`) for `.reveal-label` so it stays dark everywhere. **(2)** `.arena-main`'s
+  vertical scroll clips overflow-x too, slicing the search focus ring + feedback glow flat on both
+  sides; added `padding-inline` (max-width bumped to keep the 640px column) so those colored shadows
+  render fully. **(3)** Dropped the "Come back tomorrow" line from the **victory** screen (kept on the
+  runover). **(4)** Replaced the anticlimactic **"Return"** button on the victory screen with
+  **"Onward"** (new `challenge.victory.cta`, EN/FR/DE); the runover keeps "Return". **798 tests**,
+  check/lint clean; headless before/after captures confirm the label + shadow fixes. *(Committed 4cf944f.)*
 - **2026-07-17 — Offer modal: added a rough duration estimate (owner request).** The `GauntletOfferModal`
   stakes grid is now three cells — **Questions · ~N min · Life** — so the player also sees how long a
   clean sweep roughly takes before committing. A new pure `estimateChallengeMinutes(slots)` (domain,

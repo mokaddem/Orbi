@@ -209,6 +209,12 @@ const de: typeof en = {
       oneLife: 'Ein Leben',
       quit: 'Aufgeben',
     },
+    forfeitConfirm: {
+      title: 'Herausforderung aufgeben?',
+      message: 'Das zählt als Fehlversuch — du kannst es erst morgen erneut versuchen.',
+      confirm: 'Aufgeben',
+      cancel: 'Weitermachen',
+    },
     offer: {
       title: 'Die Großmeister-Herausforderung',
       questionsLabel: 'Fragen',

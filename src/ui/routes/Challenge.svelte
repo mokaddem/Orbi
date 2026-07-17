@@ -15,6 +15,7 @@
   import GauntletEmbers from '../components/GauntletEmbers.svelte';
   import GauntletConfetti from '../components/GauntletConfetti.svelte';
   import GrandmasterCrest from '../components/GrandmasterCrest.svelte';
+  import ConfirmDialog from '../components/ConfirmDialog.svelte';
 
   // The Grandmaster Run Play shell (Phase 44/45). Drives the dedicated one-life `challenge` store —
   // deliberately separate from `Play.svelte` / `QuizSession`, since a run interleaves both of a
@@ -57,6 +58,10 @@
     total: number;
     missed: Country | null;
   } | null>(null);
+  // Forfeit guard (Phase 45 follow-up): a forfeit now spends today's per-family×region attempt (see
+  // `forfeit()`), so a stray tap on the HUD's Forfeit control opens this confirm rather than ending
+  // the run outright.
+  let confirmingForfeit = $state(false);
   // The last bed intensity tier seen, so a tier-up (a crossed N/10 boundary) triggers the Surge
   // once. `-1` = uninitialized: the first observation just syncs the bed (no Surge), which also
   // keeps a resumed mid-run run from firing a spurious Surge. Per component instance.
@@ -183,6 +188,13 @@
   }
 
   function finalize(): void {
+    // The bed's swell-in may still be pending (a very fast finish, or a forfeit before it started);
+    // cancel it so it can't start over the end screen. The fatal-miss path also clears it in the
+    // verdict effect — clearing here too keeps every finish path safe.
+    if (bedStartTimer !== null) {
+      clearTimeout(bedStartTimer);
+      bedStartTimer = null;
+    }
     const rich = challenge.summary();
     // Reveal the in-arena end screen (Phase 45 ④) — a run never routes to the generic /summary.
     ended = rich
@@ -208,10 +220,17 @@
     push('/progress');
   }
 
-  function quit(): void {
-    sound.stopBed(120);
-    challenge.reset();
-    push('/progress');
+  // Forfeit the run — it counts as a failed attempt (owner request). End the session mid-run (so it
+  // can never be a clean sweep → its summary reports passed:false), then run the same finalize path
+  // as a fatal miss: consume today's per-family×region attempt and reveal the in-arena runover ("game
+  // over") screen. The player leaves from there (Return), never straight to /progress.
+  function forfeit(): void {
+    confirmingForfeit = false;
+    // The run may have finished on its own (the answered-state dwell elapsing) while the confirm was
+    // open — its end screen is already up, so don't re-finalize / double-record.
+    if (get(challenge).status === 'finished') return;
+    challenge.end();
+    finalize();
   }
 
   // Auto-advance once a question is answered — a short dwell on a correct clear, a longer one on the
@@ -338,7 +357,9 @@
               />
             </svg>
           </span>
-          <button type="button" class="forfeit" onclick={quit}>{$t('challenge.hud.quit')}</button>
+          <button type="button" class="forfeit" onclick={() => (confirmingForfeit = true)}>
+            {$t('challenge.hud.quit')}
+          </button>
         </header>
 
         <div class="prompt">
@@ -485,6 +506,22 @@
           </div>
         {/if}
       </div>
+
+      <!-- Forfeit guard: rendered inside the arena so ConfirmDialog inherits the dark-teal
+           `--color-*` remaps; the wrapper deepens `--color-wrong` here only, so the crimson confirm
+           button keeps legible white text (the arena's softer death-crimson would fall below the
+           contrast floor). A forfeit spends today's attempt, so it sits behind this confirm. -->
+      <div class="forfeit-confirm">
+        <ConfirmDialog
+          open={confirmingForfeit}
+          title={$t('challenge.forfeitConfirm.title')}
+          message={$t('challenge.forfeitConfirm.message')}
+          confirmLabel={$t('challenge.forfeitConfirm.confirm')}
+          cancelLabel={$t('challenge.forfeitConfirm.cancel')}
+          onconfirm={forfeit}
+          oncancel={() => (confirmingForfeit = false)}
+        />
+      </div>
     </section>
   {/if}
 {/if}
@@ -575,6 +612,14 @@
 
   .gauntlet.shake {
     animation: gm-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  /* Box-less wrapper (no layout footprint — the ConfirmDialog it holds is `position: fixed`) that
+     inherits the arena tokens while deepening only `--color-wrong`, so the dialog's filled crimson
+     confirm button keeps a legible white label on the dark ground. */
+  .forfeit-confirm {
+    display: contents;
+    --color-wrong: #cf3b2c;
   }
 
   /* A warming inner glow whose hue is the live heat — transitions as the run escalates. */

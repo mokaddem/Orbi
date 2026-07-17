@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Challenge from './Challenge.svelte';
 import { challenge, pendingChallenge } from '../stores/challenge';
@@ -101,12 +101,28 @@ describe('Challenge route', () => {
     }
   });
 
-  it('forfeit abandons the run and returns to idle (no end screen)', async () => {
+  it('forfeit is guarded, then ends the run as a failed attempt with the game-over screen', async () => {
     stage();
     render(Challenge);
-    await fireEvent.click(screen.getByText('Forfeit'));
-    // A forfeit is not a finished run — it resets to idle with no victory/runover overlay.
-    expect(get(challenge).status).toBe('idle');
+    // Tapping Forfeit opens the guard confirm — the run is still live, not ended.
+    await fireEvent.click(screen.getByRole('button', { name: 'Forfeit' }));
+    expect(get(challenge).status).toBe('playing');
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent('Forfeit the challenge?');
+    // Confirming forfeits: the run finishes as a failure and the in-arena runover ("game over") shows.
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Forfeit' }));
+    expect(get(challenge).status).toBe('finished');
+    expect(screen.getByText('The challenge ends here')).toBeInTheDocument();
+  });
+
+  it('cancelling the forfeit confirm keeps the run going', async () => {
+    stage();
+    render(Challenge);
+    await fireEvent.click(screen.getByRole('button', { name: 'Forfeit' }));
+    await fireEvent.click(screen.getByRole('button', { name: 'Keep going' }));
+    // The guard is dismissed and the run is untouched — no end screen.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(get(challenge).status).toBe('playing');
     expect(screen.queryByText('The challenge ends here')).not.toBeInTheDocument();
   });
 });
@@ -237,10 +253,13 @@ describe('Challenge audio wiring (Phase 44)', () => {
     }
   });
 
-  it('stops the bed when the run is quit', async () => {
+  it('stops the bed when the run is forfeited', async () => {
     stage();
     render(Challenge);
-    await fireEvent.click(screen.getByText('Forfeit'));
+    await fireEvent.click(screen.getByRole('button', { name: 'Forfeit' }));
+    await fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Forfeit' }),
+    );
     expect(soundMock.stopBed).toHaveBeenCalled();
   });
 

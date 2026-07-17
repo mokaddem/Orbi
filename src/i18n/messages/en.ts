@@ -204,6 +204,14 @@ const en = {
       oneLife: 'One life',
       quit: 'Forfeit',
     },
+    // Forfeit guard: a forfeit counts as a failed attempt (spends today's per-family×region try), so
+    // the HUD's Forfeit control confirms before it ends the run.
+    forfeitConfirm: {
+      title: 'Forfeit the challenge?',
+      message: "This counts as a failed attempt — you can't try again until tomorrow.",
+      confirm: 'Forfeit',
+      cancel: 'Keep going',
+    },
     // The offer modal — gates entry with the run's real stakes before it begins.
     offer: {
       title: 'The Grandmaster Challenge',
