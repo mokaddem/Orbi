@@ -18,6 +18,9 @@
 
   const B = PREFS_BOUNDS;
 
+  // App version, injected at build time from package.json (see vite.config.ts `define`).
+  const APP_VERSION = __APP_VERSION__;
+
   function onNumber(field: 'fixedLength' | 'survivalLives' | 'choicesPerQuestion') {
     return (e: Event & { currentTarget: HTMLInputElement }) => {
       const value = Number(e.currentTarget.value);
@@ -198,6 +201,13 @@
   </div>
 
   <CountryScopeNote />
+
+  <h2>{$t('settings.about')}</h2>
+
+  <div class="row">
+    <span class="label">{$t('settings.version')}</span>
+    <span class="version-value">{APP_VERSION}</span>
+  </div>
 </section>
 
 <ConfirmDialog
@@ -313,6 +323,11 @@
     margin: 0.25rem 0 0;
     color: var(--color-muted);
     font-size: 0.85rem;
+  }
+
+  .version-value {
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
   }
 
   /* Data section */

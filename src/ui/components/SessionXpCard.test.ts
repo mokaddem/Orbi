@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import SessionXpCard from './SessionXpCard.svelte';
-import { rankForXp, sessionXpBreakdown, type QuestionResult } from '../../domain';
+import { rankForXp, sessionXp, sessionXpBreakdown, type QuestionResult } from '../../domain';
 import { setLocale } from '../../i18n';
 
 beforeEach(() => setLocale('en'));
@@ -18,26 +18,30 @@ function results(n: number, correct: number): QuestionResult[] {
 }
 
 describe('SessionXpCard', () => {
-  it('shows the "+N XP" earned and itemizes the run by source', () => {
-    // 12 questions, 12 correct → 12·10 + 12·3 + 25 = 181 XP.
-    const breakdown = sessionXpBreakdown(results(12, 12));
+  it('shows the "+N XP" earned and itemizes the run by source (incl. the streak bonus)', () => {
+    // 12 correct in a row → 12·10 + 12·3 + 25 + 50 (streak, crossing 3·5·10) = 231 XP.
+    const run = results(12, 12);
+    const earned = sessionXp(run);
     render(SessionXpCard, {
-      earned: 181,
-      breakdown,
-      progress: rankForXp(181),
+      earned,
+      breakdown: sessionXpBreakdown(run),
+      progress: rankForXp(earned),
       startFraction: 0,
     });
 
-    expect(screen.getByTestId('xp-earned')).toHaveTextContent('+181 XP');
-    // The three source rows, with the session bonus relabelled (not "Sessions played").
+    expect(earned).toBe(231);
+    expect(screen.getByTestId('xp-earned')).toHaveTextContent('+231 XP');
+    // The source rows, with the session bonus relabelled (not "Sessions played").
     expect(screen.getByText('Correct answers')).toBeInTheDocument();
     expect(screen.getByText('Questions answered')).toBeInTheDocument();
     expect(screen.getByText('Session bonus')).toBeInTheDocument();
+    expect(screen.getByText('Streak milestones')).toBeInTheDocument();
     expect(screen.queryByText('Sessions played')).not.toBeInTheDocument();
     // The per-row XP amounts sum to the headline.
     expect(screen.getByText('+120 XP')).toBeInTheDocument();
     expect(screen.getByText('+36 XP')).toBeInTheDocument();
     expect(screen.getByText('+25 XP')).toBeInTheDocument();
+    expect(screen.getByText('+50 XP')).toBeInTheDocument();
   });
 
   it('renders the rank progress bar reporting the current fill, and the total XP', () => {

@@ -328,3 +328,30 @@ button {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Playful page-in on route change (App shell). The `.route-in` class is toggled on the route
+   wrapper in App.svelte on every navigation — a quick rise + fade + settle-from-slightly-small,
+   with the app's gentle ease-out. `both` fill holds the finished (visible) frame while applied.
+   Global (not component-scoped) so it survives Svelte's unused-selector pruning of a JS-toggled
+   class. Neutralised app-wide by the in-app reduce-motion rule above (near-zero duration) and by
+   the OS media query below. */
+@keyframes route-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.route-in {
+  animation: route-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-in {
+    animation: none;
+  }
+}

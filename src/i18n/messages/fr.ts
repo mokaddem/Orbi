@@ -553,6 +553,7 @@ const fr: typeof en = {
   },
   rank: {
     title: 'Rang d’explorateur',
+    openDetails: 'Voir les détails du rang',
     level: 'Rang {n} sur {total}',
     xp: '{xp} XP',
     xpTotal: '{xp} XP au total',
@@ -568,7 +569,8 @@ const fr: typeof en = {
       correct: 'Bonnes réponses',
       questions: 'Questions répondues',
       sessions: 'Parties jouées',
-      streak: 'Meilleure série',
+      streakBonus: 'Paliers de série',
+      streak: 'Série quotidienne',
       badges: 'Badges obtenus',
     },
     names: {
@@ -611,6 +613,8 @@ const fr: typeof en = {
     },
     notPersisted:
       'Le stockage est indisponible — les paramètres et l’historique ne seront pas enregistrés.',
+    about: 'À propos',
+    version: 'Version',
     data: {
       title: 'Données',
       historyLabel: 'Historique de jeu',

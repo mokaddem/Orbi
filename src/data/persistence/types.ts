@@ -178,9 +178,9 @@ export const DEFAULT_PREFS: Prefs = {
 
 /** Bounds for the numeric prefs, shared by the Settings UI and validation. */
 export const PREFS_BOUNDS = {
-  survivalLives: { min: 1, max: 9 },
+  survivalLives: { min: 3, max: 10 },
   fixedLength: { min: 5, max: 50 },
-  choicesPerQuestion: { min: 2, max: 6 },
+  choicesPerQuestion: { min: 4, max: 8 },
 } as const;
 
 /** Clamp a partial prefs patch to valid ranges (leaves absent fields untouched). */

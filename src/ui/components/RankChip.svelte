@@ -1,10 +1,9 @@
 <script lang="ts">
   import { t } from '../../i18n';
   import type { XpResult, RankProgress } from '../../domain';
-  import Icon from './Icon.svelte';
-  import type { IconName } from './icons';
+  import RankMedal from './RankMedal.svelte';
 
-  // Compact Explorer-rank glance for Home (Phase 43): the rank badge, name, total XP and a slim bar
+  // Compact Explorer-rank glance for Home (Phase 43): the rank medal, name, total XP and a slim bar
   // toward the next rank — the continuous progression cue sitting next to the streak. The full
   // breakdown lives on Progress (RankPanel). Presentational.
   let { xp, progress }: { xp: XpResult; progress: RankProgress } = $props();
@@ -12,24 +11,10 @@
   const pct = $derived(Math.round(progress.fraction * 100));
   const rankName = $derived($t(`rank.names.${progress.rank.key}`));
   const nextName = $derived(progress.next ? $t(`rank.names.${progress.next.key}`) : '');
-
-  const RANK_ICONS: readonly IconName[] = [
-    'shield',
-    'shield',
-    'award',
-    'award',
-    'medal',
-    'medal',
-    'gem',
-    'gem',
-    'crown',
-    'crown',
-  ];
-  const rankIcon = $derived(RANK_ICONS[progress.rank.index] ?? 'award');
 </script>
 
 <div class="chip" data-testid="rank-chip">
-  <span class="badge" aria-hidden="true"><Icon name={rankIcon} size={20} /></span>
+  <RankMedal index={progress.rank.index} size={40} />
   <div class="body">
     <div class="line">
       <span class="name">{rankName}</span>
@@ -65,19 +50,6 @@
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
-  }
-
-  .badge {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 999px;
-    background: var(--color-accent-weak);
-    color: var(--color-accent-strong);
-    border: 2px solid var(--color-accent);
   }
 
   .body {

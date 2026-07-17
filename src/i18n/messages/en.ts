@@ -552,6 +552,7 @@ const en = {
   },
   rank: {
     title: 'Explorer rank',
+    openDetails: 'View rank details',
     level: 'Rank {n} of {total}',
     xp: '{xp} XP',
     xpTotal: '{xp} XP total',
@@ -567,7 +568,8 @@ const en = {
       correct: 'Correct answers',
       questions: 'Questions answered',
       sessions: 'Sessions played',
-      streak: 'Longest streak',
+      streakBonus: 'Streak milestones',
+      streak: 'Daily streak',
       badges: 'Badges earned',
     },
     names: {
@@ -609,6 +611,8 @@ const en = {
       globe: '3D Globe',
     },
     notPersisted: 'Storage is unavailable — settings and history won’t be saved.',
+    about: 'About',
+    version: 'Version',
     data: {
       title: 'Data',
       historyLabel: 'Play history',

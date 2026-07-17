@@ -3,6 +3,7 @@
   import { RANKS, type XpResult, type RankProgress, type XpSourceKey } from '../../domain';
   import Icon from './Icon.svelte';
   import type { IconName } from './icons';
+  import RankMedal from './RankMedal.svelte';
 
   // Full Explorer-rank surface (Phase 43): the rank badge + name, a big XP progress bar toward the
   // next rank, and a breakdown of where the XP came from. The continuous progression line that sits
@@ -13,26 +14,12 @@
   const rankName = $derived($t(`rank.names.${progress.rank.key}`));
   const nextName = $derived(progress.next ? $t(`rank.names.${progress.next.key}`) : '');
 
-  // The badge escalates with the ladder — a shield for the early ranks up to a crown at the top.
-  const RANK_ICONS: readonly IconName[] = [
-    'shield',
-    'shield',
-    'award',
-    'award',
-    'medal',
-    'medal',
-    'gem',
-    'gem',
-    'crown',
-    'crown',
-  ];
-  const rankIcon = $derived(RANK_ICONS[progress.rank.index] ?? 'award');
-
   const SOURCE_ICON: Record<XpSourceKey, IconName> = {
     correct: 'check',
     questions: 'target',
     sessions: 'play',
-    streak: 'flame',
+    streakBonus: 'flame',
+    streak: 'calendar',
     badges: 'trophy',
   };
   // Only the sources that actually contributed, biggest first.
@@ -41,7 +28,7 @@
 
 <div class="rank" data-testid="rank-panel">
   <div class="rank-head">
-    <span class="badge" aria-hidden="true"><Icon name={rankIcon} size={26} /></span>
+    <RankMedal index={progress.rank.index} size={54} />
     <div class="rank-id">
       <span class="rank-name">{rankName}</span>
       <span class="rank-level">
@@ -99,20 +86,6 @@
     display: flex;
     align-items: center;
     gap: 0.7rem;
-  }
-
-  /* Rank medallion: the accent-tinted badge that carries the tier icon. */
-  .badge {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 999px;
-    background: var(--color-accent-weak);
-    color: var(--color-accent-strong);
-    border: 2px solid var(--color-accent);
   }
 
   .rank-id {

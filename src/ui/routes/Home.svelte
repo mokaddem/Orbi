@@ -194,7 +194,9 @@
       {/if}
       {#if rank}
         <div class="rank-cell">
-          <RankChip xp={rank.xp} progress={rank.progress} />
+          <a class="rank-link" href="#/progress?focus=rank" title={$t('rank.openDetails')}>
+            <RankChip xp={rank.xp} progress={rank.progress} />
+          </a>
         </div>
       {/if}
     </div>
@@ -345,6 +347,24 @@
        wrapping onto its own line on normal phone widths; text reflows if space gets tight. */
     flex: 1 1 0;
     min-width: 0;
+  }
+
+  /* The whole chip is a link into Progress → Explorer rank. Pointer + a hover ring + a focus
+     outline signal it's clickable; no motion, so it's reduced-motion-safe. */
+  .top-stats .rank-cell .rank-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: var(--radius);
+  }
+
+  .top-stats .rank-cell .rank-link:hover {
+    box-shadow: 0 0 0 3px var(--color-accent-weak);
+  }
+
+  .top-stats .rank-cell .rank-link:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 
   /* Rank-up celebration: cheering Orbi beside the "you reached X" line, on the accent tint —

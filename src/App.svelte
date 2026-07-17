@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Router from 'svelte-spa-router';
+  import Router, { router } from 'svelte-spa-router';
   import routes from './ui/routes';
   import Nav from './ui/components/Nav.svelte';
   import Icon from './ui/components/Icon.svelte';
@@ -15,6 +15,21 @@
   // `.content` scrolls, so the top/bottom bars can't detach on scroll. Because the document
   // itself no longer scrolls, reset this region to the top on each navigation (hash routing).
   let contentEl = $state<HTMLElement>();
+
+  // Playful page-in: re-trigger a small entrance animation on the content wrapper whenever the
+  // route changes. Keyed off the router's reactive `location` (querystring-only changes don't
+  // count), and re-armed by a reflow so the CSS animation restarts each time. The Router itself is
+  // never re-mounted — only its child page swaps, as normal. Reduced motion is honoured by the
+  // global `[data-reduce-motion]` rule (in-app toggle) and the media query in the style block (OS).
+  let routeEl = $state<HTMLElement>();
+  $effect(() => {
+    const loc = router.location;
+    const el = routeEl;
+    if (!el || loc == null) return;
+    el.classList.remove('route-in');
+    el.getBoundingClientRect(); // force reflow so the animation plays again on the next route
+    el.classList.add('route-in');
+  });
 
   onMount(() => {
     void initPersistence();
@@ -79,7 +94,9 @@
       {#if $storageReady && !$persistent}
         <p class="storage-warning" role="alert">{$t('storage.unavailable')}</p>
       {/if}
-      <Router {routes} />
+      <div class="route-swap" bind:this={routeEl}>
+        <Router {routes} />
+      </div>
     </div>
   </main>
 

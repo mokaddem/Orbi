@@ -21,6 +21,8 @@ function stats(over: Partial<StatsOverview> = {}): StatsOverview {
     sessionCount: 0,
     totalQuestions: 0,
     totalCorrect: 0,
+    totalStreakBonus: 0,
+    totalStreakMilestones: 0,
     accuracy: 0,
     avgAnswerMs: 0,
     totalPlayMs: 0,

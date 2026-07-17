@@ -122,7 +122,8 @@
   const DOT_R = 9; // aim-dot radius at k=1 (counter-scaled so it stays ~constant on screen)
   const REVEAL_FONT = 22; // reveal label px at k=1 (counter-scaled while zoomed)
   const PICKED_FONT = 20; // wrong-pick label px at k=1
-  const HIGHLIGHT_FILL = 0.5; // fraction of the board the auto-zoomed highlight should fill
+  const HIGHLIGHT_FILL = 0.3; // fraction of the board the auto-zoomed highlight should fill — kept
+  // low so a good ring of surrounding countries stays in view when picking the highlighted one
   const HIGHLIGHT_MAX_ZOOM = 5; // gentle cap so a microstate highlight doesn't slam all the way in
 
   type Bounds = [number, number, number, number];

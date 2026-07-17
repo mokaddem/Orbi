@@ -6,6 +6,7 @@
 // from the `QuizStore` and renders the result.
 
 import type { SessionRecord } from '../data/persistence/types';
+import { bestStreakOf, streakMilestoneXp } from './xp';
 
 /** A country the player gets wrong, with how often it has been seen and missed. */
 export interface MissedCountry {
@@ -30,6 +31,13 @@ export interface StatsOverview {
   sessionCount: number;
   totalQuestions: number;
   totalCorrect: number;
+  /**
+   * Summed in-game streak-milestone XP across all sessions (each session's `bestStreak` scored by
+   * {@link streakMilestoneXp}), and how many milestones that was. Append-only — feeds the
+   * `streakBonus` XP source (Phase 43+); see {@link computeXp}.
+   */
+  totalStreakBonus: number;
+  totalStreakMilestones: number;
   /** `totalCorrect / totalQuestions`, in [0, 1]; `0` when nothing has been played. */
   accuracy: number;
   /** Mean answer time per question, in ms; `0` when nothing has been played. */
@@ -46,6 +54,8 @@ const EMPTY: StatsOverview = {
   sessionCount: 0,
   totalQuestions: 0,
   totalCorrect: 0,
+  totalStreakBonus: 0,
+  totalStreakMilestones: 0,
   accuracy: 0,
   avgAnswerMs: 0,
   totalPlayMs: 0,
@@ -88,12 +98,20 @@ export function computeStats(records: readonly SessionRecord[]): StatsOverview {
   let totalCorrect = 0;
   let totalAnswerMs = 0;
   let totalPlayMs = 0;
+  let totalStreakBonus = 0;
+  let totalStreakMilestones = 0;
 
   const days = new Map<string, DailyStat>();
   const missed = new Map<string, MissedCountry>();
 
   for (const rec of records) {
     totalPlayMs += rec.durationMs;
+
+    // In-game streak-milestone bonus for this session (its longest correct run), summed across
+    // history — the append-only `streakBonus` XP source. `questions` are stored in answer order.
+    const bonus = streakMilestoneXp(bestStreakOf(rec.questions));
+    totalStreakBonus += bonus.xp;
+    totalStreakMilestones += bonus.milestones;
 
     const key = dayKey(rec.startedAt);
     const day = days.get(key) ?? { date: key, sessions: 0, questions: 0, correct: 0 };
@@ -125,6 +143,8 @@ export function computeStats(records: readonly SessionRecord[]): StatsOverview {
     sessionCount: records.length,
     totalQuestions,
     totalCorrect,
+    totalStreakBonus,
+    totalStreakMilestones,
     accuracy: totalQuestions === 0 ? 0 : totalCorrect / totalQuestions,
     avgAnswerMs: totalQuestions === 0 ? 0 : totalAnswerMs / totalQuestions,
     totalPlayMs,

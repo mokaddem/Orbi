@@ -36,7 +36,7 @@ describe('RankPanel', () => {
     expect(screen.getByText('Correct answers')).toBeInTheDocument();
     expect(screen.getByText('Questions answered')).toBeInTheDocument();
     expect(screen.getByText('Sessions played')).toBeInTheDocument();
-    expect(screen.getByText('Longest streak')).toBeInTheDocument();
+    expect(screen.getByText('Daily streak')).toBeInTheDocument();
     expect(screen.getByText('Badges earned')).toBeInTheDocument();
   });
 

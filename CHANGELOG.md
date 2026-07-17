@@ -7,6 +7,22 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.3.0] — 2026-07-15 — _Momentum & progression_
+
+### Added
+
+- ⚡ **Blitz mode** — a new timed speed-run format you can play over any mode and region: race the
+  clock for points, chain correct answers into a **combo multiplier up to ×5** (with its own rising
+  sound and a draining reaction meter), and earn **bonus time** for quick answers. A slow answer
+  cools the combo down a tier instead of wiping it, and each run is graded against a **local personal
+  best** — the "one more run" pull. History rows show the bonus time a Blitz run earned.
+- 🧭 **Explorer rank & XP** — every game now feeds one continuously-climbing **XP** number and a
+  **10-tier Explorer ladder** (Novice → Legendary Explorer), derived from the play you've already
+  done: correct answers, questions, sessions, streaks and badges. Your rank shows on **Home** and
+  **Progress**, the session summary breaks down the **"+N XP"** you just earned with a growing XP
+  bar, recent-session rows show their XP gain, and climbing a tier fires a one-time **"Rank up!"**
+  celebration.
+
 ## [2.2.4] — 2026-07-14
 
 ### Changed
