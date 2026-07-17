@@ -28,3 +28,6 @@ coverage
 # Vitest / TS build info
 .tmp
 *.tsbuildinfo
+
+# Claude Code local session data (settings, memory, background jobs, worktrees)
+.claude/
