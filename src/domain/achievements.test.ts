@@ -3,11 +3,9 @@ import {
   ACHIEVEMENTS,
   ACHIEVEMENT_IDS,
   CONTINENTS,
-  GRANDMASTER_TOTAL,
   SPEEDY_MAX_AVG_MS,
   SPEEDY_MIN_QUESTIONS,
   evaluateAchievements,
-  grandmasterId,
   type AchievementContext,
 } from './achievements';
 import type { MasteryResult, MasteryRollup, RegionMastery } from './mastery';
@@ -306,76 +304,5 @@ describe('badge predicates', () => {
     expect(
       unlocked('languages-world', ctx({ languageMastery: mastery({ mastered: 192, total: 192 }) })),
     ).toBe(true);
-  });
-});
-
-// Grandmaster Run capstones (Phase 44) — driven purely by a clean-sweep `type: 'challenge'`
-// SessionRecord for the matching family × continent, isolated from every mastery rollup.
-describe('grandmaster capstones', () => {
-  /** A passing (clean-sweep) Grandmaster Run over flags × Oceania, by default. */
-  const passRun = (over: Partial<SessionRecord> = {}): SessionRecord =>
-    session({
-      type: 'challenge',
-      mode: 'flag-to-country',
-      regionFilter: { region: 'Oceania' },
-      total: 28,
-      correct: 28,
-      ...over,
-    });
-
-  it('adds one monotonic capstone per family × continent (3 × 5 = 15), all marked capstone', () => {
-    const caps = ACHIEVEMENTS.filter((a) => a.capstone);
-    expect(caps).toHaveLength(GRANDMASTER_TOTAL);
-    expect(GRANDMASTER_TOTAL).toBe(15);
-    for (const family of ['map', 'flags', 'capitals'] as const)
-      for (const c of CONTINENTS) expect(ACHIEVEMENT_IDS).toContain(grandmasterId(family, c));
-    // Ids stay unique after the additions.
-    expect(new Set(ACHIEVEMENT_IDS).size).toBe(ACHIEVEMENT_IDS.length);
-  });
-
-  it('unlocks on a clean-sweep challenge run for that exact family × continent', () => {
-    expect(unlocked('grandmaster-flags-oceania', ctx({ sessions: [passRun()] }))).toBe(true);
-  });
-
-  it('stays locked on a failed run (one miss ⇒ correct < total) or an empty run', () => {
-    expect(
-      unlocked('grandmaster-flags-oceania', ctx({ sessions: [passRun({ correct: 27 })] })),
-    ).toBe(false);
-    expect(
-      unlocked('grandmaster-flags-oceania', ctx({ sessions: [passRun({ total: 0, correct: 0 })] })),
-    ).toBe(false);
-  });
-
-  it('is scoped to the run’s family and continent', () => {
-    const s = { sessions: [passRun()] }; // flags × Oceania
-    expect(unlocked('grandmaster-map-oceania', ctx(s))).toBe(false); // wrong family
-    expect(unlocked('grandmaster-flags-europe', ctx(s))).toBe(false); // wrong continent
-  });
-
-  it('maps the run’s representative mode back to its family (either direction certifies)', () => {
-    expect(
-      unlocked(
-        'grandmaster-flags-oceania',
-        ctx({ sessions: [passRun({ mode: 'country-to-flag' })] }),
-      ),
-    ).toBe(true);
-    expect(
-      unlocked(
-        'grandmaster-capitals-europe',
-        ctx({
-          sessions: [passRun({ mode: 'country-to-capital', regionFilter: { region: 'Europe' } })],
-        }),
-      ),
-    ).toBe(true);
-  });
-
-  it('a perfect NON-challenge run never certifies a capstone', () => {
-    expect(
-      unlocked('grandmaster-flags-oceania', ctx({ sessions: [passRun({ type: 'fixed' })] })),
-    ).toBe(false);
-  });
-
-  it('is locked for a brand-new profile (no runs)', () => {
-    expect(unlocked('grandmaster-flags-oceania', ctx())).toBe(false);
   });
 });

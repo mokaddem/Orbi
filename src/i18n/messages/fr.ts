@@ -193,6 +193,7 @@ const fr: typeof en = {
     proveIt: 'Défi du grand maître',
     proveItAria: 'Lancer le défi du grand maître {family} pour {region}',
     certified: 'Grand maître',
+    certifiedToast: 'Certifié !',
     lockedHint: 'Maîtrisez {family} en {region} pour débloquer son défi du grand maître',
     prestige: 'Grand maître',
     prestigeCount: '{done} / {total}',
@@ -200,7 +201,23 @@ const fr: typeof en = {
     hud: {
       cleared: '{cleared} / {total} validés',
       oneLife: 'Une seule vie',
-      quit: 'Quitter le défi',
+      quit: 'Abandonner',
+    },
+    offer: {
+      title: 'Le défi du Grand Maître',
+      questionsLabel: 'Questions',
+      lifeLabel: 'Vie',
+      warning: 'Une seule erreur met fin au défi.',
+      cooldown: 'Une tentative par jour · réinitialisation à minuit',
+      accept: 'Relever le défi',
+      decline: 'Pas encore',
+      close: 'Fermer',
+    },
+    intro: {
+      title: "Entrez dans l'arène",
+    },
+    cooldown: {
+      next: 'Prochaine tentative dans {time}',
     },
     search: {
       countryPlaceholder: 'Tapez un pays…',
@@ -208,13 +225,18 @@ const fr: typeof en = {
       noMatch: 'Aucun résultat',
       resultsAria: '{count} pays',
     },
-    summary: {
-      passTitle: 'Grand maître !',
-      passBody: '{family} · {region} — certifié',
-      failTitle: 'Défi terminé',
-      failBody: '{cleared} sur {total} validés — puis {country} manqué',
-      tryAgain: 'Réessayer',
+    victory: {
+      pill: '★ Grand Maître du monde',
+      title: 'GRAND MAÎTRE',
+      body: 'Vous avez tout réussi — {total} sans faute.',
     },
+    runover: {
+      title: "Le défi s'arrête ici",
+      body: '{cleared} sur {total} validés',
+      missed: 'Manqué sur {country}',
+    },
+    endReturn: 'Retour',
+    endCooldown: 'Revenez demain.',
     badge: {
       title: 'Grand maître — {family} · {region}',
       desc: 'Défi du grand maître {family} en {region} réussi — chaque pays, dans les deux sens, une seule vie.',

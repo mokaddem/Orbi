@@ -122,4 +122,25 @@ describe('FamilyRegionBreakdown — Grandmaster reward', () => {
       screen.queryByRole('button', { name: /Grandmaster Run for Oceania/ }),
     ).not.toBeInTheDocument();
   });
+
+  it('shows a cooldown affordance (not the gold "prove it") when today’s attempt is spent', async () => {
+    const onChallenge = vi.fn();
+    render(FamilyRegionBreakdown, {
+      regions: oceania,
+      variant: 'stacked',
+      certified: new Set(['flags|Oceania']),
+      spent: new Set(['map|Oceania']), // Map is fully mastered, uncertified, but played today
+      cooldownText: 'Next attempt in 5h 30m',
+      onChallenge,
+      onPractise: vi.fn(),
+    });
+    // The uncertified-but-spent Map cell reads as the cooldown countdown, not the "prove it" launch.
+    expect(
+      screen.queryByRole('button', { name: /Grandmaster Run for Oceania/ }),
+    ).not.toBeInTheDocument();
+    const cool = screen.getByRole('button', { name: 'Next attempt in 5h 30m' });
+    // Tapping it still surfaces the (cooldown-gated) offer modal via onChallenge.
+    await fireEvent.click(cool);
+    expect(onChallenge).toHaveBeenCalledWith('Oceania', 'map');
+  });
 });

@@ -4,6 +4,8 @@
   import {
     computeStats,
     computeBlitzBests,
+    challengeSlotCount,
+    filterCountries,
     GRANDMASTER_TOTAL,
     type BlitzBestEntry,
     type GameMode,
@@ -13,10 +15,15 @@
     type StatsOverview,
     type WeeklyRecap as WeeklyRecapData,
   } from '../../domain';
-  import type { SessionRecord } from '../../data';
+  import { getCountries, type SessionRecord } from '../../data';
   import { formatDuration, formatPercent } from '../format';
   import { pendingConfig } from '../stores/game';
-  import { challenge, lastChallengeSummary, pendingChallenge } from '../stores/challenge';
+  import {
+    challenge,
+    justCertified,
+    lastChallengeSummary,
+    pendingChallenge,
+  } from '../stores/challenge';
   import {
     loadSessions,
     loadMastery,
@@ -25,11 +32,13 @@
     loadIndustryMastery,
     loadWeeklyRecap,
     loadAchievements,
+    loadGrandmaster,
     loadRank,
     persistent,
     prefs,
     storageReady,
     type AchievementView,
+    type GrandmasterState,
     type RankState,
   } from '../stores/persistence';
   import { sound } from '../sound';
@@ -41,6 +50,7 @@
   import RankPanel from '../components/RankPanel.svelte';
   import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
+  import GauntletOfferModal from '../components/GauntletOfferModal.svelte';
   import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
   import AchievementsGrid from '../components/AchievementsGrid.svelte';
   import WeeklyRecap from '../components/WeeklyRecap.svelte';
@@ -52,6 +62,7 @@
   let industryMastery = $state<MasteryResult | null>(null);
   let recap = $state<WeeklyRecapData | null>(null);
   let achievements = $state<AchievementView[]>([]);
+  let grandmaster = $state<GrandmasterState | null>(null);
   let rank = $state<RankState | null>(null);
   let loading = $state(true);
 
@@ -110,24 +121,20 @@
         ? $localizedRegion(b.region)
         : $t('progress.blitz.world');
 
-  // The main grid excludes extra-topic badges (their own panel) and the Grandmaster capstones
-  // (surfaced in the World Mastery panel below as gilded cells, not as grid badges).
-  const countryAchievements = $derived(achievements.filter((a) => !a.topic && !a.capstone));
+  // The main grid excludes extra-topic badges (they have their own panel). The Grandmaster capstones
+  // are not badges at all (Phase 45) — they live in the dedicated `grandmaster` store and surface in
+  // the World Mastery panel as gilded cells, so they never appear here.
+  const countryAchievements = $derived(achievements.filter((a) => !a.topic));
   const extraAchievements = $derived(achievements.filter((a) => a.topic));
 
-  // Grandmaster Run reward (Phase 44, design A + C). The capstones drive the World Mastery panel:
-  // `certifiedSet` gilds each passed family × continent cell; `certifiedCount` feeds the prestige
-  // headline. The prestige bar only appears once a run is either certified or unlockable (a family ×
-  // continent is fully mastered), so it never shows a discouraging "0 / 15" to a fresh player.
-  const grandmasters = $derived(achievements.filter((a) => a.capstone));
-  const certifiedCount = $derived(grandmasters.filter((a) => a.unlocked).length);
-  const certifiedSet = $derived(
-    new Set(
-      grandmasters
-        .filter((a) => a.unlocked && a.family && a.region)
-        .map((a) => `${a.family}|${a.region}`),
-    ),
-  );
+  // Grandmaster Run reward (Phase 44/45, design A + C). Certification + the daily cooldown come from
+  // the dedicated `grandmaster` store (XP-neutral, decoupled from history): `certifiedSet` gilds each
+  // passed family × continent cell and `certifiedCount` feeds the prestige headline; `spentToday`
+  // gates a second same-day attempt. The prestige bar only appears once a run is either certified or
+  // unlockable, so it never shows a discouraging "0 / 15" to a fresh player.
+  const certifiedSet = $derived(grandmaster?.certified ?? new Set<string>());
+  const spentToday = $derived(grandmaster?.spentToday ?? new Set<string>());
+  const certifiedCount = $derived(certifiedSet.size);
   const hasUnlockableChallenge = $derived(
     !!mastery &&
       mastery.byRegion.some((r) => r.families.some((f) => f.total > 0 && f.mastered === f.total)),
@@ -135,23 +142,61 @@
   const showPrestige = $derived(certifiedCount > 0 || hasUnlockableChallenge);
   const prestigePct = $derived(Math.round((certifiedCount / GRANDMASTER_TOTAL) * 100));
 
-  /** Launch the family × continent Grandmaster Run from its "prove it" cell. */
+  // The Grandmaster Challenge offer (Phase 45 ③): the "prove it" cell no longer launches the run
+  // directly — it opens a gated ceremonial modal stating the run's real stakes, and only Accept
+  // stages the run + routes into the cinematic arena. When the family × region's daily attempt is
+  // already spent (⑤), the modal opens in a cooldown state (Accept disabled + a countdown), so a
+  // second same-day run is blocked at the entry point.
+  let offer = $state<{
+    family: MasteryFamily;
+    region: string;
+    slots: number;
+    spent: boolean;
+  } | null>(null);
+
+  // Time until local midnight, captured at load — a coarse "come back later" cue, not a live timer.
+  function formatTimeToMidnight(now: number): string {
+    const d = new Date(now);
+    const midnight = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 0, 0, 0, 0).getTime();
+    const mins = Math.max(0, Math.ceil((midnight - now) / 60000));
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
+  let cooldownAt = $state(Date.now());
+  const cooldownText = $derived(
+    $t('challenge.cooldown.next', { time: formatTimeToMidnight(cooldownAt) }),
+  );
+
+  /** Open the offer modal for a family × continent's "prove it" cell (with its real slot count). */
   function launchChallenge(region: string, family: MasteryFamily): void {
+    const slots = challengeSlotCount(family, filterCountries(getCountries(), { region }));
+    offer = { family, region, slots, spent: spentToday.has(`${family}|${region}`) };
+  }
+
+  /** Accept the offer: stage the run and enter the arena (the "enter" cue + intro fire there).
+   *  Guarded — a spent (cooldown) family × region can't be started until local midnight. */
+  function acceptChallenge(): void {
+    if (!offer || offer.spent) return;
+    const { family, region } = offer;
+    offer = null;
     challenge.reset();
     lastChallengeSummary.set(null);
     pendingChallenge.set({ family, region });
     push('/challenge');
   }
 
-  // The unlock banner names each just-earned badge. Grandmaster capstones have no per-id copy (their
-  // title is composed from the family + continent labels); everything else uses its `badges.<id>` key.
+  // The unlock banner names each just-earned badge via its `badges.<id>` key (capstones are no longer
+  // badges — a freshly-certified run is celebrated by its own `justCertified` toast below).
   const badgeTitle = (a: AchievementView): string =>
-    a.capstone && a.family && a.region
-      ? $t('challenge.badge.title', {
-          family: $t(`modes.group.${a.family}`),
-          region: $localizedRegion(a.region),
-        })
-      : $t(`progress.achievements.badges.${a.id}.title`);
+    $t(`progress.achievements.badges.${a.id}.title`);
+
+  // The composed capstone title for the "Grandmaster unlocked" toast (family + continent labels).
+  const capstoneTitle = (family: MasteryFamily, region: string): string =>
+    $t('challenge.badge.title', {
+      family: $t(`modes.group.${family}`),
+      region: $localizedRegion(region),
+    });
   // Badges that unlocked on this load — celebrated once via a dismissible banner.
   let unlockDismissed = $state(false);
   const justUnlocked = $derived(achievements.filter((a) => a.justUnlocked));
@@ -174,14 +219,17 @@
     // persisted state. loadAchievements also persists any first-time unlocks.
     // Progress shows the rank/XP bar but is display-only (commit:false) — it never consumes the
     // one-time "rank up!" moment, which is celebrated on Summary/Home (Phase 43).
-    [mastery, languageMastery, industryMastery, recap, achievements, rank] = await Promise.all([
-      loadMastery(),
-      loadLanguageMastery(),
-      loadIndustryMastery(),
-      loadWeeklyRecap(),
-      loadAchievements(),
-      loadRank(Date.now(), { commit: false }),
-    ]);
+    cooldownAt = Date.now();
+    [mastery, languageMastery, industryMastery, recap, achievements, grandmaster, rank] =
+      await Promise.all([
+        loadMastery(),
+        loadLanguageMastery(),
+        loadIndustryMastery(),
+        loadWeeklyRecap(),
+        loadAchievements(),
+        loadGrandmaster(),
+        loadRank(Date.now(), { commit: false }),
+      ]);
     loading = false;
   }
 
@@ -210,6 +258,28 @@
     </div>
   {:else}
     {@const s = stats}
+    <!-- One-time "Grandmaster certified!" toast (Phase 45): set by a clean-sweep run as it returned
+         from the arena. The in-arena victory bloom is the primary celebration; this is the quieter
+         Progress-side acknowledgement, gilded gold. Dismiss clears the session-scoped handoff. -->
+    {#if $justCertified}
+      <div class="unlock gm-unlock" role="status">
+        <span class="unlock-mascot" aria-hidden="true">
+          <Mascot pose="proud" animate="wiggle" size={52} />
+        </span>
+        <span class="unlock-text">
+          {$t('challenge.certifiedToast')}
+          <strong>{capstoneTitle($justCertified.family, $justCertified.region)}</strong>
+        </span>
+        <button
+          type="button"
+          class="unlock-dismiss"
+          onclick={() => justCertified.set(null)}
+          aria-label={$t('progress.achievements.dismiss')}
+        >
+          ✕
+        </button>
+      </div>
+    {/if}
     <!-- One-time "unlocked!" celebration for badges earned on this load. -->
     {#if justUnlocked.length > 0 && !unlockDismissed}
       <div class="unlock" role="status">
@@ -316,6 +386,8 @@
             onPractise={practiseRegionFamily}
             onChallenge={launchChallenge}
             certified={certifiedSet}
+            spent={spentToday}
+            {cooldownText}
           />
         </div>
       {/if}
@@ -400,6 +472,19 @@
   {/if}
 </section>
 
+{#if offer}
+  <GauntletOfferModal
+    open
+    family={offer.family}
+    region={offer.region}
+    slots={offer.slots}
+    spent={offer.spent}
+    cooldown={cooldownText}
+    onaccept={acceptChallenge}
+    oncancel={() => (offer = null)}
+  />
+{/if}
+
 <style>
   .progress {
     display: flex;
@@ -475,6 +560,20 @@
     background: var(--color-accent-weak);
     border: 2px solid var(--color-accent);
     border-radius: var(--radius);
+  }
+
+  /* The Grandmaster capstone toast — gilded gold to set it apart from the teal badge banner. */
+  .gm-unlock {
+    background: var(--color-gold-weak);
+    border-color: var(--color-gold);
+  }
+
+  .gm-unlock .unlock-mascot {
+    color: var(--color-gold-deep);
+  }
+
+  .gm-unlock .unlock-text strong {
+    color: var(--color-gold-ink);
   }
 
   .unlock-mascot {

@@ -13,6 +13,7 @@ import type {
   AchievementUnlock,
   CustomSet,
   DailyResult,
+  GrandmasterRecord,
   Prefs,
   ProgressionState,
   QuizStore,
@@ -22,9 +23,9 @@ import type {
 
 const DB_NAME = 'geo-quiz';
 // v2 (Phase 15): add `dailyChallenge`. v3 (Phase 16): add `achievements`. v4 (Phase 27):
-// add `customSets`. v5 (Phase 43): add `progression`. Upgrades are additive (only missing
-// stores are created), so existing data is preserved across bumps.
-const DB_VERSION = 5;
+// add `customSets`. v5 (Phase 43): add `progression`. v6 (Phase 45): add `grandmaster`.
+// Upgrades are additive (only missing stores are created), so existing data is preserved.
+const DB_VERSION = 6;
 
 /** The single prefs row lives under a fixed, out-of-line key. */
 const PREFS_KEY = 'app';
@@ -64,6 +65,10 @@ interface GeoQuizDB extends DBSchema {
     key: string;
     value: ProgressionState;
   };
+  grandmaster: {
+    key: string;
+    value: GrandmasterRecord;
+  };
 }
 
 export class IdbQuizStore implements QuizStore {
@@ -97,6 +102,9 @@ export class IdbQuizStore implements QuizStore {
         }
         if (!db.objectStoreNames.contains('progression')) {
           db.createObjectStore('progression');
+        }
+        if (!db.objectStoreNames.contains('grandmaster')) {
+          db.createObjectStore('grandmaster', { keyPath: 'key' });
         }
       },
     });
@@ -190,5 +198,17 @@ export class IdbQuizStore implements QuizStore {
 
   async clearProgression(): Promise<void> {
     await this.db.delete('progression', PROGRESSION_KEY);
+  }
+
+  async getGrandmasterRecords(): Promise<GrandmasterRecord[]> {
+    return this.db.getAll('grandmaster');
+  }
+
+  async putGrandmasterRecord(record: GrandmasterRecord): Promise<void> {
+    await this.db.put('grandmaster', record);
+  }
+
+  async clearGrandmaster(): Promise<void> {
+    await this.db.clear('grandmaster');
   }
 }

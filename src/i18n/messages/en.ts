@@ -191,6 +191,8 @@ const en = {
     proveIt: 'Grandmaster Run',
     proveItAria: 'Start the {family} Grandmaster Run for {region}',
     certified: 'Grandmaster',
+    // The quiet Progress-side toast when a clean-sweep run certifies (prefix + composed badge title).
+    certifiedToast: 'Certified!',
     lockedHint: 'Master {family} in {region} to unlock its Grandmaster Run',
     // The prestige headline: how many family × continent runs are certified.
     prestige: 'Grandmaster',
@@ -200,7 +202,28 @@ const en = {
     hud: {
       cleared: '{cleared} / {total} cleared',
       oneLife: 'One life',
-      quit: 'Quit run',
+      quit: 'Forfeit',
+    },
+    // The offer modal — gates entry with the run's real stakes before it begins.
+    offer: {
+      title: 'The Grandmaster Challenge',
+      questionsLabel: 'Questions',
+      lifeLabel: 'Life',
+      warning: 'One wrong answer ends the challenge.',
+      cooldown: 'One attempt a day · resets at midnight',
+      accept: 'Accept the challenge',
+      decline: 'Not yet',
+      // Shown in place of "Not yet" when the modal opens on cooldown (Accept is hidden then).
+      close: 'Close',
+    },
+    // The cinematic entry transition (title bloom → arena), paired with the "enter" cue.
+    intro: {
+      title: 'Enter the Gauntlet',
+    },
+    // The daily cooldown (Phase 45 ⑤): the countdown shown once today's attempt is spent — on the
+    // entry-card tooltip and, prominently, in the offer modal (Accept is gated until local midnight).
+    cooldown: {
+      next: 'Next attempt in {time}',
     },
     // Full-region pickers (no 4-choice crutch): a type-ahead over the whole continent.
     search: {
@@ -209,14 +232,19 @@ const en = {
       noMatch: 'No match',
       resultsAria: '{count} countries',
     },
-    // Pass / fail on the Summary.
-    summary: {
-      passTitle: 'Grandmaster!',
-      passBody: '{family} · {region} — certified',
-      failTitle: 'Run ended',
-      failBody: 'Cleared {cleared} of {total} — then missed {country}',
-      tryAgain: 'Try again',
+    // In-arena end screens (Phase 45 ④) — a run never routes to the /summary screen.
+    victory: {
+      pill: '★ World Grandmaster',
+      title: 'GRANDMASTER',
+      body: 'You cleared all {total} — flawless.',
     },
+    runover: {
+      title: 'The challenge ends here',
+      body: 'You cleared {cleared} of {total}',
+      missed: 'Missed on {country}',
+    },
+    endReturn: 'Return',
+    endCooldown: 'Come back tomorrow.',
     // Composed capstone-badge copy (family + region come from existing labels).
     badge: {
       title: 'Grandmaster — {family} · {region}',

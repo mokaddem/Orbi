@@ -12,14 +12,7 @@
 // fast, which does not fit the single-mode draw bag, so it gets its own small driver here.
 
 import type { Country } from '../data/types';
-import type {
-  AttributeOption,
-  GameMode,
-  Question,
-  QuestionResult,
-  SessionStatus,
-  SessionSummary,
-} from './types';
+import type { AttributeOption, GameMode, Question, QuestionResult, SessionStatus } from './types';
 import { type Rng, defaultRng, shuffle } from './rng';
 import { FAMILIES, type MasteryFamily, isAttributeMode } from './modes';
 import { checkAnswer, eligibleAnswers, hasOptions, itemKey } from './questions';
@@ -69,6 +62,17 @@ export function buildChallengeQueue(
     for (const c of eligibleAnswers(mode, countries)) slots.push({ mode, iso2: c.iso2 });
   }
   return shuffle(slots, rng);
+}
+
+/**
+ * How many question-slots a `family × countries` run has — the same `2 × N` (minus mode-ineligible
+ * countries) that {@link buildChallengeQueue} produces, without the throwaway shuffle. Used by the
+ * offer modal to show the run's real stakes (e.g. Europe map 90, Africa flags 108, Oceania ~52).
+ */
+export function challengeSlotCount(family: MasteryFamily, countries: readonly Country[]): number {
+  let count = 0;
+  for (const mode of familyModes(family)) count += eligibleAnswers(mode, countries).length;
+  return count;
 }
 
 /**
@@ -141,33 +145,6 @@ export interface ChallengeSummary {
   finishedAt: number;
   durationMs: number;
   results: QuestionResult[];
-}
-
-/**
- * Adapt a {@link ChallengeSummary} to the standard {@link SessionSummary} so a run persists through
- * the ordinary `saveSession` → `SessionRecord` path (feeding XP, stats, and history with no special
- * case). `mode` is the family's **first** direction as a representative — the true per-question modes
- * live in each result's `itemKey` (`mode:iso2`), so nothing is lost — and the fatal miss (if any)
- * becomes the single-element `missed` list. `passed` is recoverable downstream as
- * `type === 'challenge' && correct === total`.
- */
-export function challengeSessionSummary(cs: ChallengeSummary): SessionSummary {
-  return {
-    mode: familyModes(cs.family)[0],
-    type: 'challenge',
-    regionFilter: { region: cs.region },
-    total: cs.total,
-    correct: cs.cleared,
-    accuracy: cs.total === 0 ? 0 : cs.cleared / cs.total,
-    // One life ⇒ the correct run is monotonic (a single miss ends it), so the best streak is exactly
-    // the number cleared.
-    bestStreak: cs.cleared,
-    startedAt: cs.startedAt,
-    finishedAt: cs.finishedAt,
-    durationMs: cs.durationMs,
-    missed: cs.missed ? [cs.missed] : [],
-    results: cs.results,
-  };
 }
 
 /**

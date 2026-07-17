@@ -4,6 +4,7 @@ export type {
   AchievementUnlock,
   CustomSet,
   DailyResult,
+  GrandmasterRecord,
   MapProjection,
   Prefs,
   ProgressionState,

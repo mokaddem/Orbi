@@ -3,7 +3,6 @@ import { get } from 'svelte/store';
 import { mulberry32 } from '../../domain';
 import { getCountries } from '../../data';
 import { challenge, lastChallengeSummary, pendingChallenge } from './challenge';
-import { summaryToRecord } from './persistence';
 
 /** A deterministic clock: each read advances 1s so durations stay monotonic/positive. */
 function makeClock(): () => number {
@@ -111,32 +110,6 @@ describe('challenge store', () => {
     });
     driveAll();
     expect(challenge.summary()!.passed).toBe(true);
-  });
-
-  it('adapts a finished run to a standard SessionSummary (pass)', () => {
-    startFlagsOceania();
-    driveAll();
-    const ss = challenge.sessionSummary()!;
-    expect(ss.type).toBe('challenge');
-    expect(ss.mode).toBe('flag-to-country'); // representative direction of the flags family
-    expect(ss.regionFilter).toEqual({ region: 'Oceania' });
-    expect(ss.total).toBe(OCEANIA.length * 2);
-    expect(ss.correct).toBe(OCEANIA.length * 2);
-    expect(ss.accuracy).toBe(1);
-    expect(ss.missed).toEqual([]);
-  });
-
-  it('records a challenge run onto a SessionRecord via the ordinary persistence bridge', () => {
-    startFlagsOceania();
-    driveAll(3); // clear 3, then miss the 4th
-    const rec = summaryToRecord(challenge.sessionSummary()!);
-    expect(rec.type).toBe('challenge');
-    expect(rec.mode).toBe('flag-to-country');
-    expect(rec.regionFilter).toEqual({ region: 'Oceania' });
-    expect(rec.total).toBe(OCEANIA.length * 2);
-    expect(rec.correct).toBe(3);
-    expect(rec.questions).toHaveLength(4); // 3 cleared + the fatal miss
-    expect(rec.points).toBeUndefined(); // points cache is blitz-only
   });
 
   it('answer() returns the graded QuestionResult (for SR recording) and is idempotent', () => {

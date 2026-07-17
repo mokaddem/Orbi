@@ -158,7 +158,6 @@ export {
   GRANDMASTER_TOTAL,
   ACHIEVEMENTS,
   ACHIEVEMENT_IDS,
-  grandmasterId,
   evaluateAchievements,
 } from './achievements';
 
@@ -232,8 +231,8 @@ export {
   familyModes,
   isChallengeUnlocked,
   buildChallengeQueue,
+  challengeSlotCount,
   buildChallengeQuestion,
-  challengeSessionSummary,
   ChallengeSession,
   createChallenge,
 } from './challenge';

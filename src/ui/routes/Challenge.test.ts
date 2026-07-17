@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Challenge from './Challenge.svelte';
-import { challenge, pendingChallenge, lastChallengeSummary } from '../stores/challenge';
-import { lastSummary, lastBlitzResult } from '../stores/game';
+import { challenge, pendingChallenge } from '../stores/challenge';
+import { prefs } from '../stores/persistence';
 import { mulberry32 } from '../../domain';
 import { setLocale } from '../../i18n';
 
@@ -22,7 +22,7 @@ const soundMock = vi.hoisted(() => ({
 }));
 vi.mock('../sound', () => ({ sound: soundMock }));
 
-// Fatal-miss dwell before the run finalizes to the Summary (mirrors Challenge.svelte's REVEAL_MS).
+// Fatal-miss dwell before the run finalizes to the in-arena runover (mirrors Challenge.svelte).
 const REVEAL_MS = 3200;
 // Correct-clear dwell + the bed's Enter→swell delay (mirror Challenge.svelte).
 const CORRECT_MS = 1200;
@@ -47,9 +47,8 @@ beforeEach(() => {
   setLocale('en');
   challenge.reset();
   pendingChallenge.set(null);
-  lastChallengeSummary.set(null);
-  lastSummary.set(null);
-  lastBlitzResult.set(null);
+  // Default the arena to full-motion (the intro plays); the reduce-motion case sets it explicitly.
+  prefs.update((p) => ({ ...p, reduceMotion: false }));
   Object.values(soundMock).forEach((fn) => fn.mockClear());
 });
 
@@ -65,9 +64,11 @@ describe('Challenge route', () => {
     expect(get(challenge).status).toBe('playing');
     const total = get(challenge).state!.total;
     expect(total).toBeGreaterThan(0);
-    // Both directions of every eligible country → 2 × N slots.
-    expect(screen.getByText(new RegExp(`0 / ${total} cleared`))).toBeInTheDocument();
-    expect(screen.getByText('One life')).toBeInTheDocument();
+    // Both directions of every eligible country → 2 × N slots. The arena HUD (Phase 45) shows the
+    // gold cleared/total counter (its accessible label carries the full "cleared" phrasing) and the
+    // single life as a beating heart (titled "One life").
+    expect(screen.getByLabelText(new RegExp(`0 / ${total} cleared`))).toBeInTheDocument();
+    expect(screen.getByTitle('One life')).toBeInTheDocument();
   });
 
   it('a correct pick clears a slot from the whole-continent pool', async () => {
@@ -81,7 +82,7 @@ describe('Challenge route', () => {
     expect(get(challenge).state!.cleared).toBe(1);
   });
 
-  it('a single miss ends the run and hands a failed summary to the Summary route', async () => {
+  it('a single miss ends the run in the in-arena runover (no /summary route)', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
       stage();
@@ -91,24 +92,96 @@ describe('Challenge route', () => {
       await fireEvent.click(pickButton(container, wrong));
       expect(get(challenge).feedback!.correct).toBe(false);
 
-      // The fatal-miss dwell then finalizes: a challenge SessionSummary + the rich failed summary.
+      // The fatal-miss dwell then finalizes to the in-arena runover, naming the country it died on.
       await vi.advanceTimersByTimeAsync(REVEAL_MS + 100);
-      const rich = get(lastChallengeSummary);
-      expect(rich?.passed).toBe(false);
-      expect(rich?.missed?.iso2).toBe(q.answer.iso2);
-      expect(get(lastSummary)?.type).toBe('challenge');
+      expect(screen.getByText('The challenge ends here')).toBeInTheDocument();
+      expect(container.querySelector('.runover-missed')?.textContent).toContain(q.answer.name.en);
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('quit abandons the run (no summary handed off) and returns to idle', async () => {
+  it('forfeit abandons the run and returns to idle (no end screen)', async () => {
     stage();
     render(Challenge);
-    await fireEvent.click(screen.getByText('Quit run'));
+    await fireEvent.click(screen.getByText('Forfeit'));
+    // A forfeit is not a finished run — it resets to idle with no victory/runover overlay.
     expect(get(challenge).status).toBe('idle');
-    // A quit is not a result — nothing is staged for the Summary.
-    expect(get(lastChallengeSummary)).toBeNull();
+    expect(screen.queryByText('The challenge ends here')).not.toBeInTheDocument();
+  });
+});
+
+describe('Challenge cinematic entry (Phase 45)', () => {
+  it('blooms the intro title on a fresh run, then reveals the HUD', async () => {
+    vi.useFakeTimers();
+    try {
+      stage();
+      render(Challenge);
+      // The ceremonial title blooms first (over the dimmed arena)…
+      expect(screen.getByText('Enter the Gauntlet')).toBeInTheDocument();
+      // …then the intro crossfades out (hold 1900ms + fade 600ms) and the HUD takes over.
+      await vi.advanceTimersByTimeAsync(1900 + 600 + 100);
+      expect(screen.queryByText('Enter the Gauntlet')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('skips the intro under reduce-motion (the Enter cue still plays)', () => {
+    prefs.update((p) => ({ ...p, reduceMotion: true }));
+    stage();
+    render(Challenge);
+    // No visual transition — the HUD is live immediately…
+    expect(screen.queryByText('Enter the Gauntlet')).not.toBeInTheDocument();
+    // …but the audio cue is not motion, so it still fires.
+    expect(soundMock.play).toHaveBeenCalledWith('enter');
+  });
+});
+
+describe('Challenge in-arena end screens (Phase 45 ④)', () => {
+  /** Clear the whole board with correct picks (fake timers must be active). */
+  async function clearBoard(container: HTMLElement): Promise<void> {
+    for (let guard = 0; guard < 200; guard += 1) {
+      const v = get(challenge);
+      if (v.status === 'finished' || v.status === 'idle') break;
+      if (v.status === 'playing' && v.question) {
+        await fireEvent.click(pickButton(container, v.question.answer.iso2));
+      }
+      await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
+    }
+  }
+
+  it('victory bloom: Return resets the run and leaves the arena', async () => {
+    vi.useFakeTimers();
+    try {
+      stage();
+      const { container } = render(Challenge);
+      await clearBoard(container);
+      expect(screen.getByText('GRANDMASTER')).toBeInTheDocument();
+      await fireEvent.click(screen.getByText('Return'));
+      expect(get(challenge).status).toBe('idle');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('runover: reports how far the run got', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      stage();
+      const { container } = render(Challenge);
+      const total = get(challenge).state!.total;
+      const q = get(challenge).question!;
+      const wrong = q.options!.find((c) => c.iso2 !== q.answer.iso2)!.iso2;
+      await fireEvent.click(pickButton(container, wrong)); // miss the very first slot
+      await vi.advanceTimersByTimeAsync(REVEAL_MS + 100);
+      // Cleared 0 of N (the first pick missed), shown in the runover body.
+      expect(screen.getByText(new RegExp(`0 of ${total}`))).toBeInTheDocument();
+      await fireEvent.click(screen.getByText('Return'));
+      expect(get(challenge).status).toBe('idle');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -166,11 +239,11 @@ describe('Challenge audio wiring (Phase 44)', () => {
   it('stops the bed when the run is quit', async () => {
     stage();
     render(Challenge);
-    await fireEvent.click(screen.getByText('Quit run'));
+    await fireEvent.click(screen.getByText('Forfeit'));
     expect(soundMock.stopBed).toHaveBeenCalled();
   });
 
-  it('crowns a clean sweep with the Victory fanfare and stops the bed', async () => {
+  it('crowns a clean sweep with the Victory fanfare + in-arena bloom, and stops the bed', async () => {
     vi.useFakeTimers();
     try {
       stage();
@@ -184,7 +257,8 @@ describe('Challenge audio wiring (Phase 44)', () => {
         }
         await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
       }
-      expect(get(lastChallengeSummary)?.passed).toBe(true);
+      // The in-arena victory bloom shows (no /summary route), with the Victory fanfare.
+      expect(screen.getByText('GRANDMASTER')).toBeInTheDocument();
       expect(soundMock.play).toHaveBeenCalledWith('victory');
       expect(soundMock.play).not.toHaveBeenCalledWith('perfect'); // the old cue is replaced
       expect(soundMock.stopBed).toHaveBeenCalled();

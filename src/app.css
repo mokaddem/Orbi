@@ -36,6 +36,30 @@
   --color-gold-weak: #fbeecb;
   --gold-metal: linear-gradient(135deg, #ffe083 0%, #f5c542 42%, #e0a020 100%);
 
+  /* Grandmaster Challenge arena (Phase 45) — a scoped dark-teal "Orbi at nightfall" theme. These
+     --g-* tokens are consumed ONLY inside the arena / offer modal (the `.gauntlet` scope); the
+     rest of the app stays on the light Orbi Play theme (there is deliberately no global dark
+     theme). Gold/ember are reserved for the escalating "heat". All system fonts — no webfont, so
+     it stays offline/PWA-safe (the serif/mono stacks degrade gracefully). */
+  --g-bg: #123b35;
+  --g-bg2: #18463f; /* dark-teal ground, lifted off black */
+  --g-ink: #eaf5f1;
+  --g-dim: #a6c9c1;
+  --g-faint: #79978f; /* text ramp */
+  --g-teal: #45c9bd;
+  --g-teal-deep: #10a5a0; /* Orbi teal in the chrome + relief glow */
+  --g-gold: #e6c579;
+  --g-ember: #e0803f;
+  --g-crimson: #de6a62; /* heat + the single life / miss */
+  --g-line: rgba(180, 232, 222, 0.14); /* hairline dividers / borders */
+  --g-entry: linear-gradient(135deg, #10514a, #146a60 55%, #0f4b45); /* entry-card ground */
+  --g-cta: linear-gradient(180deg, #f2d488, #d9a94a); /* gold CTA / accept button */
+  --g-cta-shadow: 0 4px 0 #9c7328; /* the CTA's chunky drop */
+  --g-display:
+    'Hoefler Text', 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Times New Roman', serif;
+  --g-mono: 'SFMono-Regular', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace;
+  --sb: 92px; /* tier-sidebar width (the arena overrides it to 22px on mobile) */
+
   /* Map palette (Phase 34): cool off-white land on a soft teal sea with a legible cool
      border, so every country reads on the mint ground. The highlighted country keeps the
      turquoise tint + darker outline (unchanged from the signed-off Playful reveal). */
@@ -143,4 +167,140 @@ button {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
+}
+
+/* Grandmaster Challenge arena keyframes (Phase 45). Kept global (not component-scoped) so both
+   the arena (Challenge.svelte) and the offer modal / victory bloom share one definition. Named
+   `gm-*` to avoid colliding with the app's other keyframes. The particle canvases (embers,
+   confetti) are JS-driven and gated by *not mounting* under reduce-motion; these CSS animations
+   are collapsed by the `:root[data-reduce-motion]` rule above (the in-app pref) and by the
+   arena-scoped `prefers-reduced-motion` guard below (the OS setting). */
+@keyframes gm-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.2);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes gm-notch-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.95);
+    background: #fff;
+  }
+  100% {
+    box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes gm-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  15%,
+  55% {
+    transform: translateX(-7px);
+  }
+  35%,
+  75% {
+    transform: translateX(7px);
+  }
+  90% {
+    transform: translateX(-3px);
+  }
+}
+
+@keyframes gm-flash {
+  0% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes gm-titlein {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.6em;
+    transform: scale(0.86);
+  }
+  55% {
+    opacity: 1;
+    letter-spacing: 0.14em;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    letter-spacing: 0.14em;
+    transform: scale(1) translateY(-6px);
+  }
+}
+
+@keyframes gm-subin {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gm-hudin {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gm-shimmer {
+  0% {
+    background-position: -180% center;
+  }
+  100% {
+    background-position: 180% center;
+  }
+}
+
+@keyframes gm-floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+/* OS-level reduce-motion for the arena: collapse every animation/transition inside `.gauntlet`
+   to ~instant (the in-app pref is already handled app-wide above). The JS particle systems are
+   gated separately by not mounting their canvases. Mirrors the per-component guards elsewhere. */
+@media (prefers-reduced-motion: reduce) {
+  .gauntlet,
+  .gauntlet *,
+  .gauntlet *::before,
+  .gauntlet *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

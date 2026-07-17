@@ -18,6 +18,7 @@ import {
   type AchievementUnlock,
   type CustomSet,
   type DailyResult,
+  type GrandmasterRecord,
   type Prefs,
   type ProgressionState,
   type QuizStore,
@@ -455,6 +456,73 @@ export async function loadRegionFamilyPractice(
   return regionFamilyPracticePool(srItems, masteryCountries(), region, family, { now });
 }
 
+/** Grandmaster Challenge state (Phase 45): monotonic certification + today's cooldown. */
+export interface GrandmasterState {
+  /** Keys `${family}|${region}` certified by a clean-sweep run — monotonic, drives the gilded
+   *  cells + the "Grandmaster X/15" prestige. */
+  certified: Set<string>;
+  /** Keys `${family}|${region}` already attempted (win or lose) on the current local day — the
+   *  once-a-day-per-family×region cooldown. */
+  spentToday: Set<string>;
+}
+
+/** The store key for a family × region Grandmaster capstone (`${family}|${region}`). */
+export function grandmasterKey(family: MasteryFamily, region: string): string {
+  return `${family}|${region}`;
+}
+
+/**
+ * Load Grandmaster certification + today's cooldown from the dedicated `grandmaster` store (Phase 45),
+ * fully decoupled from history/XP. Certification is monotonic; `spentToday` reflects attempts made on
+ * the current local day. Empty before init or with no runs.
+ */
+export async function loadGrandmaster(now = Date.now()): Promise<GrandmasterState> {
+  if (!store) return { certified: new Set(), spentToday: new Set() };
+  const today = localDayKey(now);
+  const records = await store.getGrandmasterRecords();
+  const certified = new Set<string>();
+  const spentToday = new Set<string>();
+  for (const r of records) {
+    if (r.certified) certified.add(r.key);
+    if (r.lastAttemptDay === today) spentToday.add(r.key);
+  }
+  return { certified, spentToday };
+}
+
+/**
+ * Record a finished Grandmaster Run (Phase 45). Stamps today's local day-key as the family × region's
+ * last attempt — win *or* lose consumes its daily attempt — and, on a **clean sweep**, certifies it
+ * (monotonic: once certified, a later attempt never revokes it, and the first certification time is
+ * preserved). Writes **only** to the dedicated `grandmaster` store — never a `SessionRecord` — so a
+ * run contributes zero XP / History stats / play-streak. Best-effort (a refused write is swallowed,
+ * mirroring {@link saveSession}). No-op before {@link initPersistence}.
+ */
+export async function recordChallengeResult(
+  family: MasteryFamily,
+  region: string,
+  passed: boolean,
+  now = Date.now(),
+): Promise<void> {
+  if (!store) return;
+  const key = grandmasterKey(family, region);
+  try {
+    const existing = (await store.getGrandmasterRecords()).find((r) => r.key === key);
+    const certified = (existing?.certified ?? false) || passed;
+    // Keep the first certification time; stamp it now only when this run is the one that certifies.
+    let certifiedAt = existing?.certifiedAt;
+    if (certified && certifiedAt === undefined) certifiedAt = now;
+    const record: GrandmasterRecord = {
+      key,
+      certified,
+      lastAttemptDay: localDayKey(now),
+      ...(certifiedAt !== undefined ? { certifiedAt } : {}),
+    };
+    await store.putGrandmasterRecord(record);
+  } catch {
+    // Storage became unwritable — certification / cooldown just won't stick across reloads.
+  }
+}
+
 /**
  * Adapt a per-family rollup to the legacy {@link MasteryResult} shape for the achievements engine,
  * so the region / continent / century / world badges track **fully-mastered** countries (all three
@@ -514,10 +582,6 @@ export interface AchievementView {
   region?: string;
   /** For extra-knowledge badges (capitals / languages), the topic; groups them out of the main grid. */
   topic?: ExtraTopic;
-  /** A Grandmaster Run capstone (Phase 44) — surfaced in the mastery panel, not the badges grid. */
-  capstone?: boolean;
-  /** The family a capstone certifies (Grandmaster badges only) — with `region`, keys the gilded cell. */
-  family?: MasteryFamily;
 }
 
 /**
@@ -562,8 +626,6 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
   const unlockedAtById = new Map(persisted.map((p) => [p.id, p.unlockedAt]));
   const regionById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.region]));
   const topicById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.topic]));
-  const capstoneById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.capstone]));
-  const familyById = new Map(ACHIEVEMENTS.map((a) => [a.id, a.family]));
   const newlyUnlocked: AchievementUnlock[] = [];
 
   const views = statuses.map((st): AchievementView => {
@@ -582,8 +644,6 @@ export async function loadAchievements(now = Date.now()): Promise<AchievementVie
       justUnlocked,
       region: regionById.get(st.id),
       topic: topicById.get(st.id),
-      capstone: capstoneById.get(st.id),
-      family: familyById.get(st.id),
     };
   });
 
@@ -679,6 +739,9 @@ export async function clearHistory(): Promise<void> {
   // XP is history-derived, so it drops to zero here; clear the celebrated-rank seed too so a
   // fresh climb re-celebrates rather than staying suppressed at the old high rank (Phase 43).
   await store?.clearProgression();
+  // Grandmaster certification + cooldown are trophies too (Phase 45) — reset them alongside badges,
+  // so a full progress wipe also clears the gilded cells / prestige and frees the daily attempts.
+  await store?.clearGrandmaster();
 }
 
 /**
@@ -692,4 +755,7 @@ export async function clearTraining(): Promise<void> {
   // Badges (an XP source) are cleared above, so the celebrated-rank seed is reset too, matching
   // clearHistory: XP re-seeds to the recomputed rank and future climbs celebrate again (Phase 43).
   await store?.clearProgression();
+  // Grandmaster certification + cooldown are cleared here too (Phase 45), matching how badges are
+  // reset by a training wipe — the capstones are the mastery-track's trophies.
+  await store?.clearGrandmaster();
 }

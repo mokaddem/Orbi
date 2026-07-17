@@ -58,6 +58,17 @@ describe('ChallengeSearchList', () => {
     expect(onpick).toHaveBeenCalledWith('FR');
   });
 
+  it('clears the typed query after a pick (the fixed continent pool never trips the reset guard)', async () => {
+    const onpick = vi.fn();
+    render(ChallengeSearchList, { options: OPTIONS, placeholder: 'x', onpick });
+    const input = screen.getByLabelText('x') as HTMLInputElement;
+    await fireEvent.input(input, { target: { value: 'fra' } });
+    expect(input.value).toBe('fra');
+    await fireEvent.click(screen.getByText('France'));
+    expect(onpick).toHaveBeenCalledWith('FR');
+    expect(input.value).toBe(''); // ready for the next question, not carrying 'fra' over
+  });
+
   it('collapses to the reveal once answered — correct + the wrong pick, input gone', () => {
     render(ChallengeSearchList, {
       options: OPTIONS,

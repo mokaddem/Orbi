@@ -9,7 +9,6 @@
 import { writable } from 'svelte/store';
 import {
   ChallengeSession,
-  challengeSessionSummary,
   filterCountries,
   type ChallengeState,
   type ChallengeSummary,
@@ -17,7 +16,6 @@ import {
   type Question,
   type QuestionResult,
   type Rng,
-  type SessionSummary,
 } from '../../domain';
 import { getCountries } from '../../data';
 
@@ -132,11 +130,6 @@ function createChallengeStore() {
       return session ? session.summary() : null;
     },
 
-    /** The run as a standard {@link SessionSummary}, ready for `saveSession()`. `null` if no run. */
-    sessionSummary(): SessionSummary | null {
-      return session ? challengeSessionSummary(session.summary()) : null;
-    },
-
     /** Discard any run and return to idle. */
     reset(): void {
       session = null;
@@ -149,8 +142,16 @@ function createChallengeStore() {
 /** Singleton Grandmaster Run controller, shared across the Play and Summary routes. */
 export const challenge = createChallengeStore();
 
-/** The most recent finished run's rich summary, handed off to the Summary route. */
+/** The most recent finished run's rich summary, handed off to the in-arena end screen. */
 export const lastChallengeSummary = writable<ChallengeSummary | null>(null);
 
 /** A challenge staged for the Play route to auto-start (launched from a Progress / Play entry). */
 export const pendingChallenge = writable<ChallengeRunConfig | null>(null);
+
+/**
+ * A family × region just certified by a clean-sweep run (Phase 45) — a session-scoped handoff the
+ * Progress "badge unlocked" toast reads once on the return from the arena, then clears. Not
+ * persisted: the durable certification lives in the `grandmaster` store, and the in-arena victory
+ * bloom is the primary celebration; this is the secondary Progress-side acknowledgement.
+ */
+export const justCertified = writable<{ family: MasteryFamily; region: string } | null>(null);

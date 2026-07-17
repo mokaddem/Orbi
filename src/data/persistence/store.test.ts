@@ -8,6 +8,7 @@ import {
   type AchievementUnlock,
   type CustomSet,
   type DailyResult,
+  type GrandmasterRecord,
   type Prefs,
   type ProgressionState,
   type QuizStore,
@@ -220,6 +221,35 @@ function contractTests(name: string, makeStore: () => Promise<QuizStore>): void 
 
       await store.clearProgression();
       expect(await store.getProgression()).toBeUndefined();
+    });
+
+    it('round-trips grandmaster records (last write wins per key) and clears them', async () => {
+      expect(await store.getGrandmasterRecords()).toEqual([]);
+      const flagsOceania: GrandmasterRecord = {
+        key: 'flags|Oceania',
+        certified: true,
+        certifiedAt: 1000,
+        lastAttemptDay: '2026-07-16',
+      };
+      const mapEurope: GrandmasterRecord = {
+        key: 'map|Europe',
+        certified: false,
+        lastAttemptDay: '2026-07-16',
+      };
+      await store.putGrandmasterRecord(flagsOceania);
+      await store.putGrandmasterRecord(mapEurope);
+      expect((await store.getGrandmasterRecords()).map((r) => r.key).sort()).toEqual([
+        'flags|Oceania',
+        'map|Europe',
+      ]);
+      // Re-putting the same key updates in place (a later attempt stamps a new day) — no duplicate.
+      await store.putGrandmasterRecord({ ...mapEurope, lastAttemptDay: '2026-07-17' });
+      const all = await store.getGrandmasterRecords();
+      expect(all).toHaveLength(2);
+      expect(all.find((r) => r.key === 'map|Europe')?.lastAttemptDay).toBe('2026-07-17');
+
+      await store.clearGrandmaster();
+      expect(await store.getGrandmasterRecords()).toEqual([]);
     });
 
     it('keeps custom sets separate from SR and history resets', async () => {

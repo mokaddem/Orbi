@@ -23,6 +23,8 @@
     onPractise,
     onChallenge,
     certified,
+    spent,
+    cooldownText,
   }: {
     regions: RegionFamilyMastery[];
     variant?: 'stacked' | 'toggle';
@@ -30,10 +32,17 @@
     onChallenge?: (region: string, family: MasteryFamily) => void;
     /** Keys `${family}|${region}` of family × continents whose Grandmaster Run is passed. */
     certified?: Set<string>;
+    /** Keys `${family}|${region}` whose daily attempt is already spent — shown on cooldown. */
+    spent?: Set<string>;
+    /** The "next attempt in …" phrase for a spent (cooldown) cell's tooltip / label. */
+    cooldownText?: string;
   } = $props();
 
   const isCertified = (region: string, family: MasteryFamily): boolean =>
     certified?.has(`${family}|${region}`) ?? false;
+
+  const isSpent = (region: string, family: MasteryFamily): boolean =>
+    spent?.has(`${family}|${region}`) ?? false;
 
   // A continent is fully grandmastered once every family that applies to it (total > 0) is certified.
   const regionGrandmastered = (r: RegionFamilyMastery): boolean => {
@@ -176,16 +185,21 @@
                 {:else}
                   <span class="mpct">{p}%</span>
                   {#if done && onChallenge}
-                    <!-- Fully mastered but not yet certified — the "prove it" launch. -->
-                    {@const label = challengeLabel(f.key, r.region)}
+                    <!-- Fully mastered but not yet certified — the "prove it" launch. On cooldown
+                         (today's attempt spent) it dims to a clock; tapping still opens the offer
+                         modal, which explains the cooldown + shows the countdown. -->
+                    {@const cool = isSpent(r.region, f.key)}
+                    {@const label =
+                      cool && cooldownText ? cooldownText : challengeLabel(f.key, r.region)}
                     <button
                       type="button"
                       class="prove"
+                      class:cooling={cool}
                       aria-label={label}
                       title={label}
                       onclick={() => onChallenge(r.region, f.key)}
                     >
-                      <Icon name="crown" size={15} />
+                      <Icon name={cool ? 'clock' : 'crown'} size={15} />
                     </button>
                   {:else if onPractise && fam.mastered < fam.total}
                     {@const label = practiseLabel(f.key, r.region)}
@@ -439,6 +453,24 @@
   .prove:focus-visible {
     outline: 2px solid var(--color-gold-deep);
     outline-offset: 2px;
+  }
+
+  /* Spent today (cooldown): the gold crown dims to a muted clock — still tappable to see when the
+     next attempt opens, but clearly not the claimable reward. */
+  .prove.cooling {
+    background: var(--color-bg);
+    border-color: var(--color-border);
+    color: var(--color-muted);
+    box-shadow: none;
+  }
+
+  .prove.cooling:hover {
+    transform: none;
+    border-color: var(--color-muted);
+  }
+
+  .prove.cooling:focus-visible {
+    outline-color: var(--color-muted);
   }
 
   /* Certified: the mini-bar gilds in place, the crown replacing the (redundant 100%) percentage. */

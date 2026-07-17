@@ -72,11 +72,19 @@
     return '';
   }
 
+  // Commit a pick and reset the query. In a Grandmaster run the option pool is the *whole continent,
+  // fixed for every question*, so the "options changed → clear" guard above never fires between
+  // questions — without clearing here, the text typed for one country would linger into the next.
+  function pick(id: string): void {
+    query = '';
+    onpick(id);
+  }
+
   // Enter commits the top match — quick type-ahead selection without reaching for the mouse.
   function onKeydown(e: KeyboardEvent): void {
     if (e.key === 'Enter' && !answered && filtered.length > 0) {
       e.preventDefault();
-      onpick(filtered[0].id);
+      pick(filtered[0].id);
     }
   }
 </script>
@@ -109,7 +117,7 @@
           class:answered
           data-id={o.id}
           disabled={answered}
-          onclick={() => onpick(o.id)}
+          onclick={() => pick(o.id)}
         >
           {o.label}
         </button>
@@ -149,19 +157,26 @@
   .results {
     list-style: none;
     margin: 0;
-    padding: 0;
+    /* Scrolls within its own box so a 54-country list never runs the whole page long. The bottom
+       padding lets the last row scroll fully clear of the fade mask, which dissolves any overflow
+       into the ground (a soft "more below" hint) instead of a hard clip through a row. */
+    padding: 0 0 1.75rem;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    /* Scrolls within its own box so a 54-country list never runs the whole page long. */
     max-height: 42vh;
     overflow-y: auto;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
   }
 
-  /* On the answered reveal there are only 1–2 rows — let them size naturally, no scrollbox. */
+  /* On the answered reveal there are only 1–2 rows — let them size naturally, no scrollbox / fade. */
   .search.answered .results {
     max-height: none;
+    padding: 0;
     overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .result {

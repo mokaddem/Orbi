@@ -199,6 +199,7 @@ const de: typeof en = {
     proveIt: 'Großmeister-Lauf',
     proveItAria: 'Großmeister-Lauf {family} für {region} starten',
     certified: 'Großmeister',
+    certifiedToast: 'Zertifiziert!',
     lockedHint: 'Meistere {family} in {region}, um den Großmeister-Lauf freizuschalten',
     prestige: 'Großmeister',
     prestigeCount: '{done} / {total}',
@@ -206,7 +207,23 @@ const de: typeof en = {
     hud: {
       cleared: '{cleared} / {total} geschafft',
       oneLife: 'Ein Leben',
-      quit: 'Lauf beenden',
+      quit: 'Aufgeben',
+    },
+    offer: {
+      title: 'Die Großmeister-Herausforderung',
+      questionsLabel: 'Fragen',
+      lifeLabel: 'Leben',
+      warning: 'Eine falsche Antwort beendet die Herausforderung.',
+      cooldown: 'Ein Versuch pro Tag · Zurücksetzung um Mitternacht',
+      accept: 'Herausforderung annehmen',
+      decline: 'Noch nicht',
+      close: 'Schließen',
+    },
+    intro: {
+      title: 'Betritt die Arena',
+    },
+    cooldown: {
+      next: 'Nächster Versuch in {time}',
     },
     search: {
       countryPlaceholder: 'Land eingeben…',
@@ -214,13 +231,18 @@ const de: typeof en = {
       noMatch: 'Kein Treffer',
       resultsAria: '{count} Länder',
     },
-    summary: {
-      passTitle: 'Großmeister!',
-      passBody: '{family} · {region} — zertifiziert',
-      failTitle: 'Lauf beendet',
-      failBody: '{cleared} von {total} geschafft — dann {country} verpasst',
-      tryAgain: 'Erneut versuchen',
+    victory: {
+      pill: '★ Großmeister der Welt',
+      title: 'GROSSMEISTER',
+      body: 'Alle {total} geschafft — makellos.',
     },
+    runover: {
+      title: 'Hier endet die Herausforderung',
+      body: '{cleared} von {total} geschafft',
+      missed: 'Verpasst bei {country}',
+    },
+    endReturn: 'Zurück',
+    endCooldown: 'Komm morgen wieder.',
     badge: {
       title: 'Großmeister — {family} · {region}',
       desc: 'Den {family}-Großmeister-Lauf in {region} geschafft — jedes Land, in beide Richtungen, ein Leben.',
