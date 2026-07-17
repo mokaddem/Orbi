@@ -9,10 +9,9 @@
     isMultiSelectMode,
     BLITZ_START_SECONDS,
     BLITZ_CAP_SECONDS,
-    BLITZ_COMBO_TIME_MS,
     blitzCombo,
     blitzComboStreak,
-    blitzDecayedCombo,
+    blitzComboState,
     blitzRemainingMs,
     computeBlitzPoints,
     computeBlitzBest,
@@ -523,7 +522,7 @@
     $play.config?.type === 'blitz' ? computeBlitzPoints($play.state?.results ?? []) : 0,
   );
   // Live, time-aware combo. `blitzComboStreakVal` is the committed streak (the combo you've banked);
-  // while a question sits unanswered it *decays a tier per reaction window* (`blitzDecayedCombo`),
+  // while a question sits unanswered it *decays a tier per reaction window* (`blitzComboState`),
   // down to x1 — so the badge visibly ticks down if the player hesitates, matching how a slow answer
   // scores. During the answered dwell the committed combo shows (the just-answered result is folded in).
   const blitzComboStreakVal = $derived(blitzComboStreak($play.state?.results ?? []));
@@ -532,21 +531,26 @@
       ? Math.max(0, blitzNow - blitzQStart)
       : 0,
   );
-  const blitzComboMult = $derived(
-    $play.config?.type === 'blitz' && $play.status === 'playing'
-      ? blitzDecayedCombo(blitzComboStreakVal, blitzQElapsed)
-      : blitzCombo(blitzComboStreakVal),
-  );
+  // The live combo state in one pass: the decayed multiplier, the current tier's window and the time
+  // left in it. Windows now *shorten with the tier* (`BLITZ_TIER_WINDOWS_MS`), so this cumulative walk
+  // (`blitzComboState`) replaces the old uniform modulo — the badge and meter read the same source.
+  const blitzComboLive = $derived.by(() => {
+    const committed = blitzCombo(blitzComboStreakVal);
+    return $play.config?.type === 'blitz' && $play.status === 'playing'
+      ? blitzComboState(committed, blitzQElapsed)
+      : { combo: committed, windowMs: 0, remainingMs: 0 };
+  });
+  const blitzComboMult = $derived(blitzComboLive.combo);
 
   // Combo "reaction meter" (owner request): a reverse progress bar under the badge showing the timer
-  // for the *current* tier. It drains over one window then refills as a tier is lost, repeating down
-  // to x1; hidden once there's no tier left to lose. `blitzNow` ticks it (~100 ms, eased by a short CSS
-  // transition); it turns urgent near empty.
+  // for the *current* tier. It drains over that tier's window then refills as a tier is lost — faster
+  // at high multipliers, slower at low ones — repeating down to x1; hidden once there's no tier left
+  // to lose. `blitzNow` ticks it (~100 ms, eased by a short CSS transition); it turns urgent near empty.
   const showComboTimer = $derived(blitzComboMult > 1 && $play.status === 'playing');
   const comboTimeLeftPct = $derived.by(() => {
-    if (!showComboTimer) return 100;
-    const intoWindow = blitzQElapsed % BLITZ_COMBO_TIME_MS;
-    return Math.max(0, Math.min(100, (1 - intoWindow / BLITZ_COMBO_TIME_MS) * 100));
+    const { windowMs, remainingMs } = blitzComboLive;
+    if (!showComboTimer || windowMs <= 0) return 100;
+    return Math.max(0, Math.min(100, (remainingMs / windowMs) * 100));
   });
 
   // The Blitz multiplier badge (this task) is the run's centrepiece now the streak pill is hidden —
@@ -764,10 +768,11 @@
           <span class="opt-title"
             ><Icon name="flame" size="1.05em" /> {$t('sessionType.blitz')}</span
           >
+          <small>{$t('play.setup.blitzHint', { seconds: BLITZ_START_SECONDS })}</small>
           {#if blitzBest > 0}
-            <small>{$t('play.setup.blitzBest', { points: blitzBest.toLocaleString() })}</small>
-          {:else}
-            <small>{$t('play.setup.blitzHint', { seconds: BLITZ_START_SECONDS })}</small>
+            <small class="blitz-best">
+              {$t('play.setup.blitzBest', { points: blitzBest.toLocaleString() })}
+            </small>
           {/if}
         </button>
       </div>
@@ -1364,6 +1369,13 @@
   .opt small {
     font-weight: 400;
     color: var(--color-muted);
+  }
+
+  /* The Blitz personal best sits under the always-on "60 s" hint and reads as an achievement,
+     not a hint — so it takes the accent colour and a touch more weight. */
+  .opt small.blitz-best {
+    color: var(--color-accent);
+    font-weight: 600;
   }
 
   /* Mode cards carry a leading glyph beside the label. */

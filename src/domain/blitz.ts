@@ -26,13 +26,31 @@ export const BLITZ_BASE_POINTS = 100;
 export const BLITZ_MAX_COMBO = 5;
 
 /**
- * The combo "reaction window": how long the player may take to pick before losing a combo tier
- * (measured from when the question is shown, i.e. a result's `answerMs`). Answer inside it and a
- * correct answer *climbs* the combo; each further window that elapses *drops one tier*, down to x1 —
- * so a slow-but-correct answer costs a tier, not the whole combo (a wrong answer still resets fully).
- * Kept short (owner: "faster is better") so Blitz rewards *fast* recall, not merely accurate recall.
+ * The combo "reaction windows": how long the player may dwell on a question before the combo drops
+ * one tier, **keyed on the multiplier currently held** — shorter at the top, longer at the bottom
+ * (owner: high combos should be *slippery*, so fast recall matters most when the stakes are highest).
+ * Measured from when the question is shown (a result's `answerMs`). Answer inside the current tier's
+ * window and a correct answer *climbs* the combo; let a window elapse and you drop one tier — then
+ * the *next* (longer) window governs the drop below it, and so on cumulatively, floored at x1. A slow
+ * answer thus costs tiers, not the whole combo (a wrong answer still resets fully). Kept short at the
+ * top so Blitz rewards *fast* recall, not merely accurate recall. Indexed by the multiplier being
+ * risked (2..5); x1 has no window — nothing sits below it.
  */
-export const BLITZ_COMBO_TIME_MS = 2300;
+export const BLITZ_TIER_WINDOWS_MS: Readonly<Record<number, number>> = {
+  5: 1600,
+  4: 2000,
+  3: 2400,
+  2: 2800,
+};
+
+/**
+ * The reaction window (ms) for dropping one tier *from* multiplier `combo` — the dwell a player can
+ * afford before an unanswered question costs that tier. 0 at x1 (and outside the 2..5 range), which
+ * has no tier below it to lose. See {@link BLITZ_TIER_WINDOWS_MS}.
+ */
+export function blitzComboWindowMs(combo: number): number {
+  return BLITZ_TIER_WINDOWS_MS[combo] ?? 0;
+}
 
 /**
  * The streak-combo multiplier for a given current streak (consecutive correct answers): it steps up
@@ -59,10 +77,15 @@ export function blitzPointsForCorrect(streak: number): number {
 /** A result carrying just what the combo replay needs: the verdict and how long it took to answer. */
 type ComboResult = Pick<QuestionResult, 'correct' | 'answerMs'>;
 
-/** How many combo tiers are lost by taking `elapsedMs` to answer — one per full reaction window
- * ({@link BLITZ_COMBO_TIME_MS}) elapsed. 0 while still inside the first window (a "fast" answer). */
-export function blitzTiersLost(elapsedMs: number): number {
-  return Math.floor(Math.max(0, elapsedMs) / BLITZ_COMBO_TIME_MS);
+/**
+ * How many combo tiers are lost by dwelling `elapsedMs` on a question while holding multiplier
+ * `fromCombo` — walking down one tier at a time, each costing its own {@link blitzComboWindowMs}
+ * (shorter at the top), floored at x1. 0 while still inside the current tier's window (a "fast"
+ * answer, which climbs). Derived from {@link blitzComboState}'s cumulative walk.
+ */
+export function blitzTiersLost(elapsedMs: number, fromCombo: number): number {
+  const c = Math.max(1, Math.min(BLITZ_MAX_COMBO, Math.floor(fromCombo)));
+  return c - blitzComboState(c, elapsedMs).combo;
 }
 
 /** The lowest streak that yields multiplier `m` — the inverse of {@link blitzCombo}'s uniform,
@@ -71,21 +94,53 @@ function streakForCombo(m: number): number {
   return 2 * m - 1;
 }
 
+/** The live combo state for the HUD: the current multiplier after decay, plus the current tier's
+ * window length and the time left in it before the next drop — everything the reaction meter needs
+ * in a single pass. */
+export interface BlitzComboState {
+  /** Live multiplier after decay (1..5). */
+  combo: number;
+  /** The current tier's full reaction window (ms); 0 at x1. */
+  windowMs: number;
+  /** Time left in the current tier's window before the next tier drops (ms); 0 at x1. */
+  remainingMs: number;
+}
+
 /**
- * The live multiplier for a combo built to `baseStreak` when the current question has gone `elapsedMs`
- * without an answer: the combo *decays one tier per reaction window* ({@link BLITZ_COMBO_TIME_MS}) that
- * passes, floored at x1. Pure; drives the HUD's live badge + meter and mirrors how a slow answer scores
- * in {@link computeBlitzPoints}.
+ * Walk a combo held at `fromCombo` down through `elapsedMs` of dwell, spending each tier's
+ * {@link blitzComboWindowMs} in turn (the shorter, higher-tier windows first), and report where it
+ * lands: the live multiplier, that tier's window, and the time left before the next drop. The single
+ * primitive behind {@link blitzDecayedCombo}, {@link blitzTiersLost} and the HUD reaction meter, so
+ * points and the displayed multiplier + meter can never disagree. Pure; floored at x1 (windowMs 0).
+ */
+export function blitzComboState(fromCombo: number, elapsedMs: number): BlitzComboState {
+  let remaining = Math.max(0, elapsedMs);
+  let combo = Math.max(1, Math.min(BLITZ_MAX_COMBO, Math.floor(fromCombo)));
+  while (combo > 1) {
+    const w = blitzComboWindowMs(combo);
+    if (remaining < w) break;
+    remaining -= w;
+    combo -= 1;
+  }
+  const windowMs = blitzComboWindowMs(combo);
+  return { combo, windowMs, remainingMs: Math.max(0, windowMs - remaining) };
+}
+
+/**
+ * The live multiplier for a combo built to `baseStreak` when the current question has gone
+ * `elapsedMs` without an answer: the combo *decays one tier per reaction window* — windows that
+ * shorten with the tier ({@link BLITZ_TIER_WINDOWS_MS}) — floored at x1. Pure; drives the HUD's live
+ * badge and mirrors how a slow answer scores in {@link computeBlitzPoints}.
  */
 export function blitzDecayedCombo(baseStreak: number, elapsedMs: number): number {
-  return Math.max(1, blitzCombo(baseStreak) - blitzTiersLost(elapsedMs));
+  return blitzComboState(blitzCombo(baseStreak), elapsedMs).combo;
 }
 
 /**
  * Replay an ordered results list, tracking the running combo streak and the points it earns. A correct
- * answer either *climbs* the combo (answered fast, inside the first reaction window → streak + 1) or
- * *decays* it (answered slow → drop one tier per further {@link BLITZ_COMBO_TIME_MS} elapsed, landing at
- * the foot of the new tier, floored at x1); a wrong answer breaks it to 0. Each correct scores
+ * answer either *climbs* the combo (answered fast, inside the current tier's window → streak + 1) or
+ * *decays* it (answered slow → drop one tier per successive {@link BLITZ_TIER_WINDOWS_MS} elapsed,
+ * landing at the foot of the new tier, floored at x1); a wrong answer breaks it to 0. Each correct scores
  * base × combo at the resulting streak. Shared by {@link computeBlitzPoints} and {@link
  * blitzComboStreak} so points and the displayed multiplier can never disagree. Pure of the wall clock —
  * timing is read from each result's `answerMs`, exactly what history persists.
@@ -98,9 +153,10 @@ function replayCombo(results: readonly ComboResult[]): { points: number; streak:
       streak = 0;
       continue;
     }
-    const tiers = blitzTiersLost(r.answerMs ?? 0);
+    const combo = blitzCombo(streak);
+    const tiers = blitzTiersLost(r.answerMs ?? 0, combo);
     // Fast → climb a step; slow → drop `tiers` tiers to the foot of the new (lower) tier, min x1.
-    streak = tiers === 0 ? streak + 1 : streakForCombo(Math.max(1, blitzCombo(streak) - tiers));
+    streak = tiers === 0 ? streak + 1 : streakForCombo(Math.max(1, combo - tiers));
     points += blitzPointsForCorrect(streak);
   }
   return { points, streak };
@@ -116,7 +172,7 @@ export function computeBlitzPoints(results: readonly ComboResult[]): number {
 
 /**
  * The current running combo streak for a results list — the tail run of answers that were correct
- * *and* fast enough (within {@link BLITZ_COMBO_TIME_MS}); a wrong or slow answer restarts/breaks it.
+ * *and* fast enough (within the current tier's {@link BLITZ_TIER_WINDOWS_MS}); a wrong or slow answer restarts/breaks it.
  * Feed it to {@link blitzCombo} for the live multiplier. Shares {@link computeBlitzPoints}'s replay.
  */
 export function blitzComboStreak(results: readonly ComboResult[]): number {
