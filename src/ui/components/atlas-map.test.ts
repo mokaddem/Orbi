@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Feature, Geometry, GeoJsonProperties } from 'geojson';
-import { projectWorld, projectRegion } from './atlas-map';
+import { projectWorld, projectFocused } from './atlas-map';
 
 type CountryFeature = Feature<Geometry, GeoJsonProperties>;
 
@@ -92,25 +92,25 @@ describe('projectWorld', () => {
   });
 });
 
-describe('projectRegion (review study-card locator, Phase 48)', () => {
-  it('projects only the requested members, ignoring non-members', () => {
-    const out = projectRegion(features, ['BB'], 320, 240);
-    expect(out.map((c) => c.iso2)).toEqual(['BB']);
-    expect(out[0].d.startsWith('M')).toBe(true);
+describe('projectFocused (review study-card locator, Phase 48)', () => {
+  it('always includes the focus country, plus any given members', () => {
+    expect(projectFocused(features, 'BB', [], 320, 240).map((c) => c.iso2)).toEqual(['BB']);
+    const withMembers = projectFocused(features, 'BB', ['AA'], 320, 240)
+      .map((c) => c.iso2)
+      .sort();
+    expect(withMembers).toEqual(['AA', 'BB']);
   });
 
-  it('returns empty when no member resolves to geometry', () => {
-    expect(projectRegion(features, ['ZZ'], 320, 240)).toEqual([]);
-    expect(projectRegion(features, [], 320, 240)).toEqual([]);
+  it('returns empty when the focus has no geometry', () => {
+    expect(projectFocused(features, 'ZZ', ['AA'], 320, 240)).toEqual([]);
   });
 
-  it('fits the members to the box — a lone small country fills most of the tile', () => {
-    // BB is a small square far from origin; framed on its own it should span much of the 320-wide
-    // tile (unlike projectWorld, where it is a speck). Its projected bbox width proves the zoom.
-    const [bb] = projectRegion(features, ['BB'], 320, 240);
-    expect(bb.screenSize).toBeGreaterThan(120);
-    // Anchor stays within the tile bounds.
-    expect(bb.anchor![0]).toBeGreaterThanOrEqual(0);
-    expect(bb.anchor![0]).toBeLessThanOrEqual(320);
+  it('zooms to the focus — it fills much of the tile, far larger than at world scale', () => {
+    // BB is a small square far from origin. Focused on itself it should span a big chunk of the
+    // 320-wide tile; on the whole-world fit it is a speck. The size ratio proves the zoom.
+    const focused = projectFocused(features, 'BB', ['AA'], 320, 240).find((c) => c.iso2 === 'BB')!;
+    const world = projectWorld(features, 320, 240).find((c) => c.iso2 === 'BB')!;
+    expect(focused.screenSize).toBeGreaterThan(80);
+    expect(focused.screenSize).toBeGreaterThan(world.screenSize);
   });
 });

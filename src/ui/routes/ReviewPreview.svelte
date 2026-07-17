@@ -17,7 +17,7 @@
     type ReviewSelection,
   } from '../stores/game';
   import { prefs, storageReady, loadRegionReviews } from '../stores/persistence';
-  import { projectRegion, type ProjectedCountry } from '../components/atlas-map';
+  import { projectFocused, type ProjectedCountry } from '../components/atlas-map';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
@@ -68,14 +68,13 @@
     selection ? selection.iso2s.map((iso) => getCountry(iso)).filter((c): c is Country => !!c) : [],
   );
 
-  // For map reviews: the region-framed projection per region the covered countries span, computed
-  // once and shared across every locator tile (each region draws all its members, focus in coral).
-  const regionProjected = $derived.by(() => {
+  // For map reviews: a locator per covered country, keyed by ISO — each zoomed to that country's
+  // main landmass (with padding for context), its region drawn around it for surroundings.
+  const focusProjected = $derived.by(() => {
     const m: Record<string, ProjectedCountry[]> = {};
     if (!features || family !== 'map') return m;
     for (const c of countries) {
-      if (m[c.region]) continue; // one projection per region, shared across its cards
-      m[c.region] = projectRegion(features, membersByRegion[c.region] ?? [], LOC_W, LOC_H);
+      m[c.iso2] = projectFocused(features, c.iso2, membersByRegion[c.region] ?? [], LOC_W, LOC_H);
     }
     return m;
   });
@@ -167,7 +166,7 @@
               {$localizedText(c.capital)}
             </span>
           {:else}
-            {@const projected = regionProjected[c.region] ?? []}
+            {@const projected = focusProjected[c.iso2] ?? []}
             <span class="s-loc">
               {#if projected.length}
                 <RegionLocator

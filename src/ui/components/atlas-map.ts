@@ -47,7 +47,7 @@ function mainLandmass(path: ReturnType<typeof geoPath>, f: CountryFeature): Feat
   return best;
 }
 
-/** Anchor + screen size for a projected feature, shared by projectWorld/projectRegion. */
+/** Anchor + screen size for a projected feature, shared by projectWorld/projectFocused. */
 function measure(path: ReturnType<typeof geoPath>, f: CountryFeature) {
   const main = mainLandmass(path, f);
   const [cx, cy] = path.centroid(main);
@@ -61,32 +61,48 @@ function measure(path: ReturnType<typeof geoPath>, f: CountryFeature) {
 }
 
 /**
- * Project **only** the given region's member countries into `width`×`height` units, with the
- * Natural Earth projection **fit to those members** — i.e. a zoomed locator of that region
- * (Europe fills the tile), not the whole world. Used by the review study card (Phase 48) so a
- * region of neighbours is legible per country rather than a speck on a world thumbnail. Members
- * that project to nothing are dropped; a non-member `memberIsos` entry is simply ignored.
+ * Project a locator **zoomed to one focus country**: the Natural Earth projection is fit to the
+ * focus country's *main landmass* (so far-flung overseas territories don't blow up the frame and
+ * shrink the mainland to a speck), leaving `padFactor` of the tile as margin for context. The
+ * given `memberIsos` (its region) are drawn around it — neighbours fill the margin and clip at the
+ * tile edge — with the focus country picked out by the caller. Used by the review study card
+ * (Phase 48) so the country you're revising is large and legible, not a dot on a whole continent.
+ * Returns `[]` when the focus has no geometry.
  */
-export function projectRegion(
+export function projectFocused(
   features: Map<string, CountryFeature>,
+  focusIso: string,
   memberIsos: Iterable<string>,
   width: number,
   height: number,
-  margin = 8,
+  padFactor = 0.3,
 ): ProjectedCountry[] {
-  const members = new Set(memberIsos);
-  const memberFeatures = [...features]
-    .filter(([iso]) => members.has(iso))
-    .map(([, f]) => f as Feature);
-  if (memberFeatures.length === 0) return [];
+  const focus = features.get(focusIso);
+  if (!focus) return [];
+  // Two passes: a rough world-fit path picks the focus's largest landmass (by projected area),
+  // then the real projection fits *that* landmass into the padded centre of the tile.
+  const rough = geoPath(
+    geoNaturalEarth1().fitExtent(
+      [
+        [0, 0],
+        [width, height],
+      ],
+      focus as Feature,
+    ),
+  );
+  const target = mainLandmass(rough, focus);
+  const mx = width * padFactor;
+  const my = height * padFactor;
   const projection = geoNaturalEarth1().fitExtent(
     [
-      [margin, margin],
-      [width - margin, height - margin],
+      [mx, my],
+      [width - mx, height - my],
     ],
-    { type: 'FeatureCollection', features: memberFeatures } as FeatureCollection,
+    target,
   );
   const path = geoPath(projection);
+  const members = new Set(memberIsos);
+  members.add(focusIso);
   const out: ProjectedCountry[] = [];
   for (const [iso2, f] of features) {
     if (!members.has(iso2)) continue;
