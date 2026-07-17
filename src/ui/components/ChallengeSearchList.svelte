@@ -134,6 +134,17 @@
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    /* Fill the arena column so the results fill the whole screen below the fixed search input (the
+       same reclaim as the country-to-flag grid), instead of the input floating over a mostly empty
+       page on mobile. min-height:0 lets the inner list scroll rather than the outer column. */
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* On the answered reveal the list is only 1–2 rows — stop growing so the verdict card sits right
+     beneath them instead of after a tall empty gap. */
+  .search.answered {
+    flex: 0 0 auto;
   }
 
   .search-input {
@@ -164,7 +175,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    max-height: 42vh;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 1.75rem), transparent);
@@ -172,7 +184,7 @@
 
   /* On the answered reveal there are only 1–2 rows — let them size naturally, no scrollbox / fade. */
   .search.answered .results {
-    max-height: none;
+    flex: 0 0 auto;
     padding: 0;
     overflow: visible;
     -webkit-mask-image: none;

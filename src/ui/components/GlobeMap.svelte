@@ -69,8 +69,13 @@
   const MAX_DIST = 5.5;
   const FLY_MS = 900;
   const ZOOM_STEP = 1.5;
+  // Pinch/wheel dolly sensitivity (OrbitControls `zoomSpeed`): touch pinch raises the
+  // finger-distance ratio to this power, so a gentler value on coarse-pointer devices tames
+  // an over-eager mobile pinch without slowing the desktop wheel.
+  const ZOOM_SPEED = 0.9;
+  const ZOOM_SPEED_TOUCH = 0.45;
   const PICK_MOVE = 6; // px a pointer may drift and still count as a click, not a drag
-  const MICRO_CAP = 16; // px aim-assist radius around a micro-state's screen centroid
+  const MICRO_CAP = 26; // px aim-assist radius around a micro-state's screen centroid
   const OCEAN_CAP = 42; // px snap radius for a near-miss on open water
   const MICRO_STER = 3e-5; // geoArea (steradians) below which a country is "micro" (aim-assisted)
   const AUTOROTATE_SPEED = 0.5;
@@ -81,6 +86,7 @@
   const ROTATE_SPEED = 0.62;
   const ROTATE_SPEED_MIN = 0.07;
   const BORDER_R = 1.0015; // radius of the vector border lines, just above the fill surface
+  const HIGHLIGHT_R = 1.001; // radius of the crisp highlighted-country fill mesh (below the borders)
   const LIFT_MAX = 1.026; // radius the hovered country's raised tile lifts to
   const LIFT_MIN = 1.003; // resting radius (just clear of the fill, so it settles unseen)
   const DOT_SIZE = 15; // base micro-state dot size (screen px)
@@ -112,6 +118,8 @@
   let microHoverMat: THREE.PointsMaterial | undefined;
   let liftMesh: THREE.Mesh | undefined;
   let liftMat: THREE.MeshPhongMaterial | undefined;
+  let highlightMesh: THREE.Mesh | undefined; // crisp vector fill for the highlighted prompt country
+  let highlightMat: THREE.MeshPhongMaterial | undefined;
   let revealSprite: THREE.Sprite | undefined;
   let pickedSprite: THREE.Sprite | undefined;
   let texture: THREE.CanvasTexture | undefined;
@@ -240,14 +248,9 @@
     for (const [iso2, f] of features) {
       const isReveal = iso2 === revealIso;
       const isPicked = iso2 === pickedIso && iso2 !== revealIso;
-      const isHighlight = iso2 === highlightIso;
-      texCtx.fillStyle = isHighlight
-        ? palette.highlight
-        : isReveal
-          ? palette.correct
-          : isPicked
-            ? palette.wrong
-            : palette.land;
+      // The highlight fill is a crisp vector mesh (`highlightMesh`), not a raster fill, so the
+      // texture leaves the highlighted country as normal land — the mesh supplies its colour.
+      texCtx.fillStyle = isReveal ? palette.correct : isPicked ? palette.wrong : palette.land;
       tracePolygons(f.geometry);
     }
     texture.needsUpdate = true;
@@ -316,6 +319,24 @@
     geo.setDrawRange(0, pos.length / 3);
     // Keep the highlight dot at full strength (it *is* the prompt); mute only answered locate.
     microDotMat.opacity = disabled && !highlightMicro ? 0.4 : 1;
+  }
+
+  // Swap the crisp highlight fill mesh to the current prompt country, or hide it when there
+  // is none. The mesh's razor-sharp triangulated edges replace the blurry raster highlight so
+  // the flown-to prompt country reads as cleanly as the vector borders. Called from the same
+  // $effect as the texture / label / dot refresh.
+  function updateHighlightMesh(): void {
+    if (!highlightMesh) return;
+    if (highlightIso && features.has(highlightIso)) {
+      const geo = buildCountryGeometry(highlightIso);
+      if (geo) {
+        highlightMesh.geometry.dispose();
+        highlightMesh.geometry = geo;
+        highlightMesh.visible = true;
+        return;
+      }
+    }
+    highlightMesh.visible = false;
   }
 
   // Highlight the micro-state dot the pointer is over with a single pulsing dot on top of
@@ -619,7 +640,7 @@
   function setHover(iso: string | null): void {
     hoverIso = iso;
     if (iso && liftMesh) {
-      const geo = buildLiftGeometry(iso);
+      const geo = buildCountryGeometry(iso);
       if (!geo) {
         liftTarget = 1;
         return;
@@ -637,11 +658,11 @@
     }
   }
 
-  // Triangulate the hovered country onto the unit sphere (earcut in lon/lat space). The
-  // mesh's uniform scale animates the radial lift, so vertices live at radius 1 here.
-  // Antimeridian-crossing rings are split first; each piece is triangulated independently
-  // (holes are filled, matching the texture's per-ring fill).
-  function buildLiftGeometry(iso: string): THREE.BufferGeometry | null {
+  // Triangulate a country onto the unit sphere (earcut in lon/lat space), shared by the
+  // hover-lift tile and the crisp highlight fill — each scales the returned radius-1 geometry
+  // to its own height. Antimeridian-crossing rings are split first; each piece is triangulated
+  // independently (holes are filled, matching the texture's per-ring fill).
+  function buildCountryGeometry(iso: string): THREE.BufferGeometry | null {
     const f = features.get(iso);
     if (!f) return null;
     const positions: number[] = [];
@@ -662,6 +683,31 @@
       }
     }
     if (!indices.length) return null;
+    // Force every triangle to wind outward (normal pointing away from the globe centre).
+    // The rings' winding isn't uniform across the dataset, and a flat earcut triangle bridging
+    // a concave outline bows inward once projected onto the sphere; normalising here lets the
+    // highlight fill cull the back hemisphere by facing alone (single-sided) regardless.
+    for (let i = 0; i + 2 < indices.length; i += 3) {
+      const a = indices[i] * 3;
+      const b = indices[i + 1] * 3;
+      const c = indices[i + 2] * 3;
+      const acx = (positions[a] + positions[b] + positions[c]) / 3;
+      const acy = (positions[a + 1] + positions[b + 1] + positions[c + 1]) / 3;
+      const acz = (positions[a + 2] + positions[b + 2] + positions[c + 2]) / 3;
+      const ux = positions[b] - positions[a];
+      const uy = positions[b + 1] - positions[a + 1];
+      const uz = positions[b + 2] - positions[a + 2];
+      const vx = positions[c] - positions[a];
+      const vy = positions[c + 1] - positions[a + 1];
+      const vz = positions[c + 2] - positions[a + 2];
+      const nx = uy * vz - uz * vy;
+      const ny = uz * vx - ux * vz;
+      const nz = ux * vy - uy * vx;
+      if (nx * acx + ny * acy + nz * acz < 0) {
+        indices[i + 1] = c / 3;
+        indices[i + 2] = b / 3;
+      }
+    }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geo.setIndex(indices);
@@ -749,6 +795,7 @@
         opacity: 0.85,
       }),
     );
+    borders.renderOrder = 2; // above the depth-test-off highlight fill, so outlines stay on top
     scene.add(borders);
 
     microDotMat = new THREE.PointsMaterial({
@@ -791,6 +838,28 @@
     liftMesh.visible = false;
     scene.add(liftMesh);
 
+    // The highlighted (prompt) country as a crisp triangulated fill sitting just below the
+    // borders, so its edges stay razor-sharp against the vector outline instead of blurring
+    // with the raster texture when the camera flies in close. Geometry is swapped in per
+    // highlight; the constant scale plants it flush on the surface (no lift).
+    // Front-facing only (back hemisphere culls by the outward winding baked into the geometry),
+    // and depth-test off so the earth sphere doesn't occlude a fill triangle that sags just
+    // below its own radius across a concave outline (the Italy-boot "wedge"). renderOrder keeps
+    // it above the earth fill but below the crisp borders, which still draw on top.
+    highlightMat = new THREE.MeshPhongMaterial({
+      color: new THREE.Color(palette.highlight),
+      emissive: new THREE.Color(palette.highlight),
+      emissiveIntensity: 0.55,
+      shininess: 14,
+      depthTest: false,
+      depthWrite: false,
+    });
+    highlightMesh = new THREE.Mesh(new THREE.BufferGeometry(), highlightMat);
+    highlightMesh.visible = false;
+    highlightMesh.scale.setScalar(HIGHLIGHT_R);
+    highlightMesh.renderOrder = 1;
+    scene.add(highlightMesh);
+
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = !prefersReduced();
     controls.dampingFactor = 0.09;
@@ -798,7 +867,11 @@
     controls.enablePan = false;
     controls.minDistance = MIN_DIST;
     controls.maxDistance = MAX_DIST;
-    controls.zoomSpeed = 0.9;
+    const coarsePointer =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(pointer: coarse)').matches;
+    controls.zoomSpeed = coarsePointer ? ZOOM_SPEED_TOUCH : ZOOM_SPEED;
     controls.autoRotateSpeed = AUTOROTATE_SPEED;
 
     for (const [iso2, f] of features) {
@@ -830,6 +903,7 @@
     drawTexture();
     updateLabels();
     updateMicroDots();
+    updateHighlightMesh();
     resize();
     reframe();
 
@@ -905,6 +979,8 @@
     microHoverMat?.dispose();
     liftMesh?.geometry.dispose();
     liftMat?.dispose();
+    highlightMesh?.geometry.dispose();
+    highlightMat?.dispose();
     texture?.dispose();
     renderer?.dispose();
     if (renderer && container?.contains(renderer.domElement)) {
@@ -934,6 +1010,7 @@
     drawTexture();
     updateLabels();
     updateMicroDots();
+    updateHighlightMesh();
   });
 
   // Re-frame the camera when the question (or its target) changes.

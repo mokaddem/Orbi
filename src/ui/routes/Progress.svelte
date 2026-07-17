@@ -98,19 +98,23 @@
 
   /**
    * Per-family "practise" shortcut on the world-mastery breakdown (Phase 41 follow-on): drill a
-   * region×family's unmastered countries in its weaker direction. Launched like "Time to review"
-   * — a region-scoped training run whose scope lives in `answerPoolIso` (so map-locate still
-   * frames to the whole region). No-op if the family turns out fully mastered (button hidden then).
+   * region×family's unmastered countries. Launched like "Time to review" — a region-scoped training
+   * run whose scope lives in `answerPoolIso` / `answerSlots` (so map-locate still frames to the whole
+   * region). With plenty left it drills the weaker direction (single mode); near mastery it merges
+   * both directions into one interleaved session (`combined`) so the tail isn't a trickle of tiny
+   * single-mode runs. No-op if the family turns out fully mastered (button hidden then).
    */
   async function practiseRegionFamily(region: string, family: MasteryFamily): Promise<void> {
     const pool = await loadRegionFamilyPractice(region, family);
-    if (!pool || pool.iso2s.length === 0) return;
+    if (!pool || pool.slots.length === 0) return;
     pendingConfig.set({
       mode: pool.mode,
       type: 'training',
-      answerPoolIso: pool.iso2s,
-      fixedLength: pool.iso2s.length,
+      fixedLength: pool.slots.length,
       choices: $prefs.choicesPerQuestion,
+      ...(pool.combined
+        ? { answerSlots: pool.slots.map((s) => ({ mode: s.mode, iso2: s.iso2 })) }
+        : { answerPoolIso: pool.slots.map((s) => s.iso2) }),
     });
     push('/play');
   }
