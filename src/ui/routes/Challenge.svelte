@@ -162,15 +162,10 @@
         sound.startBed();
       }, ENTER_CUE_MS);
     } else {
-      const view = get(challenge);
-      if (view.status === 'idle' || view.status === 'finished') {
-        challenge.reset();
-        push('/progress');
-      } else if (view.state) {
-        // Resuming an in-flight run (navigated back mid-run): restore the bed at its current tier
-        // (no Enter cue, and no tier-0 dropout on re-entry).
-        sound.startBed(bedTierFor(view.state.cleared, view.state.total));
-      }
+      // No run staged. A run can no longer be left in flight — leaving the arena forfeits it (see the
+      // cleanup below) — so there's nothing to resume: return to where runs are launched.
+      challenge.reset();
+      push('/progress');
     }
     // The bed must never outlive the route; quit/finalize handle the normal stops, this is the net.
     return () => {
@@ -178,6 +173,18 @@
       if (introHoldTimer !== null) clearTimeout(introHoldTimer);
       if (introFadeTimer !== null) clearTimeout(introFadeTimer);
       sound.stopBed(0);
+      // Anti-cheese (owner request): leaving the arena mid-run — the browser Back button, a nav tab,
+      // any route change unmounts this component — counts as a forfeit, so you can't dodge the
+      // one-life daily attempt by navigating away. A win / fatal miss / explicit forfeit has already
+      // finalized (store 'finished') or reset the run ('idle'); only an *in-flight* run needs ending +
+      // recording here (mirrors `forfeit()`, minus the end-screen UI we're navigating away from).
+      const view = get(challenge);
+      if (view.status === 'playing' || view.status === 'answered') {
+        challenge.end();
+        const rich = challenge.summary();
+        if (rich) void recordChallengeResult(rich.family, rich.region, rich.passed);
+        challenge.reset();
+      }
     };
   });
 

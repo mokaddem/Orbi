@@ -4,7 +4,7 @@ import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Challenge from './Challenge.svelte';
 import { challenge, pendingChallenge } from '../stores/challenge';
-import { prefs } from '../stores/persistence';
+import { prefs, recordChallengeResult } from '../stores/persistence';
 import { mulberry32 } from '../../domain';
 import { setLocale } from '../../i18n';
 
@@ -21,6 +21,13 @@ const soundMock = vi.hoisted(() => ({
   setEnabled: vi.fn(),
 }));
 vi.mock('../sound', () => ({ sound: soundMock }));
+
+// Spy on the grandmaster-store write so we can assert an attempt is (or isn't) recorded on the
+// various finish paths — including leaving the arena mid-run. The rest of persistence stays real.
+vi.mock('../stores/persistence', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../stores/persistence')>();
+  return { ...actual, recordChallengeResult: vi.fn() };
+});
 
 // Fatal-miss dwell before the run finalizes to the in-arena runover (mirrors Challenge.svelte).
 const REVEAL_MS = 3200;
@@ -50,6 +57,7 @@ beforeEach(() => {
   // Default the arena to full-motion (the intro plays); the reduce-motion case sets it explicitly.
   prefs.update((p) => ({ ...p, reduceMotion: false }));
   Object.values(soundMock).forEach((fn) => fn.mockClear());
+  vi.mocked(recordChallengeResult).mockClear();
 });
 
 afterEach(() => {
@@ -113,6 +121,29 @@ describe('Challenge route', () => {
     await fireEvent.click(within(dialog).getByRole('button', { name: 'Forfeit' }));
     expect(get(challenge).status).toBe('finished');
     expect(screen.getByText('The challenge ends here')).toBeInTheDocument();
+  });
+
+  it('forfeits an in-flight run when you leave the arena (Back button / another page)', () => {
+    stage();
+    const { unmount } = render(Challenge);
+    expect(get(challenge).status).toBe('playing');
+    // Any route change — the browser Back button, a nav tab — unmounts the arena…
+    unmount();
+    // …which spends today's attempt as a failed one (no dodging the one-life run) and clears it.
+    expect(recordChallengeResult).toHaveBeenCalledWith('flags', 'Oceania', false);
+    expect(get(challenge).status).toBe('idle');
+  });
+
+  it('does not re-record when leaving an already-finished run (no double-count)', async () => {
+    stage();
+    const { unmount } = render(Challenge);
+    await fireEvent.click(screen.getByRole('button', { name: 'Forfeit' }));
+    await fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Forfeit' }),
+    );
+    expect(recordChallengeResult).toHaveBeenCalledTimes(1); // the forfeit itself
+    unmount(); // leaving the game-over screen must not record a second attempt
+    expect(recordChallengeResult).toHaveBeenCalledTimes(1);
   });
 
   it('cancelling the forfeit confirm keeps the run going', async () => {
