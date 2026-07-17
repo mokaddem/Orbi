@@ -42,6 +42,16 @@ export interface SessionConfig {
    * full `countries` universe. Must be non-empty.
    */
   answerPool?: readonly Country[];
+  /**
+   * Explicit `(mode, iso2)` question slots, overriding both `answerPool` and `filter`. Powers the
+   * combined region×family practice session (Phase 41 follow-on): both of a family's directions
+   * interleaved in one run, so a country can be asked twice (once per direction). Each slot is
+   * asked once — a `fixed` run of `slots.length` — and each question is built with its **own**
+   * slot's mode, so the session's `mode` is only the summary's representative direction. Slots for
+   * a country not in `countries`, or a country the slot's mode can't ask about, are dropped; the
+   * survivors must be non-empty.
+   */
+  answerSlots?: readonly { mode: GameMode; iso2: string }[];
   /** `fixed` only — number of questions (default 10). */
   fixedLength?: number;
   /** `survival` only — number of lives (default 3). */
@@ -72,6 +82,14 @@ export class QuizSession {
   private readonly answers: readonly Country[];
   private readonly byIso2: Map<string, Country>;
 
+  /**
+   * The interleaved `(mode, country)` queue for a multi-mode run (combined practice), or `null`
+   * for an ordinary single-mode session. When set it drives `next()` instead of `answers`, so each
+   * question carries its own slot's mode.
+   */
+  private readonly slotQueue: readonly { mode: GameMode; country: Country }[] | null;
+  private slotBag: { mode: GameMode; country: Country }[] = [];
+
   private bag: Country[] = [];
   private lastAnswerIso: string | null = null;
   private questionStartedAt = 0;
@@ -95,24 +113,47 @@ export class QuizSession {
     this.now = config.now ?? Date.now;
 
     this.universe = config.countries;
-    // An explicit answer pool (training) wins over the region filter; otherwise the
-    // filter narrows the *answers*. Distractors always tier against `universe` — the
-    // `countries` list exactly as passed in — so a caller that wants region-scoped
-    // distractors (as the UI's play store does for a filtered game) passes an already
-    // region-filtered `countries` list. Map modes then drop geometry-less countries
-    // (they can't be highlighted/clicked); flag modes keep everything.
-    const rawAnswers = config.answerPool
-      ? config.answerPool.slice()
-      : filterCountries(config.countries, config.filter);
-    this.answers = eligibleAnswers(this.mode, rawAnswers);
-    if (this.answers.length === 0) {
-      throw new Error(
-        config.answerPool
-          ? 'QuizSession: the training answer pool is empty'
-          : 'QuizSession: the country pool is empty after applying the region filter',
-      );
-    }
     this.byIso2 = new Map(this.universe.map((c) => [c.iso2, c]));
+
+    // A multi-mode slot queue (combined practice) wins over everything: resolve each slot's country
+    // and keep only those the slot's own mode can ask about (map modes drop geometry-less countries,
+    // exactly as `eligibleAnswers` does per single mode). `answers` then holds the distinct countries
+    // — the distractor/summary universe — while `slotQueue` drives the per-question mode.
+    if (config.answerSlots && config.answerSlots.length) {
+      const resolved = config.answerSlots
+        .map((slot) => {
+          const country = this.byIso2.get(slot.iso2);
+          return country && eligibleAnswers(slot.mode, [country]).length > 0
+            ? { mode: slot.mode, country }
+            : null;
+        })
+        .filter((s): s is { mode: GameMode; country: Country } => s !== null);
+      if (resolved.length === 0) {
+        throw new Error('QuizSession: the training slot queue is empty');
+      }
+      this.slotQueue = resolved;
+      const distinct = new Map(resolved.map((s) => [s.country.iso2, s.country]));
+      this.answers = [...distinct.values()];
+    } else {
+      this.slotQueue = null;
+      // An explicit answer pool (training) wins over the region filter; otherwise the
+      // filter narrows the *answers*. Distractors always tier against `universe` — the
+      // `countries` list exactly as passed in — so a caller that wants region-scoped
+      // distractors (as the UI's play store does for a filtered game) passes an already
+      // region-filtered `countries` list. Map modes then drop geometry-less countries
+      // (they can't be highlighted/clicked); flag modes keep everything.
+      const rawAnswers = config.answerPool
+        ? config.answerPool.slice()
+        : filterCountries(config.countries, config.filter);
+      this.answers = eligibleAnswers(this.mode, rawAnswers);
+      if (this.answers.length === 0) {
+        throw new Error(
+          config.answerPool
+            ? 'QuizSession: the training answer pool is empty'
+            : 'QuizSession: the country pool is empty after applying the region filter',
+        );
+      }
+    }
 
     this.s = {
       status: 'idle',
@@ -134,12 +175,13 @@ export class QuizSession {
   }
 
   /**
-   * The number of distinct countries this session can ask about — the answer pool *after*
-   * the mode's eligibility filter (map modes drop geometry-less countries). This is exactly
-   * the length of a `full` ("Grand Tour") run, so the UI reads it to show the right total.
+   * The number of questions a full pass of this session asks: distinct answerable countries for a
+   * single-mode run (the length of a `full` "Grand Tour"), or the total slot count for a multi-mode
+   * combined-practice run (where a country can appear once per direction). The UI reads it for the
+   * run's total.
    */
   get answerCount(): number {
-    return this.answers.length;
+    return this.slotQueue ? this.slotQueue.length : this.answers.length;
   }
 
   isFinished(): boolean {
@@ -164,11 +206,15 @@ export class QuizSession {
     if (this.s.status === 'finished') return null;
     if (this.s.current) return this.s.current;
 
-    const answer = this.drawAnswer();
+    // A multi-mode run draws a slot (its own mode + country); a single-mode run draws just a
+    // country and asks it in the session's one mode.
+    const { mode, answer } = this.slotQueue
+      ? this.drawSlot()
+      : { mode: this.mode, answer: this.drawAnswer() };
     if (this.s.startedAt === null) this.s.startedAt = this.now();
     this.s.status = 'active';
     this.s.index += 1;
-    this.s.current = buildQuestion(this.mode, answer, this.universe, this.choices, this.rng);
+    this.s.current = buildQuestion(mode, answer, this.universe, this.choices, this.rng);
     this.lastAnswerIso = answer.iso2;
     this.questionStartedAt = this.now();
     return this.s.current;
@@ -255,6 +301,27 @@ export class QuizSession {
       }
     }
     return this.bag.shift()!;
+  }
+
+  /**
+   * Draw the next `(mode, country)` slot for a multi-mode run. Mirrors {@link drawAnswer}'s draw-bag
+   * (shuffle-without-replacement, refilling only if a `fixedLength` outruns the queue) and its
+   * no-immediate-repeat guard, keyed on the country so the same country isn't asked back-to-back in
+   * its two directions. Only called when `slotQueue` is set.
+   */
+  private drawSlot(): { mode: GameMode; answer: Country } {
+    if (this.slotBag.length === 0) {
+      this.slotBag = shuffle(this.slotQueue!, this.rng);
+      if (
+        this.lastAnswerIso &&
+        this.slotBag.length > 1 &&
+        this.slotBag[0].country.iso2 === this.lastAnswerIso
+      ) {
+        [this.slotBag[0], this.slotBag[1]] = [this.slotBag[1], this.slotBag[0]];
+      }
+    }
+    const slot = this.slotBag.shift()!;
+    return { mode: slot.mode, answer: slot.country };
   }
 
   private shouldFinish(): boolean {

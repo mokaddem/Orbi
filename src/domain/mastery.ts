@@ -335,24 +335,50 @@ export function computeFamilyMastery(
 //
 // Powers the per-family "practise" shortcut on the Progress world-mastery breakdown: given a
 // region and a family, assemble a launchable drill of that region's **unmastered** countries
-// (learning + unseen) for the family's **weaker direction** — whichever of its two direction
-// modes has more not-yet-mastered countries. A session runs a single mode, so we target the
-// direction with the most work; the family fills as the player drills each direction in turn.
+// (learning + unseen).
+//
+// A family has two direction modes (e.g. flag→country / country→flag). While there is plenty
+// left to drill we run just the **weaker direction** — whichever mode has more not-yet-mastered
+// countries — so a single session stays a reasonable length and the family fills as the player
+// clears each direction in turn. But near the end that trickles into silly 1–2 question runs
+// (finish the weaker direction, then the *other* direction has a lone straggler). So once the
+// family's remaining work across **both** directions is small ({@link PRACTICE_COMBINE_THRESHOLD}),
+// we merge every unmastered slot of both directions into one interleaved session, weakest-first —
+// the player clears the family's tail in a single sitting instead of a string of tiny runs.
+//
 // Mirrors {@link computeFamilyMastery}'s applicability rules (Map is N/A for geometry-less
 // countries), so the pool always matches the count the mini-bar shows. Pure & deterministic
 // given `now`.
 
-/** A launchable region×family drill: the direction mode to run and its weakest-first pool. */
-export interface RegionFamilyPractice {
+/**
+ * At or below this many not-yet-mastered slots across **both** of a family's directions, the
+ * practice pool interleaves both directions into one session instead of drilling the weaker
+ * direction alone — killing the near-mastery trickle of 1–2 question single-mode runs.
+ */
+export const PRACTICE_COMBINE_THRESHOLD = 10;
+
+/** One question in a practice drill: a country to identify in a specific direction mode. */
+export interface PracticeSlot {
   mode: GameMode;
-  iso2s: string[];
+  iso2: string;
+}
+
+/** A launchable region×family drill: its weakest-first slot queue and how it should be run. */
+export interface RegionFamilyPractice {
+  /** Representative direction — the sole mode when not `combined`, else the weaker direction. Used
+   *  for the run's summary attribution and map framing; each question uses its own slot's mode. */
+  mode: GameMode;
+  /** The drill queue, weakest-first (most-overdue seen items ahead of never-seen ones). */
+  slots: PracticeSlot[];
+  /** `true` once both directions are merged into one session (the near-mastery tail). */
+  combined: boolean;
 }
 
 /**
  * Assemble the region×family practice pool, or `null` when the family is already fully mastered
- * in this region (nothing to drill). The chosen `mode` is the family's weaker direction; `iso2s`
- * are that direction's not-yet-mastered applicable countries, weakest-first (most-overdue seen
- * items ahead of never-seen ones).
+ * in this region (nothing to drill). When the total unmastered work across both directions is
+ * small ({@link PRACTICE_COMBINE_THRESHOLD}) the queue interleaves both directions (`combined`);
+ * otherwise it drills the weaker direction alone, exactly as before.
  */
 export function regionFamilyPracticePool(
   srItems: readonly SRItem[],
@@ -380,36 +406,37 @@ export function regionFamilyPracticePool(
   // Applicable countries in this region (Map excludes geometry-less countries, as in mastery).
   const applicable = countries.filter((c) => c.region === region && familyApplies(family, c));
 
-  // Pick the weaker direction: the family mode with more not-yet-mastered applicable countries.
-  // Ties keep the family's first mode (stable, matching `FAMILIES` order).
-  let chosen: GameMode = fam.modes[0];
-  let chosenUnmastered = -1;
-  for (const mode of fam.modes) {
-    const n = applicable.reduce((s, c) => (masteredIn(mode, c.iso2) ? s : s + 1), 0);
-    if (n > chosenUnmastered) {
-      chosen = mode;
-      chosenUnmastered = n;
-    }
-  }
-  if (chosenUnmastered <= 0) return null; // both directions fully mastered here
+  // Not-yet-mastered countries per direction, and the weaker direction (most work; ties keep the
+  // family's first mode, stable via `reduce`'s "strictly greater" test).
+  const unmasteredByMode = fam.modes.map((mode) => ({
+    mode,
+    iso2s: applicable.filter((c) => !masteredIn(mode, c.iso2)).map((c) => c.iso2),
+  }));
+  const total = unmasteredByMode.reduce((s, m) => s + m.iso2s.length, 0);
+  if (total <= 0) return null; // both directions fully mastered here
+  const weaker = unmasteredByMode.reduce((a, b) => (b.iso2s.length > a.iso2s.length ? b : a));
 
-  // The pool: applicable countries not yet mastered in the chosen direction, weakest-first —
-  // seen-but-weak (most overdue, then most-missed) ahead of never-seen (dataset order).
-  const weakness = (iso2: string): { seen: boolean; dueAt: number; lapses: number } => {
-    const it = items.get(`${chosen}:${iso2}`);
-    return it
-      ? { seen: true, dueAt: it.dueAt, lapses: it.lapses }
-      : { seen: false, dueAt: Infinity, lapses: -1 };
+  // Weakest-first order for a slot: seen-but-weak (most overdue, then most-missed) ahead of
+  // never-seen (dataset order, preserved by a stable sort).
+  const bySlotWeakness = (a: PracticeSlot, b: PracticeSlot): number => {
+    const ia = items.get(`${a.mode}:${a.iso2}`);
+    const ib = items.get(`${b.mode}:${b.iso2}`);
+    if (!!ia !== !!ib) return ia ? -1 : 1; // seen (has SR state) before never-seen
+    if (ia && ib && ia.dueAt !== ib.dueAt) return ia.dueAt - ib.dueAt; // most overdue first
+    if (ia && ib) return ib.lapses - ia.lapses; // then most-missed
+    return 0;
   };
-  const pool = applicable
-    .filter((c) => !masteredIn(chosen, c.iso2))
-    .sort((a, b) => {
-      const wa = weakness(a.iso2);
-      const wb = weakness(b.iso2);
-      if (wa.seen !== wb.seen) return wa.seen ? -1 : 1; // seen (has SR state) before never-seen
-      if (wa.dueAt !== wb.dueAt) return wa.dueAt - wb.dueAt; // most overdue first
-      return wb.lapses - wa.lapses; // then most-missed
-    });
 
-  return { mode: chosen, iso2s: pool.map((c) => c.iso2) };
+  // Near-mastery tail: merge both directions into one interleaved session so the player clears the
+  // family's stragglers at once, rather than a trickle of tiny single-mode runs.
+  if (total <= PRACTICE_COMBINE_THRESHOLD) {
+    const slots = unmasteredByMode
+      .flatMap((m) => m.iso2s.map((iso2) => ({ mode: m.mode, iso2 })))
+      .sort(bySlotWeakness);
+    return { mode: weaker.mode, slots, combined: true };
+  }
+
+  // Plenty left: drill the weaker direction alone (a single-mode session), weakest-first.
+  const slots = weaker.iso2s.map((iso2) => ({ mode: weaker.mode, iso2 })).sort(bySlotWeakness);
+  return { mode: weaker.mode, slots, combined: false };
 }

@@ -515,4 +515,57 @@ describe('Play route', () => {
     const { container } = render(Play);
     expect(container.querySelector('.prompt-country-flag')).toBeNull();
   });
+
+  it('combined practice: renders each question in its own mode across a mixed-direction session', async () => {
+    // A combined region×family practice run interleaves both flag directions in one session. The
+    // Play screen must render the prompt / options per *question* mode, not the session's — so a
+    // flag→country slot shows a flag prompt with name options, and a country→flag slot shows a name
+    // prompt with flag options, all within the same run.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      pendingConfig.set({
+        mode: 'flag-to-country', // representative only
+        type: 'training',
+        fixedLength: 4,
+        answerSlots: [
+          { mode: 'flag-to-country', iso2: 'AU' },
+          { mode: 'country-to-flag', iso2: 'FJ' },
+          { mode: 'flag-to-country', iso2: 'NZ' },
+          { mode: 'country-to-flag', iso2: 'AU' },
+        ],
+        rng: mulberry32(5),
+        now: makeClock(),
+      });
+      const { container } = render(Play);
+      expect(get(play).status).toBe('playing');
+
+      const seenModes = new Set<string>();
+      for (let i = 0; i < 4; i++) {
+        const q = get(play).question!;
+        seenModes.add(q.mode);
+        if (q.mode === 'flag-to-country') {
+          // Flag prompt + "which country?"; the options are country names.
+          expect(container.querySelector('.prompt-flag img')).toBeInTheDocument();
+          expect(container.querySelector('.ask')!.textContent).toBe('Which country is this?');
+        } else {
+          // Country-name prompt + "which flag?"; no prompt flag (it would leak the answer).
+          expect(container.querySelector('.prompt-name')!.textContent).toBe(q.answer.name.en);
+          expect(container.querySelector('.ask')!.textContent).toBe('Which is its flag?');
+          expect(container.querySelector('.prompt-country-flag')).toBeNull();
+        }
+        // The answer's ISO2 is the option id in both directions → click it, then auto-advance.
+        await fireEvent.click(container.querySelector(`button[data-id="${q.answer.iso2}"]`)!);
+        expect(get(play).status).toBe('answered');
+        await vi.advanceTimersByTimeAsync(WRONG_MS + 100);
+      }
+
+      // Both directions actually appeared in the one session, and it ran the full 4 slots.
+      expect([...seenModes].sort()).toEqual(['country-to-flag', 'flag-to-country']);
+      const summary = get(lastSummary);
+      expect(summary!.total).toBe(4);
+      expect(summary!.mode).toBe('flag-to-country'); // representative direction
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

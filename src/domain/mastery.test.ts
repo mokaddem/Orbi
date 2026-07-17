@@ -282,7 +282,7 @@ describe('regionFamilyPracticePool', () => {
     expect(regionFamilyPracticePool(items, countries, 'Europe', 'flags', { now: NOW })).toBeNull();
   });
 
-  it('drills the weaker direction over learning + unseen, weakest-first', () => {
+  it('combines both directions near mastery (≤ threshold), weakest-first', () => {
     const countries = [c('FR', 'Europe'), c('DE', 'Europe'), c('IT', 'Europe')];
     const items = [
       // FR: both directions mastered → excluded from the pool entirely.
@@ -294,29 +294,61 @@ describe('regionFamilyPracticePool', () => {
       // IT: never seen in either direction.
     ];
     const pool = regionFamilyPracticePool(items, countries, 'Europe', 'flags', { now: NOW })!;
-    // country-to-flag has 2 not-mastered (DE, IT) vs flag-to-country's 1 (IT) → weaker direction.
+    // 3 unmastered slots total (≤ threshold) → one interleaved session over both directions.
+    expect(pool.combined).toBe(true);
+    // country-to-flag has 2 not-mastered (DE, IT) vs flag-to-country's 1 (IT) → the weaker direction
+    // is the run's representative mode.
     expect(pool.mode).toBe('country-to-flag');
-    // Seen-but-weak (DE, overdue) before never-seen (IT); FR omitted (already mastered).
-    expect(pool.iso2s).toEqual(['DE', 'IT']);
+    // Seen-but-weak (DE, overdue) first; then the never-seen IT slots (both directions), FAMILIES
+    // mode order preserved by the stable sort. FR omitted (fully mastered).
+    expect(pool.slots).toEqual([
+      { mode: 'country-to-flag', iso2: 'DE' },
+      { mode: 'flag-to-country', iso2: 'IT' },
+      { mode: 'country-to-flag', iso2: 'IT' },
+    ]);
+  });
+
+  it('drills only the weaker direction while plenty remains (> threshold)', () => {
+    // 12 unseen countries → 24 unmastered slots across both directions (> threshold): stay
+    // single-mode so a session isn't enormous. Tie on unmastered count → family's first mode.
+    const isos = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'B1', 'B2', 'B3'];
+    const countries = isos.map((iso) => c(iso, 'Europe'));
+    const pool = regionFamilyPracticePool([], countries, 'Europe', 'flags', { now: NOW })!;
+    expect(pool.combined).toBe(false);
+    expect(pool.mode).toBe('flag-to-country'); // FAMILIES[flags].modes[0], tie
+    expect(pool.slots).toHaveLength(12); // one direction only
+    expect(pool.slots.every((s) => s.mode === 'flag-to-country')).toBe(true);
+    expect([...pool.slots].map((s) => s.iso2).sort()).toEqual([...isos].sort());
   });
 
   it('breaks a direction tie toward the family’s first mode', () => {
     const countries = [c('FR', 'Europe'), c('DE', 'Europe')]; // both unseen in flags
     const pool = regionFamilyPracticePool([], countries, 'Europe', 'flags', { now: NOW })!;
+    expect(pool.combined).toBe(true); // 4 slots ≤ threshold
     expect(pool.mode).toBe('flag-to-country'); // FAMILIES[flags].modes[0]
-    expect([...pool.iso2s].sort()).toEqual(['DE', 'FR']);
+    // Both countries, both directions — every unmastered slot.
+    expect([...pool.slots].map((s) => `${s.mode}:${s.iso2}`).sort()).toEqual([
+      'country-to-flag:DE',
+      'country-to-flag:FR',
+      'flag-to-country:DE',
+      'flag-to-country:FR',
+    ]);
   });
 
   it('excludes geometry-less countries from the Map family', () => {
     const countries = [c('FJ', 'Oceania', true), c('TV', 'Oceania', false)]; // both unseen
     const pool = regionFamilyPracticePool([], countries, 'Oceania', 'map', { now: NOW })!;
     expect(pool.mode).toBe('map-highlight'); // FAMILIES[map].modes[0], tie
-    expect(pool.iso2s).toEqual(['FJ']); // TV has no map geometry → never drilled
+    // TV has no map geometry → never drilled, in either direction.
+    expect([...pool.slots].map((s) => `${s.mode}:${s.iso2}`).sort()).toEqual([
+      'map-highlight:FJ',
+      'map-locate:FJ',
+    ]);
   });
 
   it('scopes to the requested region only', () => {
     const countries = [c('FR', 'Europe'), c('BR', 'Americas')]; // both unseen in flags
     const pool = regionFamilyPracticePool([], countries, 'Europe', 'flags', { now: NOW })!;
-    expect(pool.iso2s).toEqual(['FR']); // Americas ignored
+    expect(pool.slots.every((s) => s.iso2 === 'FR')).toBe(true); // Americas ignored
   });
 });
