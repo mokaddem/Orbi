@@ -216,6 +216,12 @@ const fr: typeof en = {
     intro: {
       title: "Entrez dans l'arène",
     },
+    invite: {
+      title: 'Défi du grand maître',
+      body: 'Faites vos preuves sur une famille maîtrisée — chaque pays, dans les deux sens, une seule vie.',
+      cta: "Entrez dans l'arène →",
+      available: "Disponible aujourd'hui",
+    },
     cooldown: {
       next: 'Prochaine tentative dans {time}',
     },

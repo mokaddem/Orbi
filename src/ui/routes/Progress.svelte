@@ -20,6 +20,7 @@
   import { pendingConfig } from '../stores/game';
   import {
     challenge,
+    focusMastery,
     justCertified,
     lastChallengeSummary,
     pendingChallenge,
@@ -237,6 +238,37 @@
   $effect(() => {
     if ($storageReady) void refresh();
   });
+
+  // Home → Progress "show me my mastery" handoff (Phase 45 ⑥): when the Grandmaster invitation card
+  // is tapped with more than one run available, Home sets `focusMastery` and routes here; bring the
+  // World Mastery panel into view (with a brief highlight) so the player can pick a specific "prove
+  // it" cell. Reduce-motion (OS or in-app) drops the smooth scroll + the pulse.
+  const reduceMotionQuery =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+  const reduceMotion = $derived($prefs.reduceMotion || !!reduceMotionQuery?.matches);
+
+  let masteryPanelEl = $state<HTMLElement | undefined>();
+  let masteryFocused = $state(false);
+  let focusConsumed = false;
+  let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+
+  $effect(() => {
+    // Act once, only after the panel has mounted (it renders behind the async `loading` gate).
+    if (!$focusMastery || !masteryPanelEl || focusConsumed) return;
+    focusConsumed = true;
+    focusMastery.set(false);
+    masteryPanelEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    if (!reduceMotion) {
+      masteryFocused = true;
+      // Not returned as the effect's cleanup: setting the flag above re-runs this effect, and a
+      // cleanup would cancel the pulse immediately. Cleared on unmount by the effect below.
+      highlightTimer = setTimeout(() => (masteryFocused = false), 1600);
+    }
+  });
+
+  $effect(() => () => clearTimeout(highlightTimer));
 </script>
 
 <section class="progress">
@@ -343,7 +375,7 @@
     <div class="p-grid">
       <!-- World mastery: blended meter + per-family breakdown, then per-region (stacked, Phase 41) -->
       {#if mastery}
-        <div class="panel">
+        <div class="panel" class:mastery-focus={masteryFocused} bind:this={masteryPanelEl}>
           <h2>{$t('progress.mastery.title')}</h2>
           <FamilyMasteryMeter {mastery} />
 
@@ -841,6 +873,30 @@
   .panel h2 {
     margin: 0;
     font-size: 1.05rem;
+  }
+
+  /* Brief accent pulse when arriving from the Home invitation card (Phase 45 ⑥) — a one-shot ring
+     that draws the eye to the mastery panel, then settles. Neutralized under reduced motion (the
+     flag is also never set then, so this is a belt-and-braces guard for the OS query). */
+  .panel.mastery-focus {
+    animation: mastery-pulse 1.6s ease;
+  }
+
+  @keyframes mastery-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+    25% {
+      box-shadow: 0 0 0 3px var(--color-accent-weak);
+      border-color: var(--color-accent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel.mastery-focus {
+      animation: none;
+    }
   }
 
   /* Desktop (Phase 34): the stat row + recap stay full-width above; the mastery, achievements

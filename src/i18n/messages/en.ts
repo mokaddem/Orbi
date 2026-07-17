@@ -220,6 +220,14 @@ const en = {
     intro: {
       title: 'Enter the Gauntlet',
     },
+    // The Home invitation card (Phase 45 ⑥): a discovery surface shown only when ≥ 1 run is
+    // attemptable today (unlocked, uncertified, not spent).
+    invite: {
+      title: 'Grandmaster Challenge',
+      body: 'Prove a mastered family — every country, both directions, one life.',
+      cta: 'Enter the gauntlet →',
+      available: 'Available today',
+    },
     // The daily cooldown (Phase 45 ⑤): the countdown shown once today's attempt is spent — on the
     // entry-card tooltip and, prominently, in the offer modal (Accept is gated until local midnight).
     cooldown: {

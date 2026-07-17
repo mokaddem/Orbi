@@ -222,6 +222,12 @@ const de: typeof en = {
     intro: {
       title: 'Betritt die Arena',
     },
+    invite: {
+      title: 'Großmeister-Herausforderung',
+      body: 'Beweise dich in einer gemeisterten Familie — jedes Land, in beide Richtungen, ein Leben.',
+      cta: 'Betritt die Arena →',
+      available: 'Heute verfügbar',
+    },
     cooldown: {
       next: 'Nächster Versuch in {time}',
     },

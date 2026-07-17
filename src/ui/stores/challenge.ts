@@ -155,3 +155,11 @@ export const pendingChallenge = writable<ChallengeRunConfig | null>(null);
  * bloom is the primary celebration; this is the secondary Progress-side acknowledgement.
  */
 export const justCertified = writable<{ family: MasteryFamily; region: string } | null>(null);
+
+/**
+ * A Home → Progress handoff (Phase 45 ⑥): set `true` when the Grandmaster invitation card is tapped
+ * with **more than one** challenge available (so it can't pick a single run to offer directly).
+ * Progress reads it once on load, scrolls its World Mastery panel into view with a brief
+ * (reduce-motion-safe) highlight, then clears it. Not persisted — a same-session navigation cue.
+ */
+export const focusMastery = writable(false);

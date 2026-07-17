@@ -40,6 +40,43 @@ export function isChallengeUnlocked(
   return !!tally && tally.total > 0 && tally.mastered === tally.total;
 }
 
+/** One family × continent a player can attempt right now (the Home invitation surface). */
+export interface AvailableChallenge {
+  family: MasteryFamily;
+  /** The continent's M49 region key. */
+  region: string;
+}
+
+/**
+ * The family × continent runs a player can attempt **right now** (Phase 45 ⑥): each is unlocked
+ * (that continent's family is fully mastered — {@link isChallengeUnlocked}), **not** yet certified,
+ * and **not** already attempted today (the once-a-day-per-family×region cooldown). `certified` /
+ * `spentToday` are keyed `${family}|${region}` (the `grandmaster` store keys). Drives the Home
+ * invitation card: it shows only when the result is non-empty, and its click routes straight to the
+ * offer modal for the sole entry or to Progress when there is more than one. Region order follows
+ * `mastery.byRegion`; families follow {@link FAMILIES} order.
+ */
+export function availableChallenges(
+  mastery: FamilyMasteryResult,
+  certified: ReadonlySet<string>,
+  spentToday: ReadonlySet<string>,
+): AvailableChallenge[] {
+  const out: AvailableChallenge[] = [];
+  for (const region of mastery.byRegion) {
+    for (const { key: family } of FAMILIES) {
+      const storeKey = `${family}|${region.region}`;
+      if (
+        isChallengeUnlocked(mastery, family, region.region) &&
+        !certified.has(storeKey) &&
+        !spentToday.has(storeKey)
+      ) {
+        out.push({ family, region: region.region });
+      }
+    }
+  }
+  return out;
+}
+
 /** One question-slot in a run: a country to identify in a specific direction mode. */
 export interface ChallengeSlot {
   mode: GameMode;

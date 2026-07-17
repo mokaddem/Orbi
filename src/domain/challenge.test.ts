@@ -11,6 +11,7 @@ import {
 } from './mastery';
 import {
   ChallengeSession,
+  availableChallenges,
   buildChallengeQuestion,
   buildChallengeQueue,
   challengeSlotCount,
@@ -108,6 +109,64 @@ describe('isChallengeUnlocked', () => {
     // Drop one direction of BB → BB flags falls to "learning" → not fully mastered → locked.
     const partial = computeFamilyMastery(bothDirs.slice(0, 3), countries, { now: NOW });
     expect(isChallengeUnlocked(partial, 'flags', 'AF')).toBe(false);
+  });
+});
+
+// --- availableChallenges (the Home invitation surface) ----------------------------------------
+
+/** Build a multi-region mastery result from per-region per-family [mastered, total] tallies. */
+function masteryOf(
+  regions: Record<string, Partial<Record<MasteryFamily, [number, number]>>>,
+): FamilyMasteryResult {
+  const rollup = { fullyMastered: 0, inProgress: 0, unseen: 0, blended: 0, total: 0 };
+  const byRegion = Object.entries(regions).map(([region, tallies]) => {
+    const families: FamilyTally[] = FAMILIES.map((f) => {
+      const [mastered, total] = tallies[f.key] ?? [0, 0];
+      return { family: f.key, mastered, learning: 0, unseen: Math.max(0, total - mastered), total };
+    });
+    return { region, families, ...rollup };
+  });
+  return { overall: { families: [], ...rollup }, byRegion };
+}
+
+const NONE: ReadonlySet<string> = new Set();
+
+describe('availableChallenges', () => {
+  it('lists every fully-mastered family × region as attemptable when none are certified/spent', () => {
+    // Oceania: map + flags fully mastered, capitals partial. Africa: flags + capitals full, map at 0.
+    const m = masteryOf({
+      Oceania: { map: [5, 5], flags: [5, 5], capitals: [3, 5] },
+      Africa: { map: [0, 10], flags: [10, 10], capitals: [10, 10] },
+    });
+    const avail = availableChallenges(m, NONE, NONE);
+    expect(avail).toEqual([
+      { family: 'map', region: 'Oceania' },
+      { family: 'flags', region: 'Oceania' },
+      { family: 'flags', region: 'Africa' },
+      { family: 'capitals', region: 'Africa' },
+    ]);
+  });
+
+  it('is empty when nothing is fully mastered', () => {
+    const m = masteryOf({ Oceania: { map: [4, 5], flags: [2, 5], capitals: [0, 5] } });
+    expect(availableChallenges(m, NONE, NONE)).toEqual([]);
+  });
+
+  it('excludes already-certified and already-spent-today runs', () => {
+    const m = masteryOf({
+      Oceania: { flags: [5, 5], capitals: [5, 5] },
+      Africa: { flags: [10, 10] },
+    });
+    const certified = new Set(['flags|Oceania']); // already earned → no longer offered
+    const spentToday = new Set(['capitals|Oceania']); // today's attempt used → on cooldown
+    expect(availableChallenges(m, certified, spentToday)).toEqual([
+      { family: 'flags', region: 'Africa' },
+    ]);
+  });
+
+  it('never offers a run whose family has an empty (0/0) tally', () => {
+    const m = masteryOf({ Oceania: { flags: [0, 0] } });
+    expect(availableChallenges(m, NONE, NONE)).toEqual([]);
   });
 });
 
