@@ -343,10 +343,13 @@
   }
 
   .top-stats .rank-cell {
-    /* basis 0 so the chip always shares the streak's row (shrinking to fit) rather than
-       wrapping onto its own line on normal phone widths; text reflows if space gets tight. */
+    /* Grow to fill the streak's row when there's room, but keep the chip's natural minimum (medal +
+       rank name on one line) as the shrink floor — basis 0 makes the wrap decision hinge on that
+       min-content, not the chip's preferred width. A short rank (Novice, Scout, …) sits beside the
+       streak; a long one (e.g. "Legendary Explorer") no longer fits, so the whole chip wraps onto
+       its own full-width row rather than overflowing off-screen. No `min-width: 0` (the old cause):
+       that let the chip shrink to nothing and the nowrap name spill off-screen. No breakpoint. */
     flex: 1 1 0;
-    min-width: 0;
   }
 
   /* The whole chip is a link into Progress → Explorer rank. Pointer + a hover ring + a focus

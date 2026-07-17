@@ -55,7 +55,9 @@
     flex-direction: column;
     gap: 0.2rem;
     flex: 1 1 auto;
-    min-width: 0;
+    /* No `min-width: 0` here: the body's min-content (the rank name on one line) must propagate up
+       to the chip so a long name — e.g. "Legendary Explorer" — makes the whole chip too wide to
+       share the streak's row, wrapping it onto its own full-width line instead of overflowing. */
   }
 
   .line {
