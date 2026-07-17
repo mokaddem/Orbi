@@ -93,7 +93,8 @@
   let fxEl = $state<HTMLCanvasElement>();
   let totalEl = $state<HTMLElement>();
   let badgeEl = $state<HTMLElement>();
-  let visible = $state(false);
+  let visible = $state(false); // ≥50% on screen — the tally may begin (after the hold)
+  let fullyVisible = $state(false); // the whole card (its bottom edge) is on screen
   let displayEarned = $state(0); // counts up during the tally
   let revealed = $state(0); // how many rows have landed
 
@@ -105,34 +106,55 @@
   );
 
   // --- tally engine timings ---
-  // The XP holds off for a beat after the card appears, then lands line by line. The hold's clock
-  // starts the moment the card is *visible* (see the reveal gate), so on a long Summary the "+N XP"
-  // never begins ticking up before the player has actually reached the card.
-  const REVEAL_HOLD_MS = 3000; // wait after the card is visible before the first row lands
+  // The XP holds off for a beat after the card appears, then lands line by line — so on a long
+  // Summary the "+N XP" never begins ticking up before the player has actually reached the card.
+  // The exception: if the *whole* card is already on screen (its bottom edge in view), the player is
+  // clearly looking at it, so we skip the hold and start right away (see the tally-start effect).
+  const REVEAL_HOLD_MS = 3000; // wait, once the card is partly visible, before the first row lands
   const STEP_MS = 650; // per-row cadence (unhurried — the run's points land one at a time)
   const TWEEN_MS = 460; // count-up per row
   let timers: ReturnType<typeof setTimeout>[] = [];
   let raf = 0;
 
-  // Reveal gate: mark the card visible once it's at least half on screen.
+  // Reveal gate: track how much of the card is on screen — "seen" at ≥50%, "fully on screen" at
+  // ~100% (its bottom edge in view). Keep observing until fully visible, so a partial→full scroll
+  // (which shortcuts the hold below) is caught.
   $effect(() => {
-    if (!canAnimate || visible || !cardEl) return;
+    if (!canAnimate || fullyVisible || !cardEl) return;
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) visible = true;
+        for (const e of entries) {
+          if (e.isIntersecting && e.intersectionRatio >= 0.5) visible = true;
+          if (e.intersectionRatio >= 0.99) fullyVisible = true;
+        }
       },
-      { threshold: 0.5 },
+      { threshold: [0.5, 0.99, 1] },
     );
     io.observe(cardEl);
     return () => io.disconnect();
   });
 
-  // Once visible and the rank snapshot has settled, hold a beat, then run the tally once.
+  // Start the tally once the rank snapshot has settled and the card has been seen. Hold a beat
+  // first — but if the whole card is on screen, skip the hold and go now; and if it becomes fully
+  // visible while the hold is still pending, cancel the hold and go immediately. Runs once.
   let played = false;
+  let holdTimer: ReturnType<typeof setTimeout> | undefined;
   $effect(() => {
-    if (!canAnimate || played || !visible || !progress) return;
-    played = true;
-    timers.push(setTimeout(runTally, REVEAL_HOLD_MS));
+    if (!canAnimate || played || !progress || (!visible && !fullyVisible)) return;
+    if (fullyVisible) {
+      if (holdTimer !== undefined) clearTimeout(holdTimer);
+      holdTimer = undefined;
+      played = true;
+      runTally();
+    } else if (holdTimer === undefined) {
+      holdTimer = setTimeout(() => {
+        holdTimer = undefined;
+        if (played) return;
+        played = true;
+        runTally();
+      }, REVEAL_HOLD_MS);
+      timers.push(holdTimer);
+    }
   });
 
   function runTally(): void {

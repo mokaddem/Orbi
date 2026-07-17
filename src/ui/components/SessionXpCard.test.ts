@@ -8,29 +8,31 @@ import { setLocale } from '../../i18n';
 beforeEach(() => setLocale('en'));
 afterEach(() => setLocale('en'));
 
-// An IntersectionObserver stub that reports the card on screen the instant it's observed, so the
-// reveal-gated tally animation runs under jsdom (which has no real IntersectionObserver). Its mere
-// presence also flips the component's `canAnimate` on — the level-up roll-over only plays when
-// animating, so this is what lets the roll-over be exercised at all.
-class ImmediateIO {
-  private cb: IntersectionObserverCallback;
-  root = null;
-  rootMargin = '';
-  thresholds: number[] = [];
-  constructor(cb: IntersectionObserverCallback) {
-    this.cb = cb;
-  }
-  observe(): void {
-    this.cb(
-      [{ isIntersecting: true } as IntersectionObserverEntry],
-      this as unknown as IntersectionObserver,
-    );
-  }
-  unobserve(): void {}
-  disconnect(): void {}
-  takeRecords(): IntersectionObserverEntry[] {
-    return [];
-  }
+// A stub IntersectionObserver that reports the card at a fixed visibility `ratio` the instant it's
+// observed, so the reveal-gated tally runs under jsdom (which has no real IntersectionObserver). Its
+// mere presence also flips the component's `canAnimate` on. ratio ≥ 0.99 = the whole card on screen
+// (the tally starts immediately); 0.5–0.99 = only partly on screen (it holds ~3s first).
+function fixedIO(ratio: number) {
+  return class {
+    private cb: IntersectionObserverCallback;
+    root = null;
+    rootMargin = '';
+    thresholds: number[] = [];
+    constructor(cb: IntersectionObserverCallback) {
+      this.cb = cb;
+    }
+    observe(): void {
+      this.cb(
+        [{ isIntersecting: ratio >= 0.5, intersectionRatio: ratio } as IntersectionObserverEntry],
+        this as unknown as IntersectionObserver,
+      );
+    }
+    unobserve(): void {}
+    disconnect(): void {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  };
 }
 
 function results(n: number, correct: number): QuestionResult[] {
@@ -108,7 +110,7 @@ describe('SessionXpCard', () => {
   // `progress` snapshot does).
   it('on a level-up, opens on the current rank and only then rolls over to the earned rank', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    vi.stubGlobal('IntersectionObserver', ImmediateIO);
+    vi.stubGlobal('IntersectionObserver', fixedIO(1));
     // The finale fires the confetti canvas; jsdom has no 2D context (the component already no-ops on
     // a null ctx). Return null explicitly so it doesn't log "Not implemented: getContext" noise.
     const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
@@ -152,6 +154,49 @@ describe('SessionXpCard', () => {
       vi.useRealTimers();
       vi.unstubAllGlobals();
       getContext.mockRestore();
+    }
+  });
+
+  // Reveal timing: the tally holds ~3s once the card is only partly on screen, but starts right
+  // away when the whole card (its bottom edge) is on screen.
+  it('starts the XP tally immediately when the whole card is on screen', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    vi.stubGlobal('IntersectionObserver', fixedIO(1)); // fully on screen
+    try {
+      const run = results(5, 5);
+      const { container } = render(SessionXpCard, {
+        earned: sessionXp(run),
+        breakdown: sessionXpBreakdown(run),
+        progress: rankForXp(600),
+      });
+      // Well before the 3s hold, the first source row has already landed.
+      await vi.advanceTimersByTimeAsync(50);
+      expect(container.querySelectorAll('.src-row.shown').length).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('holds ~3s before the tally when the card is only partly on screen', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    vi.stubGlobal('IntersectionObserver', fixedIO(0.5)); // half on screen
+    try {
+      const run = results(5, 5);
+      const { container } = render(SessionXpCard, {
+        earned: sessionXp(run),
+        breakdown: sessionXpBreakdown(run),
+        progress: rankForXp(600),
+      });
+      // Still within the hold — nothing has landed yet.
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(container.querySelectorAll('.src-row.shown').length).toBe(0);
+      // Past the 3s hold — the tally has begun.
+      await vi.advanceTimersByTimeAsync(2600);
+      expect(container.querySelectorAll('.src-row.shown').length).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
     }
   });
 });
