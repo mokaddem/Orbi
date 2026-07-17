@@ -11,7 +11,7 @@
   // and the informational line becomes the `cooldown` countdown, blocking a second same-day run.
   import { t, localizedRegion } from '../../i18n';
   import { estimateChallengeMinutes, type MasteryFamily } from '../../domain';
-  import GrandmasterCrest from './GrandmasterCrest.svelte';
+  import ChallengerOrbi from './ChallengerOrbi.svelte';
 
   let {
     open,
@@ -70,7 +70,7 @@
       aria-labelledby="gm-offer-title"
       aria-describedby="gm-offer-warn"
     >
-      <GrandmasterCrest size={58} />
+      <ChallengerOrbi size={58} />
       <h2 id="gm-offer-title" class="g-title">{$t('challenge.offer.title')}</h2>
       <p class="g-sub">{$t(`modes.group.${family}`)} · {$localizedRegion(region)}</p>
 

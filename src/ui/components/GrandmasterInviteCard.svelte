@@ -10,13 +10,13 @@
   // `onenter`. Styled with the arena's `--g-*` tokens (defined on :root) so it reads as a preview of
   // the dark-teal gauntlet it leads into, distinct from the light Orbi cards around it.
   import { t } from '../../i18n';
-  import GrandmasterCrest from './GrandmasterCrest.svelte';
+  import ChallengerOrbi from './ChallengerOrbi.svelte';
 
   let { onenter }: { onenter: () => void } = $props();
 </script>
 
 <div class="gm-invite" data-testid="grandmaster-invite">
-  <span class="crest" aria-hidden="true"><GrandmasterCrest size={52} /></span>
+  <span class="crest" aria-hidden="true"><ChallengerOrbi size={52} /></span>
   <div class="text">
     <span class="badge">{$t('challenge.invite.available')}</span>
     <h2 class="title">{$t('challenge.invite.title')}</h2>
