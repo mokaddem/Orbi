@@ -15,6 +15,7 @@
   import GauntletEmbers from '../components/GauntletEmbers.svelte';
   import GauntletConfetti from '../components/GauntletConfetti.svelte';
   import GrandmasterCrest from '../components/GrandmasterCrest.svelte';
+  import SadOrbi from '../components/SadOrbi.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
 
   // The Grandmaster Run Play shell (Phase 44/45). Drives the dedicated one-life `challenge` store —
@@ -545,7 +546,7 @@
       </div>
     {:else}
       <div class="runover-inner" role="status">
-        <div class="runover-crest"><GrandmasterCrest size={92} /></div>
+        <div class="runover-crest"><SadOrbi size={92} /></div>
         <h1 class="runover-title">{$t('challenge.runover.title')}</h1>
         <p class="end-body">
           {$t('challenge.runover.body', { cleared: ended.cleared, total: ended.total })}
@@ -1158,10 +1159,10 @@
     color: var(--g-faint);
   }
 
-  /* Runover: somber — the crest dims, no gold wash, the title in ink. */
+  /* Runover: somber — no gold wash, the title in ink. The sadness lives in the Sad Orbi's face, so
+     it shows at near-full strength (only a touch soft) rather than the old ghosted, greyed crest. */
   .runover-crest {
-    opacity: 0.45;
-    filter: grayscale(0.35);
+    opacity: 0.95;
   }
 
   .runover-title {
