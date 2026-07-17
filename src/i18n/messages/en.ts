@@ -86,6 +86,21 @@ const en = {
       cta: 'Play',
     },
   },
+  reviewPreview: {
+    title: 'Ready to review?',
+    subtitle: 'Have a look, then start when you feel ready.',
+    count: '{count} to review',
+    everywhere: 'Everywhere',
+    listLabel: 'Countries in this review',
+    loading: 'Loading…',
+    start: 'Start review',
+    back: 'Back',
+    empty: {
+      title: 'Nothing to review right now',
+      body: "You're all caught up. Play a few rounds to build your review.",
+      home: 'Back to Home',
+    },
+  },
   modes: {
     flagToCountry: 'Flag → Country',
     countryToFlag: 'Country → Flag',

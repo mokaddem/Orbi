@@ -9,7 +9,7 @@ const push = vi.fn();
 vi.mock('svelte-spa-router', () => ({ push: (...args: unknown[]) => push(...args) }));
 
 import ReviewByRegion from './ReviewByRegion.svelte';
-import { pendingConfig } from '../stores/game';
+import { pendingReview } from '../stores/game';
 import { prefs } from '../stores/persistence';
 import { setLocale } from '../../i18n';
 
@@ -22,7 +22,7 @@ const PLAN = { mode: 'flag-to-country' as const, iso2s: ['BG', 'RO', 'JP'] };
 beforeEach(() => {
   setLocale('en');
   push.mockClear();
-  pendingConfig.set(null);
+  pendingReview.set(null);
   prefs.set({
     language: 'en',
     survivalLives: 5,
@@ -36,7 +36,7 @@ beforeEach(() => {
 afterEach(() => setLocale('en'));
 
 describe('ReviewByRegion', () => {
-  it('lists regions most-urgent-first, pre-selecting the top one', () => {
+  it('lists regions most-urgent-first, pre-selecting the top one, naming each mode', () => {
     render(ReviewByRegion, { reviews: REVIEWS, plan: PLAN });
 
     expect(screen.getByRole('heading', { name: 'Time to review' })).toBeInTheDocument();
@@ -44,36 +44,36 @@ describe('ReviewByRegion', () => {
     const asia = screen.getByRole('button', { name: /Asia/ });
     expect(europe).toHaveTextContent('2 to review');
     expect(asia).toHaveTextContent('1 to review');
+    // Phase 48: each row now names the mode via its Map/Flags/Capitals family label.
+    expect(europe).toHaveTextContent('Flags');
+    expect(asia).toHaveTextContent('Map');
     // The most-urgent region is visually pre-selected (primary).
     expect(europe).toHaveClass('primary');
     expect(asia).not.toHaveClass('primary');
   });
 
-  it('stages a region-scoped training run on tap (no foreign-region items)', async () => {
+  it('stages a region-scoped review and opens the preview on tap (no foreign-region items)', async () => {
     render(ReviewByRegion, { reviews: REVIEWS, plan: PLAN });
 
     await fireEvent.click(screen.getByRole('button', { name: /Asia/ }));
-    expect(push).toHaveBeenCalledWith('/play');
-    expect(get(pendingConfig)).toEqual({
+    expect(push).toHaveBeenCalledWith('/review');
+    expect(get(pendingReview)).toEqual({
       mode: 'map-highlight',
-      type: 'training',
-      answerPoolIso: ['JP'],
-      fixedLength: 1,
-      choices: 4,
+      region: 'Asia',
+      iso2s: ['JP'],
     });
   });
 
-  it('offers a "review everything" escape hatch backed by the global plan', async () => {
+  it('offers a "review everything" escape hatch backed by the global plan (region null)', async () => {
     render(ReviewByRegion, { reviews: REVIEWS, plan: PLAN });
 
     const everything = screen.getByRole('button', { name: /Review everything \(3\)/ });
     await fireEvent.click(everything);
-    expect(get(pendingConfig)).toEqual({
+    expect(push).toHaveBeenCalledWith('/review');
+    expect(get(pendingReview)).toEqual({
       mode: 'flag-to-country',
-      type: 'training',
-      answerPoolIso: ['BG', 'RO', 'JP'],
-      fixedLength: 3,
-      choices: 4,
+      region: null,
+      iso2s: ['BG', 'RO', 'JP'],
     });
   });
 

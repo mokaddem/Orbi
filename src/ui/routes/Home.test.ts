@@ -4,7 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, it, expect } from 'vitest';
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Home from './Home.svelte';
-import { pendingConfig, play } from '../stores/game';
+import { pendingConfig, pendingReview, play } from '../stores/game';
 import { initPersistence, recordAnswer } from '../stores/persistence';
 import { setLocale } from '../../i18n';
 
@@ -16,11 +16,13 @@ beforeEach(() => {
   setLocale('en');
   play.reset();
   pendingConfig.set(null);
+  pendingReview.set(null);
 });
 
 afterEach(() => {
   play.reset();
   pendingConfig.set(null);
+  pendingReview.set(null);
 });
 
 describe('Home route — review hero (Phase 26 region-scoped)', () => {
@@ -59,23 +61,22 @@ describe('Home route — review hero (Phase 26 region-scoped)', () => {
 
     render(Home);
 
-    // The most-urgent region (Europe) is offered as a scoped review; clicking it stages a
-    // training run limited to that region's items — no foreign-region items leak in.
+    // The most-urgent region (Europe) is offered as a scoped review; clicking it stages the
+    // review selection for the preview screen (Phase 48) — no foreign-region items leak in.
     const europe = await screen.findByRole('button', { name: /Europe/ });
     await fireEvent.click(europe);
 
-    let cfg = get(pendingConfig);
-    expect(cfg).toMatchObject({ mode: 'map-highlight', type: 'training' });
-    expect(cfg!.answerPoolIso?.slice().sort()).toEqual(['BG', 'RO']);
-    expect(cfg!.fixedLength).toBe(2);
+    let sel = get(pendingReview);
+    expect(sel).toMatchObject({ mode: 'map-highlight', region: 'Europe' });
+    expect(sel!.iso2s.slice().sort()).toEqual(['BG', 'RO']);
 
-    // The global "review everything" escape hatch remains one tap away.
-    pendingConfig.set(null);
+    // The global "review everything" escape hatch remains one tap away (region null).
+    pendingReview.set(null);
     const everything = await screen.findByRole('button', { name: /Review everything \(\d+\)/ });
     await fireEvent.click(everything);
-    cfg = get(pendingConfig);
-    expect(cfg).toMatchObject({ mode: 'map-highlight', type: 'training' });
-    expect(cfg!.answerPoolIso?.slice().sort()).toEqual(['BG', 'RO']);
+    sel = get(pendingReview);
+    expect(sel).toMatchObject({ mode: 'map-highlight', region: null });
+    expect(sel!.iso2s.slice().sort()).toEqual(['BG', 'RO']);
   });
 });
 

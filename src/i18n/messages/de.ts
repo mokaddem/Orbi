@@ -95,6 +95,21 @@ const de: typeof en = {
       cta: 'Spielen',
     },
   },
+  reviewPreview: {
+    title: 'Bereit zum Wiederholen?',
+    subtitle: 'Sieh es dir an und starte, wenn du bereit bist.',
+    count: '{count} zu wiederholen',
+    everywhere: 'Überall',
+    listLabel: 'Länder in dieser Wiederholung',
+    loading: 'Wird geladen…',
+    start: 'Wiederholung starten',
+    back: 'Zurück',
+    empty: {
+      title: 'Gerade nichts zu wiederholen',
+      body: 'Du bist auf dem neuesten Stand. Spiele ein paar Runden, um Wiederholungen aufzubauen.',
+      home: 'Zurück zur Startseite',
+    },
+  },
   modes: {
     flagToCountry: 'Flagge → Land',
     countryToFlag: 'Land → Flagge',

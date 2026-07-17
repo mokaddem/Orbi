@@ -1,8 +1,16 @@
 import { afterEach, describe, it, expect } from 'vitest';
 import { get } from 'svelte/store';
 import { mulberry32 } from '../../domain';
-import { getCountries } from '../../data';
-import { play, lastSummary, pendingConfig, focusIsosForConfig, type RunConfig } from './game';
+import { getCountries, type Prefs } from '../../data';
+import {
+  play,
+  lastSummary,
+  pendingConfig,
+  focusIsosForConfig,
+  reviewSelectionToConfig,
+  type RunConfig,
+  type ReviewSelection,
+} from './game';
 
 // A deterministic clock: each read advances by 1s so durations are monotonic/positive.
 function makeClock(): () => number {
@@ -267,5 +275,41 @@ describe('focusIsosForConfig — the map crop for a session', () => {
     expect(
       focusIsosForConfig(countries, baseConfig({ type: 'training', answerPoolIso: [] })),
     ).toBeNull();
+  });
+});
+
+describe('reviewSelectionToConfig — the launch config a review preview hands to Play (Phase 48)', () => {
+  const prefs: Prefs = {
+    language: 'en',
+    survivalLives: 5,
+    fixedLength: 12,
+    choicesPerQuestion: 4,
+    mapProjection: 'naturalEarth',
+    reduceMotion: false,
+    sound: true,
+  };
+
+  it('builds the identical training run the direct review path produced before the preview', () => {
+    // This is the load-bearing contract: the preview must not change the game, only add a step
+    // before it. The shape here mirrors ReviewByRegion.startReview / recommendationToConfig.
+    const sel: ReviewSelection = { mode: 'flag-to-country', region: 'Europe', iso2s: ['BG', 'RO'] };
+    expect(reviewSelectionToConfig(sel, prefs)).toEqual({
+      mode: 'flag-to-country',
+      type: 'training',
+      answerPoolIso: ['BG', 'RO'],
+      fixedLength: 2,
+      choices: 4,
+    });
+  });
+
+  it('handles the global "review everything" selection (region null)', () => {
+    const sel: ReviewSelection = { mode: 'map-highlight', region: null, iso2s: ['FR', 'DE', 'JP'] };
+    expect(reviewSelectionToConfig(sel, prefs)).toEqual({
+      mode: 'map-highlight',
+      type: 'training',
+      answerPoolIso: ['FR', 'DE', 'JP'],
+      fixedLength: 3,
+      choices: 4,
+    });
   });
 });

@@ -89,6 +89,21 @@ const fr: typeof en = {
       cta: 'Jouer',
     },
   },
+  reviewPreview: {
+    title: 'Prêt à réviser ?',
+    subtitle: 'Jetez un œil, puis commencez quand vous êtes prêt.',
+    count: '{count} à réviser',
+    everywhere: 'Partout',
+    listLabel: 'Pays de cette révision',
+    loading: 'Chargement…',
+    start: 'Commencer la révision',
+    back: 'Retour',
+    empty: {
+      title: 'Rien à réviser pour le moment',
+      body: 'Vous êtes à jour. Jouez quelques parties pour alimenter vos révisions.',
+      home: "Retour à l'accueil",
+    },
+  },
   modes: {
     flagToCountry: 'Drapeau → Pays',
     countryToFlag: 'Pays → Drapeau',

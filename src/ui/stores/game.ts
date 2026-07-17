@@ -261,6 +261,24 @@ export const lastBlitzResult = writable<BlitzResult | null>(null);
 export const pendingConfig = writable<RunConfig | null>(null);
 
 /**
+ * A review chosen on Home/Summary, staged for the `#/review` preview screen (Phase 48). Instead of
+ * dropping straight into the game, a "time to review" tap stages the selection here and routes to
+ * the "Ready to review?" study card, which revises the covered countries and then hands the same
+ * run to the Play route via {@link reviewSelectionToConfig} → {@link pendingConfig}.
+ */
+export interface ReviewSelection {
+  /** The single mode this review runs (the region's dominant mode, or the global plan's mode). */
+  mode: GameMode;
+  /** Top-level M49 region key, or `null` for the global "review everything" plan. */
+  region: string | null;
+  /** ISO alpha-2 codes to drill, weakest-first (already capped). */
+  iso2s: string[];
+}
+
+/** The review staged for the `#/review` preview, or `null` on a cold load (re-derived there). */
+export const pendingReview = writable<ReviewSelection | null>(null);
+
+/**
  * The launch action the mobile Play FAB runs when it stands in for the setup screen's "Start"
  * button (Play route only). The Play route publishes its animated-start function here while it
  * is showing setup, and clears it otherwise; the nav FAB reads it to (a) morph into its eager,
@@ -295,6 +313,23 @@ export function recommendationToConfig(rec: Recommendation, prefs: Prefs): RunCo
     filter: run.filter,
     fixedLength: prefs.fixedLength,
     lives: prefs.survivalLives,
+    choices: prefs.choicesPerQuestion,
+  };
+}
+
+/**
+ * Turn a {@link ReviewSelection} (staged for the `#/review` preview) into the launchable
+ * {@link RunConfig} for its "Start review" action. Byte-for-byte the training config the direct
+ * review path built before Phase 48 (`ReviewByRegion`/`recommendationToConfig`): the same mode,
+ * `type: 'training'`, explicit `answerPoolIso`, `fixedLength = pool size`, and the player's option
+ * count — so the game behaves identically once started; only the entry gained a preview step.
+ */
+export function reviewSelectionToConfig(sel: ReviewSelection, prefs: Prefs): RunConfig {
+  return {
+    mode: sel.mode,
+    type: 'training',
+    answerPoolIso: sel.iso2s,
+    fixedLength: sel.iso2s.length,
     choices: prefs.choicesPerQuestion,
   };
 }

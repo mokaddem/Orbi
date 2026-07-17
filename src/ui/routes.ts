@@ -4,6 +4,7 @@ import Home from './routes/Home.svelte';
 import Play from './routes/Play.svelte';
 import Challenge from './routes/Challenge.svelte';
 import Practice from './routes/Practice.svelte';
+import ReviewPreview from './routes/ReviewPreview.svelte';
 import Summary from './routes/Summary.svelte';
 import History from './routes/History.svelte';
 import Progress from './routes/Progress.svelte';
@@ -19,6 +20,7 @@ const routes: RouteDefinition = {
   '/play': Play,
   '/challenge': Challenge,
   '/practice': Practice,
+  '/review': ReviewPreview,
   '/summary': Summary,
   '/history': History,
   '/progress': Progress,

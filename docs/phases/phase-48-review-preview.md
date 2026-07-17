@@ -1,6 +1,6 @@
 # Phase 48 — Review preview (see what you'll drill before a review)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 85%
 · **Track:** v3.0 — Review preview
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -134,23 +134,23 @@ the `GauntletOfferModal` "confirm before launch" precedent, if OQ2 picks a modal
 Independent of Phase 46 (duels) and Phase 47 (physical geography), and of any unbuilt phase.
 
 ## Deliverables checklist
-- [ ] `ReviewByRegion` rows + "review everything" footer show the **mode** (label + `ModeIcon` glyph)
+- [x] `ReviewByRegion` rows + "review everything" footer show the **mode** (label + `ModeIcon` glyph)
       alongside region + count.
-- [ ] `NextUpCard` "due" variant shows the **mode** alongside region + count.
-- [ ] `pendingReview` handoff store (chosen `RegionReview` | global `TrainingPlan`); review launches
+- [x] `NextUpCard` "due" variant shows the **mode** alongside region + count.
+- [x] `pendingReview` handoff store (chosen `RegionReview` | global `TrainingPlan`); review launches
       stage it and `push('/review')` instead of jumping to `/play`.
-- [ ] `#/review` route + `ReviewPreview` **study-card** screen ("Ready to review?"): a per-country
+- [x] `#/review` route + `ReviewPreview` **study-card** screen ("Ready to review?"): a per-country
       list revising each covered country by the review's mode — **flag** / **capital** / **own small
       locator map** (reuse the Atlas locator-map component); "Start review" → `pendingConfig` →
       `/play`; back/cancel; cold-start/empty state.
-- [ ] The launched run is **byte-for-byte the same `RunConfig`** the direct path produces today
+- [x] The launched run is **byte-for-byte the same `RunConfig`** the direct path produces today
       (`{ mode, type:'training', answerPoolIso, fixedLength, choices }`) — no behaviour change once the
       game starts.
-- [ ] EN/FR/DE strings for the mode-on-entry labels, the preview screen, and the empty state;
+- [x] EN/FR/DE strings for the mode-on-entry labels, the preview screen, and the empty state;
       `messages.test.ts` parity green.
-- [ ] Tests: entry shows mode; review click → preview (not game); "Start review" builds the identical
+- [x] Tests: entry shows mode; review click → preview (not game); "Start review" builds the identical
       run; empty `#/review` state; headless full drive (click → preview → start → play → SR updates).
-- [ ] Verified in the real app (headless Chrome): the "time to review" entry names the mode; tapping it
+- [x] Verified in the real app (headless Chrome): the "time to review" entry names the mode; tapping it
       shows the preview with the right countries/mode/region/count; "Start review" plays the same run as
       before; SR/history behave exactly as today; back returns cleanly.
 
@@ -277,4 +277,27 @@ Independent of Phase 46 (duels) and Phase 47 (physical geography), and of any un
   "N to review" count; no skip-preview pref; country list weakest-first). **All open questions are now
   resolved; the PRD is ready to implement — still awaiting an explicit build go-ahead from the owner
   before any code is written** (see the callout at the top of the main PRD).
-</content>
+- **2026-07-17 — Implemented (owner gave the explicit go-ahead).** Built on branch
+  `worktree-phase-48-review-preview`:
+  - **Store + config helper** (`src/ui/stores/game.ts`): a `pendingReview` handoff store +
+    `ReviewSelection { mode, region, iso2s }` + `reviewSelectionToConfig()` — the launch config is
+    byte-for-byte the training run the direct path built (guarded by a unit test).
+  - **Self-describing entries**: `ReviewByRegion` rows + the "review everything" footer, and the
+    `NextUpCard` "due" card, now show the mode (a `ModeIcon` glyph + the Map/Flags/Capitals family
+    label) and route to `#/review` instead of jumping into the game.
+  - **`#/review` "Ready to review?" study card** (`src/ui/routes/ReviewPreview.svelte`, registered in
+    `routes.ts`): a per-country list revising each covered country by the review's mode — flag /
+    capital / per-country locator map (reusing `AtlasMap`) — with scope chips (mode · region · count),
+    "Start review" → identical run, back/cancel, cold-load re-derive (OQ5), and an empty state.
+  - **i18n** `reviewPreview.*` in EN/FR/DE (`messages.test.ts` parity green).
+  - **Tests**: updated `ReviewByRegion` / `NextUpCard` / `Home` route tests for the new routing; added
+    a `ReviewPreview` component test (scope, list, identical-run launch, empty state) and a
+    `reviewSelectionToConfig` guard. **Full loop green: check 0 errors/0 warnings · lint clean · 839
+    tests pass.**
+  - **Verified visually** via headless `google-chrome-stable --screenshot` (interactive CDP is blocked
+    in this sandbox): the flags & capitals study cards read cleanly; the **map** per-country locators
+    work but render as near-identical world thumbnails with a tiny dot for a region of neighbours (weak
+    for adjacent countries) — flagged to the owner for a possible refinement (region-framed locators,
+    or the OQ10 single-region-map alternative). **Remaining 15%: owner visual sign-off on the
+    map-locator treatment; then mark ✅ and reconcile the main-PRD Status Table (kept untouched in this
+    worktree to avoid colliding with the owner's uncommitted v2.8/v2.9 edits).**

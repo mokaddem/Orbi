@@ -9,7 +9,7 @@ const push = vi.fn();
 vi.mock('svelte-spa-router', () => ({ push: (...args: unknown[]) => push(...args) }));
 
 import NextUpCard from './NextUpCard.svelte';
-import { pendingConfig } from '../stores/game';
+import { pendingConfig, pendingReview } from '../stores/game';
 import { prefs } from '../stores/persistence';
 import { setLocale } from '../../i18n';
 
@@ -17,6 +17,7 @@ beforeEach(() => {
   setLocale('en');
   push.mockClear();
   pendingConfig.set(null);
+  pendingReview.set(null);
   prefs.set({
     language: 'en',
     survivalLives: 5,
@@ -30,7 +31,7 @@ beforeEach(() => {
 afterEach(() => setLocale('en'));
 
 describe('NextUpCard', () => {
-  it('renders a region-scoped due review and stages a training config on start', async () => {
+  it('renders a region-scoped due review (naming its mode) and stages it for the preview', async () => {
     const rec: Recommendation = {
       kind: 'due',
       mode: 'flag-to-country',
@@ -43,16 +44,18 @@ describe('NextUpCard', () => {
     expect(screen.getByTestId('next-up-card')).toHaveAttribute('data-kind', 'due');
     expect(screen.getByRole('heading')).toHaveTextContent('Time to review');
     expect(screen.getByText('2 to review in Europe — weakest first.')).toBeInTheDocument();
+    // Phase 48: the due card now names its mode (Map/Flags/Capitals family label).
+    expect(screen.getByTestId('next-up-card')).toHaveTextContent('Flags');
 
     await fireEvent.click(screen.getByRole('button', { name: 'Review' }));
-    expect(push).toHaveBeenCalledWith('/play');
-    expect(get(pendingConfig)).toEqual({
+    // Routes through the "Ready to review?" preview, staging the selection (not a run config).
+    expect(push).toHaveBeenCalledWith('/review');
+    expect(get(pendingReview)).toEqual({
       mode: 'flag-to-country',
-      type: 'training',
-      answerPoolIso: ['BG', 'RO'],
-      fixedLength: 2,
-      choices: 4,
+      region: 'Europe',
+      iso2s: ['BG', 'RO'],
     });
+    expect(get(pendingConfig)).toBeNull();
   });
 
   it('renders the fresh-start fallback and clears any staged config on start (opens setup)', async () => {
@@ -65,6 +68,7 @@ describe('NextUpCard', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Play' }));
     expect(push).toHaveBeenCalledWith('/play');
     expect(get(pendingConfig)).toBeNull();
+    expect(get(pendingReview)).toBeNull();
   });
 
   it('translates to French at runtime', () => {
