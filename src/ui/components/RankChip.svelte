@@ -5,16 +5,19 @@
 
   // Compact Explorer-rank glance for Home (Phase 43): the rank medal, name, total XP and a slim bar
   // toward the next rank — the continuous progression cue sitting next to the streak. The full
-  // breakdown lives on Progress (RankPanel). Presentational.
+  // breakdown (incl. the "N XP to <next>" text) lives on Progress (RankPanel). Presentational.
+  //
+  // Deliberately terse: the medal leads (the reward you're chasing), and the slim bar carries the
+  // "progress toward next" meaning on its own — so the textual "N XP to <next>" footnote is dropped
+  // here to keep the chip a two-line glance and give the badge room.
   let { xp, progress }: { xp: XpResult; progress: RankProgress } = $props();
 
   const pct = $derived(Math.round(progress.fraction * 100));
   const rankName = $derived($t(`rank.names.${progress.rank.key}`));
-  const nextName = $derived(progress.next ? $t(`rank.names.${progress.next.key}`) : '');
 </script>
 
 <div class="chip" data-testid="rank-chip">
-  <RankMedal index={progress.rank.index} size={40} />
+  <RankMedal index={progress.rank.index} size={70} />
   <div class="body">
     <div class="line">
       <span class="name">{rankName}</span>
@@ -30,13 +33,6 @@
     >
       <div class="fill" style="width:{pct}%"></div>
     </div>
-    <span class="to-next">
-      {#if progress.next}
-        {$t('rank.toNext', { xp: progress.xpToNext.toLocaleString(), rank: nextName })}
-      {:else}
-        {$t('rank.max')}
-      {/if}
-    </span>
   </div>
 </div>
 
@@ -44,8 +40,10 @@
   .chip {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    padding: 0.7rem 0.9rem;
+    gap: 0.65rem;
+    /* Trim the left inset so the enlarged medal can sit closer to the card edge (reclaimed space)
+       without crowding the name/XP block. */
+    padding: 0.5rem 0.85rem 0.5rem 0.55rem;
     background: var(--color-surface);
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
@@ -55,7 +53,7 @@
   .body {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.2rem;
     flex: 1 1 auto;
     min-width: 0;
   }
@@ -97,12 +95,6 @@
     background: linear-gradient(90deg, var(--color-accent), var(--color-accent-strong));
     border-radius: 999px;
     transition: width 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
-  }
-
-  .to-next {
-    font-size: 0.75rem;
-    color: var(--color-muted);
-    font-variant-numeric: tabular-nums;
   }
 
   @media (prefers-reduced-motion: reduce) {

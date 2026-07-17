@@ -9,7 +9,7 @@ beforeEach(() => setLocale('en'));
 afterEach(() => setLocale('en'));
 
 describe('RankChip', () => {
-  it('shows the rank name and progress toward the next rank', () => {
+  it('shows the rank name and the bar carries progress toward the next rank', () => {
     // 500 XP correct → Scout (400 ≤ 500 < 1000 Wanderer).
     const xp = computeXp({
       stats: { totalCorrect: 50, totalQuestions: 0, sessionCount: 0 },
@@ -19,7 +19,9 @@ describe('RankChip', () => {
     render(RankChip, { xp, progress: rankForXp(xp.total) });
 
     expect(screen.getByText('Scout')).toBeInTheDocument();
-    expect(screen.getByText(/to Wanderer/)).toBeInTheDocument();
+    // The compact chip drops the "N XP to <next>" text — the bar alone conveys progress toward the
+    // next rank (the full breakdown with the text lives on Progress → RankPanel).
+    expect(screen.queryByText(/to Wanderer/)).not.toBeInTheDocument();
     // 500 is 100 into the 600-wide Scout→Wanderer band → 17% (rounded).
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '17');
   });
