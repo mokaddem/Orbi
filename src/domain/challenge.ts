@@ -113,6 +113,23 @@ export function challengeSlotCount(family: MasteryFamily, countries: readonly Co
 }
 
 /**
+ * Rough per-slot pace for the duration estimate (seconds): the ~1.2 s correct-answer dwell
+ * (`Challenge.svelte`'s `CORRECT_MS`) plus ~4.8 s for a mastered player to read the prompt, recall,
+ * and pick from the full-continent options. Deliberately coarse — the estimate is always shown with
+ * a "~".
+ */
+export const CHALLENGE_SECONDS_PER_SLOT = 6;
+
+/**
+ * A rough estimate of how many **minutes** a full clean-sweep run takes, for the offer modal's stakes
+ * ({@link CHALLENGE_SECONDS_PER_SLOT} per slot, rounded, floored at 1). Assumes every answer is
+ * correct — the intended "prove it" path; a fatal miss simply ends sooner.
+ */
+export function estimateChallengeMinutes(slots: number): number {
+  return Math.max(1, Math.round((slots * CHALLENGE_SECONDS_PER_SLOT) / 60));
+}
+
+/**
  * Build one challenge question with **fixed, full-continent** options (the anti-crutch rule): the
  * options are every country in `optionPool` and never shrink. `map-locate` gets no options (the
  * map is the input, already unaided). `country-to-capital` (the one attribute mode in a family)

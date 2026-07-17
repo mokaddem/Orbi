@@ -52,6 +52,13 @@ describe('GauntletOfferModal', () => {
     expect(dialog).toHaveTextContent(/Oceania/);
   });
 
+  it('shows a rough duration estimate from the slot count (~N min)', () => {
+    open({ slots: 108 }); // 108 slots × 6 s ≈ 11 min
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent('~11');
+    expect(dialog).toHaveTextContent('min');
+  });
+
   it('accepts the challenge via the gold CTA', async () => {
     const { onaccept, oncancel } = open();
     await fireEvent.click(screen.getByRole('button', { name: 'Accept the challenge' }));

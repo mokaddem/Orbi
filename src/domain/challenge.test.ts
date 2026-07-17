@@ -15,6 +15,8 @@ import {
   buildChallengeQuestion,
   buildChallengeQueue,
   challengeSlotCount,
+  estimateChallengeMinutes,
+  CHALLENGE_SECONDS_PER_SLOT,
   createChallenge,
   familyModes,
   isChallengeUnlocked,
@@ -224,6 +226,21 @@ describe('challengeSlotCount', () => {
     ];
     expect(challengeSlotCount('map', withNoGeo)).toBe(4); // 2 eligible × 2 map directions
     expect(challengeSlotCount('flags', withNoGeo)).toBe(6); // flags need no geometry
+  });
+});
+
+// --- estimateChallengeMinutes (the offer modal's rough duration stake) -------------------------
+
+describe('estimateChallengeMinutes', () => {
+  it('scales with the slot count at the documented per-slot pace, rounded', () => {
+    expect(estimateChallengeMinutes(108)).toBe(Math.round((108 * CHALLENGE_SECONDS_PER_SLOT) / 60));
+    expect(estimateChallengeMinutes(108)).toBe(11); // Africa flags ≈ 11 min at 6 s/slot
+    expect(estimateChallengeMinutes(90)).toBe(9); // Europe map ≈ 9 min
+  });
+
+  it('never drops below 1 minute, even for a tiny run', () => {
+    expect(estimateChallengeMinutes(1)).toBe(1);
+    expect(estimateChallengeMinutes(0)).toBe(1);
   });
 });
 

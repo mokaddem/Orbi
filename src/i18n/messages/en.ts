@@ -208,6 +208,8 @@ const en = {
     offer: {
       title: 'The Grandmaster Challenge',
       questionsLabel: 'Questions',
+      // A rough clean-sweep duration estimate (shown as "~N" beside this unit label).
+      timeLabel: 'min',
       lifeLabel: 'Life',
       warning: 'One wrong answer ends the challenge.',
       cooldown: 'One attempt a day · resets at midnight',

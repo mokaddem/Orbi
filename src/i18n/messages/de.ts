@@ -212,6 +212,7 @@ const de: typeof en = {
     offer: {
       title: 'Die Großmeister-Herausforderung',
       questionsLabel: 'Fragen',
+      timeLabel: 'Min.',
       lifeLabel: 'Leben',
       warning: 'Eine falsche Antwort beendet die Herausforderung.',
       cooldown: 'Ein Versuch pro Tag · Zurücksetzung um Mitternacht',

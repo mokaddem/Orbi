@@ -10,7 +10,7 @@
   // attempt is already used — Phase 45 ⑤), the modal opens in a cooldown state: Accept is disabled
   // and the informational line becomes the `cooldown` countdown, blocking a second same-day run.
   import { t, localizedRegion } from '../../i18n';
-  import type { MasteryFamily } from '../../domain';
+  import { estimateChallengeMinutes, type MasteryFamily } from '../../domain';
   import GrandmasterCrest from './GrandmasterCrest.svelte';
 
   let {
@@ -35,6 +35,10 @@
     onaccept: () => void;
     oncancel: () => void;
   } = $props();
+
+  // A rough "how long will this take" estimate from the real slot count — a secondary stake beside
+  // the question count and the single life, always shown with a "~".
+  const minutes = $derived(estimateChallengeMinutes(slots));
 
   let acceptBtn = $state<HTMLButtonElement | null>(null);
   let declineBtn = $state<HTMLButtonElement | null>(null);
@@ -74,6 +78,10 @@
         <div class="stake">
           <span class="stake-value questions">{slots}</span>
           <span class="stake-label">{$t('challenge.offer.questionsLabel')}</span>
+        </div>
+        <div class="stake">
+          <span class="stake-value time">~{minutes}</span>
+          <span class="stake-label">{$t('challenge.offer.timeLabel')}</span>
         </div>
         <div class="stake">
           <span class="stake-value life">1</span>
@@ -160,8 +168,8 @@
 
   .stakes {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.7rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.55rem;
     width: 100%;
     margin: 0.5rem 0 0.2rem;
   }
@@ -187,6 +195,12 @@
 
   .stake-value.questions {
     color: var(--g-gold);
+  }
+
+  /* The estimate is secondary to the two real stakes (gold questions / crimson life) — kept muted so
+     it reads as a practical heads-up, not another number to fear. */
+  .stake-value.time {
+    color: var(--g-dim);
   }
 
   .stake-value.life {

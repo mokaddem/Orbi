@@ -234,6 +234,8 @@ export {
   availableChallenges,
   buildChallengeQueue,
   challengeSlotCount,
+  estimateChallengeMinutes,
+  CHALLENGE_SECONDS_PER_SLOT,
   buildChallengeQuestion,
   ChallengeSession,
   createChallenge,

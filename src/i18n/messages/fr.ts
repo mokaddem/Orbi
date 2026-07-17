@@ -206,6 +206,7 @@ const fr: typeof en = {
     offer: {
       title: 'Le défi du Grand Maître',
       questionsLabel: 'Questions',
+      timeLabel: 'min',
       lifeLabel: 'Vie',
       warning: 'Une seule erreur met fin au défi.',
       cooldown: 'Une tentative par jour · réinitialisation à minuit',
