@@ -340,7 +340,7 @@ infrastructure* decisions that weren't in any single prototype.
   API (`startBed` / `setBedTier` / `stopBed` / `gauntletFatal`) with the look-ahead scheduler.
 - `src/ui/routes/Challenge.svelte` — the triggers (below).
 
-**Trigger map (re-confirmed on the branch).** `enter` + a delayed `startBed` (~950 ms) at run start
+**Trigger map (re-confirmed on the branch).** `enter` + a deferred `startBed` (after `ENTER_CUE_MS` ≈ 2.9 s, so the bed swells in only once the Enter cue has rung out — never on top of it) at run start
 (`onMount`); `settle` on a correct clear and `gauntletFatal()` on the one miss (verdict `$effect`);
 `surge` + `setBedTier` when `bedTierFor(cleared,total)` crosses a boundary (a dedicated `$effect`);
 `stopBed` + `victory` on a clean sweep (`finalize` pass), `stopBed` on quit / fail. Because there is
@@ -370,7 +370,7 @@ after a beat — the audio stands in for the transition (owner decision A, 2026-
   `glideTo` (preserved verbatim).
 
 **Tunables (nudge live on 5180):** `BED_GAIN`, `MASTER_GAIN`, the compressor threshold, the reverb
-impulse length/decay, `BED_START_DELAY_MS` (the Enter→bed gap, in `Challenge.svelte`), and per-voice
+impulse length/decay, `ENTER_CUE_MS` (how long the bed/intro wait for the Enter cue, in `Challenge.svelte`), and per-voice
 `sendGain`s. The open decisions above resolved to: hard-cut fatal transition (C), constant `settle`
 (D), static gain-staging (E).
 

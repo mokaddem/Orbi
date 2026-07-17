@@ -24,9 +24,9 @@ vi.mock('../sound', () => ({ sound: soundMock }));
 
 // Fatal-miss dwell before the run finalizes to the in-arena runover (mirrors Challenge.svelte).
 const REVEAL_MS = 3200;
-// Correct-clear dwell + the bed's Enter→swell delay (mirror Challenge.svelte).
+// Correct-clear dwell + the "Enter the Arena" cue length the bed/intro wait out (mirror Challenge.svelte).
 const CORRECT_MS = 1200;
-const BED_START_DELAY_MS = 950;
+const ENTER_CUE_MS = 2900;
 
 /** A monotonic clock, so a run's timing is deterministic in tests. */
 function clock(): () => number {
@@ -135,8 +135,9 @@ describe('Challenge cinematic entry (Phase 45)', () => {
       render(Challenge);
       // The ceremonial title blooms first (over the dimmed arena)…
       expect(screen.getByText('Enter the Gauntlet')).toBeInTheDocument();
-      // …then the intro crossfades out (hold 1900ms + fade 600ms) and the HUD takes over.
-      await vi.advanceTimersByTimeAsync(1900 + 600 + 100);
+      // …then, once the Enter cue has rung out, the intro crossfades out (hold ENTER_CUE_MS + fade
+      // 600ms) and the HUD takes over.
+      await vi.advanceTimersByTimeAsync(ENTER_CUE_MS + 600 + 100);
       expect(screen.queryByText('Enter the Gauntlet')).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
@@ -203,14 +204,16 @@ describe('Challenge in-arena end screens (Phase 45 ④)', () => {
 });
 
 describe('Challenge audio wiring (Phase 44)', () => {
-  it('sounds Enter the Arena on start, then swells the bed in after a beat', () => {
+  it('sounds Enter the Arena on start, then swells the bed in only once the cue has rung out', () => {
     vi.useFakeTimers();
     try {
       stage();
       render(Challenge);
       expect(soundMock.play).toHaveBeenCalledWith('enter');
-      expect(soundMock.startBed).not.toHaveBeenCalled(); // deferred
-      vi.advanceTimersByTime(BED_START_DELAY_MS + 20);
+      expect(soundMock.startBed).not.toHaveBeenCalled(); // deferred until the Enter cue finishes
+      vi.advanceTimersByTime(ENTER_CUE_MS - 200);
+      expect(soundMock.startBed).not.toHaveBeenCalled(); // still ringing — no overlap
+      vi.advanceTimersByTime(220);
       expect(soundMock.startBed).toHaveBeenCalledTimes(1);
     } finally {
       vi.useRealTimers();
@@ -244,9 +247,9 @@ describe('Challenge audio wiring (Phase 44)', () => {
       const { container } = render(Challenge);
       const q = get(challenge).question!;
       const wrong = q.options!.find((c) => c.iso2 !== q.answer.iso2)!.iso2;
-      await fireEvent.click(pickButton(container, wrong)); // miss well before the 950ms bed start
+      await fireEvent.click(pickButton(container, wrong)); // miss well before the deferred bed start
       expect(soundMock.gauntletFatal).toHaveBeenCalledTimes(1);
-      await vi.advanceTimersByTimeAsync(BED_START_DELAY_MS + 200);
+      await vi.advanceTimersByTimeAsync(ENTER_CUE_MS + 200);
       expect(soundMock.startBed).not.toHaveBeenCalled(); // the pending swell-in was cancelled
     } finally {
       vi.useRealTimers();

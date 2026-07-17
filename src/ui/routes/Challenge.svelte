@@ -35,17 +35,19 @@
   const dwellMs = (correct: boolean): number => (correct ? CORRECT_MS : REVEAL_MS);
 
   // Audio (Phase 44 — the Grandmaster Challenge score, see docs/gauntlet-audio-spec.md). "Enter the
-  // Arena" fires as the arena mounts, paired 1:1 with the cinematic entry transition below (or, under
-  // reduce-motion, audio-only); the looping bed swells in a beat later. Tunable in-app.
-  const BED_START_DELAY_MS = 950;
+  // Arena" fires as the arena mounts and is allowed to ring out ALONE over the ceremonial title
+  // bloom; only once it has finished does the looping bed swell in (together with the HUD reveal), so
+  // the accept cue and the bed never overlap. ENTER_CUE_MS ≈ the cue's audible length — whoosh → gong
+  // → war-horn → low bell (see enterVoices in sound.ts). Tunable in-app.
+  const ENTER_CUE_MS = 2900;
   let bedStartTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Cinematic entry (Phase 45 ③): on Accept the arena mounts on a dim ground, the ceremonial title
-  // blooms (gm-titlein), then the HUD crossfades in — paired with the `enter` cue. A three-beat
-  // state ('intro' → 'leaving' → 'live'): 'leaving' crossfades the intro overlay out while the HUD
-  // fades in over the same ground, then 'live' unmounts the overlay. Skipped under reduce-motion
-  // (starts 'live'; the cue still plays, there's just no visual) and on a resumed mid-run run.
-  const INTRO_HOLD_MS = 1900; // the title bloom hold — matches gm-titlein
+  // Cinematic entry (Phase 45 ③): on Accept the arena mounts on a dim ground and the ceremonial title
+  // blooms (gm-titlein) while the `enter` cue rings; once the cue finishes the HUD crossfades in and
+  // the bed swells in together. A three-beat state ('intro' → 'leaving' → 'live'): 'leaving'
+  // crossfades the intro overlay out while the HUD fades in over the same ground, then 'live' unmounts
+  // the overlay. Skipped under reduce-motion (starts 'live'; the cue still plays — and the bed still
+  // waits it out — there's just no visual) and on a resumed mid-run run.
   const INTRO_FADE_MS = 600; // the overlay-out / HUD-in crossfade — matches gm-hudin ("HUD fades in")
   let introPhase = $state<'intro' | 'leaving' | 'live'>('live');
   let introHoldTimer: ReturnType<typeof setTimeout> | null = null;
@@ -136,10 +138,13 @@
     if (pending) {
       pendingChallenge.set(null);
       challenge.start(pending);
-      // Enter the Arena — paired with the title bloom (below); then swell the bed in after a beat.
+      // Enter the Arena — plays ALONE as you accept. Everything else waits for it to ring out so two
+      // cues never overlap: the bed only swells in after ENTER_CUE_MS, and (with motion) the HUD
+      // reveal is timed to that same beat.
       sound.play('enter');
       if (!reduceMotion) {
-        // Run the intro: hold the bloom, then crossfade the overlay out / the HUD in.
+        // Run the intro: bloom the title over the Enter cue, then — once it has finished — crossfade
+        // the overlay out / the HUD in.
         introPhase = 'intro';
         introHoldTimer = setTimeout(() => {
           introHoldTimer = null;
@@ -148,12 +153,14 @@
             introFadeTimer = null;
             introPhase = 'live';
           }, INTRO_FADE_MS);
-        }, INTRO_HOLD_MS);
+        }, ENTER_CUE_MS);
       }
+      // Deferred so the bed swells in only after the Enter cue finishes (never on top of it); a quick
+      // miss / quit before it fires cancels it (see finalize / the miss path).
       bedStartTimer = setTimeout(() => {
         bedStartTimer = null;
         sound.startBed();
-      }, BED_START_DELAY_MS);
+      }, ENTER_CUE_MS);
     } else {
       const view = get(challenge);
       if (view.status === 'idle' || view.status === 'finished') {
