@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Router, { router } from 'svelte-spa-router';
   import routes from './ui/routes';
+  import { play } from './ui/stores/game';
   import Nav from './ui/components/Nav.svelte';
   import Icon from './ui/components/Icon.svelte';
   import Mascot from './ui/components/Mascot.svelte';
@@ -72,22 +73,33 @@
   $effect(() => {
     document.documentElement.toggleAttribute('data-reduce-motion', $prefs.reduceMotion);
   });
+
+  // During an active round the Play route shows its own game bar (quit · progress · score), which
+  // stands in for the brand app-bar — so the mobile app-bar steps aside to reclaim that top slot.
+  // Gated on being *on* /play too: the run state lingers if you leave mid-round, and the app-bar
+  // must still show everywhere else. (Desktop hides the app-bar regardless — the rail carries it.)
+  const inGame = $derived(
+    ($play.status === 'playing' || $play.status === 'answered') && router.location === '/play',
+  );
 </script>
 
 <div class="app-shell">
-  <!-- Slim top app-bar — mobile only (the desktop rail carries the brand/language/settings). -->
-  <header class="appbar">
-    <a class="appbar-brand" href="#/">
-      <Mascot pose="wave" size={30} />
-      <span>{$t('app.title')}</span>
-    </a>
-    <div class="appbar-actions">
-      <LanguageSwitcher />
-      <a class="appbar-settings" href="#/settings" aria-label={$t('nav.settings')}>
-        <Icon name="settings" size={20} />
+  <!-- Slim top app-bar — mobile only (the desktop rail carries the brand/language/settings).
+       Hidden during an active round: the Play game bar takes this slot to reclaim the space. -->
+  {#if !inGame}
+    <header class="appbar">
+      <a class="appbar-brand" href="#/">
+        <Mascot pose="wave" size={30} />
+        <span>{$t('app.title')}</span>
       </a>
-    </div>
-  </header>
+      <div class="appbar-actions">
+        <LanguageSwitcher />
+        <a class="appbar-settings" href="#/settings" aria-label={$t('nav.settings')}>
+          <Icon name="settings" size={20} />
+        </a>
+      </div>
+    </header>
+  {/if}
 
   <main class="content" id="app-scroll" bind:this={contentEl}>
     <div class="content-inner">

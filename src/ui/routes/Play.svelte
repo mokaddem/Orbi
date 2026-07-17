@@ -895,86 +895,105 @@
     {@const answered = view.status === 'answered'}
 
     <section class="game">
-      <header class="hud">
-        {#if cfg.type === 'blitz'}
-          <!-- Blitz clock (Phase 42): the track spans the full 90 s cap so its length *is* the
+      <!-- Game bar (single-line HUD): a leading ✕ quit, the run's live status in the middle (progress
+           bar / survival hearts / blitz clock), and the score-side on the right. On mobile it takes
+           the slot the brand app-bar vacates during a run (see App.svelte), so the question sits far
+           higher than the old stacked HUD did. -->
+      <header class="gamebar">
+        <button
+          type="button"
+          class="gb-quit"
+          onclick={quit}
+          aria-label={$t('play.quit')}
+          title={$t('play.quit')}
+        >
+          <Icon name="close" size="1.15em" />
+        </button>
+
+        <div class="gb-mid">
+          {#if cfg.type === 'blitz'}
+            <!-- Blitz clock (Phase 42): the track spans the full 90 s cap so its length *is* the
                ceiling; the fill is the time left, and a tick marks the 60 s starting line — fill
                to its right is banked bonus time. Turns urgent (`.low`) in the final five seconds. -->
-          {@const capMs = BLITZ_CAP_SECONDS * 1000}
-          {@const fillPct = Math.max(0, Math.min(100, (blitzRemaining / capMs) * 100))}
-          {@const atCap = blitzRemaining >= capMs - 250}
-          <div
-            class="blitz-clock"
-            class:low={blitzRemainingSec <= 5}
-            role="timer"
-            aria-label={$t('play.blitz.clockAria', {
-              remaining: blitzRemainingSec,
-              cap: BLITZ_CAP_SECONDS,
-            })}
-          >
-            <div class="clock-head">
-              <span class="clock-time">
-                <Icon name="clock" size="0.95em" />
-                {$t('play.blitz.timeLeft', { seconds: blitzRemainingSec })}
+            {@const capMs = BLITZ_CAP_SECONDS * 1000}
+            {@const fillPct = Math.max(0, Math.min(100, (blitzRemaining / capMs) * 100))}
+            {@const atCap = blitzRemaining >= capMs - 250}
+            <div
+              class="blitz-clock"
+              class:low={blitzRemainingSec <= 5}
+              role="timer"
+              aria-label={$t('play.blitz.clockAria', {
+                remaining: blitzRemainingSec,
+                cap: BLITZ_CAP_SECONDS,
+              })}
+            >
+              <div class="clock-head">
+                <span class="clock-time">
+                  <Icon name="clock" size="0.95em" />
+                  {$t('play.blitz.timeLeft', { seconds: blitzRemainingSec })}
+                </span>
+                <span class="clock-cap">
+                  {atCap
+                    ? $t('play.blitz.max')
+                    : $t('play.blitz.cap', { seconds: BLITZ_CAP_SECONDS })}
+                </span>
+              </div>
+              <div class="clock-track">
+                <div class="clock-fill" style="width:{fillPct}%"></div>
+                <div
+                  class="clock-startmark"
+                  style="left:{(BLITZ_START_SECONDS / BLITZ_CAP_SECONDS) * 100}%"
+                ></div>
+              </div>
+            </div>
+          {:else if cfg.type !== 'survival'}
+            <div class="progress">
+              <div class="bar">
+                <div class="fill" style="width:{(s.results.length / total) * 100}%"></div>
+              </div>
+              <span class="counter">
+                {$t('play.progress.question', { current: Math.min(s.index + 1, total), total })}
               </span>
-              <span class="clock-cap">
-                {atCap
-                  ? $t('play.blitz.max')
-                  : $t('play.blitz.cap', { seconds: BLITZ_CAP_SECONDS })}
-              </span>
             </div>
-            <div class="clock-track">
-              <div class="clock-fill" style="width:{fillPct}%"></div>
-              <div
-                class="clock-startmark"
-                style="left:{(BLITZ_START_SECONDS / BLITZ_CAP_SECONDS) * 100}%"
-              ></div>
-            </div>
-          </div>
-        {:else if cfg.type !== 'survival'}
-          <div class="progress">
-            <div class="bar">
-              <div class="fill" style="width:{(s.results.length / total) * 100}%"></div>
-            </div>
-            <span class="counter">
-              {$t('play.progress.question', { current: Math.min(s.index + 1, total), total })}
-            </span>
-          </div>
-        {:else}
-          <!-- Survival now ends in a "region cleared" win once every country in the pool has
+          {:else}
+            <!-- Survival now ends in a "region cleared" win once every country in the pool has
                been answered correctly at least once (Phase 40), so the HUD shows progress toward
                that goal — distinct countries mastered out of the pool size — rather than a raw
                answered count. This makes the finish feel earned, never random. -->
-          {@const mastered = new Set(s.results.filter((r) => r.correct).map((r) => r.countryIso2))
-            .size}
-          <div
-            class="lives"
-            aria-label={$t('play.progress.livesRemaining', {
-              remaining: s.livesRemaining,
-              total: lives,
-            })}
-          >
-            {#each Array.from({ length: lives }, (_, i) => i) as i (i)}
-              <svg
-                class="heart"
-                class:lost={i >= s.livesRemaining}
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
-                />
-              </svg>
-            {/each}
-            {#if view.answerCount}
-              <span class="mastered"
-                >{$t('play.progress.mastered', { count: mastered, total: view.answerCount })}</span
-              >
-            {/if}
-          </div>
-        {/if}
+            {@const mastered = new Set(s.results.filter((r) => r.correct).map((r) => r.countryIso2))
+              .size}
+            <div
+              class="lives"
+              aria-label={$t('play.progress.livesRemaining', {
+                remaining: s.livesRemaining,
+                total: lives,
+              })}
+            >
+              {#each Array.from({ length: lives }, (_, i) => i) as i (i)}
+                <svg
+                  class="heart"
+                  class:lost={i >= s.livesRemaining}
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+                  />
+                </svg>
+              {/each}
+              {#if view.answerCount}
+                <span class="mastered"
+                  >{$t('play.progress.mastered', {
+                    count: mastered,
+                    total: view.answerCount,
+                  })}</span
+                >
+              {/if}
+            </div>
+          {/if}
+        </div>
 
-        <div class="score">
+        <div class="gb-right">
           {#if cfg.type === 'blitz'}
             <!-- Points are the headline in Blitz; the multiplier badge (always shown, since the
                  streak pill is hidden here) is the live combo — it heats up, glows and pops as the
@@ -1027,7 +1046,6 @@
               >
             {/key}
           {/if}
-          <button type="button" class="quit" onclick={quit}>{$t('play.quit')}</button>
         </div>
       </header>
 
@@ -1039,7 +1057,7 @@
         {/key}
       {/if}
 
-      <div class="prompt">
+      <div class="prompt" class:map-prompt={isMapMode(cfg.mode)}>
         {#if PROMPT_FLAG_MODES.includes(cfg.mode)}
           <!-- Anchor the country name with its flag (capitals / languages / industries):
                the answer is an attribute, so the flag is a study aid, not a giveaway. -->
@@ -1691,12 +1709,77 @@
     width: 100%;
   }
 
-  .hud {
+  /* Game bar: the single-line HUD strip. A leading ✕ quit, the run's live status filling the
+     middle, and the score-side on the right. A rounded surface card on desktop; on mobile it
+     breaks full-bleed to the top to stand in for the (hidden) brand app-bar. */
+  .gamebar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.55rem 0.7rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+
+  .gb-quit {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--color-muted);
+    transition:
+      color 0.12s ease,
+      border-color 0.12s ease,
+      background 0.12s ease;
+  }
+
+  .gb-quit:hover {
+    color: var(--color-wrong);
+    border-color: var(--color-wrong);
+    background: var(--color-wrong-bg);
+  }
+
+  /* The mid slot stretches to fill; its child (progress bar / hearts / blitz clock) already
+     lays itself out, but is allowed to shrink below its natural min so the bar never wraps. */
+  .gb-mid {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+  }
+
+  .gb-mid .progress,
+  .gb-mid .blitz-clock,
+  .gb-mid .lives {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .gb-right {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--color-muted);
+  }
+
+  /* Mobile: the game bar takes over the top slot the brand app-bar vacated during a run (see
+     App.svelte), so it breaks out of the content padding to sit flush and full-bleed under the
+     status bar — reclaiming the whole app-bar row plus the content's top padding. */
+  @media (max-width: 859.98px) {
+    .gamebar {
+      margin: -1.25rem -1rem 0;
+      padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+      border-width: 0 0 1px;
+      border-radius: 0;
+      box-shadow: none;
+    }
   }
 
   .progress {
@@ -1939,14 +2022,6 @@
     color: var(--color-muted);
   }
 
-  .score {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.9rem;
-    color: var(--color-muted);
-  }
-
   .streak {
     display: inline-flex;
     align-items: center;
@@ -1998,20 +2073,21 @@
     }
   }
 
-  .quit {
-    padding: 0.3rem 0.7rem;
-    background: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    color: var(--color-muted);
-  }
-
   .prompt {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
     padding: 1rem 0;
+  }
+
+  /* Map modes: the board is the surface, so the prompt is a tight caption above it, not a padded
+     block. Collapse its own padding and pull the board up close — reclaiming the over-generous
+     space that used to bracket "Which country is highlighted?" / the locate prompt. */
+  .prompt.map-prompt {
+    gap: 0.15rem;
+    padding: 0;
+    margin: -0.4rem 0 -0.7rem;
   }
 
   .placeholder {
