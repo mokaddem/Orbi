@@ -331,10 +331,18 @@ button {
 
 /* Playful page-in on route change (App shell). The `.route-in` class is toggled on the route
    wrapper in App.svelte on every navigation — a quick rise + fade + settle-from-slightly-small,
-   with the app's gentle ease-out. `both` fill holds the finished (visible) frame while applied.
-   Global (not component-scoped) so it survives Svelte's unused-selector pruning of a JS-toggled
-   class. Neutralised app-wide by the in-app reduce-motion rule above (near-zero duration) and by
-   the OS media query below. */
+   with the app's gentle ease-out. Global (not component-scoped) so it survives Svelte's
+   unused-selector pruning of a JS-toggled class. Neutralised app-wide by the in-app reduce-motion
+   rule above (near-zero duration) and by the OS media query below.
+
+   Fill is `backwards`, NOT `both`: the class is added once and never removed, so a `forwards`/`both`
+   fill would leave the wrapper perpetually *filling* a transform animation — and Chrome promotes an
+   element with a filling transform to the containing block for its `position: fixed` descendants
+   (even though the `to` frame is `transform: none`). That reparents any in-route fixed overlay
+   (GauntletOfferModal, ConfirmDialog) to the narrow, offset content column instead of the viewport,
+   so its backdrop no longer covers the screen and the dialog isn't centred. `backwards` fills only
+   the pre-start phase; after the 0.34s the transform reverts to none and the trap dissolves. The end
+   frame equals the element's default state, so dropping the after-fill is visually identical. */
 @keyframes route-in {
   from {
     opacity: 0;
@@ -347,7 +355,7 @@ button {
 }
 
 .route-in {
-  animation: route-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation: route-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
