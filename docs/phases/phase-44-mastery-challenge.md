@@ -1,7 +1,14 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In review · **Progress:** ~100% — functional mechanic + audio feature-complete (pending review + merge)
 · **Track:** v2.7 — Mastery capstone
+
+> **↪ Presentation handed to [Phase 45](phase-45-grandmaster-cinematic-ui.md) (owner, 2026-07-16).**
+> This PRD remains the record of the **functional** challenge (unlock, one-life queue, grading,
+> pickers, the 15 capstones, and the shipped **audio**). The **cinematic UI**, the **no-XP /
+> no-Summary** standalone end-flow (which supersedes the `saveSession` + `/summary` finish this phase
+> built), and the **daily cooldown** are tracked in Phase 45. Both PRDs are updated together as work
+> lands.
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -130,24 +137,30 @@ supporting. Independent of Phases 42 (Blitz) and 43 (Explorer rank) — if 43 sh
 challenge is a natural XP event.
 
 ## Deliverables checklist
-- [ ] Unlock predicate — a pure `isChallengeUnlocked(familyMastery, {family, region, subregion})`
-      (family × region mastered per Phase 41), + a locked/unlocked entry-point affordance.
-- [ ] Challenge run model — a new format (recommended `SessionType: 'challenge'`, additive like `full`)
-      that draws **every** country in the region once, **recycles a missed country** to the queue's
-      back, and finishes only when the board is cleared; `cleared / total` progress exposed.
-- [ ] Whole-region option builder — a `questions.ts` path that produces **fixed, full-region** options
+- [x] Unlock predicate — `isChallengeUnlocked` (family × region mastered per Phase 41, stage 1) +
+      the entry-point affordance: a fully-mastered family × continent's **"prove it" launch** in the
+      World Mastery breakdown. *(affordance stage ③d)*
+- [x] Challenge run model — a new `SessionType: 'challenge'` (additive like `full`); the resolved
+      **Gauntlet** model (one life, **no recycle**) draws every country once in **both** directions
+      and finishes on a clean sweep or the first miss; `cleared / total` exposed. *(stage 1–2 domain + store)*
+- [x] Whole-region option builder — `buildChallengeQuestion` produces **fixed, full-continent** options
       for pick-from-list modes (bypassing `choicesPerQuestion` / `selectDistractors`); map-locate
-      unchanged (click-only). No elimination shrink of options.
-- [ ] Both-directions interleave for the run (if OQ4 = both).
-- [ ] Pass / flawless grading + capstone achievement(s) in `ACHIEVEMENTS`, celebrated on finish
-      (existing jingle + `StreakBurst`); optional per-challenge best record (Daily-Challenge-style) per OQ.
-- [ ] Large-pool selection UX for big regions (type-ahead / searchable list / map-click fallback) per OQ6/7.
-- [ ] Entry points: Progress (family × region breakdown) + Play setup challenge card (+ optional Home chip).
-- [ ] EN/FR/DE strings (name, lock/unlock, progress, pass/flawless, badge); `messages.test.ts` parity green.
-- [ ] Tests: domain (unlock predicate, full-region options, clear-the-board queue + recycle + finish,
-      pass/flawless) with injected RNG/clock; component (lock→unlock, full pool, board clear,
-      celebration); headless full-clear drive on a small region.
-- [ ] Verified in the real app (headless Chrome) across ≥2 families + regions, EN/FR/DE.
+      unchanged (click-only). No elimination shrink of options. *(stage 1)*
+- [x] Both-directions interleave for the run. *(stage 1 — `buildChallengeQueue`, 2N slots)*
+- [x] Pass grading + capstone achievement(s) in `ACHIEVEMENTS`, celebrated on finish
+      (`perfect` jingle + `StreakBurst`). *(grading stage 1; 15 capstones stage ③a; Summary pass/fail + celebration stage ③c)*
+- [x] Large-pool selection UX — a type-ahead **search list** for name/capital picks + a scrollable
+      **flag grid** for country→flag; map-locate stays map-click. *(stage ③b — `ChallengeSearchList`)*
+- [x] Entry points — **Progress only** (owner pick): the "prove it" launch + gilded cells + the
+      "Grandmaster {done}/{total}" prestige headline live in the World Mastery panel. No Play card /
+      Home chip (keeps `Play.svelte` untouched). *(stage ③d)*
+- [x] EN/FR/DE strings (name, lock/unlock, progress, pass/flawless, badge); `messages.test.ts` parity green. *(stage ③a — `challenge.*` + `sessionType.challenge`)*
+- [x] Tests: domain (unlock predicate, full-region options, one-life queue + finish, pass/fail grading)
+      with injected RNG/clock (stage 1–2); component — `ChallengeSearchList`, the `/challenge` route,
+      the Summary pass/fail branch, and the breakdown prove-it/gilded/certified states (stages ③b–③d).
+- [x] Verified in the real app (headless Chrome / Puppeteer): Progress prove-it + prestige → run →
+      fail Summary → certified reward (gilded cell + `1/15`), across **Flags + Map** families in
+      **EN + FR** (DE via `messages.test.ts` parity + composed labels). *(stage ③e)*
 
 ## Technical notes
 - **Separate the two pools (the key fix).** The *queue* of countries-still-to-clear shrinks (drives the
@@ -230,6 +243,163 @@ challenge is a natural XP event.
   drive of a small region.
 
 ## Progress log
+- **2026-07-17 — ③d "Progress-only" entry partially reversed by [Phase 45](phase-45-grandmaster-cinematic-ui.md) ⑥.**
+  Stage ③d scoped the entry points to **Progress only** (no Home chip / Play-setup card). Phase 45 ⑥ adds a
+  **Home-screen invitation card** as a *discovery* surface (shown only when ≥ 1 family × continent is
+  attemptable today); it either opens the same offer modal (one available) or hands off to Progress (more
+  than one). The **Progress launch mechanic is unchanged** — this is an additional entry point, not a
+  replacement. Play-setup remains out of scope. See Phase 45's ⑥ progress-log entry.
+- **2026-07-16 — Superseded end-flow now replaced by [Phase 45](phase-45-grandmaster-cinematic-ui.md) ⑤.**
+  This phase's `saveSession` + `/summary` finish and its `SessionRecord`-driven capstone certification
+  are now fully replaced: a finished run writes to a dedicated **`grandmaster` IDB store** (no
+  `SessionRecord`), so a run grants **no XP / stats / streak**; the 15 capstones were removed from the
+  `ACHIEVEMENTS` catalog (XP-neutral), and gilding/prestige read the new store. The functional mechanic
+  documented below (unlock, one-life queue, grading, pickers, the 15 capstones, audio) is unchanged.
+- **2026-07-16 — Presentation split out to [Phase 45](phase-45-grandmaster-cinematic-ui.md).** Owner
+  decisions: build the full locked cinematic UI ([`gauntlet-ui-spec.md`](../gauntlet-ui-spec.md)); the
+  challenge grants **no XP** and shows **no Summary** (in-arena victory bloom / runover instead —
+  superseding this phase's `saveSession` + `/summary` finish); cooldown **once/day per family×region**.
+  Tracked in Phase 45; this PRD stays the record of the functional mechanic + audio. Remaining
+  functional/reward decisions (capstone-XP, certification persistence) are Phase 45 OQ1–OQ2.
+- **2026-07-16 — Audio hardened after an xhigh code review.** A workflow-backed review of the audio
+  commit surfaced three confirmed correctness bugs, all fixed: (1) the deferred fatal-knell timer
+  wasn't cancelled on stop/quit/teardown, so the knell could ring on the Progress screen — `stopBed()`
+  now clears it; (2) a miss within ~950 ms of accepting let the pending bed swell-in fire over the
+  death reveal (and cancel the knell) — the verdict effect now cancels `bedStartTimer` on a miss; and
+  (3) the bed's reverb/delay sends bypassed `bedBus`, so a cut/mute left a ~3 s wet tail ringing — the
+  bed now has its own reverb/delay returns *into* `bedBus` (two convolvers sharing one impulse). Also
+  hardened the plausible findings: the FX bus is now built **lazily** (on first gauntlet cue / bed,
+  not on the app's first gesture) and its failure no longer kills the everyday SFX; `startBed(tier)`
+  resumes a suspended context and re-enters at the live tier (no resume dropout); the compressor
+  falls back to `master → destination` if unavailable. +3 regression tests (**777 total**), `check`
+  0/0, `lint` clean, and the real-browser graph check re-passes on the new architecture.
+- **2026-07-16 — Grandmaster Challenge audio built (explicit owner go-ahead).** The locked audio
+  design (`docs/gauntlet-audio-spec.md`) is now implemented — a scope expansion over this PRD's
+  original "reuse the `perfect` jingle" celebration deliverable. New pure bed model
+  (`src/ui/sound.bed.ts`: `bedTierFor`, `bedVoices` over a foundation groove + 10 accumulating tiers)
+  and an extended engine (`src/ui/sound.ts`): a richer declarative `Voice` (noise/bell/whoosh kinds,
+  a pad envelope, swept filters, pitch sweeps, reverb/delay sends), a shared reverb/delay/compressor
+  FX bus, five new cues (`settle` relief / `fatal` descending-bell knell / `enter` arena hit /
+  `surge` tier-up / `victory` D-major fanfare), and the first *looping* music the engine carries —
+  "the Rising Bed", driven by a look-ahead scheduler + a `startBed`/`setBedTier`/`stopBed`/
+  `gauntletFatal` lifecycle. `Challenge.svelte` wires the triggers: Enter + delayed bed on start,
+  Settle on a correct clear, the fatal sequence on the one miss, Surge + tier bump on each crossed
+  `N/10` boundary, and stop-bed + Victory on a clean sweep (replacing the old `perfect`). All gated
+  on `Prefs.sound` + the autoplay unlock; a broken/absent backend never throws. Owner forks resolved:
+  Enter at run start (no visual transition in the shell), split `sound.bed.ts`, hard-cut fatal, a
+  constant Settle, static gain-staging. Fast loop: **774 tests** (+20), `check` 0/0, `lint` clean;
+  a real-browser (headless Chrome) check confirms the Web Audio graph + every cue + the whole bed
+  render without throwing. **Sound can't be heard headless — the live audition on 5180 is the
+  acceptance step.**
+- **2026-07-15 — Clarifying round resolved; domain build started (on explicit owner approval).**
+  Open-question resolutions (owner picks):
+  - **OQ1 (flavor/strictness) → The Gauntlet (one life).** A single miss ends the run; a clean
+    sweep = pass. This settles **OQ5 (no recycle — one life)** and **OQ4 (no error budget — a perfect
+    pass is required)**. Since every finish is flawless-by-definition, there is **one** capstone tier,
+    not a separate gold tier.
+  - **OQ3/OQ4 (direction) → both, interleaved** — matches Phase 41's "both directions ⇒ mastered".
+    Each country is asked in both of the family's directions (2N question-slots).
+  - **OQ6/OQ7 (large pools + World) → continents only; World excluded.** Only the 5 UN continents
+    (Africa/Asia/Europe/Americas/Oceania) — no sub-region runs, no World (too long to complete). Runs
+    are ~28 (Oceania) to ~108 (Africa) one-life questions. A type-ahead **search list** handles the
+    1-of-N pick for name/capital directions; a searchable **flag grid** for country→flag; map-locate
+    stays map-click.
+  - **OQ2 (unlock gate) → existing Phase 41 mastery** — a family × continent is unlocked once that
+    continent's family is fully mastered (both directions of every applicable country). Pure function
+    of `computeFamilyMastery`; no new store to gate.
+  - **OQ8 (reward/retention) → single monotonic capstone badge** per family × continent (3 × 5 = 15);
+    **no decay** (defer — it would break the never-revoked invariant). A "Grand Slam: all 15" meta is a
+    possible later add.
+  - **OQ9 (naming) → "Grandmaster Run"** (internal `SessionType: 'challenge'`).
+  - **OQ10 (timed/PB) → MVP pass/fail, no timer.** A timed variant is a possible fast-follow.
+
+  **Domain layer landed** (`src/domain/challenge.ts` + `challenge.test.ts`): `'challenge'` added to
+  `SessionType`; `isChallengeUnlocked(mastery, family, region)` (pure over `computeFamilyMastery`);
+  `buildChallengeQueue` (2N both-direction, mode-eligible slots, shuffled via injected RNG);
+  `buildChallengeQuestion` (fixed full-continent options that never shrink — `map-locate` gets none,
+  `country-to-capital` gets attribute options); and a one-life `ChallengeSession` driver (clear-the-board,
+  fail-fast on a miss, pass = clean sweep) — deterministic given injected `rng`/`now`, `QuizSession`
+  left untouched.
+
+  **Controller + persistence bridge landed** (`src/ui/stores/challenge.ts` + `challenge.test.ts`):
+  a dedicated `challenge` store mirroring `play` (start / answer / advance / summary / reset) but
+  driving `ChallengeSession` — kept **separate** so the normal `play`/`QuizSession` path is untouched;
+  plus `challengeSessionSummary` (domain), which adapts a run's `ChallengeSummary` to a standard
+  `SessionSummary` (`type: 'challenge'`, representative `mode`, `regionFilter`, the fatal miss as the
+  lone `missed`) so a finished run persists through the **existing** `saveSession` → `SessionRecord`
+  path with no persistence changes (feeding XP / stats / history automatically; `passed` recovered as
+  `type==='challenge' && correct===total`). Handoff writables `lastChallengeSummary` / `pendingChallenge`
+  added. Fast loop: **726 tests**, `check` 0/0, `lint` clean.
+
+  **Decision (owner, 2026-07-15): a Grandmaster Run does NOT feed spaced-repetition.** It is a
+  read-only *test* over mastery, not a training drill — so the stage-③ Play wiring records the finished
+  run to **history** (for XP / badges / stats via `saveSession`) but must **not** call `recordAnswer`.
+  This guarantees the single fatal miss can never create an SR lapse that demotes the very country/
+  mastery the challenge required to unlock. (`SessionType: 'challenge'` records are already excluded
+  from SR by construction — nothing writes SR for them once `recordAnswer` is skipped.)
+
+  Still to do (stage ③+): the visual Play shell (full-region **search-list** + **flag-grid** pickers,
+  `cleared/total` HUD, one-life feedback, pass/fail Summary) wired to `saveSession` **only** (no
+  `recordAnswer`) on finish; entry points (Progress family × continent + a Play challenge card,
+  locked→unlocked); the 15 monotonic capstone achievements; EN/FR/DE `challenge.*` copy; headless verify.
+- **2026-07-15 — Stage ③ started; two remaining UI forks resolved with the owner.**
+  - **Entry points → Progress only.** No Play-setup card / Home chip: the Grandmaster Run launches from
+    the World Mastery breakdown, where a fully-mastered family × continent row's "prove it" launch
+    replaces the practise shortcut. (Keeps `Play.svelte` untouched, matching the separate-store design.)
+  - **Capstone reward → folded into the World Mastery panel** (not a separate badges grid), design
+    **A + C** from a faithful glance-prototype (owner pick): *quiet in-place gilded cells* (a certified
+    family bar gilds gold + crown) **plus** a *"Grandmaster · X/15" prestige counter* as the panel
+    headline, gilding fully at 15/15. The 15 capstones live here, not in the achievements grid.
+  - **Stage ③a landed** (i18n + rewards domain): `masteryFamilyOf(mode)` (`modes.ts`); the 15 monotonic
+    `grandmaster-{family}-{continent}` capstones in `ACHIEVEMENTS` (`capstone`/`family` flags,
+    `grandmasterId`, `GRANDMASTER_TOTAL = 15`), unlocked purely by a clean-sweep `type:'challenge'`
+    `SessionRecord` for that family × continent (fail/quit never certify); a top-level `challenge.*`
+    EN/FR/DE section (run name, prove-it/prestige, one-life HUD, search-list, pass/fail Summary, and a
+    **composed** badge title/desc from existing family/region labels — no 90 hand-written strings) plus
+    `sessionType.challenge`. Fast loop: **736 tests**, `check` 0/0, `lint` clean.
+
+  **Stage ③b landed** (the Play shell): a dedicated `/challenge` route (`Challenge.svelte`, driven by
+  the separate one-life `challenge` store so `Play.svelte` stays untouched), auto-started from
+  `pendingChallenge`. A `cleared / total` + one-life HUD; the anti-crutch pickers — a type-ahead
+  **`ChallengeSearchList`** over the whole continent for the name/capital picks (accent-insensitive,
+  Enter commits the top match), a scrollable full **flag grid** (`ChoiceGrid variant="flag"`) for
+  country→flag, and **`MapBoard`** for map-highlight/locate; correct→advance / miss→reveal→fail pacing.
+  On finish it records to history via **`saveSession` only** (no `recordAnswer`), stashes the rich
+  `lastChallengeSummary` + a standard `lastSummary`, plays `perfect` on a pass, and routes to `/summary`;
+  a quit abandons with no write. Tests: `ChallengeSearchList` (filter/pick/Enter/reveal) + the route
+  (boots, clears, one-miss→failed summary, quit→idle). Fast loop: **747 tests**, `check` 0/0, `lint` clean.
+
+  **Stage ③c landed** (the Summary): a `type === 'challenge'` branch reading the rich
+  `lastChallengeSummary`. A **pass** shows a metallic-gold crown hero — "Grandmaster! · {family} ·
+  {region} — certified" + a one-shot `StreakBurst` (the `perfect` jingle already played as the run
+  ended) + a played-flags fan; a **fail** shows an encouraging Orbi + "Run ended · cleared {cleared}
+  of {total}" and the country the run died on. The meta line names the run + continent (not a single
+  mode); the XP / rank-up cards stay (a run still earns XP); actions are **Try again** (re-stage the
+  same family × continent) + **New game** — no "train these" (a run is a test). Shared metallic-gold
+  tokens added to `app.css` (`--color-gold*`, `--gold-metal`) for reuse by the ③d panel gilding.
+  Fast loop: **750 tests**, `check` 0/0, `lint` clean.
+
+  **Stage ③d landed** (the Progress reward — design A + C). `AchievementView` now carries
+  `capstone`/`family`, so the 15 capstones are pulled out of the badges grid and drive the World
+  Mastery panel instead. `FamilyRegionBreakdown` (stacked) grows the fully-mastered → **prove-it** →
+  **gilded** ladder per family cell: a fully-mastered-but-uncertified family shows a gold "prove it"
+  launch (→ `pendingChallenge` + `/challenge`) in place of the practise shortcut; a **certified**
+  family gilds in place (metallic-gold bar + crown, **permanent** — it stays gilded even if SR
+  mastery later lapses, honouring the monotonic capstone); a continent with every family certified
+  wears a gold ring + "Grandmaster" tag. `Progress.svelte` adds the **"Grandmaster {done}/{total}"
+  prestige bar** as the panel headline (shown once a run is certified or unlockable, so beginners
+  never see "0/15"; gilds fully at 15/15), and composes the capstone title for the unlock banner.
+
+  **Stage ③e — verified in the real app** (Puppeteer against the 5180 dev server, seeding one
+  continent's SR state): Progress shows the prestige bar + the Oceania "prove it"; launching drives
+  `/challenge` (the one-life HUD + the whole-continent flag grid / name search-list), a miss ends the
+  run to the fail Summary ("cleared 1 of 28 — then missed New Zealand", XP still earned), and a
+  passed run gilds the Flags × Oceania cell with the prestige at **1/15** and the composed
+  "Grandmaster — Flags · Oceania" badge in the unlock banner (+150 badge XP). Confirmed across the
+  **Flags + Map** families in **EN + FR** (the Map run correctly shows 26 slots — Tuvalu excluded —
+  with the map board + name search-list). Fast loop: **754 tests**, `check` 0/0, `lint` clean.
+
+  Phase 44 is **feature-complete**, pending owner review + merge to `main`.
 - **2026-07-14 — PRD drafted** from an owner idea ("a mastery challenge that unlocks after you've
   mastered a mode+region: no 4 choices — the whole region is the pool — and each correct guess removes
   that country") plus a design discussion. Grounded in the current code: per-family mastery as the

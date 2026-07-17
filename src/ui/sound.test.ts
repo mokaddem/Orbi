@@ -1,14 +1,25 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createSound, type JingleCue } from './sound';
 
 // A minimal fake Web Audio backend: it records how many synth voices (oscillators) and how many
 // samples (buffer sources) were actually started, so tests can assert what the service played
 // without any real audio. Each constructed context registers itself so the test can inspect it.
+// Phase 44 grew the graph (filters, delay, convolver, compressor, generated buffers) + a looping
+// bed scheduler, so the fake now stubs those nodes too.
 const contexts: FakeAudioContext[] = [];
+
+const fakeParam = () => ({
+  value: 0,
+  setValueAtTime() {},
+  linearRampToValueAtTime() {},
+  exponentialRampToValueAtTime() {},
+  cancelScheduledValues() {},
+});
 
 class FakeAudioContext {
   state: 'suspended' | 'running' = 'suspended';
   currentTime = 0;
+  sampleRate = 8000; // small so generated noise/impulse buffers stay cheap in tests
   destination = {};
   oscStarted = 0;
   srcStarted = 0;
@@ -21,20 +32,13 @@ class FakeAudioContext {
     return Promise.resolve();
   }
   createGain() {
-    return {
-      gain: {
-        value: 0,
-        setValueAtTime() {},
-        exponentialRampToValueAtTime() {},
-        linearRampToValueAtTime() {},
-      },
-      connect() {},
-    };
+    return { gain: fakeParam(), connect() {} };
   }
   // Arrow class fields so the inner `start` closes over the instance without aliasing `this`.
   createOscillator = () => ({
     type: 'sine' as OscillatorType,
-    frequency: { setValueAtTime() {}, linearRampToValueAtTime() {} },
+    frequency: fakeParam(),
+    detune: fakeParam(),
     connect() {
       return { connect() {} };
     },
@@ -45,11 +49,43 @@ class FakeAudioContext {
   });
   createBufferSource = () => ({
     buffer: null as AudioBuffer | null,
-    connect() {},
+    loop: false,
+    connect() {
+      return { connect() {} };
+    },
     start: () => {
       this.srcStarted++;
     },
+    stop() {},
   });
+  createBiquadFilter() {
+    return {
+      type: 'lowpass' as BiquadFilterType,
+      frequency: fakeParam(),
+      Q: { value: 0 },
+      connect() {},
+    };
+  }
+  createDelay() {
+    return { delayTime: { value: 0 }, connect() {} };
+  }
+  createConvolver() {
+    return { buffer: null as AudioBuffer | null, connect() {} };
+  }
+  createDynamicsCompressor() {
+    return {
+      threshold: { value: 0 },
+      knee: { value: 0 },
+      ratio: { value: 0 },
+      attack: { value: 0 },
+      release: { value: 0 },
+      connect() {},
+    };
+  }
+  createBuffer(_channels: number, length: number) {
+    const data = new Float32Array(length);
+    return { getChannelData: () => data };
+  }
 }
 
 // The fake implements only the slice of AudioContext the service uses; cast past the full DOM
@@ -138,6 +174,12 @@ describe('sound service (Phase 36)', () => {
       s.unlock();
       s.play('correct');
       s.play('finish');
+      // The Grandmaster Challenge surface must be just as safe with no backend.
+      s.play('victory');
+      s.startBed();
+      s.setBedTier(4);
+      s.gauntletFatal();
+      s.stopBed();
     }).not.toThrow();
     expect(contexts.length).toBe(0);
   });
@@ -188,5 +230,192 @@ describe('sound service (Phase 36)', () => {
     s.setEnabled(true);
     s.play('correct');
     expect(contexts[0].oscStarted).toBe(2);
+  });
+});
+
+describe('Grandmaster Challenge cues (Phase 44)', () => {
+  const play = (cue: Parameters<ReturnType<typeof createSound>['play']>[0]) => {
+    const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+    s.setEnabled(true);
+    s.unlock();
+    s.play(cue);
+    return contexts[0];
+  };
+
+  it('settle is a soft three-voice resolution (no noise / bells)', () => {
+    const c = play('settle');
+    expect(c.oscStarted).toBe(3);
+    expect(c.srcStarted).toBe(0);
+  });
+
+  it('fatal rings three inharmonic bells (6 partials each) over a body thump', () => {
+    const c = play('fatal');
+    // 3 bells × 6 sine partials + 1 sine body-thump = 19 oscillators; no noise sources.
+    expect(c.oscStarted).toBe(19);
+    expect(c.srcStarted).toBe(0);
+  });
+
+  it('enter swells a whoosh into a gong, a bell and war-horns', () => {
+    const c = play('enter');
+    // gong(1) + low bell(6) + 3 horns(3) = 10 osc; whoosh + sparkle = 2 noise sources.
+    expect(c.oscStarted).toBe(10);
+    expect(c.srcStarted).toBe(2);
+  });
+
+  it('surge fires a riser, a chord stab and a boom over a whoosh + crash', () => {
+    const c = play('surge');
+    // riser(1) + 4 chord stabs + boom(1) = 6 osc; whoosh + crash = 2 noise sources.
+    expect(c.oscStarted).toBe(6);
+    expect(c.srcStarted).toBe(2);
+  });
+
+  it('victory is the full ceremonial fanfare', () => {
+    const c = play('victory');
+    // timpani(6)+gong(1)+chord(6)+brass(6)+ascent(6)+crown(2)+peal(4)+choir(10)+shimmer(1) = 42 osc;
+    // cymbal + crash = 2 noise sources.
+    expect(c.oscStarted).toBe(42);
+    expect(c.srcStarted).toBe(2);
+  });
+
+  it('the Grandmaster cues are silent when the sound pref is off', () => {
+    const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+    s.setEnabled(false);
+    s.unlock();
+    s.play('settle');
+    s.play('fatal');
+    s.play('enter');
+    s.play('surge');
+    s.play('victory');
+    expect(contexts[0].oscStarted).toBe(0);
+    expect(contexts[0].srcStarted).toBe(0);
+  });
+
+  it('gauntletFatal cuts the bed, sags, then rings the bells after a beat', () => {
+    vi.useFakeTimers();
+    try {
+      const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+      s.setEnabled(true);
+      s.unlock();
+      const c = contexts[0];
+      s.gauntletFatal();
+      // Immediately: only the `wrong` sag (1 oscillator); the bells are deferred.
+      expect(c.oscStarted).toBe(1);
+      vi.advanceTimersByTime(500);
+      // After ~0.48 s: the fatal knell joins the sag — 3 bells (18 partials) + a body thump = 19.
+      expect(c.oscStarted).toBe(1 + 19);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('stopBed cancels a pending fatal knell so it never rings after the player leaves', () => {
+    vi.useFakeTimers();
+    try {
+      const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+      s.setEnabled(true);
+      s.unlock();
+      const c = contexts[0];
+      s.gauntletFatal(); // the wrong sag (1 osc); the bells are deferred ~0.48 s
+      expect(c.oscStarted).toBe(1);
+      s.stopBed(); // player quits / the route tears down before the bells land
+      vi.advanceTimersByTime(700);
+      expect(c.oscStarted).toBe(1); // the knell was cancelled — no bells on a later screen
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps the everyday cues alive when the FX bus fails to build', () => {
+    // A backend where an advanced FX node throws must not cost the player their basic SFX.
+    class FailingFx extends FakeAudioContext {
+      createConvolver(): { buffer: AudioBuffer | null; connect(): void } {
+        throw new Error('no convolver on this backend');
+      }
+    }
+    const Ctor = FailingFx as unknown as new () => AudioContext;
+    const s = createSound({ AudioCtx: Ctor, sampleUrls: SAMPLE_URLS });
+    s.setEnabled(true);
+    s.unlock();
+    const c = contexts[0];
+    // A gauntlet cue triggers the (failing) lazy FX build — it must not throw, and must still play dry.
+    expect(() => s.play('settle')).not.toThrow();
+    expect(c.oscStarted).toBe(3); // settle's three voices still start (dry, no reverb send)
+    s.play('correct'); // and the everyday cues are entirely unaffected
+    expect(c.oscStarted).toBe(5);
+  });
+});
+
+describe('the Rising Bed (Phase 44)', () => {
+  it('schedules looping voices while running and stops on stopBed', () => {
+    vi.useFakeTimers();
+    try {
+      const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+      s.setEnabled(true);
+      s.unlock();
+      const c = contexts[0];
+      s.startBed(); // schedules the first look-ahead window immediately
+      const afterStart = c.oscStarted + c.srcStarted;
+      expect(afterStart).toBeGreaterThan(0);
+
+      // Advance the audio clock + timers → the scheduler lays down more steps.
+      c.currentTime = 0.5;
+      vi.advanceTimersByTime(100);
+      const afterRun = c.oscStarted + c.srcStarted;
+      expect(afterRun).toBeGreaterThan(afterStart);
+
+      // Stop → no further scheduling however far time advances.
+      s.stopBed(10);
+      const afterStop = c.oscStarted + c.srcStarted;
+      c.currentTime = 3.0;
+      vi.advanceTimersByTime(300);
+      expect(c.oscStarted + c.srcStarted).toBe(afterStop);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('muting the sound pref silences the bed and stops its scheduler', () => {
+    vi.useFakeTimers();
+    try {
+      const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+      s.setEnabled(true);
+      s.unlock();
+      const c = contexts[0];
+      s.startBed();
+      const n0 = c.oscStarted + c.srcStarted;
+      s.setEnabled(false); // mute mid-run
+      c.currentTime = 1.0;
+      vi.advanceTimersByTime(200);
+      expect(c.oscStarted + c.srcStarted).toBe(n0); // nothing scheduled while muted
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a higher tier stacks more voices into the loop', () => {
+    vi.useFakeTimers();
+    try {
+      const runTier = (tier: number): number => {
+        contexts.length = 0;
+        const s = createSound({ AudioCtx, sampleUrls: SAMPLE_URLS });
+        s.setEnabled(true);
+        s.unlock();
+        const c = contexts[0];
+        s.startBed();
+        s.setBedTier(tier);
+        // Advance through a full loop (~10 s) so every step of the pattern is scheduled once.
+        for (let t = 0; t <= 11; t += 0.2) {
+          c.currentTime = t;
+          vi.advanceTimersByTime(25);
+        }
+        s.stopBed(1);
+        return c.oscStarted + c.srcStarted;
+      };
+      const low = runTier(0);
+      const high = runTier(9);
+      expect(high).toBeGreaterThan(low);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { push } from 'svelte-spa-router';
   import { t } from '../../i18n';
   import {
     loadDailyState,
+    loadGrandmaster,
     loadMastery,
     loadRank,
     loadRecommendations,
@@ -11,17 +13,29 @@
     prefs,
     storageReady,
     type DailyState,
+    type GrandmasterState,
     type RankState,
     type TrainingPlan,
   } from '../stores/persistence';
   import {
+    availableChallenges,
+    challengeSlotCount,
+    filterCountries,
     isStreakMilestone,
     pickStreakReaction,
     type FamilyMasteryResult,
+    type MasteryFamily,
     type Recommendation,
     type RegionReview,
     type StreakInfo,
   } from '../../domain';
+  import { getCountries } from '../../data';
+  import {
+    challenge,
+    focusMastery,
+    lastChallengeSummary,
+    pendingChallenge,
+  } from '../stores/challenge';
   import { sound } from '../sound';
   import Demo from '../components/Demo.svelte';
   import Icon from '../components/Icon.svelte';
@@ -33,6 +47,8 @@
   import DailyChallengeCard from '../components/DailyChallengeCard.svelte';
   import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
+  import GrandmasterInviteCard from '../components/GrandmasterInviteCard.svelte';
+  import GauntletOfferModal from '../components/GauntletOfferModal.svelte';
   import RankChip from '../components/RankChip.svelte';
 
   // The review hero (Phase 14, region-scoped in Phase 26): reads the player's own state and
@@ -47,6 +63,7 @@
   let streak = $state<StreakInfo | null>(null);
   let daily = $state<DailyState | null>(null);
   let mastery = $state<FamilyMasteryResult | null>(null);
+  let grandmaster = $state<GrandmasterState | null>(null);
   let rank = $state<RankState | null>(null);
 
   // "All caught up": the player has made some progress but has nothing queued to review — the
@@ -70,6 +87,48 @@
   // needs no JS transition.
   let regionsOpen = $state(false);
 
+  // Grandmaster invitation card (Phase 45 ⑥): a discovery surface, shown only when the player has
+  // ≥ 1 family × continent they can attempt *today* — fully mastered, not yet certified, and not
+  // already spent today. The card is a duplicate entry point (Progress keeps its per-cell "prove it"
+  // crowns); it just makes sure the ceremonial challenge isn't missed. Recomputes as the two async
+  // reads land.
+  const available = $derived(
+    mastery && grandmaster
+      ? availableChallenges(mastery, grandmaster.certified, grandmaster.spentToday)
+      : [],
+  );
+
+  // Tapping the card routes by how many runs are attemptable: exactly one → open its offer modal
+  // right here (Accept then stages the run + enters the arena, reusing Progress's accept path);
+  // more than one → hand off to Progress (via `focusMastery`), which scrolls its World Mastery panel
+  // into view so the player picks a specific run there.
+  let offer = $state<{ family: MasteryFamily; region: string; slots: number } | null>(null);
+
+  function enterGauntlet(): void {
+    if (available.length === 0) return;
+    if (available.length === 1) {
+      const { family, region } = available[0];
+      const slots = challengeSlotCount(family, filterCountries(getCountries(), { region }));
+      offer = { family, region, slots };
+    } else {
+      focusMastery.set(true);
+      push('/progress');
+    }
+  }
+
+  // Accept the sole offer: stage the run and enter the cinematic arena (the "enter" cue + intro fire
+  // there). Mirrors Progress's `acceptChallenge`. The card only surfaces attemptable runs, so this
+  // path is never on cooldown.
+  function acceptChallenge(): void {
+    if (!offer) return;
+    const { family, region } = offer;
+    offer = null;
+    challenge.reset();
+    lastChallengeSummary.set(null);
+    pendingChallenge.set({ family, region });
+    push('/challenge');
+  }
+
   $effect(() => {
     if ($storageReady) {
       void loadRecommendations().then((r) => (recs = r));
@@ -78,6 +137,7 @@
       void loadStreak().then((s) => (streak = s));
       void loadDailyState().then((d) => (daily = d));
       void loadMastery().then((m) => (mastery = m));
+      void loadGrandmaster().then((g) => (grandmaster = g));
       // Home commits the rank read (like Summary): it's the backstop that fires the one-time
       // "rank up!" for a crossing not already celebrated on the Summary screen (Phase 43).
       void loadRank(Date.now(), { commit: true }).then((r) => (rank = r));
@@ -200,6 +260,12 @@
     {/if}
   </div>
 
+  {#if available.length > 0}
+    <div class="invite-row">
+      <GrandmasterInviteCard onenter={enterGauntlet} />
+    </div>
+  {/if}
+
   {#if allCaughtUp}
     <div class="caught-up" role="status">
       <Mascot pose="relaxed" size={60} animate="bounce-in" />
@@ -222,6 +288,19 @@
     {/key}
   {/if}
 </section>
+
+<!-- The offer modal for the single-available case (Phase 45 ⑥). Rendered above the shell, like the
+     Progress entry — a run surfaced by the card is always attemptable (never spent), so no cooldown. -->
+{#if offer}
+  <GauntletOfferModal
+    open
+    family={offer.family}
+    region={offer.region}
+    slots={offer.slots}
+    onaccept={acceptChallenge}
+    oncancel={() => (offer = null)}
+  />
+{/if}
 
 <style>
   /* Hero header: the globe mascot greets beside the title. It's decorative spot art (the
@@ -452,6 +531,11 @@
     .region-breakdown {
       animation: none;
     }
+  }
+
+  /* The ceremonial Grandmaster invitation sits below the daily + mastery glance, as its own row. */
+  .invite-row {
+    margin-top: 1rem;
   }
 
   /* "All caught up" status: relaxed globe on a soft accent tint. */

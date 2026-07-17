@@ -13,6 +13,7 @@
 
 import type { SessionRecord } from '../data/persistence/types';
 import type { MasteryResult } from './mastery';
+import { FAMILIES } from './modes';
 import type { StatsOverview } from './stats';
 import type { StreakInfo } from './streak';
 
@@ -58,7 +59,9 @@ export interface AchievementContext {
 }
 
 /** One badge definition. `region` is set only for the per-continent badges; `topic` only for
- *  the extra-knowledge badges (capitals / languages), which the UI groups out of the main grid. */
+ *  the extra-knowledge badges (capitals / languages), which the UI groups out of the main grid.
+ *  (The Grandmaster Run capstones are NOT badges — they live in the dedicated `grandmaster` store
+ *  and are XP-neutral, Phase 45 — so they carry no entry here.) */
 export interface AchievementDef {
   id: string;
   region?: (typeof CONTINENTS)[number];
@@ -83,6 +86,11 @@ function regionComplete(mastery: MasteryResult, region: string): boolean {
   const r = mastery.byRegion.find((x) => x.region === region);
   return !!r && r.total > 0 && r.mastered === r.total;
 }
+
+/** How many Grandmaster Run capstones exist — one per core family × continent (3 × 5 = 15). Drives
+ *  the "Grandmaster X/15" prestige denominator; the capstones themselves live in the dedicated
+ *  `grandmaster` store (XP-neutral, Phase 45), not in this catalog. */
+export const GRANDMASTER_TOTAL = FAMILIES.length * CONTINENTS.length;
 
 /**
  * The parallel badge ladder for an extra-knowledge topic (capitals, languages, later
@@ -171,6 +179,9 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   ...extraTopicBadges('capitals', (ctx) => ctx.capitalMastery),
   ...extraTopicBadges('languages', (ctx) => ctx.languageMastery),
   ...extraTopicBadges('industries', (ctx) => ctx.industryMastery),
+  // NOTE: the Grandmaster Run capstones are intentionally NOT in this catalog (Phase 45). They are
+  // XP-neutral and fully decoupled from history — their certification lives in the dedicated
+  // `grandmaster` IDB store and surfaces as gilded cells + the prestige counter in the mastery panel.
 ];
 
 /** All badge ids, in display order — handy for i18n parity checks and iteration. */

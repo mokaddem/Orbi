@@ -33,6 +33,7 @@ export {
   isMultiSelectMode,
   isIndustryMode,
   isMasteryMode,
+  masteryFamilyOf,
 } from './modes';
 
 export { type Rng, defaultRng, mulberry32, randomInt, shuffle, sample } from './rng';
@@ -154,6 +155,7 @@ export {
   CAPITALS_COLLECTOR_TARGET,
   CAPITALS_CENTURY_TARGET,
   STREAK_BADGE_DAYS,
+  GRANDMASTER_TOTAL,
   ACHIEVEMENTS,
   ACHIEVEMENT_IDS,
   evaluateAchievements,
@@ -220,3 +222,21 @@ export {
   computeBlitzBests,
   blitzSlotMatches,
 } from './blitz';
+
+export {
+  type ChallengeSlot,
+  type ChallengeState,
+  type ChallengeConfig,
+  type ChallengeSummary,
+  type AvailableChallenge,
+  familyModes,
+  isChallengeUnlocked,
+  availableChallenges,
+  buildChallengeQueue,
+  challengeSlotCount,
+  estimateChallengeMinutes,
+  CHALLENGE_SECONDS_PER_SLOT,
+  buildChallengeQuestion,
+  ChallengeSession,
+  createChallenge,
+} from './challenge';

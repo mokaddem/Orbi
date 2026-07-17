@@ -9,6 +9,7 @@ import {
   clearTraining,
   initPersistence,
   loadAchievements,
+  loadGrandmaster,
   loadMastery,
   loadRank,
   loadSessions,
@@ -19,6 +20,7 @@ import {
   persistent,
   prefs,
   recordAnswer,
+  recordChallengeResult,
   saveSession,
   storageReady,
   summaryToRecord,
@@ -341,5 +343,75 @@ describe('Explorer rank & XP wiring (Phase 43)', () => {
     expect(reset.xp.total).toBe(0);
     expect(reset.progress.rank.index).toBe(0);
     expect(reset.justRankedUp).toBe(false); // re-seeded at Novice, no spurious celebration
+  });
+});
+
+describe('Grandmaster Challenge store (Phase 45)', () => {
+  const DAY1 = 1_700_000_000_000; // an arbitrary instant
+  const DAY3 = DAY1 + 2 * 24 * 3600 * 1000; // two local days later, regardless of timezone
+
+  beforeAll(async () => {
+    await initPersistence();
+  });
+
+  beforeEach(async () => {
+    await clearHistory(); // also clears grandmaster certification + cooldown (Phase 45)
+  });
+
+  it('a clean sweep certifies and spends the day; writes NO SessionRecord (no XP/history)', async () => {
+    await recordChallengeResult('flags', 'Oceania', true, DAY1);
+
+    const gm = await loadGrandmaster(DAY1);
+    expect([...gm.certified]).toEqual(['flags|Oceania']);
+    expect([...gm.spentToday]).toEqual(['flags|Oceania']);
+    // The decoupling guarantee: a run contributes nothing to history (⇒ zero XP / stats / streak).
+    expect(await loadSessions()).toEqual([]);
+    expect((await loadRank(DAY1)).xp.total).toBe(0);
+  });
+
+  it('a failed run spends the day but does not certify', async () => {
+    await recordChallengeResult('map', 'Europe', false, DAY1);
+    const gm = await loadGrandmaster(DAY1);
+    expect(gm.certified.has('map|Europe')).toBe(false);
+    expect(gm.spentToday.has('map|Europe')).toBe(true);
+  });
+
+  it('certification is monotonic — a later failed attempt never revokes it', async () => {
+    await recordChallengeResult('flags', 'Oceania', true, DAY1);
+    // A second (failed) attempt a couple of days on: still certified, and spent again that day.
+    await recordChallengeResult('flags', 'Oceania', false, DAY3);
+    const gm = await loadGrandmaster(DAY3);
+    expect(gm.certified.has('flags|Oceania')).toBe(true);
+    expect(gm.spentToday.has('flags|Oceania')).toBe(true);
+  });
+
+  it('the cooldown resets at the next local day (certification persists)', async () => {
+    await recordChallengeResult('capitals', 'Oceania', true, DAY1);
+    // Same day: on cooldown. A later day: attemptable again, but still certified.
+    expect((await loadGrandmaster(DAY1)).spentToday.has('capitals|Oceania')).toBe(true);
+    const later = await loadGrandmaster(DAY3);
+    expect(later.spentToday.has('capitals|Oceania')).toBe(false);
+    expect(later.certified.has('capitals|Oceania')).toBe(true);
+  });
+
+  it('a progress reset (clearHistory / clearTraining) wipes certification + cooldown', async () => {
+    await recordChallengeResult('flags', 'Oceania', true, DAY1);
+    await clearTraining();
+    expect((await loadGrandmaster(DAY1)).certified.size).toBe(0);
+
+    await recordChallengeResult('flags', 'Oceania', true, DAY1);
+    await clearHistory();
+    const gm = await loadGrandmaster(DAY1);
+    expect(gm.certified.size).toBe(0);
+    expect(gm.spentToday.size).toBe(0);
+  });
+
+  it('a recorded attempt is visible to the next read synchronously (no IDB read/write race)', async () => {
+    // Do NOT await the write: the in-memory mirror is updated before the async IDB put, so a reader
+    // that runs immediately after (e.g. Home/Progress `onMount` right after a forfeit-on-leave) sees
+    // the spent attempt and won't offer another run.
+    const pending = recordChallengeResult('flags', 'Oceania', false, DAY1);
+    expect((await loadGrandmaster(DAY1)).spentToday.has('flags|Oceania')).toBe(true);
+    await pending; // the durable IDB write still lands
   });
 });

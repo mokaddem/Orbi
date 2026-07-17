@@ -78,6 +78,26 @@ export interface AchievementUnlock {
 }
 
 /**
+ * Grandmaster Challenge state (Phase 45) — one row per `family|region` capstone. Deliberately
+ * decoupled from play history / XP: a finished run writes here, **not** a `SessionRecord`, so it
+ * grants no XP, feeds no History stats, and never counts toward the play-streak. `certified` is
+ * **monotonic** — a clean sweep sets it and no later attempt (nor a mastery lapse) ever revokes it;
+ * it drives the gilded cells + the "Grandmaster X/15" prestige. `lastAttemptDay` is the local
+ * day-key of the most recent attempt (win *or* lose), driving the once-a-day-per-family×region
+ * cooldown. One store serves both certification *and* the cooldown.
+ */
+export interface GrandmasterRecord {
+  /** Composite key `${family}|${region}` (e.g. `flags|Oceania`). */
+  key: string;
+  /** `true` once a clean-sweep run certified this family × region (never revoked). */
+  certified: boolean;
+  /** Timestamp the capstone first certified — present once `certified`. */
+  certifiedAt?: number;
+  /** Local day-key (`YYYY-MM-DD`) of the most recent attempt — the daily-cooldown gate. */
+  lastAttemptDay: string;
+}
+
+/**
  * Progression state (Phase 43) — a persisted singleton for the Explorer rank / XP spine. XP itself
  * is *derived* from append-only history + sticky badges (never stored, like the streak), so the
  * only thing that must persist is the **last rank that was celebrated** — enough to fire the
@@ -244,4 +264,10 @@ export interface QuizStore {
   saveProgression(state: ProgressionState): Promise<void>;
   /** Erase the progression state (cleared alongside a progress reset). */
   clearProgression(): Promise<void>;
+
+  // Grandmaster Challenge (Phase 45 — one row per `family|region`: certification + daily cooldown)
+  getGrandmasterRecords(): Promise<GrandmasterRecord[]>;
+  putGrandmasterRecord(record: GrandmasterRecord): Promise<void>;
+  /** Erase all Grandmaster certification + cooldown state (cleared alongside a progress reset). */
+  clearGrandmaster(): Promise<void>;
 }

@@ -39,8 +39,11 @@ export interface AttributeOption {
  * no lives — finishing when the answer pool is exhausted. `blitz` (Phase 42) is time-boxed:
  * the pure engine never ends it (its draw bag refills so only the *clock* stops the run — see
  * `session.ts`), and the UI calls {@link QuizSession.end} when its countdown hits zero.
+ * `challenge` (Phase 44, the "Grandmaster Run") is the gated capstone — a one-life, both-directions
+ * clear-the-board over a whole continent, driven by its own `ChallengeSession` (see `challenge.ts`),
+ * not the single-mode `QuizSession`.
  */
-export type SessionType = 'fixed' | 'survival' | 'training' | 'full' | 'blitz';
+export type SessionType = 'fixed' | 'survival' | 'training' | 'full' | 'blitz' | 'challenge';
 
 /** Optional region / sub-region narrowing of the country pool. */
 export interface RegionFilter {

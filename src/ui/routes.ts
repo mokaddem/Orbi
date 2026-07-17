@@ -2,6 +2,7 @@ import type { RouteDefinition } from 'svelte-spa-router';
 import type { IconName } from './components/icons';
 import Home from './routes/Home.svelte';
 import Play from './routes/Play.svelte';
+import Challenge from './routes/Challenge.svelte';
 import Practice from './routes/Practice.svelte';
 import Summary from './routes/Summary.svelte';
 import History from './routes/History.svelte';
@@ -16,6 +17,7 @@ import NotFound from './routes/NotFound.svelte';
 const routes: RouteDefinition = {
   '/': Home,
   '/play': Play,
+  '/challenge': Challenge,
   '/practice': Practice,
   '/summary': Summary,
   '/history': History,
