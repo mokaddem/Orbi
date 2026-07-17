@@ -404,4 +404,13 @@ describe('Grandmaster Challenge store (Phase 45)', () => {
     expect(gm.certified.size).toBe(0);
     expect(gm.spentToday.size).toBe(0);
   });
+
+  it('a recorded attempt is visible to the next read synchronously (no IDB read/write race)', async () => {
+    // Do NOT await the write: the in-memory mirror is updated before the async IDB put, so a reader
+    // that runs immediately after (e.g. Home/Progress `onMount` right after a forfeit-on-leave) sees
+    // the spent attempt and won't offer another run.
+    const pending = recordChallengeResult('flags', 'Oceania', false, DAY1);
+    expect((await loadGrandmaster(DAY1)).spentToday.has('flags|Oceania')).toBe(true);
+    await pending; // the durable IDB write still lands
+  });
 });

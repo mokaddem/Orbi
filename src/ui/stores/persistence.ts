@@ -143,6 +143,14 @@ export async function initPersistence(): Promise<void> {
   }
   persistent.set(store.persistent);
 
+  // Hydrate the in-memory Grandmaster mirror so certification / cooldown reads are synchronous and
+  // race-free (Phase 45) — see `grandmasterRecords`.
+  try {
+    grandmasterRecords.set(await store.getGrandmasterRecords());
+  } catch {
+    grandmasterRecords.set([]);
+  }
+
   // Keep prefs.language in lockstep with the locale store (the language source of
   // truth), persisting whenever it changes. Bound once.
   if (!localeSyncBound) {
@@ -472,14 +480,20 @@ export function grandmasterKey(family: MasteryFamily, region: string): string {
 }
 
 /**
- * Load Grandmaster certification + today's cooldown from the dedicated `grandmaster` store (Phase 45),
- * fully decoupled from history/XP. Certification is monotonic; `spentToday` reflects attempts made on
- * the current local day. Empty before init or with no runs.
+ * In-memory mirror of the `grandmaster` store's records — the **source of truth for reads**. It is
+ * updated synchronously by {@link recordChallengeResult} (before that call's async IndexedDB write),
+ * so a just-finished run — notably a forfeit written in the arena's route teardown — is visible to the
+ * very next reader (Home / Progress `onMount`) with no read-vs-write race against IndexedDB. Hydrated
+ * by {@link initPersistence}, wiped by {@link clearHistory} / {@link clearTraining}.
  */
-export async function loadGrandmaster(now = Date.now()): Promise<GrandmasterState> {
-  if (!store) return { certified: new Set(), spentToday: new Set() };
+const grandmasterRecords = writable<GrandmasterRecord[]>([]);
+
+/** Derive certification + today's cooldown from a record set, for the given `now`'s local day. */
+function deriveGrandmasterState(
+  records: readonly GrandmasterRecord[],
+  now: number,
+): GrandmasterState {
   const today = localDayKey(now);
-  const records = await store.getGrandmasterRecords();
   const certified = new Set<string>();
   const spentToday = new Set<string>();
   for (const r of records) {
@@ -490,12 +504,22 @@ export async function loadGrandmaster(now = Date.now()): Promise<GrandmasterStat
 }
 
 /**
+ * Load Grandmaster certification + today's cooldown (Phase 45), fully decoupled from history/XP. Reads
+ * the in-memory mirror (hydrated at init, kept current by {@link recordChallengeResult}) so it always
+ * reflects the latest run synchronously. Certification is monotonic; `spentToday` reflects attempts
+ * made on `now`'s local day. Empty before init or with no runs.
+ */
+export async function loadGrandmaster(now = Date.now()): Promise<GrandmasterState> {
+  return deriveGrandmasterState(get(grandmasterRecords), now);
+}
+
+/**
  * Record a finished Grandmaster Run (Phase 45). Stamps today's local day-key as the family × region's
  * last attempt — win *or* lose consumes its daily attempt — and, on a **clean sweep**, certifies it
  * (monotonic: once certified, a later attempt never revokes it, and the first certification time is
- * preserved). Writes **only** to the dedicated `grandmaster` store — never a `SessionRecord` — so a
- * run contributes zero XP / History stats / play-streak. Best-effort (a refused write is swallowed,
- * mirroring {@link saveSession}). No-op before {@link initPersistence}.
+ * preserved). Updates the in-memory mirror **synchronously** (so the next reader can't miss it), then
+ * best-effort persists to the dedicated `grandmaster` store — never a `SessionRecord`, so a run
+ * contributes zero XP / History stats / play-streak. No-op before {@link initPersistence}.
  */
 export async function recordChallengeResult(
   family: MasteryFamily,
@@ -505,21 +529,23 @@ export async function recordChallengeResult(
 ): Promise<void> {
   if (!store) return;
   const key = grandmasterKey(family, region);
+  const existing = get(grandmasterRecords).find((r) => r.key === key);
+  const certified = (existing?.certified ?? false) || passed;
+  // Keep the first certification time; stamp it now only when this run is the one that certifies.
+  let certifiedAt = existing?.certifiedAt;
+  if (certified && certifiedAt === undefined) certifiedAt = now;
+  const record: GrandmasterRecord = {
+    key,
+    certified,
+    lastAttemptDay: localDayKey(now),
+    ...(certifiedAt !== undefined ? { certifiedAt } : {}),
+  };
+  // Mirror first (synchronous — the next reader can't miss it), then persist best-effort.
+  grandmasterRecords.update((rs) => [...rs.filter((r) => r.key !== key), record]);
   try {
-    const existing = (await store.getGrandmasterRecords()).find((r) => r.key === key);
-    const certified = (existing?.certified ?? false) || passed;
-    // Keep the first certification time; stamp it now only when this run is the one that certifies.
-    let certifiedAt = existing?.certifiedAt;
-    if (certified && certifiedAt === undefined) certifiedAt = now;
-    const record: GrandmasterRecord = {
-      key,
-      certified,
-      lastAttemptDay: localDayKey(now),
-      ...(certifiedAt !== undefined ? { certifiedAt } : {}),
-    };
     await store.putGrandmasterRecord(record);
   } catch {
-    // Storage became unwritable — certification / cooldown just won't stick across reloads.
+    // Storage became unwritable — the in-memory mirror still holds for this session.
   }
 }
 
@@ -742,6 +768,7 @@ export async function clearHistory(): Promise<void> {
   // Grandmaster certification + cooldown are trophies too (Phase 45) — reset them alongside badges,
   // so a full progress wipe also clears the gilded cells / prestige and frees the daily attempts.
   await store?.clearGrandmaster();
+  grandmasterRecords.set([]); // keep the in-memory mirror in step with the wipe
 }
 
 /**
@@ -758,4 +785,5 @@ export async function clearTraining(): Promise<void> {
   // Grandmaster certification + cooldown are cleared here too (Phase 45), matching how badges are
   // reset by a training wipe — the capstones are the mastery-track's trophies.
   await store?.clearGrandmaster();
+  grandmasterRecords.set([]); // keep the in-memory mirror in step with the wipe
 }
