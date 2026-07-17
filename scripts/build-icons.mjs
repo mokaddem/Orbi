@@ -57,6 +57,7 @@ const ICONS = {
   // misc UI
   party: 'party-popper',
   check: 'check',
+  lock: 'lock', // locked-achievement tiles on the Progress trophy wall
   clock: 'clock',
   trophy: 'trophy',
   repeat: 'repeat',

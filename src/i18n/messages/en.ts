@@ -421,6 +421,9 @@ const en = {
       earned: '{earned} of {total} earned',
       unlocked: 'Achievement unlocked!',
       dismiss: 'Dismiss',
+      stateEarned: 'Earned',
+      stateLocked: 'Locked',
+      selectHint: 'Tap a badge to see how to earn it.',
       badges: {
         'first-round': { title: 'First round', desc: 'Finish your first session.' },
         'perfect-fixed': {

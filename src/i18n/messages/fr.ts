@@ -407,6 +407,9 @@ const fr: typeof en = {
       earned: '{earned} sur {total} obtenues',
       unlocked: 'Réussite débloquée !',
       dismiss: 'Fermer',
+      stateEarned: 'Obtenue',
+      stateLocked: 'Verrouillée',
+      selectHint: 'Touchez un badge pour voir comment l’obtenir.',
       badges: {
         'first-round': { title: 'Première partie', desc: 'Terminez votre première session.' },
         'perfect-fixed': {

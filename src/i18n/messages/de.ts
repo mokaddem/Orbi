@@ -414,6 +414,9 @@ const de: typeof en = {
       earned: '{earned} von {total} erhalten',
       unlocked: 'Erfolg freigeschaltet!',
       dismiss: 'Schließen',
+      stateEarned: 'Erhalten',
+      stateLocked: 'Gesperrt',
+      selectHint: 'Tippe auf ein Abzeichen, um zu sehen, wie du es erhältst.',
       badges: {
         'first-round': { title: 'Erste Runde', desc: 'Beende deine erste Runde.' },
         'perfect-fixed': {

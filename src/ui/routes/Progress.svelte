@@ -510,7 +510,7 @@
           </div>
           {#if extraAchievements.length > 0}
             <h3 class="subhead">{$t('progress.extras.badgesTitle')}</h3>
-            <AchievementsGrid achievements={extraAchievements} />
+            <AchievementsGrid achievements={extraAchievements} groupByTopic />
           {/if}
         </div>
       {/if}
