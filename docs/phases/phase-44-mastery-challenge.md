@@ -243,6 +243,18 @@ challenge is a natural XP event.
   drive of a small region.
 
 ## Progress log
+- **2026-07-17 — ③d "Progress-only" entry partially reversed by [Phase 45](phase-45-grandmaster-cinematic-ui.md) ⑥.**
+  Stage ③d scoped the entry points to **Progress only** (no Home chip / Play-setup card). Phase 45 ⑥ adds a
+  **Home-screen invitation card** as a *discovery* surface (shown only when ≥ 1 family × continent is
+  attemptable today); it either opens the same offer modal (one available) or hands off to Progress (more
+  than one). The **Progress launch mechanic is unchanged** — this is an additional entry point, not a
+  replacement. Play-setup remains out of scope. See Phase 45's ⑥ progress-log entry.
+- **2026-07-16 — Superseded end-flow now replaced by [Phase 45](phase-45-grandmaster-cinematic-ui.md) ⑤.**
+  This phase's `saveSession` + `/summary` finish and its `SessionRecord`-driven capstone certification
+  are now fully replaced: a finished run writes to a dedicated **`grandmaster` IDB store** (no
+  `SessionRecord`), so a run grants **no XP / stats / streak**; the 15 capstones were removed from the
+  `ACHIEVEMENTS` catalog (XP-neutral), and gilding/prestige read the new store. The functional mechanic
+  documented below (unlock, one-life queue, grading, pickers, the 15 capstones, audio) is unchanged.
 - **2026-07-16 — Presentation split out to [Phase 45](phase-45-grandmaster-cinematic-ui.md).** Owner
   decisions: build the full locked cinematic UI ([`gauntlet-ui-spec.md`](../gauntlet-ui-spec.md)); the
   challenge grants **no XP** and shows **no Summary** (in-arena victory bloom / runover instead —

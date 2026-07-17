@@ -1,6 +1,9 @@
 # Phase 45 — Grandmaster Challenge: cinematic arena + standalone (no-XP) test flow + daily cooldown
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started · **Progress:** 0%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In review · **Progress:** 100% —
+all sub-phases ①–⑥ complete (theme + arena HUD + offer modal & cinematic entry + in-arena victory bloom /
+runover + the no-XP `grandmaster` store & daily cooldown + the **Home-screen invitation card**),
+feature-complete + pending owner review + merge.
 · **Track:** v2.7 — Mastery capstone (the presentation half of [Phase 44](phase-44-mastery-challenge.md))
 
 > ## ⚠️ Process requirement — get an explicit "go" before building (MANDATORY)
@@ -104,7 +107,9 @@ purely the **visual/UX + flow** half. It pairs 1:1 with those cues.
 - Any change to the run's **domain rules / mastery / SR** or to normal fixed/survival/full/training/
   blitz runs.
 - The **audio** (already shipped).
-- **Home / Play** entry points — Progress-only stays (Phase 44 ③d).
+- **Play**-setup entry point — still out (keeps `Play.svelte` untouched). *(The **Home** entry is now
+  **in** scope as ⑥ — an owner reversal of the Phase-44 ③d "Progress-only" line, for a discovery card
+  only; the Progress launch mechanic is unchanged. See ⑥ below + the 2026-07-16 progress-log entry.)*
 - New game modes; World / sub-region challenges (continents only, unchanged).
 
 ## Depends on
@@ -114,25 +119,43 @@ surfaces), Phase 16 (achievements / the capstone certification), Phase 6 (persis
 in fact this phase *removes* the challenge's XP contribution to it.
 
 ## Deliverables checklist
-- [ ] `--g-*` theme tokens + arena keyframes in `app.css`; `GrandmasterCrest.svelte`.
-- [ ] Cinematic HUD in `Challenge.svelte`: topbar (beating life + gold counter + Forfeit), tier
+- [x] `--g-*` theme tokens + arena keyframes in `app.css`; `GrandmasterCrest.svelte`. *(sub-phase ①)*
+- [x] Cinematic HUD in `Challenge.svelte`: topbar (beating life + gold counter + Forfeit), tier
       sidebar (heat fill + notches wired to `cleared/total` + the tier effect), embers canvas, heat
-      vignette, restyled pickers/feedback, teal-glow correct.
-- [ ] `GauntletOfferModal.svelte` (dynamic stakes) launched from the Progress entry card; the
-      accept→dim→title→HUD transition; the `enter` cue moved to the transition.
-- [ ] In-arena **victory bloom** + **runover**; remove the `/summary` challenge branch +
-      `retryChallenge()`; Return → `/progress`.
-- [ ] Dedicated `grandmaster` IDB store (+ `QuizStore` methods) holding per-`family|region`
+      vignette, restyled pickers/feedback, teal-glow correct. *(sub-phase ② — pickers go dark via
+      scoped `--color-*` token overrides on `.gauntlet`; the run's end-flow is unchanged for now)*
+- [x] `GauntletOfferModal.svelte` (dynamic stakes) launched from the Progress entry card; the
+      accept→dim→title→HUD transition; the `enter` cue paired with the transition. *(sub-phase ③ —
+      the cooldown row is informational for now; the actual once-a-day gate lands in ⑤)*
+- [x] In-arena **victory bloom** + **runover**; remove the `/summary` challenge branch +
+      `retryChallenge()`; Return → `/progress`. *(sub-phase ④ — `saveSession` (XP/cert) stays until ⑤)*
+- [x] Dedicated `grandmaster` IDB store (+ `QuizStore` methods) holding per-`family|region`
       certified flag/date + last-attempt day-key; the finish writes here, **not** `saveSession`.
-- [ ] No-XP standalone flow — a run contributes nothing to XP/stats/streak; the 15 capstones move off
-      the XP-counted achievements path (XP-neutral); gilding + prestige + the badge toast read the
-      `grandmaster` store.
-- [ ] Daily cooldown (once/day per family×region) off the same store: entry-card badge + countdown,
-      modal gating, "Try again" removed.
-- [ ] EN/FR/DE copy; `messages.test.ts` parity green.
-- [ ] Tests (component + pure + headless real-app clean-sweep & fatal-miss on a small continent).
-- [ ] Fast loop green (`test` / `check` / `lint`); reduced-motion verified; both PRDs + the Status
-      Table updated.
+      *(sub-phase ⑤ — DB v6, `GrandmasterRecord`, idb + memory adapters + contract tests)*
+- [x] No-XP standalone flow — a run contributes nothing to XP/stats/streak; the 15 capstones moved off
+      the XP-counted achievements path (XP-neutral); gilding + prestige + the "Certified!" toast read
+      the `grandmaster` store. *(⑤ — `recordChallengeResult` replaces `saveSession`; the capstone
+      catalog entries + `grandmasterCertified` removed; `challengeSessionSummary`/`sessionSummary()`
+      dropped as dead code)*
+- [x] Daily cooldown (once/day per family×region) off the same store: entry-cell clock affordance +
+      countdown, modal gating (Accept removed + countdown), "Try again" gone. *(⑤)*
+- [x] EN/FR/DE copy (`challenge.certifiedToast`, `challenge.cooldown.next`, `challenge.offer.close`);
+      `messages.test.ts` parity green. *(⑤)*
+- [x] Tests (component `GauntletOfferModal` cooldown + `FamilyRegionBreakdown` cooldown; pure store
+      certification/monotonicity/cooldown-reset/no-history; headless real-app **clean-sweep** (certifies,
+      no SessionRecord) **and fatal-miss** (runover → spent-uncertified → cell on cooldown) drives). *(⑤)*
+- [x] Fast loop green (`test` / `check` / `lint`); reduced-motion verified; both PRDs + the Status
+      Table updated. *(⑤)*
+- [x] **⑥ Home-screen invitation card** (approved 2026-07-16; landed): a new
+      `GrandmasterInviteCard.svelte` (the ceremonial dark-teal `.gm-invite` — crowned crest,
+      "Grandmaster Challenge" title, one-line body, an "Available today" badge, gold "Enter the
+      gauntlet →" CTA), shown on **Home only** and **only when ≥ 1 challenge is available** (unlocked &
+      uncertified & not-spent-today, via a new pure `availableChallenges`). Click: exactly one available
+      → open the `GauntletOfferModal` on Home → Accept → `/challenge`; more than one →
+      `focusMastery.set(true)` + `push('/progress')` and Progress scrolls its World Mastery panel into
+      view (brief highlight, reduce-motion-safe) then clears the flag. **Progress stays exactly as-is.**
+      New `focusMastery` writable; `challenge.invite.*` EN/FR/DE copy; `availableChallenges` +
+      `GrandmasterInviteCard` + Home-integration tests + a headless drive of all three branches.
 
 ## Technical notes
 - **Theme scoping.** Put the arena under a scoping class/attribute so `--g-*` applies only inside it;
@@ -196,6 +219,176 @@ and a run **does not** count toward the play-streak. One minor item remains:
   clean-sweep & fatal-miss drive on a small continent.
 
 ## Progress log
+- **2026-07-17 — Offer modal: added a rough duration estimate (owner request).** The `GauntletOfferModal`
+  stakes grid is now three cells — **Questions · ~N min · Life** — so the player also sees how long a
+  clean sweep roughly takes before committing. A new pure `estimateChallengeMinutes(slots)` (domain,
+  beside `challengeSlotCount`) at `CHALLENGE_SECONDS_PER_SLOT = 6` (~1.2 s correct-answer dwell +
+  ~4.8 s to answer), rounded, floored at 1; shown with a "~" and styled muted (`--g-dim`) so the two
+  real stakes (gold questions / crimson life) still lead. New i18n `challenge.offer.timeLabel`
+  (EN/FR "min", DE "Min."). Applies to **both** entry points (Progress cell + the Home invitation
+  card) since they share the modal. Tests: `estimateChallengeMinutes` (pace/round/floor) +
+  a modal "~N min" assertion. **798 tests**, check/lint clean; headless capture confirms the modal
+  renders `108 Questions · ~11 min · 1 Life` for Africa flags.
+- **2026-07-17 — Sub-phase ⑥ landed (Home Grandmaster invitation card); explicit owner go-ahead.**
+  The ceremonial entry card is back — on **Home only**, as an *invitation* (Progress keeps its per-cell
+  "prove it" crowns + cooldown clocks + gilding/prestige, **unchanged**). **Component:** a new
+  `GrandmasterInviteCard.svelte` — the dark-teal `--g-*` `.gm-invite` (crowned `GrandmasterCrest`, a gold
+  "Available today" pill, the gradient-clip serif "Grandmaster Challenge" title, a one-line body, and the
+  chunky gold "Enter the gauntlet →" CTA, echoing the offer modal's Accept). Purely presentational — Home
+  owns visibility + routing via an `onenter` callback. **Visibility:** a new pure
+  `availableChallenges(mastery, certified, spentToday)` (domain) lists every family × continent that is
+  unlocked (`isChallengeUnlocked`), **not** certified, and **not** spent today; Home renders the card only
+  when that list is non-empty (a player with nothing attemptable never sees it). Home now also
+  `loadGrandmaster()`s alongside its existing `loadMastery()`. **Routing (owner-specified):** *exactly one*
+  available → open the `GauntletOfferModal` **on Home** (reusing Progress's accept path — `challenge.reset`,
+  `lastChallengeSummary.set(null)`, stage `pendingChallenge`, `push('/challenge')`); *more than one* → a new
+  `focusMastery` writable set true + `push('/progress')`, where a new Progress effect brings its **World
+  Mastery** panel into view (`scrollIntoView`) with a one-shot `.mastery-focus` accent pulse, then clears
+  the flag (both the smooth scroll and the pulse are dropped under reduce-motion — OS query or the in-app
+  pref — and the pulse keyframe is also `@media`-guarded). New i18n `challenge.invite.{title,body,cta,available}`
+  (EN/FR/DE), parity green. Tests: `availableChallenges` (lists/excludes certified+spent+partial+empty),
+  `GrandmasterInviteCard` (content + CTA fires `onenter`), and a mocked-mastery `Home.invite.test.ts`
+  (hidden at 0 · single→offer modal→`pendingChallenge`+`/challenge` · multi→`focusMastery`+`/progress`).
+  Fast loop: **795 tests** (+9), `check` 0/0, `lint` clean. **Headless Puppeteer drive (5180, fresh IDB per
+  branch, no console errors):** SINGLE (Flags×Oceania mastered) → the card shows → CTA opens the offer modal
+  naming Flags·Oceania → Accept mounts the cinematic arena; MULTI (Flags + Capitals ×Oceania) → the card →
+  CTA routes to `/progress` and spotlights the World Mastery panel; HIDDEN (nothing mastered) → no card.
+  This reverses the Phase-44 ③d "Progress-only / Home out of scope" line (discovery surface only). **Phase 45
+  is now feature-complete across ①–⑥, pending owner review + merge.**
+- **2026-07-16 — ⑥ Home invitation card APPROVED (owner); NOT yet built (next session).** Reviewing
+  the original prototype ([entry-flow Artifact](https://claude.ai/code/artifact/72a9ff88-f1aa-433b-a774-03c89d5e4a3f)),
+  the owner noted the build had dropped the artifact's **prominent ceremonial entry card** in favour of
+  the quiet per-cell "prove it" crown (the Phase-44 ③d "Progress-only" call, made when the design
+  pivoted from one World/100-question run to 15 per-family×continent runs). Decision: **bring the card
+  back — on the Home screen only, as an *invitation*** in case the player misses the Progress entry.
+  **Progress stays exactly as-is** (per-cell prove-it crowns + cooldown clocks + gilded/prestige).
+  Locked spec for the build:
+  - **Component:** a new `GrandmasterInviteCard.svelte` matching the artifact's `.gm-card` — dark-teal
+    gradient, the `GrandmasterCrest`, a "Grandmaster Challenge" title, a one-line body ("prove a
+    mastered family — every country, both directions, one life"), an **"Available today"** badge, and
+    the gold **"Enter the gauntlet →"** CTA. Styled via the existing `--g-*` tokens.
+  - **Visibility:** Home only; render **only when ≥ 1 challenge is *available*** = family × continent
+    that is unlocked (`isChallengeUnlocked`) **and** not certified **and** not spent today (from
+    `loadGrandmaster`). Hidden otherwise (a player with nothing attemptable never sees it). Home already
+    loads `mastery`; add a `loadGrandmaster()` read.
+  - **Click behaviour (owner-specified):** *exactly one* available → open the `GauntletOfferModal` on
+    Home for that run (spent=false) → Accept stages `pendingChallenge` + routes to `/challenge` (reuse
+    Progress's accept path); *more than one* available → `focusMastery.set(true)` + `push('/progress')`,
+    and Progress scrolls its **World Mastery** panel into view with a brief (reduce-motion-safe)
+    highlight, then clears the flag. (Owner-confirmed defaults: the single case goes **through the offer
+    modal**, not straight into the arena; the card shows **only when something is attemptable today**.)
+  - **Plumbing:** a new `focusMastery` writable (alongside `pendingChallenge`); Progress binds its
+    mastery-panel element + honours the flag on load. New i18n `challenge.invite.{title,body,cta,available}`
+    (EN/FR/DE), parity green. Tests: `GrandmasterInviteCard` component, Home (shows at ≥1 / hidden at 0 /
+    single→modal / multi→`/progress`+`focusMastery`), and a headless drive of both branches.
+- **2026-07-16 — Sub-phase ⑤ landed (the `grandmaster` store · no-XP standalone flow · daily
+  cooldown); explicit owner go-ahead.** The challenge is now a fully standalone test, decoupled from
+  history/XP. **Store:** a new `grandmaster` IDB object store (DB v6, additive upgrade) with a
+  `GrandmasterRecord { key: "family|region", certified, certifiedAt?, lastAttemptDay }` in both the
+  IDB + memory adapters and a `QuizStore` contract test. **No-XP finish:** `Challenge.svelte`'s
+  `finalize()` no longer calls `saveSession` — it calls `recordChallengeResult(family, region, passed)`,
+  which always stamps today's local day-key (win *or* lose consumes the family×region's daily attempt)
+  and certifies on a clean sweep (monotonic — never revoked). No `SessionRecord` ⇒ **zero XP / stats /
+  streak** falls out for free. **XP-neutral capstones:** the 15 `grandmaster-*` entries + the
+  `grandmasterCertified` predicate were removed from `ACHIEVEMENTS` (so earning one adds no XP);
+  Progress's gilding + the "Grandmaster X/15" prestige now read `loadGrandmaster()`, and a clean sweep
+  hands a session-scoped `justCertified` to a gold "Certified!" toast (the in-arena victory bloom is
+  the primary celebration). The now-dead `challengeSessionSummary` (domain) + `sessionSummary()` (store)
+  adapters were deleted. **Cooldown:** a spent-today, fully-mastered-uncertified family cell shows a
+  muted **clock** in place of the gold "prove it" crown; tapping it opens the offer modal in a cooldown
+  state — the **Accept button is removed** and the informational line becomes a gold **countdown**
+  ("Next attempt in {time}", to local midnight). A wipe (`clearHistory`/`clearTraining`) clears the
+  store too. New i18n `challenge.certifiedToast` / `challenge.cooldown.next` / `challenge.offer.close`
+  (EN/FR/DE). Tests: the `grandmaster` contract test, a persistence-level suite (certify + no
+  `SessionRecord`, fail-spends-not-certifies, monotonic, cooldown resets next day, reset wipes), the
+  modal's cooldown state, and the breakdown's cooldown affordance. Fast loop: **786 tests**, `check`
+  0/0, `lint` clean. **Headless real-app drives (Puppeteer / 5180), both confirmed with no console
+  errors:** (a) *clean sweep* — a full 28-slot Capitals×Oceania run reaches the victory bloom, then
+  Progress gilds the cell with the prestige at **1 / 15**, and the run wrote **no `SessionRecord`**
+  (sessions unchanged ⇒ XP-neutral); a pre-spent Flags row shows the cooldown clock + a gated modal
+  (countdown, no Accept). (b) *fatal miss* — a deliberately-wrong first pick shows the in-arena
+  **runover**, records Capitals×Oceania as **spent-but-uncertified** with **no `SessionRecord`**, and
+  the cell then reads "Next attempt in …" (prestige stays 0 / 15). **Phase 45 is feature-complete,
+  pending owner review + merge.**
+- **2026-07-16 — Sub-phase ④ landed (in-arena end screens; off the /summary route); explicit owner
+  go-ahead.** A finished run now ends **in the arena** — `Challenge.svelte`'s `finalize()` stops routing
+  to `/summary` and instead reveals a self-contained `ended` overlay (`{ passed, cleared, total, missed }`),
+  with **Return → /progress**. **Victory (clean sweep):** a golden-bloom over the dark-teal ground — a
+  slow rotating conic **ray field** (`gm-spin`, radially masked), a new **`GauntletConfetti.svelte`**
+  gold/teal confetti canvas (capped, paused when hidden, not mounted under reduce-motion), the floating
+  crowned crest, a "★ World Grandmaster" pill, the shimmering serif **GRANDMASTER** title (`gm-shimmer`),
+  "You cleared all N — flawless.", Return, and the "Come back tomorrow." line. **Runover (fatal miss):**
+  a somber dimmed crest, "The challenge ends here", "You cleared X of N", the crimson "Missed on {country}"
+  chip, Return, cooldown line. Only the end **content** fades in (`gm-hudin`) over an opaque ground, so the
+  app shell never peeks through the reveal (caught + fixed in the headless drive). Per the PRD's own
+  staging, **`saveSession` (and thus XP + the current capstone certification) stays for now** — the no-XP
+  `grandmaster`-store swap is ⑤; the cooldown line is still informational. Removed the superseded
+  `/summary` challenge surface: `Summary.svelte`'s `type === 'challenge'` branch (meta / crown hero /
+  fail hero / "Try again" / the certified burst) and `retryChallenge()`, plus the dead `challenge.summary.*`
+  i18n and the `masteryFamilyOf` import; added `challenge.victory.*` / `challenge.runover.*` /
+  `challenge.endReturn` / `challenge.endCooldown` (EN/FR/DE). Tests: rewired the two Challenge route tests
+  (miss → runover; clean sweep → victory bloom) + new Return-resets + runover-count tests; dropped the
+  Summary Grandmaster describe block. Fast loop: **787 tests**, `check` 0/0, `lint` clean; a headless drive
+  (seeded Oceania×Flags, isolated browser per outcome) confirms a full 28-slot clean sweep → the victory
+  bloom (rays + confetti + shimmer) and a fatal miss → the runover, both **full-screen with no console
+  errors**. **Remaining: ⑤ the `grandmaster` IDB store + no-XP flow (drop `saveSession`; XP-neutral
+  capstones; re-point gilding/prestige) + daily cooldown.**
+- **2026-07-16 — Sub-phase ③ landed (offer modal + cinematic entry); explicit owner go-ahead.**
+  The Progress "prove it" cell no longer launches the run directly — it opens a gated ceremonial
+  **`GauntletOfferModal.svelte`** (owner picks: keep the cell as-is; include the cooldown line). The
+  modal reuses `ConfirmDialog`'s plumbing (role=dialog + aria-modal, initial focus on Accept, Escape /
+  backdrop dismiss), restyled dark-teal via the `--g-*` tokens: the crowned crest, a gold gradient-clip
+  serif title, a `{family} · {region}` subtitle, a **two-cell stakes grid** whose "N Questions" is the
+  run's **real** slot count — a new pure `challengeSlotCount(family, countries)` (the `2 × N` minus
+  map-ineligible countries, no throwaway shuffle) — beside the crimson "1 Life", the crimson-ruled
+  "One wrong answer ends the challenge." warning, the informational "One attempt a day · resets at
+  midnight" line (the actual gate is ⑤), and Not-yet / gold **Accept the challenge** actions.
+  `Progress.svelte`'s `launchChallenge` now just opens the modal; a new `acceptChallenge` stages
+  `pendingChallenge` + routes into the arena on Accept. In `Challenge.svelte`, Accept now plays a
+  **cinematic entry**: the arena mounts on a dim ground, the ceremonial serif title (`challenge.intro.title`
+  "Enter the Gauntlet") blooms via `gm-titlein` with the floating crest + `{family} · {region}` subtitle,
+  then the overlay crossfades out as the HUD fades in (a three-beat `intro → leaving → live` with two
+  timers, cleared on teardown). The `enter` cue is paired with the bloom (audio-only under reduce-motion,
+  which skips the visual entirely — `introPhase` stays `live`). New i18n `challenge.offer.*` +
+  `challenge.intro.*` (EN/FR/DE). Tests: `challengeSlotCount` (domain), `GauntletOfferModal` (dynamic N,
+  accept/decline/Escape/backdrop, closed = nothing), and the intro transition (bloom → HUD, reduce-motion
+  skip + cue still plays) in `Challenge.test.ts`. Fast loop: **788 tests** (+10), `check` 0/0, `lint`
+  clean; a headless Chrome drive (seeded Oceania×Flags mastery → Progress "prove it" → modal → Accept →
+  intro → HUD) confirms the whole flow with **no console errors** (modal shows the real 28-slot count).
+  **Remaining: ④ victory bloom + runover (rewire `finalize()` off `saveSession`/`/summary`), ⑤ the
+  `grandmaster` IDB store + no-XP flow + daily cooldown + capstone-XP-neutrality.**
+- **2026-07-16 — Sub-phases ①–② landed (theme + arena HUD); paused for a live look (owner cadence).**
+  Building on the **same `phase-44-mastery-challenge` branch** (owner pick). **①** added the scoped
+  `--g-*` dark-teal token set + the `gm-*` arena keyframes to `app.css` (with an arena-scoped
+  `prefers-reduced-motion` guard) and a new `GrandmasterCrest.svelte` (crowned-Orbi globe, self-palette,
+  `aria-hidden`). **②** reskinned `Challenge.svelte` into the dark-teal HUD: a **full-screen** `.gauntlet`
+  takeover (`position: fixed`, `z-index: 70` — covering the tab bar / rail / appbar, so the only exit is
+  **Forfeit**; an owner-review change from the first in-shell bleed, which read as weird) that
+  **re-defines the core `--color-*` tokens for its subtree**, so the child pickers (`ChoiceGrid` /
+  `ChallengeSearchList`) render dark-teal *by inheritance* — no change to those files (Phase 12 token
+  architecture). The quit affordance was renamed **Forfeit** (`challenge.hud.quit`: EN "Forfeit" / FR
+  "Abandonner" / DE "Aufgeben"). New: a topbar (serif teal run title, gold `cleared/total`
+  tabular-nums counter, a **beating** crimson heart, Forfeit); the **vertical tier sidebar** (bottom-anchored
+  heat fill = `cleared/total`, gold→ember `--heat` via `color-mix`, a bright leading edge, nine N/10 notches
+  that light as passed and **flash white on crossing** — driven by the **same** `bedTierFor` `$effect` that
+  fires the Surge cue + `setBedTier`, so audio + visuals escalate in lockstep); an **ambient-embers** canvas
+  (`GauntletEmbers.svelte` — capped, paused when hidden, tier-reactive without restarting, static-gradient
+  fallback under reduce-motion); a **heat vignette** (inset glow `color-mix`ing `--heat`, 0.8s transition);
+  and a fatal-miss **shake + white flash**. Behavior is **unchanged** this sub-phase — a finished run still
+  routes to `/summary` (the no-XP / in-arena end-flow is ④–⑤). A read-write-same-`$state` effect loop
+  (`+= 1` inside the tier/verdict effects) was avoided by keying the notch pop on the strictly-increasing
+  `flashedTier` and the miss flash on a plain boolean. Fast loop: **778 tests**, `check` 0/0, `lint` clean;
+  a headless Chrome drive (seeded Oceania mastery → Progress "prove it" → `/challenge`) confirms the arena
+  renders on desktop + mobile with **no console errors**. Owner-review polish: the internally-scrolled
+  pickers (search list / flag grid) now **fade** their overflow into the ground (a bottom `mask-image` +
+  matched padding) instead of a hard clip through a row; the HUD run title moved to the uppercase,
+  tracked **UI font** (the serif `--g-display` is reserved for the ceremonial modal / victory titles); and
+  the type-ahead search now **clears on every pick** (the fixed whole-continent pool means the options never
+  change between questions, so the existing "options changed → reset" guard never fired — the typed text
+  used to linger into the next question).
+  **Remaining: ③ offer modal + cinematic transition
+  (move the `enter` cue there), ④ victory bloom + runover (rewire `finalize()` off `saveSession`/`/summary`),
+  ⑤ the `grandmaster` IDB store + no-XP flow + daily cooldown + capstone-XP-neutrality.**
 - **2026-07-16 — OQ1–OQ3 locked (owner).** Capstones are **XP-neutral**; certification **and** the
   daily cooldown live in a **dedicated `grandmaster` IDB store** (the finish writes there, not
   `saveSession`); a run **does not** count toward the play-streak. Only the exact cooldown copy
