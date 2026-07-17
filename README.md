@@ -31,10 +31,13 @@ No account. No backend. No network required after the first load. Just you and 1
 - 🚩 **Match flags to names** — both directions, all 195 of them.
 - 🏛️ **Guess capitals**, 🈯 **national languages** and 🏭 **main industries**.
 - 🎯 **Play your way** — a quick 10, sudden-death **Survival**, or a full **Grand Tour** of a whole region.
+- ⚡ **Race the clock in Blitz** — a timed speed-run scored on speed, with a rising **combo multiplier** (up to ×5, and tighter the higher you climb) and a local personal best.
 - 🌍 **Zoom in anywhere** — the World, one continent, or a single sub-region.
 - 🧠 **Train your mistakes** — spaced repetition (SM-2) resurfaces exactly the countries you fumble.
 - 🔥 **Build a streak** with a fresh **Daily Challenge**, and collect **achievements** as you go.
+- 🏅 **Climb the Explorer ranks** — every game feeds one growing **XP** total across a 10-tier ladder, from Novice to Legendary Explorer.
 - 📈 **Watch mastery grow** — per-region progress, history and weekly recaps.
+- 👑 **Take the Grandmaster Challenge** — once you've mastered a region, prove it in a **one-life, no-mistakes gauntlet** that certifies your mastery for good.
 - 📖 **Browse the Atlas** — every country and region, with a "Did you know?" fact for each.
 - 🌐 **Switch language on the fly** — English, French and German, UI *and* country names.
 - 📴 **Install it & go offline** — it's a full PWA; after the first visit, everything works with no connection.
@@ -103,7 +106,7 @@ A deliberately lean, fully client-side single-page app:
 **Svelte 5** + **Vite** + **TypeScript** · **D3-geo** + **TopoJSON** maps · bundled **SVG flags** ·
 **IndexedDB** for your progress · **hash routing** so it hosts anywhere static · installable,
 Workbox-powered **PWA**. Domain logic (quiz generation, scoring, spaced repetition) is kept pure
-and framework-free, covered by a **Vitest** suite (500+ tests).
+and framework-free, covered by a **Vitest** suite (800+ tests).
 
 Curious how it was built? The whole thing was developed phase-by-phase against a product spec —
 see [`docs/main_PRD.md`](docs/main_PRD.md).
