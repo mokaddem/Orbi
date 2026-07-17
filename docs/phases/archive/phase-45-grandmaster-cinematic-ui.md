@@ -1,9 +1,9 @@
 # Phase 45 — Grandmaster Challenge: cinematic arena + standalone (no-XP) test flow + daily cooldown
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In review · **Progress:** 100% —
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100% —
 all sub-phases ①–⑥ complete (theme + arena HUD + offer modal & cinematic entry + in-arena victory bloom /
 runover + the no-XP `grandmaster` store & daily cooldown + the **Home-screen invitation card**),
-feature-complete + pending owner review + merge.
+feature-complete; reviewed + merged to main (818 tests).
 · **Track:** v2.7 — Mastery capstone (the presentation half of [Phase 44](phase-44-mastery-challenge.md))
 
 > ## ⚠️ Process requirement — get an explicit "go" before building (MANDATORY)
@@ -28,10 +28,10 @@ The **audio** (the five cues + escalating bed) is already shipped and wired
 purely the **visual/UX + flow** half. It pairs 1:1 with those cues.
 
 ## Design references (read these first)
-- **[`docs/gauntlet-ui-spec.md`](../gauntlet-ui-spec.md)** — the locked visual spec: exact dark-teal
+- **[`docs/gauntlet-ui-spec.md`](../../gauntlet-ui-spec.md)** — the locked visual spec: exact dark-teal
   tokens, the crowned-Orbi crest SVG, sidebar dimensions (desktop/mobile), every keyframe, modal
   copy, and the victory bloom. Derived from the owner-auditioned prototype (linked inside).
-- **[`docs/gauntlet-audio-spec.md`](../gauntlet-audio-spec.md)** — the audio half (✅ implemented).
+- **[`docs/gauntlet-audio-spec.md`](../../gauntlet-audio-spec.md)** — the audio half (✅ implemented).
 - The current implementation lives on branch **`phase-44-mastery-challenge`**
   (`Challenge.svelte`, the `challenge` store/domain, the Progress reward). Re-confirm file:line refs.
 
@@ -419,7 +419,7 @@ and a run **does not** count toward the play-streak. One minor item remains:
   match — the handover is now design-complete; the implementing session need only confirm the copy
   and get an explicit go.
 - **2026-07-16 — PRD drafted for handover.** Owner resolved the forks: build the full locked
-  cinematic UI ([`gauntlet-ui-spec.md`](../gauntlet-ui-spec.md)); challenge grants **no XP** and shows
+  cinematic UI ([`gauntlet-ui-spec.md`](../../gauntlet-ui-spec.md)); challenge grants **no XP** and shows
   **no Summary** (in-arena victory bloom / runover instead); cooldown **once/day per family×region**;
   tracked as a **new phase (45)** with [Phase 44](phase-44-mastery-challenge.md) cross-updated. Audio
   already shipped (Phase 44 follow-on). **Not built** — awaiting the implementing session's confirm +

@@ -1,6 +1,6 @@
 # Phase 44 — Mastery Challenge (capstone / "prove-it" run)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 In review · **Progress:** ~100% — functional mechanic + audio feature-complete (pending review + merge)
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done · **Progress:** 100% — functional mechanic + audio feature-complete; reviewed + merged to main.
 · **Track:** v2.7 — Mastery capstone
 
 > **↪ Presentation handed to [Phase 45](phase-45-grandmaster-cinematic-ui.md) (owner, 2026-07-16).**
@@ -256,7 +256,7 @@ challenge is a natural XP event.
   `ACHIEVEMENTS` catalog (XP-neutral), and gilding/prestige read the new store. The functional mechanic
   documented below (unlock, one-life queue, grading, pickers, the 15 capstones, audio) is unchanged.
 - **2026-07-16 — Presentation split out to [Phase 45](phase-45-grandmaster-cinematic-ui.md).** Owner
-  decisions: build the full locked cinematic UI ([`gauntlet-ui-spec.md`](../gauntlet-ui-spec.md)); the
+  decisions: build the full locked cinematic UI ([`gauntlet-ui-spec.md`](../../gauntlet-ui-spec.md)); the
   challenge grants **no XP** and shows **no Summary** (in-arena victory bloom / runover instead —
   superseding this phase's `saveSession` + `/summary` finish); cooldown **once/day per family×region**.
   Tracked in Phase 45; this PRD stays the record of the functional mechanic + audio. Remaining
