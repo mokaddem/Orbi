@@ -34,6 +34,13 @@ export interface RunConfig {
    * sessions; distractors still come from the whole world. Unknown codes are dropped.
    */
   answerPoolIso?: string[];
+  /**
+   * Explicit `(mode, iso2)` question slots, overriding `answerPoolIso`/`filter`. Set by the
+   * combined region×family practice run (Phase 41 follow-on) to interleave both of a family's
+   * directions in one session; each question then carries its own slot's mode. The map frames to
+   * the regions these codes belong to, exactly as `answerPoolIso` does.
+   */
+  answerSlots?: { mode: GameMode; iso2: string }[];
   fixedLength?: number;
   lives?: number;
   choices?: number;
@@ -112,12 +119,21 @@ function createPlayStore() {
       // instead of failing. `filter` is still passed so the summary records what was played.
       let countries: readonly Country[];
       let answerPool: Country[] | undefined;
-      if (cfg.answerPoolIso && cfg.answerPoolIso.length) {
-        const byIso = new Map(all.map((c) => [c.iso2, c]));
-        answerPool = cfg.answerPoolIso
-          .map((iso) => byIso.get(iso))
-          .filter((c): c is Country => !!c);
-        countries = all;
+      // A multi-mode slot queue (combined practice) also tiers distractors against the whole world,
+      // so its universe is the full list too; the engine reads `answerSlots` directly.
+      if (
+        (cfg.answerSlots && cfg.answerSlots.length) ||
+        (cfg.answerPoolIso && cfg.answerPoolIso.length)
+      ) {
+        if (cfg.answerSlots && cfg.answerSlots.length) {
+          countries = all;
+        } else {
+          const byIso = new Map(all.map((c) => [c.iso2, c]));
+          answerPool = cfg
+            .answerPoolIso!.map((iso) => byIso.get(iso))
+            .filter((c): c is Country => !!c);
+          countries = all;
+        }
       } else {
         countries = filterCountries(all, cfg.filter);
       }
@@ -128,6 +144,7 @@ function createPlayStore() {
         countries,
         filter: cfg.filter,
         answerPool,
+        answerSlots: cfg.answerSlots,
         fixedLength: cfg.fixedLength,
         lives: cfg.lives,
         choices: cfg.choices,
@@ -363,10 +380,17 @@ export function focusIsosForConfig(
   if (cfg.filter && (cfg.filter.region || cfg.filter.subregion)) {
     return filterCountries(countries, cfg.filter).map((c) => c.iso2);
   }
-  if (cfg.answerPoolIso && cfg.answerPoolIso.length) {
+  // The pooled codes: an explicit answer pool, or (combined practice) the slot queue's countries.
+  const poolIsos =
+    cfg.answerPoolIso && cfg.answerPoolIso.length
+      ? cfg.answerPoolIso
+      : cfg.answerSlots && cfg.answerSlots.length
+        ? cfg.answerSlots.map((s) => s.iso2)
+        : null;
+  if (poolIsos) {
     const byIso = new Map(countries.map((c) => [c.iso2, c]));
     const regions = new Set<string>();
-    for (const iso of cfg.answerPoolIso) {
+    for (const iso of poolIsos) {
       const region = byIso.get(iso)?.region;
       if (region) regions.add(region);
     }

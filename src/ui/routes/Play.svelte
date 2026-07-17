@@ -890,6 +890,10 @@
     {@const s = view.state}
     {@const question = view.question}
     {@const cfg = view.config}
+    <!-- The mode of the question on screen. Equals `cfg.mode` for an ordinary single-mode run, but a
+         combined practice run interleaves both of a family's directions, so the prompt / board /
+         choices key off the *question's* mode, not the session's. -->
+    {@const qMode = question.mode}
     {@const total = cfg.fixedLength ?? $prefs.fixedLength}
     {@const lives = cfg.lives ?? $prefs.survivalLives}
     {@const answered = view.status === 'answered'}
@@ -1057,34 +1061,34 @@
         {/key}
       {/if}
 
-      <div class="prompt" class:map-prompt={isMapMode(cfg.mode)}>
-        {#if PROMPT_FLAG_MODES.includes(cfg.mode)}
+      <div class="prompt" class:map-prompt={isMapMode(qMode)}>
+        {#if PROMPT_FLAG_MODES.includes(qMode)}
           <!-- Anchor the country name with its flag (capitals / languages / industries):
                the answer is an attribute, so the flag is a study aid, not a giveaway. -->
           <div class="prompt-country-flag"><Flag country={question.answer} /></div>
         {/if}
-        {#if cfg.mode === 'flag-to-country'}
+        {#if qMode === 'flag-to-country'}
           <div class="prompt-flag"><Flag country={question.answer} /></div>
           <p class="ask">{$t('play.prompt.whichCountry')}</p>
-        {:else if cfg.mode === 'country-to-flag'}
+        {:else if qMode === 'country-to-flag'}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">{$t('play.prompt.whichFlag')}</p>
-        {:else if cfg.mode === 'map-highlight'}
+        {:else if qMode === 'map-highlight'}
           <p class="ask">{$t('play.prompt.whichHighlighted')}</p>
-        {:else if cfg.mode === 'capital-to-country'}
+        {:else if qMode === 'capital-to-country'}
           <p class="prompt-name">{$localizedText(question.answer.capital)}</p>
           <p class="ask">{$t('play.prompt.whichCountryOfCapital')}</p>
-        {:else if cfg.mode === 'country-to-capital'}
+        {:else if qMode === 'country-to-capital'}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">{$t('play.prompt.whichCapital')}</p>
-        {:else if cfg.mode === 'country-to-languages'}
+        {:else if qMode === 'country-to-languages'}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">
             {$t('play.prompt.whichLanguages', {
               count: question.correctOptionIds?.length ?? 0,
             })}
           </p>
-        {:else if cfg.mode === 'country-to-industry'}
+        {:else if qMode === 'country-to-industry'}
           <p class="prompt-name">{$localizedName(question.answer)}</p>
           <p class="ask">{$t('play.prompt.whichIndustry')}</p>
         {:else}
@@ -1093,7 +1097,7 @@
         {/if}
       </div>
 
-      {#if isMapMode(cfg.mode)}
+      {#if isMapMode(qMode)}
         <!-- On phones the map is the primary surface but the content column is narrow, so the
              board bleeds out to the screen edges (see `.board`) for a meaningfully bigger map. -->
         <div class="board">
@@ -1101,19 +1105,19 @@
             <!-- On a wrong map-locate answer, resolve the country the player actually clicked
                  so the board can label it (and the feedback can name it below). -->
             {@const pickedWrong =
-              cfg.mode === 'map-locate' && answered && view.feedback && !view.feedback.correct
+              qMode === 'map-locate' && answered && view.feedback && !view.feedback.correct
                 ? getCountry(view.feedback.pickedIso ?? '')
                 : undefined}
             <MapBoard
-              highlightIso={cfg.mode === 'map-highlight' ? question.answer.iso2 : null}
-              interactive={cfg.mode === 'map-locate'}
+              highlightIso={qMode === 'map-highlight' ? question.answer.iso2 : null}
+              interactive={qMode === 'map-locate'}
               disabled={answered}
-              pickedIso={cfg.mode === 'map-locate' ? (view.feedback?.pickedIso ?? null) : null}
+              pickedIso={qMode === 'map-locate' ? (view.feedback?.pickedIso ?? null) : null}
               pickedLabel={pickedWrong && pickedWrong.iso2 !== question.answer.iso2
                 ? $localizedName(pickedWrong)
                 : null}
-              revealIso={cfg.mode === 'map-locate' && answered ? question.answer.iso2 : null}
-              revealLabel={cfg.mode === 'map-locate' && answered
+              revealIso={qMode === 'map-locate' && answered ? question.answer.iso2 : null}
+              revealLabel={qMode === 'map-locate' && answered
                 ? $localizedName(question.answer)
                 : null}
               focusIsos={mapFocusIsos(cfg)}
@@ -1138,9 +1142,9 @@
         }))}
         <ChoiceGrid
           options={countryOptions}
-          variant={cfg.mode === 'country-to-flag'
+          variant={qMode === 'country-to-flag'
             ? 'flag'
-            : cfg.mode === 'map-highlight'
+            : qMode === 'map-highlight'
               ? 'name-flag'
               : 'name'}
           {answered}
@@ -1153,7 +1157,7 @@
           id: o.id,
           label: $localizedText(o.label),
         }))}
-        {#if isMultiSelectMode(cfg.mode)}
+        {#if isMultiSelectMode(qMode)}
           <ChoiceGrid
             options={attrOptions}
             variant="name"

@@ -458,3 +458,104 @@ describe('QuizSession — summary', () => {
     expect(sum.accuracy).toBe(1);
   });
 });
+
+describe('QuizSession — multi-mode slot sessions (combined practice)', () => {
+  it('asks each slot once, in its own mode', () => {
+    const s = new QuizSession(
+      base({
+        mode: 'flag-to-country', // representative only
+        type: 'fixed',
+        fixedLength: 3,
+        answerSlots: [
+          { mode: 'flag-to-country', iso2: 'AA' },
+          { mode: 'country-to-flag', iso2: 'AA' }, // same country, other direction
+          { mode: 'country-to-flag', iso2: 'AB' },
+        ],
+      }),
+    );
+    expect(s.answerCount).toBe(3);
+    const asked: string[] = [];
+    while (!s.isFinished()) {
+      const q = s.next();
+      if (!q) break;
+      asked.push(`${q.mode}:${q.answer.iso2}`);
+      s.submit(q.answer);
+    }
+    expect(asked.sort()).toEqual([
+      'country-to-flag:AA',
+      'country-to-flag:AB',
+      'flag-to-country:AA',
+    ]);
+    expect(s.state.results).toHaveLength(3);
+  });
+
+  it('each question records under its slot mode (itemKey carries the mode)', () => {
+    const s = new QuizSession(
+      base({
+        type: 'fixed',
+        fixedLength: 2,
+        answerSlots: [
+          { mode: 'flag-to-country', iso2: 'AA' },
+          { mode: 'country-to-flag', iso2: 'AA' },
+        ],
+      }),
+    );
+    const keys: string[] = [];
+    while (!s.isFinished()) {
+      const q = s.next();
+      if (!q) break;
+      keys.push(s.submit(q.answer).itemKey);
+    }
+    expect(keys.sort()).toEqual(['country-to-flag:AA', 'flag-to-country:AA']);
+  });
+
+  it('drops slots for unknown or mode-ineligible countries; throws when none survive', () => {
+    // A map slot for a geometry-less country is ineligible and drops out.
+    const noGeo = UNIVERSE.map((c) => (c.iso2 === 'AB' ? { ...c, hasGeometry: false } : c));
+    const s = new QuizSession(
+      base({
+        mode: 'map-highlight',
+        countries: noGeo,
+        type: 'fixed',
+        fixedLength: 5,
+        answerSlots: [
+          { mode: 'map-highlight', iso2: 'AA' },
+          { mode: 'map-highlight', iso2: 'AB' }, // geometry-less → dropped
+          { mode: 'map-highlight', iso2: 'ZZ' }, // unknown → dropped
+        ],
+      }),
+    );
+    expect(s.answerCount).toBe(1);
+
+    expect(
+      () =>
+        new QuizSession(
+          base({
+            mode: 'map-highlight',
+            countries: noGeo,
+            answerSlots: [{ mode: 'map-highlight', iso2: 'ZZ' }],
+          }),
+        ),
+    ).toThrow();
+  });
+
+  it('reports the representative mode on the summary', () => {
+    const s = new QuizSession(
+      base({
+        mode: 'country-to-flag',
+        type: 'fixed',
+        fixedLength: 2,
+        answerSlots: [
+          { mode: 'flag-to-country', iso2: 'AA' },
+          { mode: 'country-to-flag', iso2: 'AB' },
+        ],
+      }),
+    );
+    while (!s.isFinished()) {
+      const q = s.next();
+      if (!q) break;
+      s.submit(q.answer);
+    }
+    expect(s.summary().mode).toBe('country-to-flag');
+  });
+});
