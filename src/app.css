@@ -296,6 +296,25 @@ button {
   }
 }
 
+/* Challenger Orbi's flame flickering from its base — used only on the "Enter the Gauntlet" intro
+   (see `.intro-crest :global(.flame)`), where the mascot is fired-up. Height/width wobble roughly
+   preserves area, so it reads as a live flame, not a pulse. */
+@keyframes gm-flame-flicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+  }
+  25% {
+    transform: scaleY(1.09) scaleX(0.95);
+  }
+  55% {
+    transform: scaleY(0.95) scaleX(1.05);
+  }
+  80% {
+    transform: scaleY(1.05) scaleX(0.97);
+  }
+}
+
 /* OS-level reduce-motion for the arena: collapse every animation/transition inside `.gauntlet`
    to ~instant (the in-app pref is already handled app-wide above). The JS particle systems are
    gated separately by not mounting their canvases. Mirrors the per-component guards elsewhere. */

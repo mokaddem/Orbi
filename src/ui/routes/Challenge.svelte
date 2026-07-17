@@ -15,6 +15,7 @@
   import GauntletEmbers from '../components/GauntletEmbers.svelte';
   import GauntletConfetti from '../components/GauntletConfetti.svelte';
   import GrandmasterCrest from '../components/GrandmasterCrest.svelte';
+  import ChallengerOrbi from '../components/ChallengerOrbi.svelte';
   import SadOrbi from '../components/SadOrbi.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
 
@@ -316,7 +317,7 @@
       {#if introPhase !== 'live'}
         <div class="intro" class:leaving={introPhase === 'leaving'} aria-hidden="true">
           <div class="intro-inner">
-            <div class="intro-crest"><GrandmasterCrest size={118} /></div>
+            <div class="intro-crest"><ChallengerOrbi size={118} /></div>
             <h2 class="intro-title">{$t('challenge.intro.title')}</h2>
             <p class="intro-sub">
               {$t(`modes.group.${cfg.family}`)} · {$localizedRegion(cfg.region)}
@@ -743,9 +744,18 @@
     text-align: center;
   }
 
+  /* The Challenger Orbi enters the gauntlet: it floats on an ember glow (its fire, not the victory
+     gold), and its flame flickers from the base. Both collapse under the arena's reduce-motion
+     guard; the intro only ever renders for a non-reduce-motion run anyway. */
   .intro-crest {
     animation: gm-floaty 4s ease-in-out infinite;
-    filter: drop-shadow(0 0 22px color-mix(in oklab, var(--g-gold), transparent 55%));
+    filter: drop-shadow(0 0 22px color-mix(in oklab, var(--g-ember), transparent 50%));
+  }
+
+  .intro-crest :global(.flame) {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: gm-flame-flicker 1.15s ease-in-out infinite;
   }
 
   .intro-title {

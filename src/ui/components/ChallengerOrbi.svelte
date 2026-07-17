@@ -106,20 +106,24 @@
   <circle cx="41.4" cy="48.5" r="1.9" fill="#f2a891" opacity="0.6" />
 
   <!-- Ember flame in the crown's spot — the fire carried in to earn the crown. Two drifting sparks,
-       an ember→gold outer flame, and a bright inner core. -->
+       an ember→gold outer flame, and a bright inner core. The flame body is grouped so a caller can
+       animate it (e.g. the "Enter the Gauntlet" intro flickers it from its base); it's inert
+       otherwise, so the static modal / invite uses render a still flame. -->
   <circle cx="40" cy="16" r="1.1" fill="#ffcf6b" opacity="0.9" />
   <circle cx="24.5" cy="19" r="0.9" fill="#f5a23c" opacity="0.85" />
-  <path
-    d="M32 6.5 C27 13.5 26 17.7 27.8 21.6 C28.8 23.6 30.3 24.8 32 24.8 C33.7 24.8 35.2 23.6 36.2 21.6 C38 17.7 37 13.5 32 6.5 Z"
-    fill={`url(#${flameId})`}
-    stroke="#c9611f"
-    stroke-width="0.7"
-  />
-  <path
-    d="M32 12.3 C29.5 16 29 18.7 30.3 21 C30.8 22 31.4 22.5 32 22.5 C32.6 22.5 33.2 22 33.7 21 C35 18.7 34.5 16 32 12.3 Z"
-    fill="#fff2c8"
-    opacity="0.92"
-  />
+  <g class="flame">
+    <path
+      d="M32 6.5 C27 13.5 26 17.7 27.8 21.6 C28.8 23.6 30.3 24.8 32 24.8 C33.7 24.8 35.2 23.6 36.2 21.6 C38 17.7 37 13.5 32 6.5 Z"
+      fill={`url(#${flameId})`}
+      stroke="#c9611f"
+      stroke-width="0.7"
+    />
+    <path
+      d="M32 12.3 C29.5 16 29 18.7 30.3 21 C30.8 22 31.4 22.5 32 22.5 C32.6 22.5 33.2 22 33.7 21 C35 18.7 34.5 16 32 12.3 Z"
+      fill="#fff2c8"
+      opacity="0.92"
+    />
+  </g>
 </svg>
 
 <style>
