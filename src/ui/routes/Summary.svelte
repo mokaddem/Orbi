@@ -12,6 +12,7 @@
   } from '../stores/persistence';
   import {
     pickSummaryReaction,
+    rankForXp,
     sessionXp,
     sessionXpBreakdown,
     type MascotPose,
@@ -53,6 +54,12 @@
     const beforeIntoRank = rank.xp.total - xpEarned - p.rank.minXp;
     return Math.max(0, Math.min(p.fraction, beforeIntoRank / p.rankSpan));
   });
+
+  // The full rank snapshot *before* this run (total XP minus the run's "+N XP"). When the run pushed
+  // the player over a rank threshold this is a lower rank than `rank.progress`, so the card can open
+  // on the rank they were at and animate the roll-over into the one they reached (level-up) rather
+  // than jumping straight to the new rank with an empty bar.
+  const startProgress = $derived(rank ? rankForXp(Math.max(0, rank.xp.total - xpEarned)) : null);
 
   $effect(() => {
     if ($storageReady) {
@@ -286,6 +293,7 @@
       earned={xpEarned}
       breakdown={xpBreakdown}
       progress={rank?.progress ?? null}
+      {startProgress}
       {startFraction}
       reduceMotion={$prefs.reduceMotion}
       rankedUp={rank?.justRankedUp ?? false}

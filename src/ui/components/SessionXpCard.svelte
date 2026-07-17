@@ -18,6 +18,7 @@
     earned,
     breakdown,
     progress = null,
+    startProgress = null,
     startFraction = 0,
     reduceMotion = false,
     rankedUp = false,
@@ -25,19 +26,52 @@
     earned: number;
     breakdown: XpSource[];
     progress?: RankProgress | null;
+    /**
+     * The pre-run rank snapshot. When it's a *lower* rank than `progress`, the card opens on it and
+     * rolls the bar over to the earned rank at the finale — the level-up animation. Same rank (or
+     * absent) → a single-rank fill, exactly as before.
+     */
+    startProgress?: RankProgress | null;
     startFraction?: number;
     reduceMotion?: boolean;
     /** This run crossed a rank threshold — fire a celebratory burst off the (new-rank) badge. */
     rankedUp?: boolean;
   } = $props();
 
-  const rankName = $derived(progress ? $t(`rank.names.${progress.rank.key}`) : '');
-  const nextName = $derived(progress?.next ? $t(`rank.names.${progress.next.key}`) : '');
-  const totalXp = $derived(progress ? progress.rank.minXp + progress.xpIntoRank : 0);
-  const targetPct = $derived(progress ? Math.round(progress.fraction * 100) : 0);
-  const startPct = $derived(
-    progress ? Math.round(Math.max(0, Math.min(progress.fraction, startFraction)) * 100) : 0,
+  // Animate only in a real browser with motion allowed. Otherwise (reduced motion, or jsdom without
+  // IntersectionObserver) render the finished frame immediately — no reveal-gating, no count-up.
+  const canAnimate = $derived(!reduceMotion && typeof IntersectionObserver !== 'undefined');
+
+  // A level-up run crossed a rank threshold — we have a *lower* pre-run rank to open on. Gated on
+  // canAnimate: with motion off (or in jsdom) we just show the finished frame at the earned rank.
+  const rollingOver = $derived(
+    canAnimate && !!startProgress && !!progress && startProgress.rank.index < progress.rank.index,
   );
+  // Has the bar rolled over to the earned rank yet? Flipped once, at the finale after the tally lands.
+  let rolled = $state(false);
+  // The rank the head + bar currently show: the pre-run rank until the roll-over, then the earned
+  // rank — a single rank otherwise (and always the final rank when not animating).
+  const shownProgress = $derived(rollingOver && !rolled ? startProgress! : progress);
+
+  const rankName = $derived(shownProgress ? $t(`rank.names.${shownProgress.rank.key}`) : '');
+  const nextName = $derived(shownProgress?.next ? $t(`rank.names.${shownProgress.next.key}`) : '');
+  const totalXp = $derived(shownProgress ? shownProgress.rank.minXp + shownProgress.xpIntoRank : 0);
+  // aria-valuenow reports how far into the *shown* rank the player is (its true fill, not the roll).
+  const valueNow = $derived(shownProgress ? Math.round(shownProgress.fraction * 100) : 0);
+  // The teal "banked" base and the gold gain's target, in current-rank percent, per phase:
+  //  • no level-up          → base = pre-run fill,               target = current fill
+  //  • level-up, pre-roll   → base = the OLD rank's pre-run fill, target = 100% (fill it to the top)
+  //  • level-up, post-roll  → base = 0,                          target = new rank's fill (from empty)
+  const startPct = $derived.by(() => {
+    if (!shownProgress) return 0;
+    if (rollingOver) return rolled ? 0 : Math.round(startProgress!.fraction * 100);
+    return Math.round(Math.max(0, Math.min(shownProgress.fraction, startFraction)) * 100);
+  });
+  const targetPct = $derived.by(() => {
+    if (!shownProgress) return 0;
+    if (rollingOver && !rolled) return 100;
+    return Math.round(shownProgress.fraction * 100);
+  });
 
   const SOURCE_ICON: Record<XpSourceKey, IconName> = {
     correct: 'check',
@@ -54,10 +88,6 @@
   // The bar is two segments of the current rank's span: a static `base` (banked before this run,
   // teal) and the `gain` this run added (gold). The gain grows in from the base edge.
   const gainPct = $derived(Math.max(0, targetPct - startPct));
-
-  // Animate only in a real browser with motion allowed. Otherwise (reduced-motion, or jsdom without
-  // IntersectionObserver) render the finished frame immediately — no reveal-gating, no count-up.
-  const canAnimate = $derived(!reduceMotion && typeof IntersectionObserver !== 'undefined');
 
   let cardEl = $state<HTMLDivElement>();
   let fxEl = $state<HTMLCanvasElement>();
@@ -78,7 +108,7 @@
   // The XP holds off for a beat after the card appears, then lands line by line. The hold's clock
   // starts the moment the card is *visible* (see the reveal gate), so on a long Summary the "+N XP"
   // never begins ticking up before the player has actually reached the card.
-  const REVEAL_HOLD_MS = 1500; // wait after the card is visible before the first row lands
+  const REVEAL_HOLD_MS = 3000; // wait after the card is visible before the first row lands
   const STEP_MS = 650; // per-row cadence (unhurried — the run's points land one at a time)
   const TWEEN_MS = 460; // count-up per row
   let timers: ReturnType<typeof setTimeout>[] = [];
@@ -120,10 +150,21 @@
         }, k * STEP_MS),
       );
     });
-    // Level-up finale: a beat after the last row lands, pop the (already-updated) rank badge and
-    // burst off it. No text callout — the badge + rank name already say which rank you reached.
-    if (rankedUp) {
-      timers.push(setTimeout(burstFromBadge, rows.length * STEP_MS + 120));
+    // Level-up finale: a beat after the last row lands (the pre-run rank now filled to the top),
+    // roll the bar over to the earned rank — the badge/name swap and the bar resets and fills the
+    // fresh rank from empty — then burst off the new badge. No text callout: the badge + rank name
+    // already say which rank you reached. When we didn't open on a lower rank (`rollingOver` is
+    // false — e.g. a same-rank `rankedUp` handoff) there's nothing to roll, so we just pop the badge.
+    if (rollingOver || rankedUp) {
+      timers.push(
+        setTimeout(
+          () => {
+            if (rollingOver) rolled = true;
+            burstFromBadge();
+          },
+          rows.length * STEP_MS + 120,
+        ),
+      );
     }
   }
 
@@ -195,9 +236,10 @@
     if (!fxRaf) fxRaf = requestAnimationFrame(stepFx);
   }
 
-  // Streak milestone: pop the running total and fire confetti off it.
+  // Streak milestone: pop the running total and fire confetti off it. `animate` is optional-called —
+  // it's absent in jsdom (no Web Animations API), where the burst path is only reached under test.
   function burstFromTotal(): void {
-    totalEl?.animate(
+    totalEl?.animate?.(
       [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }],
       { duration: 420, easing: 'cubic-bezier(.2,1.4,.3,1)' },
     );
@@ -206,7 +248,7 @@
 
   // Rank up: a bigger pop on the badge with a fuller burst.
   function burstFromBadge(): void {
-    badgeEl?.animate(
+    badgeEl?.animate?.(
       [{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }],
       { duration: 600, easing: 'cubic-bezier(.2,1.4,.3,1)' },
     );
@@ -250,15 +292,15 @@
 <div class="xp-card" data-testid="session-xp-card" bind:this={cardEl}>
   <canvas class="fx" bind:this={fxEl} aria-hidden="true"></canvas>
 
-  {#if progress}
+  {#if shownProgress}
     <div class="rank-head">
       <span class="badge" aria-hidden="true" bind:this={badgeEl}
-        ><RankMedal index={progress.rank.index} size={46} /></span
+        ><RankMedal index={shownProgress.rank.index} size={46} /></span
       >
       <div class="rank-id">
         <span class="rank-name">{rankName}</span>
         <span class="rank-level">
-          {$t('rank.level', { n: progress.rank.index + 1, total: RANKS.length })}
+          {$t('rank.level', { n: shownProgress.rank.index + 1, total: RANKS.length })}
         </span>
       </div>
       <span class="rank-xp">{$t('rank.xpTotal', { xp: totalXp.toLocaleString() })}</span>
@@ -266,19 +308,22 @@
 
     <div
       class="track"
+      class:rolled
       role="progressbar"
       aria-valuemin="0"
       aria-valuemax="100"
-      aria-valuenow={targetPct}
+      aria-valuenow={valueNow}
       aria-label={$t('rank.title')}
     >
-      <!-- Banked before this run (teal), then the gold gain this run added, growing in from it. -->
+      <!-- Banked before this run (teal), then the gold gain this run added, growing in from it.
+           On a level-up roll-over both segments transition (see `.track.rolled`), so the bar visibly
+           resets and refills the fresh rank rather than snapping. -->
       <div class="seg base" style="width:{startPct}%"></div>
       <div class="seg gain" style="left:{startPct}%; width:{gainWidth}%"></div>
     </div>
     <span class="to-next">
-      {#if progress.next}
-        {$t('rank.toNext', { xp: progress.xpToNext.toLocaleString(), rank: nextName })}
+      {#if shownProgress.next}
+        {$t('rank.toNext', { xp: shownProgress.xpToNext.toLocaleString(), rank: nextName })}
       {:else}
         {$t('rank.max')}
       {/if}
@@ -411,6 +456,21 @@
   .seg.gain {
     background: var(--gain-grad);
     border-radius: 0 999px 999px 0;
+  }
+
+  /* Level-up roll-over: once the pre-run rank has filled to the top, flipping to the earned rank
+     collapses both segments (base → 0, the gold gain → the fresh rank's small fill). Transitioning
+     width/left here makes that read as a deliberate reset-and-refill rather than a hard snap. */
+  .track.rolled .seg {
+    transition:
+      width 0.5s cubic-bezier(0.25, 0.9, 0.3, 1),
+      left 0.5s cubic-bezier(0.25, 0.9, 0.3, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .track.rolled .seg {
+      transition: none;
+    }
   }
 
   .to-next {
