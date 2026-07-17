@@ -3,7 +3,13 @@
   import { push } from 'svelte-spa-router';
   import { t, localizedName, localizedText, localizedRegion } from '../../i18n';
   import { masteryFamilyOf, type GameMode } from '../../domain';
-  import { getCountry, loadCountryFeatures, type Country, type CountryFeature } from '../../data';
+  import {
+    getCountry,
+    getCountries,
+    loadCountryFeatures,
+    type Country,
+    type CountryFeature,
+  } from '../../data';
   import {
     pendingReview,
     pendingConfig,
@@ -11,12 +17,22 @@
     type ReviewSelection,
   } from '../stores/game';
   import { prefs, storageReady, loadRegionReviews } from '../stores/persistence';
+  import { projectRegion, type ProjectedCountry } from '../components/atlas-map';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
-  import AtlasMap from '../components/AtlasMap.svelte';
+  import RegionLocator from '../components/RegionLocator.svelte';
   import Mascot from '../components/Mascot.svelte';
+
+  // All ISO codes per top-level region — used to frame each map-mode locator to its whole region.
+  const membersByRegion: Record<string, string[]> = (() => {
+    const m: Record<string, string[]> = {};
+    for (const c of getCountries()) (m[c.region] ??= []).push(c.iso2);
+    return m;
+  })();
+  const LOC_W = 320;
+  const LOC_H = 240;
 
   // "Ready to review?" — the study-card screen shown between a "time to review" tap and the game
   // (Phase 48). It revises the countries a review covers, by the review's mode: flags show the
@@ -51,6 +67,18 @@
   const countries = $derived<Country[]>(
     selection ? selection.iso2s.map((iso) => getCountry(iso)).filter((c): c is Country => !!c) : [],
   );
+
+  // For map reviews: the region-framed projection per region the covered countries span, computed
+  // once and shared across every locator tile (each region draws all its members, focus in coral).
+  const regionProjected = $derived.by(() => {
+    const m: Record<string, ProjectedCountry[]> = {};
+    if (!features || family !== 'map') return m;
+    for (const c of countries) {
+      if (m[c.region]) continue; // one projection per region, shared across its cards
+      m[c.region] = projectRegion(features, membersByRegion[c.region] ?? [], LOC_W, LOC_H);
+    }
+    return m;
+  });
 
   // Cold load (deep-link / refresh) with nothing staged: re-derive the most-urgent region review
   // once storage is ready (OQ5), so the screen still works — else it falls to the empty state.
@@ -139,9 +167,16 @@
               {$localizedText(c.capital)}
             </span>
           {:else}
+            {@const projected = regionProjected[c.region] ?? []}
             <span class="s-loc">
-              {#if features}
-                <AtlasMap {features} highlightCountry={c.iso2} label={$localizedName(c)} />
+              {#if projected.length}
+                <RegionLocator
+                  {projected}
+                  focusIso={c.iso2}
+                  width={LOC_W}
+                  height={LOC_H}
+                  label={$localizedName(c)}
+                />
               {:else}
                 <span class="s-loc-skeleton" aria-hidden="true"></span>
               {/if}
@@ -293,7 +328,7 @@
   .s-loc-skeleton {
     display: block;
     width: 100%;
-    aspect-ratio: 980 / 500;
+    aspect-ratio: 4 / 3;
     background: var(--map-water);
     border: 2px solid var(--map-border);
     border-radius: var(--radius);

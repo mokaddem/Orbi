@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Feature, Geometry, GeoJsonProperties } from 'geojson';
-import { projectWorld } from './atlas-map';
+import { projectWorld, projectRegion } from './atlas-map';
 
 type CountryFeature = Feature<Geometry, GeoJsonProperties>;
 
@@ -89,5 +89,28 @@ describe('projectWorld', () => {
     // Frame spans lon -30..175; the mainland (centred on lon 0) projects to the left third,
     // well left of centre. A whole-country centroid would land past it, toward the island.
     expect(mp.anchor![0]).toBeLessThan(300);
+  });
+});
+
+describe('projectRegion (review study-card locator, Phase 48)', () => {
+  it('projects only the requested members, ignoring non-members', () => {
+    const out = projectRegion(features, ['BB'], 320, 240);
+    expect(out.map((c) => c.iso2)).toEqual(['BB']);
+    expect(out[0].d.startsWith('M')).toBe(true);
+  });
+
+  it('returns empty when no member resolves to geometry', () => {
+    expect(projectRegion(features, ['ZZ'], 320, 240)).toEqual([]);
+    expect(projectRegion(features, [], 320, 240)).toEqual([]);
+  });
+
+  it('fits the members to the box — a lone small country fills most of the tile', () => {
+    // BB is a small square far from origin; framed on its own it should span much of the 320-wide
+    // tile (unlike projectWorld, where it is a speck). Its projected bbox width proves the zoom.
+    const [bb] = projectRegion(features, ['BB'], 320, 240);
+    expect(bb.screenSize).toBeGreaterThan(120);
+    // Anchor stays within the tile bounds.
+    expect(bb.anchor![0]).toBeGreaterThanOrEqual(0);
+    expect(bb.anchor![0]).toBeLessThanOrEqual(320);
   });
 });

@@ -47,6 +47,56 @@ function mainLandmass(path: ReturnType<typeof geoPath>, f: CountryFeature): Feat
   return best;
 }
 
+/** Anchor + screen size for a projected feature, shared by projectWorld/projectRegion. */
+function measure(path: ReturnType<typeof geoPath>, f: CountryFeature) {
+  const main = mainLandmass(path, f);
+  const [cx, cy] = path.centroid(main);
+  const anchor: [number, number] | null =
+    Number.isFinite(cx) && Number.isFinite(cy) ? [cx, cy] : null;
+  const [[x0, y0], [x1, y1]] = path.bounds(main);
+  const w = x1 - x0;
+  const h = y1 - y0;
+  const screenSize = Number.isFinite(w) && Number.isFinite(h) ? Math.max(w, h) : 0;
+  return { anchor, screenSize };
+}
+
+/**
+ * Project **only** the given region's member countries into `width`×`height` units, with the
+ * Natural Earth projection **fit to those members** — i.e. a zoomed locator of that region
+ * (Europe fills the tile), not the whole world. Used by the review study card (Phase 48) so a
+ * region of neighbours is legible per country rather than a speck on a world thumbnail. Members
+ * that project to nothing are dropped; a non-member `memberIsos` entry is simply ignored.
+ */
+export function projectRegion(
+  features: Map<string, CountryFeature>,
+  memberIsos: Iterable<string>,
+  width: number,
+  height: number,
+  margin = 8,
+): ProjectedCountry[] {
+  const members = new Set(memberIsos);
+  const memberFeatures = [...features]
+    .filter(([iso]) => members.has(iso))
+    .map(([, f]) => f as Feature);
+  if (memberFeatures.length === 0) return [];
+  const projection = geoNaturalEarth1().fitExtent(
+    [
+      [margin, margin],
+      [width - margin, height - margin],
+    ],
+    { type: 'FeatureCollection', features: memberFeatures } as FeatureCollection,
+  );
+  const path = geoPath(projection);
+  const out: ProjectedCountry[] = [];
+  for (const [iso2, f] of features) {
+    if (!members.has(iso2)) continue;
+    const d = path(f);
+    if (!d) continue;
+    out.push({ iso2, d, ...measure(path, f) });
+  }
+  return out;
+}
+
 /**
  * Project the given country geometry into `width`×`height` logical units, framed to
  * the whole set. Countries that project to nothing are dropped.

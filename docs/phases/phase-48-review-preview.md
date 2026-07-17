@@ -1,6 +1,6 @@
 # Phase 48 — Review preview (see what you'll drill before a review)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 85%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 95%
 · **Track:** v3.0 — Review preview
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -298,6 +298,15 @@ Independent of Phase 46 (duels) and Phase 47 (physical geography), and of any un
     in this sandbox): the flags & capitals study cards read cleanly; the **map** per-country locators
     work but render as near-identical world thumbnails with a tiny dot for a region of neighbours (weak
     for adjacent countries) — flagged to the owner for a possible refinement (region-framed locators,
-    or the OQ10 single-region-map alternative). **Remaining 15%: owner visual sign-off on the
-    map-locator treatment; then mark ✅ and reconcile the main-PRD Status Table (kept untouched in this
-    worktree to avoid colliding with the owner's uncommitted v2.8/v2.9 edits).**
+    or the OQ10 single-region-map alternative).
+- **2026-07-17 — Map locator refined to region-framed (owner picked option B).** Shown the three cards
+  as real screenshots, the owner chose **region-framed per-country locators** over the world-scale
+  version. Added `projectRegion()` (`atlas-map.ts`) — the Natural Earth projection **fit to a region's
+  member countries** — plus a small `RegionLocator.svelte` pure renderer; the study card computes one
+  region projection per region (shared across its cards) and draws each tile zoomed to the region with
+  the focus country in coral, so neighbours (France/Germany/Spain/Italy…) are each distinct.
+  `projectRegion` unit-tested (members-only, empty-safe, fits/zooms). **Full loop green: check 0/0 ·
+  lint clean · 842 tests.** Headless screenshot confirms the region-framed render. **Remaining ~5%:
+  merge to the main integration branch, then reconcile the main-PRD Status Table (add the Phase 48 /
+  v3.0 row — kept out of this worktree to avoid colliding with the owner's uncommitted v2.8/v2.9 edits)
+  and archive this PRD.**
