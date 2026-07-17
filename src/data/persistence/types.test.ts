@@ -88,3 +88,29 @@ describe('sound pref (Phase 36)', () => {
     expect(clampPrefs({ ...base, sound: undefined as unknown as Prefs['sound'] }).sound).toBe(true);
   });
 });
+
+describe('lastSetup pref (remember Play setup)', () => {
+  it('is absent by default', () => {
+    expect(clampPrefs({ ...base }).lastSetup).toBeUndefined();
+  });
+
+  it('round-trips a well-formed setup (incl. region / sub-region)', () => {
+    const lastSetup: Prefs['lastSetup'] = {
+      mode: 'capital-to-country',
+      type: 'blitz',
+      region: 'Europe',
+      subregion: 'Northern Europe',
+    };
+    expect(clampPrefs({ ...base, lastSetup }).lastSetup).toEqual(lastSetup);
+  });
+
+  it('keeps a World-scope setup with no region fields', () => {
+    const lastSetup: Prefs['lastSetup'] = { mode: 'flag-to-country', type: 'fixed' };
+    expect(clampPrefs({ ...base, lastSetup }).lastSetup).toEqual(lastSetup);
+  });
+
+  it('drops a structurally-broken value (missing mode/type)', () => {
+    const broken = { region: 'Europe' } as unknown as Prefs['lastSetup'];
+    expect(clampPrefs({ ...base, lastSetup: broken }).lastSetup).toBeUndefined();
+  });
+});

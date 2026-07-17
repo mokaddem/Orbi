@@ -25,6 +25,7 @@
     getCountries,
     getCountry,
     getRegionTree,
+    type Prefs,
     type RegionNode,
     type SessionRecord,
   } from '../../data';
@@ -39,6 +40,7 @@
   } from '../stores/game';
   import {
     prefs,
+    updatePrefs,
     saveSession,
     saveDailyResult,
     recordAnswer,
@@ -316,6 +318,63 @@
     if (get(play).status === 'finished') play.reset();
   });
 
+  // Remember-my-setup: persist the current setup selections whenever a run is launched *from this
+  // screen* (desktop Start / mobile FAB) so the next visit re-opens on the same mode / direction /
+  // format / region. Stored as primitives (region as a plain string), never the pending-config path
+  // (Retry / recommendations), so `lastSetup` only ever holds a real setup-screen choice.
+  function rememberSetup(): void {
+    updatePrefs({
+      lastSetup: {
+        mode,
+        type,
+        ...(selectedRegion ? { region: selectedRegion } : {}),
+        ...(selectedSubregion ? { subregion: selectedSubregion } : {}),
+      },
+    });
+  }
+
+  /**
+   * Restore a persisted {@link Prefs.lastSetup} into the setup selections, re-validating it against
+   * the live dataset so stale data can't select something gone: an unknown mode aborts the restore
+   * (keep defaults); an unknown region / sub-region falls back to World / whole-region; a non-setup
+   * format falls back to Fixed; and a Blitz format re-snaps a mode Blitz can't run, exactly like
+   * {@link selectType}. Pure of storage — the caller passes the already-loaded value.
+   */
+  function applyLastSetup(s: Prefs['lastSetup']): void {
+    if (!s) return;
+    const group = MODE_GROUPS.find((g) => g.modes.some((m) => m.mode === s.mode));
+    if (!group) return; // mode no longer exists — leave the defaults untouched
+
+    const region = s.region && regionTree.some((r) => r.region === s.region) ? s.region : '';
+    const node = region ? regionTree.find((r) => r.region === region) : null;
+    const subregion =
+      region && s.subregion && node?.subregions.some((sr) => sr.subregion === s.subregion)
+        ? s.subregion
+        : '';
+    const SETUP_TYPES: readonly SessionType[] = ['fixed', 'survival', 'full', 'blitz'];
+    const nextType: SessionType = SETUP_TYPES.includes(s.type) ? s.type : 'fixed';
+
+    category = group.key;
+    mode = s.mode;
+    selectedRegion = region;
+    selectedSubregion = subregion;
+    if (nextType === 'blitz' && !blitzAllows(mode)) {
+      category = 'flags';
+      mode = 'flag-to-country';
+    }
+    type = nextType;
+  }
+
+  // Pre-select the setup last launched from here, once, as soon as storage is ready — but only while
+  // the setup screen is actually showing (`idle`), so it never clobbers a pending Retry/recommendation
+  // auto-start or an in-progress run. A returning visit remounts this route, re-arming the one-shot.
+  let setupRestored = false;
+  $effect(() => {
+    if (!$storageReady || setupRestored) return;
+    setupRestored = true;
+    if (get(play).status === 'idle') applyLastSetup(get(prefs).lastSetup);
+  });
+
   /** The run config for the current setup selections (mode / type / region / prefs). */
   function buildRunConfig(): RunConfig {
     const filter: RegionFilter | undefined = selectedRegion
@@ -334,6 +393,7 @@
 
   // Desktop keeps the plain "Start" button: an immediate launch, no flourish.
   function startGame(): void {
+    rememberSetup();
     play.start(buildRunConfig());
   }
 
@@ -349,6 +409,7 @@
 
   function triggerStart(): void {
     if (launching) return;
+    rememberSetup();
     const cfg = buildRunConfig();
     if ($prefs.reduceMotion || reducedMotionQuery?.matches) {
       play.start(cfg);

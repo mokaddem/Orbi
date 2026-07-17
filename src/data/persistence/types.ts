@@ -163,6 +163,13 @@ export interface Prefs {
   reduceMotion: boolean;
   /** Play sound effects & jingles at feedback moments; single master on/off (Phase 36). */
   sound: boolean;
+  /**
+   * The setup last launched from the Play screen — restored as the pre-selected mode / direction /
+   * format / region on the next visit, so returning resumes where the player left off. Absent until
+   * the first launch. Stored as primitives (region as a plain string, not a `RegionFilter` proxy) so
+   * it survives structured clone; the UI re-validates it on restore, ignoring anything stale.
+   */
+  lastSetup?: { mode: GameMode; type: SessionType; region?: string; subregion?: string };
 }
 
 /** Defaults applied on first run and merged over any partially-stored prefs. */
@@ -212,6 +219,13 @@ export function clampPrefs(prefs: Prefs): Prefs {
     reduceMotion: !!prefs.reduceMotion,
     // Absent in a pre-Phase-36 prefs blob → default (on) via the merge; else coerced.
     sound: prefs.sound === undefined ? DEFAULT_PREFS.sound : !!prefs.sound,
+    // Pass through the remembered Play setup when structurally sound; the UI validates it against
+    // the live dataset on restore, so only a coarse shape check is needed here (drop obvious junk).
+    ...(prefs.lastSetup &&
+    typeof prefs.lastSetup.mode === 'string' &&
+    typeof prefs.lastSetup.type === 'string'
+      ? { lastSetup: prefs.lastSetup }
+      : {}),
   };
 }
 
