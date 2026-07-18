@@ -188,23 +188,126 @@ export async function shareDuel(
 
 /** Pre-localised text drawn on the shared duel scorecard. */
 export interface DuelCardText {
-  /** Brand wordmark, e.g. "Orbi". */
-  brand: string;
-  /** Card subtitle, e.g. "Duel a friend". */
-  caption: string;
-  /** Challenger display name (or a generic label when anonymous). */
-  name: string;
-  /** The headline score, e.g. "8/10" or "1,234". */
+  /** The challenge line, e.g. "Sami challenges you" — drawn uppercase in the coral eyebrow. */
+  eyebrow: string;
+  /** The headline score inside the pill, e.g. "9/12" or "1,240". */
   scoreValue: string;
-  /** A small unit beneath the score, e.g. "pts" (may be empty). */
+  /** A small unit under the score, e.g. "pts" (empty for correct-count / distance formats). */
   scoreUnit: string;
-  /** Scope line, e.g. "Flags · Europe". */
+  /** Scope chip, e.g. "Flags · Europe". */
   scope: string;
-  /** Call to action footer, e.g. "Can you beat it?". */
+  /** Call-to-action, e.g. "Can you beat it?". */
   cta: string;
+  /** Brand wordmark footer, e.g. "Orbi". */
+  brand: string;
 }
 
-/** Draw the duel scorecard to a PNG blob (1080×1080), or `null` if canvas is unavailable. */
+// The app's rounded system-font stack (see src/app.css) — rounded where the OS has SF Pro Rounded,
+// friendly fallbacks elsewhere. Reused verbatim so the card matches the app and needs no webfont
+// fetch (offline/PWA-safe) and no async font-load before toBlob.
+const CARD_FONT_STACK =
+  "ui-rounded, 'SF Pro Rounded', 'Segoe UI', system-ui, 'Trebuchet MS', -apple-system, Roboto, Helvetica, Arial, sans-serif";
+
+/** Rounded-rect path (uses native roundRect where available, else a manual fallback). */
+function roundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/** Draw the Orbi globe mascot (the favicon), fitted into a `size`×`size` box at (x, y). */
+function drawOrbi(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  ctx.save();
+  // The favicon art lives in viewBox "25 21 70 70"; map it into the target box.
+  const s = size / 70;
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  ctx.translate(-25, -21);
+
+  // Globe disc + ink outline.
+  ctx.beginPath();
+  ctx.arc(60, 56, 32, 0, Math.PI * 2);
+  ctx.fillStyle = '#dbf3f1';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#2a2320';
+  ctx.stroke();
+
+  // Teal "continents", clipped to the disc.
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(60, 56, 32, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.fillStyle = '#10a5a0';
+  ctx.beginPath();
+  ctx.moveTo(44, 31);
+  ctx.bezierCurveTo(37, 32, 35, 40, 41, 43);
+  ctx.bezierCurveTo(48, 46, 57, 43, 58, 37);
+  ctx.bezierCurveTo(59, 31, 51, 30, 44, 31);
+  ctx.moveTo(29, 52);
+  ctx.bezierCurveTo(25, 54, 26, 62, 32, 62);
+  ctx.bezierCurveTo(38, 62, 40, 54, 36, 50);
+  ctx.bezierCurveTo(34, 48, 31, 50, 29, 52);
+  ctx.moveTo(84, 47);
+  ctx.bezierCurveTo(79, 45, 75, 50, 78, 55);
+  ctx.bezierCurveTo(81, 61, 88, 58, 88, 52);
+  ctx.bezierCurveTo(88, 48, 87, 48, 84, 47);
+  ctx.moveTo(52, 76);
+  ctx.bezierCurveTo(48, 77, 48, 83, 53, 83);
+  ctx.bezierCurveTo(58, 83, 59, 77, 55, 76);
+  ctx.fill();
+  ctx.restore();
+
+  // Cheeks, eyes (+ highlights), smile.
+  ctx.fillStyle = '#f2a891';
+  for (const cx of [44, 76]) {
+    ctx.beginPath();
+    ctx.arc(cx, 61, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#2a2320';
+  for (const cx of [51, 69]) {
+    ctx.beginPath();
+    ctx.arc(cx, 54, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#ffffff';
+  for (const cx of [52.1, 70.1]) {
+    ctx.beginPath();
+    ctx.arc(cx, 52.9, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.strokeStyle = '#2a2320';
+  ctx.lineWidth = 2.4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(52, 63);
+  ctx.quadraticCurveTo(60, 70, 68, 63);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Draw the duel scorecard (Design A — "Orbi playroom") to a PNG blob (1080×1080), or `null` if canvas
+ * is unavailable. Mirrors the app's chunky rounded look: a mint ground, an offset-shadow white card,
+ * the Orbi mascot, a coral challenge eyebrow, the score in a teal pill, a scope chip and a CTA.
+ */
 export async function renderDuelCard(text: DuelCardText): Promise<Blob | null> {
   if (typeof document === 'undefined') return null;
   const W = 1080;
@@ -215,57 +318,83 @@ export async function renderDuelCard(text: DuelCardText): Promise<Blob | null> {
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  const font = (weight: number, px: number) =>
-    `${weight} ${px}px 'Segoe UI', 'DejaVu Sans', Arial, sans-serif`;
-
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#12b1ab');
-  bg.addColorStop(1, '#0c807c');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.textAlign = 'center';
-
-  // Shrink a line's font until it fits within `maxW`.
-  const fitText = (str: string, weight: number, px: number, maxW: number): number => {
+  const font = (weight: number, px: number) => `${weight} ${px}px ${CARD_FONT_STACK}`;
+  /** Shrink `str` until it fits `maxW`, set the font, and return the size used. */
+  const fitFont = (str: string, weight: number, px: number, maxW: number): number => {
     let size = px;
     ctx.font = font(weight, size);
-    while (ctx.measureText(str).width > maxW && size > 24) {
+    while (size > 20 && ctx.measureText(str).width > maxW) {
       size -= 4;
       ctx.font = font(weight, size);
     }
     return size;
   };
 
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.font = font(700, 52);
-  ctx.fillText(text.brand.toUpperCase(), W / 2, 150);
+  // Mint ground.
+  const bg = ctx.createRadialGradient(540, 345, 0, 540, 345, 780);
+  bg.addColorStop(0, '#f2fdfb');
+  bg.addColorStop(1, '#e2f6f2');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
 
-  ctx.fillStyle = '#e6faf8';
-  ctx.font = font(600, 44);
-  ctx.fillText(text.caption, W / 2, 220);
-
+  // Chunky offset shadow + white card.
+  roundRectPath(ctx, 96, 120, 888, 852, 60);
+  ctx.fillStyle = '#0b7e7a';
+  ctx.fill();
+  roundRectPath(ctx, 96, 108, 888, 852, 60);
   ctx.fillStyle = '#ffffff';
-  fitText(text.name, 700, 76, W - 160);
-  ctx.fillText(text.name, W / 2, 400);
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#d3efeb';
+  ctx.stroke();
 
+  drawOrbi(ctx, 440, 150, 200);
+
+  ctx.textAlign = 'center';
+
+  // Coral challenge eyebrow (uppercase, tracked).
+  ctx.fillStyle = '#ff7a59';
+  ctx.letterSpacing = '8px';
+  fitFont(text.eyebrow.toUpperCase(), 700, 34, 780);
+  ctx.fillText(text.eyebrow.toUpperCase(), W / 2, 410);
+  ctx.letterSpacing = '0px';
+
+  // Score pill.
+  roundRectPath(ctx, 300, 452, 480, 220, 48);
+  ctx.fillStyle = '#10a5a0';
+  ctx.fill();
   ctx.fillStyle = '#ffffff';
-  fitText(text.scoreValue, 800, 240, W - 200);
-  ctx.fillText(text.scoreValue, W / 2, 660);
-
   if (text.scoreUnit) {
-    ctx.fillStyle = '#cdefec';
-    ctx.font = font(600, 54);
-    ctx.fillText(text.scoreUnit, W / 2, 740);
+    fitFont(text.scoreValue, 700, 132, 420);
+    ctx.fillText(text.scoreValue, W / 2, 596);
+    ctx.fillStyle = '#d6f4f0';
+    ctx.font = font(700, 42);
+    ctx.fillText(text.scoreUnit, W / 2, 650);
+  } else {
+    fitFont(text.scoreValue, 700, 150, 420);
+    ctx.fillText(text.scoreValue, W / 2, 622);
   }
 
-  ctx.fillStyle = '#e6faf8';
-  fitText(text.scope, 500, 44, W - 160);
-  ctx.fillText(text.scope, W / 2, 850);
+  // Scope chip — width hugs the text.
+  const scopeSize = fitFont(text.scope, 700, 34, 640);
+  const chipW = Math.min(660, ctx.measureText(text.scope).width + 96);
+  roundRectPath(ctx, W / 2 - chipW / 2, 720, chipW, 72, 36);
+  ctx.fillStyle = '#d6f4f0';
+  ctx.fill();
+  ctx.fillStyle = '#0b7e7a';
+  ctx.font = font(700, scopeSize);
+  ctx.fillText(text.scope, W / 2, 768);
 
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.font = font(700, 50);
-  ctx.fillText(text.cta, W / 2, 970);
+  // CTA + brand footer.
+  ctx.fillStyle = '#123130';
+  fitFont(text.cta, 700, 46, 720);
+  ctx.fillText(text.cta, W / 2, 892);
+
+  ctx.fillStyle = '#6e8a88';
+  ctx.letterSpacing = '2px';
+  ctx.font = font(700, 30);
+  ctx.fillText(text.brand, W / 2, 944);
+  ctx.letterSpacing = '0px';
 
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'));
 }

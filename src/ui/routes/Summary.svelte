@@ -293,9 +293,7 @@
       }`;
       const isBlitz = s.type === 'blitz';
       const card = {
-        brand: $t('app.title'),
-        caption: $t('duel.title'),
-        name: name || $t('duel.opponent'),
+        eyebrow: name ? $t('duel.incomingTitle', { name }) : $t('duel.incomingTitleAnon'),
         scoreValue: isBlitz
           ? payload.challengerScore.primary.toLocaleString()
           : s.type === 'survival'
@@ -304,6 +302,7 @@
         scoreUnit: isBlitz ? $t('duel.points') : '',
         scope,
         cta: $t('duel.cardCta'),
+        brand: $t('app.title'),
       };
       const outcome = await shareDuelImage(card, { title: $t('duel.shareTitle'), text, url });
       if (outcome === 'copied') flashFeedback('duel.linkCopied');
