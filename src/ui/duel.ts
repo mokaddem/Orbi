@@ -442,6 +442,27 @@ export async function shareDuelImage(
   return 'copied';
 }
 
+/**
+ * Copy an image blob to the clipboard so the user can paste the scorecard straight into a chat
+ * (mostly a desktop convenience). Returns `false` where the async Clipboard image API is unavailable
+ * (the displayed preview can still be right-click / drag-copied).
+ */
+export async function copyImageToClipboard(blob: Blob): Promise<boolean> {
+  try {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.clipboard &&
+      typeof ClipboardItem !== 'undefined'
+    ) {
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      return true;
+    }
+  } catch {
+    // Clipboard write refused (permissions / unsupported type) — caller falls back to the preview.
+  }
+  return false;
+}
+
 /** Can this browser share image *files* via the native sheet? (Mostly mobile / installed PWAs.) */
 export function canShareFiles(): boolean {
   if (typeof navigator === 'undefined' || typeof navigator.canShare !== 'function') return false;

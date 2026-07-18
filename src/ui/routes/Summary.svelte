@@ -38,7 +38,9 @@
     duelLink,
     shareDuel,
     shareDuelSmart,
+    renderDuelCard,
     copyToClipboard,
+    copyImageToClipboard,
   } from '../duel';
   import { getCountry, type Country } from '../../data';
   import { sound } from '../sound';
@@ -250,8 +252,9 @@
   });
 
   // One primary "Challenge a friend" tap (`share`) does the right thing per device (image + link on
-  // mobile, link on desktop); `link` / `code` are the quiet fallbacks; `return` sends a result back.
-  type DuelShareAction = 'share' | 'link' | 'code' | 'return';
+  // mobile, link on desktop); `image` copies the scorecard to the clipboard (desktop paste); `link` /
+  // `code` are the quiet fallbacks; `return` sends a result back.
+  type DuelShareAction = 'share' | 'image' | 'link' | 'code' | 'return';
   let namePromptOpen = $state(false);
   let pendingAction = $state<DuelShareAction | null>(null);
   let duelFeedback = $state<string | null>(null);
@@ -310,6 +313,14 @@
       if (await copyToClipboard(url)) flashFeedback('duel.linkCopied');
       return;
     }
+    // "Copy image": put the scorecard PNG on the clipboard so it can be pasted into a chat (desktop).
+    if (action === 'image') {
+      const blob = await renderDuelCard(duelCardText(payload.challengerScore.primary, name));
+      flashFeedback(
+        blob && (await copyImageToClipboard(blob)) ? 'duel.imageCopied' : 'duel.imageFailed',
+      );
+      return;
+    }
     // Primary: image + link caption where the device can share files, else the link.
     const text = name ? $t('duel.shareText', { name }) : $t('duel.shareTextAnon');
     const card = duelCardText(payload.challengerScore.primary, name);
@@ -351,6 +362,30 @@
     namePromptOpen = false;
     pendingAction = null;
   }
+
+  // Live scorecard preview shown in the duel card: it confirms what gets sent and is directly
+  // copy/paste-able on desktop (alongside the "Copy image" button). Re-renders when the run or the
+  // player's name changes; stays null when there's nothing to preview or canvas is unavailable.
+  let duelPreviewUrl = $state<string | null>(null);
+  $effect(() => {
+    const s = $lastSummary;
+    const name = $prefs.playerName ?? '';
+    if (!duelable || !s) {
+      duelPreviewUrl = null;
+      return;
+    }
+    const payload = buildDuelPayload(s, name);
+    if (!payload) return;
+    let stale = false;
+    void renderDuelCard(duelCardText(payload.challengerScore.primary, name)).then((blob) => {
+      if (stale || !blob) return;
+      if (duelPreviewUrl) URL.revokeObjectURL(duelPreviewUrl);
+      duelPreviewUrl = URL.createObjectURL(blob);
+    });
+    return () => {
+      stale = true;
+    };
+  });
 </script>
 
 <section class="summary">
@@ -537,11 +572,20 @@
           <h2>{$t('duel.title')}</h2>
         </div>
         <p class="duel-sub">{$t('duel.subtitle')}</p>
+        {#if duelPreviewUrl}
+          <img class="duel-preview" src={duelPreviewUrl} alt={$t('duel.title')} />
+        {/if}
         <button type="button" class="duel-primary" onclick={() => onDuelAction('share')}>
           <Icon name="share" size="1.15em" />
           {$t('duel.share')}
         </button>
         <div class="duel-fallback">
+          {#if duelPreviewUrl}
+            <button type="button" class="linkish" onclick={() => onDuelAction('image')}>
+              {$t('duel.copyImage')}
+            </button>
+            <span aria-hidden="true">·</span>
+          {/if}
           <button type="button" class="linkish" onclick={() => onDuelAction('link')}>
             {$t('duel.copyLink')}
           </button>
@@ -974,6 +1018,17 @@
   .duel-sub {
     margin: 0;
     color: var(--color-muted);
+  }
+
+  /* Live scorecard preview — the thing that gets shared, and directly copy/paste-able on desktop. */
+  .duel-preview {
+    align-self: center;
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1 / 1;
+    border-radius: 18px;
+    border: 2px solid var(--color-border);
+    box-shadow: var(--shadow-card);
   }
 
   /* One prominent primary action — the "super easy to share" path. */

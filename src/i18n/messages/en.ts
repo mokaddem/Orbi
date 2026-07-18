@@ -691,6 +691,8 @@ const en = {
     linkCopied: 'Link copied!',
     codeCopied: 'Code copied!',
     imageFailed: 'Couldn’t create the image.',
+    copyImage: 'Copy image',
+    imageCopied: 'Image copied!',
     selfReported: 'Scores are self-reported — it’s all in good fun.',
     shareTitle: 'Orbi duel',
     shareText: '{name} challenges you to an Orbi duel!',

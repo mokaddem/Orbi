@@ -694,6 +694,8 @@ const de: typeof en = {
     linkCopied: 'Link kopiert!',
     codeCopied: 'Code kopiert!',
     imageFailed: 'Bild konnte nicht erstellt werden.',
+    copyImage: 'Bild kopieren',
+    imageCopied: 'Bild kopiert!',
     selfReported: 'Punkte werden selbst angegeben — alles nur zum Spaß.',
     shareTitle: 'Orbi-Duell',
     shareText: '{name} fordert dich zu einem Orbi-Duell heraus!',

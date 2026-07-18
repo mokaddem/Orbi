@@ -695,6 +695,8 @@ const fr: typeof en = {
     linkCopied: 'Lien copié !',
     codeCopied: 'Code copié !',
     imageFailed: 'Impossible de créer l’image.',
+    copyImage: 'Copier l’image',
+    imageCopied: 'Image copiée !',
     selfReported: 'Les scores sont déclarés par les joueurs — c’est pour le plaisir.',
     shareTitle: 'Duel Orbi',
     shareText: '{name} te défie en duel sur Orbi !',
