@@ -7,6 +7,47 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.5.0] — 2026-07-19 — _Study & polish_
+
+### Added
+
+- 📖 **"Ready to review?" study-card** — a spaced-repetition review no longer drops you
+  straight into the game. The "time to review" entry now names the mode (map, flags or
+  capitals) and opens a new **study screen** first: it revises every country the review
+  covers — its flag, its capital, or a **per-country locator map** that zooms right to the
+  focus country's own landmass with its neighbours around it for context — and then
+  **"Start review"** launches the *identical* training run. No change to what's scheduled,
+  scored or mastered; just a chance to look before you leap.
+
+### Changed
+
+- 🎯 **Smarter practice near mastery** — the per-family **"practise"** shortcut on Progress
+  used to drill only a family's weaker direction, so near mastery it trickled into silly
+  1–2 question single-mode runs. Now, once little unmastered work remains across **both**
+  directions, it merges them into one interleaved, weakest-first session; with more left it
+  still drills the weaker direction alone, so early sessions stay a sensible length.
+- 📱 **Single-line game bar** — the two-part in-game HUD is now a single game bar — a
+  leading **✕ quit**, the run's **live status** (progress / survival hearts / Blitz clock)
+  in the middle, and **score + streak** (or points + combo) on the right. On a phone it
+  breaks full-bleed to the top and the brand bar steps aside for the round, so the question
+  sits far higher than the old stacked HUD.
+- 🌍 **Sharper globe** — the highlighted prompt country now draws as a **crisp triangulated
+  mesh** instead of the blurry raster fill, the micro-state tap target grows (**16 → 26px**)
+  so specks like San Marino stay tappable, and **pinch-zoom is gentler** on touch devices.
+- ✨ **Snappier XP reveal** — the summary **"+N XP"** tally now starts the moment the whole
+  card is on screen, keeping the reveal hold only when the card is still partly off-screen.
+
+### Fixed
+
+- 📱 **Mobile screens fill the phone** — the Grandmaster Run's flag grid and the
+  country/capital picker were pinned to a fixed height, leaving an empty strip below on a
+  phone. Both now grow to fill the arena (each keeps its own scroll for a big continent),
+  so the question and its answers use the whole screen.
+- 🎖️ **Level-up roll-over animates** — a run that crosses a rank threshold used to jump
+  straight to the earned rank with a near-empty bar. The summary now opens on your
+  **current** rank, fills its bar as the XP tallies in, then rolls over to the new rank
+  (respecting reduced motion).
+
 ## [2.4.0] — 2026-07-17 — _Grandmaster Challenge_
 
 ### Added
