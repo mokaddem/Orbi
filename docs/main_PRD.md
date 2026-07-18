@@ -305,6 +305,41 @@ implementation** (see the callout at the top of the file).
 Remaining v1.0 follow-up: a manual physical multi-device sanity check before public release
 (see Phase 10 progress log).
 
+### v2.8 — Social · friend duels
+
+Owner idea (2026-07-17): players **challenging each other** without breaking the offline / no-backend
+nature. Built on the seeded determinism the Daily Challenge already proves (a `mulberry32` seed →
+identical questions / order / distractors for everyone): a **Duel** turns a completed run into a
+seeded, shareable link + short code; a friend plays the *same* round and scores are compared, with a
+return leg + rematch — all client-side, scores self-reported. A separate variant lets a certified
+Grandmaster **invite a friend to also certify** the same region × family. A server (dynamic
+chat-preview cards, verified scores, leaderboards, real-time) is explicit **future work** for "if it
+gains momentum." As always, the PRD **requires a clarifying-questions round + explicit build approval**
+before implementation (see the callout at the top of the file).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 46 | Async friend duels (seeded share-a-run challenge) | [phase-46-async-friend-duels.md](phases/phase-46-async-friend-duels.md) | 2, 15, 42, 44, 45, 6 | 🚧 Built — awaiting review/merge | v1 score duel **built + green** on `worktree-phase-46-async-friend-duels` (2026-07-18). Every run is seeded (reproducible); pure codec + `duelScore`/`duelVerdict`; Summary "Duel a friend" (gated ≥ 10 + filter-based) with link/code/PNG + name prompt; `#/duel` route for the received challenge + return verdict + broken-link; head-to-head verdict → send-result → rematch; `playerName` in prefs/Settings; static OG card (`og-card.png`) **and** in-app PNG; EN/FR/DE. **891 tests** (+43), check/lint clean, prod build ships the card, headless screenshots verified. **Deferred to 46b:** the Grandmaster "become a grandmaster too" invite (OQ7). Not yet merged to main. |
+
+### v2.9 — Physical geography
+
+Owner idea (2026-07-17): add **new modes for physical-geography features** — mountain ranges, deserts,
+seas, rivers — including a vision of a **3D globe with an elevation heatmap** for mountains. An
+architecture scan confirmed the app is **country-centric to the bone** (`Question.answer: Country`,
+`SRItem.itemKey = mode:iso2`, `parseItemKey` rejects unknown modes, the bundled TopoJSON is country
+polygons only), so a feature is a **new `GeoFeature` entity**, not a new `GameMode` string. Direction
+locked with the owner: build the **first phase as a cheap single-feature pilot** (deliberately *not*
+mountains) on a **light track** — XP-/SR-/mastery-neutral, leaving the learning spine and
+`itemKey`/`parseItemKey` untouched (Grandmaster/Blitz precedents) — to prove the entity model + a map
+overlay layer. The **elevation-texture-vs-choropleth** decision and the flagship **mountains + 3D
+globe** are an explicit **follow-up** that depends on this plumbing (and on Phase 38's WebGL globe). As
+always, the PRD **requires a clarifying-questions round + explicit build approval** before
+implementation (see the callout at the top of the file).
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 47 | Physical geography modes (new `GeoFeature` entity · pilot) | [phase-47-physical-geography-modes.md](phases/phase-47-physical-geography-modes.md) | 1, 2, 4, 5, 22, 37, 40 | ⬜ Not started | PRD drafted 2026-07-17 from the "add more modes (mountains / deserts / seas)" discussion. Direction locked: **new `GeoFeature` entity** beside `Country` (features have no ISO code / flag and span countries); **first phase = cheap single-feature pilot** (not mountains) on a **light track** (XP-/SR-/mastery-neutral; `itemKey`/`parseItemKey` untouched); flat-map overlay only; **mountains + 3D-relief globe** and the choropleth/elevation-texture choice **deferred** to a follow-up. OQ1–OQ9 open (pilot feature type, question directions, engine fork, globe behaviour, data source, naming, Atlas, formats, granularity); **not built — awaiting clarifying round + approval.** |
+
 ---
 
 ## Description

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!--
+    Static Open Graph share card (Phase 46). One branded card for every Orbi link (duel links
+    included) — chat crawlers can't run JS or read the URL fragment, so a *per-duel* card would need
+    a server (explicit future work). Source SVG; rasterised to public/og-card.png via scripts/gen-icons.sh.
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12b1ab" />
+      <stop offset="1" stop-color="#0c807c" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.28" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+
+  <!-- Orbi globe, reused from the favicon (viewBox 25 21 70 70). -->
+  <svg x="90" y="155" width="320" height="320" viewBox="25 21 70 70">
+    <circle cx="60" cy="56" r="32" fill="#dbf3f1" stroke="#2a2320" stroke-width="3" />
+    <clipPath id="orbi-globe"><circle cx="60" cy="56" r="32" /></clipPath>
+    <g clip-path="url(#orbi-globe)">
+      <path d="M44 31 C37 32 35 40 41 43 C48 46 57 43 58 37 C59 31 51 30 44 31 Z" fill="#10a5a0" />
+      <path d="M29 52 C25 54 26 62 32 62 C38 62 40 54 36 50 C34 48 31 50 29 52 Z" fill="#10a5a0" />
+      <path d="M84 47 C79 45 75 50 78 55 C81 61 88 58 88 52 C88 48 87 48 84 47 Z" fill="#10a5a0" />
+      <path d="M52 76 C48 77 48 83 53 83 C58 83 59 77 55 76 Z" fill="#10a5a0" />
+    </g>
+    <circle cx="44" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+    <circle cx="76" cy="61" r="3" fill="#f2a891" opacity="0.85" />
+    <circle cx="51" cy="54" r="3" fill="#2a2320" />
+    <circle cx="69" cy="54" r="3" fill="#2a2320" />
+    <circle cx="52.1" cy="52.9" r="0.9" fill="#fff" />
+    <circle cx="70.1" cy="52.9" r="0.9" fill="#fff" />
+    <path d="M52 63 Q60 70 68 63" fill="none" stroke="#2a2320" stroke-width="2.4" stroke-linecap="round" />
+  </svg>
+
+  <g fill="#ffffff" font-family="'DejaVu Sans','Segoe UI',Arial,sans-serif">
+    <text x="470" y="300" font-size="150" font-weight="700">Orbi</text>
+    <text x="474" y="372" font-size="52" font-weight="600" fill="#e6faf8">Learn world geography</text>
+    <text x="474" y="436" font-size="38" font-weight="400" fill="#c7efec">
+      Maps · Flags · Capitals · Duels
+    </text>
+  </g>
+</svg>

@@ -45,8 +45,10 @@ describe('DailyChallengeCard', () => {
     });
     // The region theme (or absence of one) is carried verbatim onto the run.
     expect(cfg!.filter).toEqual(challenge.filter);
-    // A seeded RNG is the production mechanism that makes the day's questions reproducible.
-    expect(typeof cfg!.rng).toBe('function');
+    // The date-derived seed is the production mechanism that makes the day's questions reproducible;
+    // since Phase 46 the run flows through the shared seeding path (`play.start` derives the RNG from
+    // this seed) instead of carrying a pre-built `rng`.
+    expect(cfg!.seed).toBe(challenge.seed);
   });
 
   it('shows a completed state with the score when done today', () => {

@@ -2,12 +2,20 @@
   import { push } from 'svelte-spa-router';
   import { t, localizedName, localizedRegion } from '../../i18n';
   import { formatDuration, formatPercent } from '../format';
-  import { play, lastSummary, lastBlitzResult, pendingConfig } from '../stores/game';
+  import {
+    play,
+    lastSummary,
+    lastBlitzResult,
+    lastRunConfig,
+    pendingConfig,
+    pendingDuel,
+  } from '../stores/game';
   import {
     loadRank,
     loadRecommendations,
     prefs,
     storageReady,
+    updatePrefs,
     type RankState,
   } from '../stores/persistence';
   import {
@@ -15,11 +23,27 @@
     rankForXp,
     sessionXp,
     sessionXpBreakdown,
+    encodeDuel,
+    isDuelType,
+    duelScore,
+    duelVerdict,
+    MIN_DUEL_QUESTIONS,
     type MascotPose,
     type Recommendation,
   } from '../../domain';
+  import {
+    buildDuelPayload,
+    buildReturnPayload,
+    duelToRunConfig,
+    duelLink,
+    shareDuel,
+    shareDuelImage,
+    copyToClipboard,
+  } from '../duel';
   import { getCountry, type Country } from '../../data';
   import { sound } from '../sound';
+  import DuelNamePrompt from '../components/DuelNamePrompt.svelte';
+  import DuelVerdictCard from '../components/DuelVerdictCard.svelte';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
@@ -193,7 +217,137 @@
   function newGame(): void {
     play.reset();
     pendingConfig.set(null);
+    pendingDuel.set(null);
     push('/play');
+  }
+
+  // --- Duel a friend (Phase 46) ---------------------------------------------------------------
+  // Offer a duel only from a reproducible, prefs-independent run: a duel-able format (fixed /
+  // survival / full / blitz), seeded, with enough questions — and *not* the Daily (its own flow) or
+  // an explicit-pool run (training / targeted practice, whose pool is player/SR-derived and wouldn't
+  // reproduce on the friend's device). The last two are read from the run's config, which the
+  // SessionSummary alone can't distinguish from an ordinary region/world run.
+  const duelable = $derived.by(() => {
+    const s = $lastSummary;
+    if (!s || s.seed === undefined || !isDuelType(s.type) || s.total < MIN_DUEL_QUESTIONS) {
+      return false;
+    }
+    const cfg = $lastRunConfig;
+    if (cfg?.dailyDate) return false;
+    if (cfg?.answerPoolIso?.length || cfg?.answerSlots?.length) return false;
+    return true;
+  });
+
+  // A finished *received* duel: the run's seed matches the challenge the player accepted (set by the
+  // #/duel route). While it holds, show the head-to-head verdict + "send result back" / "rematch"
+  // instead of the generic "Duel a friend" affordance.
+  const duelResponse = $derived.by(() => {
+    const s = $lastSummary;
+    const challenge = $pendingDuel;
+    if (!s || !challenge || s.seed !== challenge.seed || !isDuelType(s.type)) return null;
+    const myScore = duelScore(challenge.type, s);
+    return { challenge, myScore, verdict: duelVerdict(myScore, challenge.challengerScore) };
+  });
+
+  type DuelShareAction = 'link' | 'code' | 'return' | 'image';
+  let namePromptOpen = $state(false);
+  let pendingAction = $state<DuelShareAction | null>(null);
+  let duelFeedback = $state<string | null>(null);
+  let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function flashFeedback(key: string): void {
+    duelFeedback = key;
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => (duelFeedback = null), 2600);
+  }
+
+  async function runDuelAction(action: DuelShareAction, name: string): Promise<void> {
+    const s = $lastSummary;
+    if (!s) return;
+    // "Send result back": encode the return leg (original challenge + my name + my score) as an
+    // #/duel?r=… link and share it, so the original challenger sees who won.
+    if (action === 'return') {
+      const challenge = $pendingDuel;
+      if (!challenge) return;
+      const url = duelLink(encodeDuel(buildReturnPayload(challenge, name, s)), 'r');
+      const text = name ? $t('duel.resultShareText', { name }) : $t('duel.resultShareTextAnon');
+      if ((await shareDuel(url, { title: $t('duel.shareTitle'), text })) === 'copied') {
+        flashFeedback('duel.linkCopied');
+      }
+      return;
+    }
+    const payload = buildDuelPayload(s, name);
+    if (!payload) return;
+    const code = encodeDuel(payload);
+    if (action === 'code') {
+      if (await copyToClipboard(code)) flashFeedback('duel.codeCopied');
+      return;
+    }
+    const url = duelLink(code, 'c');
+    const text = name ? $t('duel.shareText', { name }) : $t('duel.shareTextAnon');
+    // "Share as image": a personalised PNG scorecard via the share sheet (link in the caption).
+    if (action === 'image') {
+      const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region;
+      const scope = `${$t(MODE_LABEL[s.mode] ?? s.mode)} · ${
+        regionKey ? $localizedRegion(regionKey) : $t('duel.scopeWorld')
+      }`;
+      const isBlitz = s.type === 'blitz';
+      const card = {
+        brand: $t('app.title'),
+        caption: $t('duel.title'),
+        name: name || $t('duel.opponent'),
+        scoreValue: isBlitz
+          ? payload.challengerScore.primary.toLocaleString()
+          : s.type === 'survival'
+            ? s.total.toLocaleString()
+            : `${s.correct}/${s.total}`,
+        scoreUnit: isBlitz ? $t('duel.points') : '',
+        scope,
+        cta: $t('duel.cardCta'),
+      };
+      const outcome = await shareDuelImage(card, { title: $t('duel.shareTitle'), text, url });
+      if (outcome === 'copied') flashFeedback('duel.linkCopied');
+      else if (outcome === 'failed') flashFeedback('duel.imageFailed');
+      return;
+    }
+    // Native share sheet where available, else the link is copied — reflected in the feedback line.
+    if ((await shareDuel(url, { title: $t('duel.shareTitle'), text })) === 'copied') {
+      flashFeedback('duel.linkCopied');
+    }
+  }
+
+  // Rematch a received duel: replay the same scope with a *fresh* seed (roles swap — the responder
+  // becomes the challenger), then the generic "Duel a friend" affordance lets them send it on.
+  function duelRematch(): void {
+    const r = duelResponse;
+    if (!r) return;
+    pendingDuel.set(null);
+    pendingConfig.set({ ...duelToRunConfig(r.challenge), seed: undefined });
+    push('/play');
+  }
+
+  // A duel embeds the player's name; capture it once (first duel) before the first share, then reuse.
+  function onDuelAction(action: DuelShareAction): void {
+    const name = $prefs.playerName ?? '';
+    if (!name) {
+      pendingAction = action;
+      namePromptOpen = true;
+      return;
+    }
+    void runDuelAction(action, name);
+  }
+
+  function onDuelNameSave(name: string): void {
+    updatePrefs({ playerName: name });
+    namePromptOpen = false;
+    const action = pendingAction;
+    pendingAction = null;
+    if (action) void runDuelAction(action, name);
+  }
+
+  function onDuelNameCancel(): void {
+    namePromptOpen = false;
+    pendingAction = null;
   }
 </script>
 
@@ -359,6 +513,55 @@
         {$t('summary.newGame')}
       </button>
     </div>
+
+    <!-- Duel a friend (Phase 46). A finished *received* duel shows the head-to-head verdict + return
+         leg + rematch; otherwise a reproducible run offers to start a fresh challenge (see `duelable`).
+         Builds a seeded share link + a copyable short code; the name is captured once on first use. -->
+    {#if duelResponse}
+      <DuelVerdictCard
+        verdict={duelResponse.verdict}
+        type={duelResponse.challenge.type}
+        youScore={duelResponse.myScore}
+        theirScore={duelResponse.challenge.challengerScore}
+        theirName={duelResponse.challenge.challengerName}
+        onSendResult={() => onDuelAction('return')}
+        onRematch={duelRematch}
+        feedback={duelFeedback}
+      />
+    {:else if duelable}
+      <div class="duel-card">
+        <div class="duel-head">
+          <span class="duel-ico" aria-hidden="true"><Icon name="swords" size={20} /></span>
+          <h2>{$t('duel.title')}</h2>
+        </div>
+        <p class="duel-sub">{$t('duel.subtitle')}</p>
+        <div class="duel-actions">
+          <button type="button" class="primary" onclick={() => onDuelAction('link')}>
+            <Icon name="share" size="1em" />
+            {$t('duel.share')}
+          </button>
+          <button type="button" class="secondary" onclick={() => onDuelAction('code')}>
+            <Icon name="copy" size="1em" />
+            {$t('duel.copyCode')}
+          </button>
+          <button type="button" class="secondary" onclick={() => onDuelAction('image')}>
+            <Icon name="image" size="1em" />
+            {$t('duel.shareImage')}
+          </button>
+        </div>
+        <p class="duel-feedback" role="status" aria-live="polite">
+          {duelFeedback ? $t(duelFeedback) : ''}
+        </p>
+        <p class="duel-note">{$t('duel.selfReported')}</p>
+      </div>
+    {/if}
+
+    <DuelNamePrompt
+      open={namePromptOpen}
+      initial={$prefs.playerName ?? ''}
+      onsave={onDuelNameSave}
+      oncancel={onDuelNameCancel}
+    />
 
     <!-- New-best burst overlay (Phase 42): fixed-position, so its place in the tree is immaterial;
          `{#key}` mounts a fresh instance so the one-shot animation plays once. -->
@@ -736,6 +939,103 @@
   @media (max-width: 560px) {
     .stats {
       grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Duel a friend (Phase 46): a self-contained card with its own share actions + a trust note. */
+  .duel-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.1rem 1.25rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+
+  .duel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .duel-head h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .duel-ico {
+    display: inline-flex;
+    color: var(--color-accent);
+  }
+
+  .duel-sub {
+    margin: 0;
+    color: var(--color-muted);
+  }
+
+  .duel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.2rem;
+  }
+
+  .duel-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.2rem;
+    border-radius: 999px;
+    font-weight: 700;
+    border: 2px solid transparent;
+    transition:
+      transform 0.12s ease,
+      border-color 0.12s ease,
+      box-shadow 0.12s ease;
+  }
+
+  .duel-actions .primary:hover {
+    transform: translateY(-2px);
+  }
+
+  .duel-actions .primary:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
+  }
+
+  .duel-actions .secondary {
+    background: var(--color-bg);
+  }
+
+  .duel-actions .secondary:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .duel-feedback {
+    margin: 0;
+    min-height: 1.2em;
+    color: var(--color-correct);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .duel-note {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.8rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .duel-actions button {
+      transition: none;
+    }
+
+    .duel-actions .primary:hover,
+    .duel-actions .secondary:hover {
+      transform: none;
     }
   }
 </style>

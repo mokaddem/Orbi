@@ -77,6 +77,10 @@ const ICONS = {
   'add-home': 'square-plus', // the "Add to Home Screen" row glyph
   'menu-dots': 'ellipsis-vertical', // Android browser overflow (⋮) menu
   install: 'download', // one-tap / generic "Install" action
+  // duels (Phase 46)
+  swords: 'swords', // "Duel a friend" — the challenge affordance
+  copy: 'copy', // copy the duel short code
+  image: 'image', // share the duel scorecard as a PNG
 };
 
 /** Pull the inner markup out of a Lucide <svg> wrapper and compact whitespace. */

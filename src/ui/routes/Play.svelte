@@ -33,6 +33,7 @@
     play,
     lastSummary,
     lastBlitzResult,
+    lastRunConfig,
     pendingConfig,
     playFabAction,
     focusIsosForConfig,
@@ -485,6 +486,7 @@
     if (finished) {
       const summary = play.summary();
       lastSummary.set(summary);
+      lastRunConfig.set(get(play).config ?? null); // hand the run's config to the Summary duel gate
       lastBlitzResult.set(null); // a normal finish clears any prior blitz result
       if (summary) {
         void saveSession(summary);
@@ -686,6 +688,7 @@
     play.endBlitz();
     const summary = play.summary();
     lastSummary.set(summary);
+    lastRunConfig.set(get(play).config ?? null); // hand the run's config to the Summary duel gate
     if (!summary) {
       push('/summary');
       return;

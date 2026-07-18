@@ -135,4 +135,20 @@ export interface SessionSummary {
    * `false` for a survival loss (0 lives) and for every non-survival type.
    */
   cleared?: boolean;
+  /**
+   * The 32-bit seed that drove this run's RNG (question order + distractors), when it was seeded
+   * (Phase 46). Every ordinary run now rolls one, so `(config, seed)` fully reproduces the round —
+   * the basis for a duel. Absent only for a run given a bare, seedless `rng` (some tests).
+   */
+  seed?: number;
+  /**
+   * Options per question this run used (Phase 46). Recorded so a duel can reproduce the exact
+   * distractor sets on the receiving side — the option count changes what `buildQuestion` samples.
+   */
+  choices: number;
+  /**
+   * Survival only: the number of lives the run was played with (Phase 46). Recorded so a survival
+   * duel replays under the same end condition; absent for non-survival types.
+   */
+  lives?: number;
 }

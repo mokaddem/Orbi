@@ -3,8 +3,16 @@ import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Summary from './Summary.svelte';
-import { lastBlitzResult, lastSummary, pendingConfig, play } from '../stores/game';
+import {
+  lastBlitzResult,
+  lastRunConfig,
+  lastSummary,
+  pendingConfig,
+  pendingDuel,
+  play,
+} from '../stores/game';
 import { getCountry } from '../../data';
+import { buildDuelPayload } from '../duel';
 import type { GameMode, SessionSummary, SessionType } from '../../domain';
 import { setLocale } from '../../i18n';
 
@@ -24,6 +32,7 @@ function summary(over: Partial<SessionSummary> = {}): SessionSummary {
     startedAt: 1000,
     finishedAt: 4000,
     durationMs: 3000,
+    choices: 4,
     missed,
     results: [
       { itemKey: `${mode}:BG`, countryIso2: 'BG', correct: false, answerMs: 900 },
@@ -38,6 +47,8 @@ beforeEach(() => {
   setLocale('en');
   play.reset();
   pendingConfig.set(null);
+  lastRunConfig.set(null);
+  pendingDuel.set(null);
 });
 
 afterEach(() => {
@@ -45,6 +56,8 @@ afterEach(() => {
   lastSummary.set(null);
   lastBlitzResult.set(null);
   pendingConfig.set(null);
+  lastRunConfig.set(null);
+  pendingDuel.set(null);
 });
 
 describe('Summary route — Explorer XP (Phase 43)', () => {
@@ -145,5 +158,66 @@ describe('Summary route — Blitz result (Phase 42)', () => {
     lastBlitzResult.set(null);
     const { container } = render(Summary);
     expect(container.querySelector('.blitz-result')).not.toBeInTheDocument();
+  });
+});
+
+describe('Summary route — Duel a friend (Phase 46)', () => {
+  const duelable = (over: Partial<SessionSummary> = {}) =>
+    summary({
+      type: 'fixed',
+      regionFilter: { region: 'Europe' },
+      total: 12,
+      seed: 0x1234,
+      ...over,
+    });
+
+  it('offers a duel for a qualifying run (seeded, ≥ 10 questions, duel-able format)', () => {
+    lastSummary.set(duelable());
+    render(Summary);
+    expect(screen.getByRole('heading', { name: 'Duel a friend' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Challenge a friend' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+  });
+
+  it('hides the duel on a too-short run', () => {
+    lastSummary.set(duelable({ total: 6 }));
+    render(Summary);
+    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
+  });
+
+  it('hides the duel for a training run (not reproducible cross-player)', () => {
+    lastSummary.set(duelable({ type: 'training' }));
+    render(Summary);
+    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
+  });
+
+  it('hides the duel for the Daily Challenge (its own flow)', () => {
+    lastSummary.set(duelable());
+    lastRunConfig.set({ mode: 'flag-to-country', type: 'fixed', dailyDate: '2026-07-18' });
+    render(Summary);
+    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
+  });
+
+  it('shows the head-to-head verdict for a finished received duel (matched by seed)', () => {
+    // Opponent (the challenger) scored 5; I scored 9 on the same seed → I win.
+    const challenge = buildDuelPayload(
+      summary({
+        type: 'fixed',
+        regionFilter: { region: 'Europe' },
+        total: 12,
+        correct: 5,
+        seed: 0x1234,
+      }),
+      'Sami',
+      'v1',
+    )!;
+    pendingDuel.set(challenge);
+    lastSummary.set(duelable({ correct: 9 }));
+    render(Summary);
+    expect(screen.getByText('You win!')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send result back' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Rematch' })).toBeInTheDocument();
+    // The generic "start a new duel" affordance is replaced by the verdict.
+    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { t } from '../../i18n';
-  import { PREFS_BOUNDS, MAP_PROJECTIONS, isMapProjection } from '../../data';
+  import {
+    PREFS_BOUNDS,
+    PLAYER_NAME_MAX_LENGTH,
+    MAP_PROJECTIONS,
+    isMapProjection,
+  } from '../../data';
   import {
     prefs,
     updatePrefs,
@@ -148,6 +153,23 @@
   </div>
 
   <p class="hint">{$t('settings.soundEffectsHint')}</p>
+
+  <h2>{$t('duel.settingsTitle')}</h2>
+
+  <div class="row">
+    <label class="label" for="pref-duel-name">{$t('duel.settingsLabel')}</label>
+    <input
+      id="pref-duel-name"
+      type="text"
+      autocomplete="nickname"
+      maxlength={PLAYER_NAME_MAX_LENGTH}
+      placeholder={$t('duel.namePlaceholder')}
+      value={$prefs.playerName ?? ''}
+      oninput={(e) => updatePrefs({ playerName: e.currentTarget.value })}
+    />
+  </div>
+
+  <p class="hint">{$t('duel.settingsHelp')}</p>
 
   <h2>{$t('settings.map')}</h2>
 

@@ -18,6 +18,7 @@ function summary(over: Partial<SessionSummary> = {}): SessionSummary {
     startedAt: Date.UTC(2026, 6, 7, 10, 0, 0),
     finishedAt: Date.UTC(2026, 6, 7, 10, 1, 0),
     durationMs: 60_000,
+    choices: 4,
     missed: [],
     results: [
       { itemKey: 'flag-to-country:BG', countryIso2: 'BG', correct: true, answerMs: 500 },

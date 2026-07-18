@@ -111,6 +111,8 @@ export function summaryToRecord(summary: SessionSummary, id: string = newId()): 
     // Cache the Blitz score (base × streak-combo) so the personal best is a cheap max over
     // history; derivable from `questions`, so only blitz runs carry it (Phase 42).
     ...(summary.type === 'blitz' ? { points: computeBlitzPoints(summary.results) } : {}),
+    // Remember the run's seed so a duel/rematch can reproduce it from history (Phase 46).
+    ...(summary.seed !== undefined ? { seed: summary.seed } : {}),
     questions: summary.results,
   };
 }

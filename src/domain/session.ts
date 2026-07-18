@@ -59,6 +59,13 @@ export interface SessionConfig {
   /** Options per question (default 4). */
   choices?: number;
   rng?: Rng;
+  /**
+   * The 32-bit seed behind `rng`, recorded verbatim on the {@link SessionSummary} so a finished run
+   * is reproducible and thus duel-able (Phase 46). The session never derives `rng` from it — the
+   * caller passes `rng = mulberry32(seed)` — it is carried through for the summary only. Absent for a
+   * run given a bare, seedless `rng`.
+   */
+  seed?: number;
   /** Clock injection for deterministic timing in tests (default `Date.now`). */
   now?: () => number;
 }
@@ -76,6 +83,7 @@ export class QuizSession {
   private readonly lives: number;
   private readonly choices: number;
   private readonly rng: Rng;
+  private readonly seed?: number;
   private readonly now: () => number;
 
   private readonly universe: readonly Country[];
@@ -110,6 +118,7 @@ export class QuizSession {
     this.lives = config.lives ?? DEFAULT_LIVES;
     this.choices = config.choices ?? DEFAULT_CHOICES;
     this.rng = config.rng ?? defaultRng;
+    this.seed = config.seed;
     this.now = config.now ?? Date.now;
 
     this.universe = config.countries;
@@ -290,6 +299,12 @@ export class QuizSession {
       // `summary()` never reads as cleared; `false` for non-survival types.
       cleared:
         this.type === 'survival' && this.s.status === 'finished' && this.s.livesRemaining > 0,
+      // Carry the run's parameters so the Summary can build a reproducible duel (Phase 46): the seed
+      // (question order + distractors), the option count (distractor sampling), and — for survival —
+      // the life count (the end condition).
+      ...(this.seed !== undefined ? { seed: this.seed } : {}),
+      choices: this.choices,
+      ...(this.type === 'survival' ? { lives: this.lives } : {}),
     };
   }
 

@@ -245,3 +245,19 @@ export {
   ChallengeSession,
   createChallenge,
 } from './challenge';
+
+export {
+  DUEL_PROTOCOL_VERSION,
+  MIN_DUEL_QUESTIONS,
+  type DuelType,
+  type DuelScore,
+  type DuelVerdict,
+  type DuelPayload,
+  type DuelDecodeError,
+  type DuelDecodeResult,
+  isDuelType,
+  duelScore,
+  duelVerdict,
+  encodeDuel,
+  decodeDuel,
+} from './duel';

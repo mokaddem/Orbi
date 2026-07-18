@@ -51,6 +51,7 @@ export {
   DEFAULT_PREFS,
   MAP_PROJECTIONS,
   PREFS_BOUNDS,
+  PLAYER_NAME_MAX_LENGTH,
   clampPrefs,
   isMapProjection,
   openStore,

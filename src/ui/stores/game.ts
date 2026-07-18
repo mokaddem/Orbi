@@ -12,6 +12,7 @@ import {
   filterCountries,
   mulberry32,
   type DailyChallenge,
+  type DuelPayload,
   type GameMode,
   type Question,
   type QuestionResult,
@@ -49,6 +50,13 @@ export interface RunConfig {
    * *production* path for the Daily Challenge (a date-seeded, reproducible round).
    */
   rng?: Rng;
+  /**
+   * The 32-bit seed for a reproducible run (Phase 46). When set (and `rng` is not), {@link play.start}
+   * derives `rng = mulberry32(seed)` — the path a received duel / rematch uses to replay an exact
+   * round. When *neither* `rng` nor `seed` is given, `start` rolls a fresh seed so every ordinary run
+   * is reproducible (and thus duel-able); the resolved seed is stamped on the summary + record.
+   */
+  seed?: number;
   now?: () => number;
   /**
    * Set on a Daily Challenge run to the local day-key it belongs to. Its presence marks the
@@ -94,6 +102,15 @@ const idleView: PlayView = {
   answerCount: null,
 };
 
+/**
+ * Roll a fresh 32-bit seed for a run (Phase 46). Every ordinary run is now seeded so it is
+ * reproducible — and thus duel-able — with no player-visible change (the RNG source just becomes a
+ * remembered seed instead of an anonymous `Math.random`).
+ */
+function rollSeed(): number {
+  return (Math.random() * 0x1_0000_0000) >>> 0;
+}
+
 function createPlayStore() {
   const { subscribe, set } = writable<PlayView>(idleView);
   let session: QuizSession | null = null;
@@ -108,6 +125,12 @@ function createPlayStore() {
     /** Begin a new session from `cfg` and present its first question. */
     start(cfg: RunConfig): void {
       config = cfg;
+      // Seed every run so any finished run is reproducible / duel-able (Phase 46). Honour an explicit
+      // `seed` (a received duel or rematch replaying an exact round) or an explicit `rng` (the Daily
+      // Challenge, or tests); otherwise roll a fresh seed. The resolved seed is threaded to the
+      // session, which stamps it on the summary + record — the seed the duel code carries.
+      const seed = cfg.seed ?? (cfg.rng ? undefined : rollSeed());
+      const rng = cfg.rng ?? (seed !== undefined ? mulberry32(seed) : undefined);
       const all = getCountries();
 
       // Training sessions carry an explicit answer pool (specific weak countries); they
@@ -148,7 +171,8 @@ function createPlayStore() {
         fixedLength: cfg.fixedLength,
         lives: cfg.lives,
         choices: cfg.choices,
-        rng: cfg.rng,
+        rng,
+        seed,
         now: cfg.now,
       });
       // A "Grand Tour" (full) run asks about every eligible country once — a count only the
@@ -274,6 +298,23 @@ export interface BlitzResult {
 /** The most recent Blitz result, or `null` after any non-blitz run. Read by the Summary route. */
 export const lastBlitzResult = writable<BlitzResult | null>(null);
 
+/**
+ * The finished run's {@link RunConfig}, handed to the Summary route alongside {@link lastSummary}
+ * (Phase 46). The Summary's "Duel a friend" gate reads it to exclude runs that aren't reproducible
+ * cross-player — the Daily (`dailyDate`) and any explicit-pool run (`answerPoolIso` / `answerSlots`,
+ * i.e. training and targeted practice) — which the {@link SessionSummary} alone can't distinguish
+ * from an ordinary region/world run. `null` before the first finish (and on a cold reload).
+ */
+export const lastRunConfig = writable<RunConfig | null>(null);
+
+/**
+ * The challenge a received duel is being played against (Phase 46), set by the `#/duel` route when
+ * the challengee accepts and cleared once the verdict is shown / dismissed. While set, the Summary
+ * route (which the duel run finishes to) shows the head-to-head verdict + "send result back" +
+ * "rematch" instead of the generic "Duel a friend" affordance, matched by seed to the finished run.
+ */
+export const pendingDuel = writable<DuelPayload | null>(null);
+
 /** A config staged for the Play route to auto-start (e.g. a Retry from Summary). */
 export const pendingConfig = writable<RunConfig | null>(null);
 
@@ -365,7 +406,9 @@ export function dailyToConfig(challenge: DailyChallenge): RunConfig {
     filter: challenge.filter,
     fixedLength: challenge.length,
     choices: DAILY_CHOICES,
-    rng: mulberry32(challenge.seed),
+    // Pass the date-derived seed (not a pre-built rng) so the run flows through the same seeding
+    // path as every other run and records its seed on the summary (Phase 46).
+    seed: challenge.seed,
     dailyDate: challenge.dateKey,
   };
 }

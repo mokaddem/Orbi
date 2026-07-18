@@ -31,6 +31,12 @@ export interface SessionRecord {
    * record without it (or a non-blitz record) is simply scored 0 / recomputed on read.
    */
   points?: number;
+  /**
+   * The 32-bit seed that drove this run (Phase 46), copied from the {@link SessionSummary}. Present
+   * on every seeded run (all ordinary play now seeds), enabling a later duel/rematch from history.
+   * Absent on legacy records and on runs given a bare, seedless `rng`.
+   */
+  seed?: number;
   /** Per-question outcomes, in the order they were answered. */
   questions: QuestionResult[];
 }
@@ -170,7 +176,16 @@ export interface Prefs {
    * it survives structured clone; the UI re-validates it on restore, ignoring anything stale.
    */
   lastSetup?: { mode: GameMode; type: SessionType; region?: string; subregion?: string };
+  /**
+   * Display name for async friend duels (Phase 46) — captured once on the first duel and editable in
+   * Settings, embedded in a challenge to personalise it (and to seed a future duel history). Purely
+   * cosmetic/local; trimmed and length-clamped ({@link PLAYER_NAME_MAX_LENGTH}). Absent until set.
+   */
+  playerName?: string;
 }
+
+/** Max length of the duel {@link Prefs.playerName}; longer input is clamped (Phase 46). */
+export const PLAYER_NAME_MAX_LENGTH = 24;
 
 /** Defaults applied on first run and merged over any partially-stored prefs. */
 export const DEFAULT_PREFS: Prefs = {
@@ -225,6 +240,11 @@ export function clampPrefs(prefs: Prefs): Prefs {
     typeof prefs.lastSetup.mode === 'string' &&
     typeof prefs.lastSetup.type === 'string'
       ? { lastSetup: prefs.lastSetup }
+      : {}),
+    // Trim + length-clamp the duel display name; drop an absent/blank value so it stays truly unset
+    // (the first-duel prompt keys off its absence).
+    ...(typeof prefs.playerName === 'string' && prefs.playerName.trim()
+      ? { playerName: prefs.playerName.trim().slice(0, PLAYER_NAME_MAX_LENGTH) }
       : {}),
   };
 }

@@ -37,6 +37,7 @@ function summary(over: Partial<SessionSummary> = {}): SessionSummary {
     startedAt: 1000,
     finishedAt: 5000,
     durationMs: 4000,
+    choices: 4,
     missed: [],
     results: [
       { itemKey: 'flag-to-country:BG', countryIso2: 'BG', correct: true, answerMs: 500 },
