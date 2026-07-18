@@ -687,6 +687,7 @@ const de: typeof en = {
     subtitle:
       'Schick genau diese Runde — gleiche Fragen, gleiche Reihenfolge — und sieh, wer gewinnt.',
     share: 'Freund herausfordern',
+    copyLink: 'Link kopieren',
     copyCode: 'Code kopieren',
     shareImage: 'Als Bild teilen',
     cardCta: 'Schaffst du das auch?',

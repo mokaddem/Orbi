@@ -37,7 +37,7 @@
     duelToRunConfig,
     duelLink,
     shareDuel,
-    shareDuelImage,
+    shareDuelSmart,
     copyToClipboard,
   } from '../duel';
   import { getCountry, type Country } from '../../data';
@@ -249,7 +249,9 @@
     return { challenge, myScore, verdict: duelVerdict(myScore, challenge.challengerScore) };
   });
 
-  type DuelShareAction = 'link' | 'code' | 'return' | 'image';
+  // One primary "Challenge a friend" tap (`share`) does the right thing per device (image + link on
+  // mobile, link on desktop); `link` / `code` are the quiet fallbacks; `return` sends a result back.
+  type DuelShareAction = 'share' | 'link' | 'code' | 'return';
   let namePromptOpen = $state(false);
   let pendingAction = $state<DuelShareAction | null>(null);
   let duelFeedback = $state<string | null>(null);
@@ -261,11 +263,31 @@
     feedbackTimer = setTimeout(() => (duelFeedback = null), 2600);
   }
 
+  /** Build the localised scorecard text + share strings for the current run. */
+  function duelCardText(payloadPrimary: number, name: string) {
+    const s = $lastSummary!;
+    const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region;
+    const isBlitz = s.type === 'blitz';
+    return {
+      eyebrow: name ? $t('duel.incomingTitle', { name }) : $t('duel.incomingTitleAnon'),
+      scoreValue: isBlitz
+        ? payloadPrimary.toLocaleString()
+        : s.type === 'survival'
+          ? s.total.toLocaleString()
+          : `${s.correct}/${s.total}`,
+      scoreUnit: isBlitz ? $t('duel.points') : '',
+      scope: `${$t(MODE_LABEL[s.mode] ?? s.mode)} · ${
+        regionKey ? $localizedRegion(regionKey) : $t('duel.scopeWorld')
+      }`,
+      cta: $t('duel.cardCta'),
+      brand: $t('app.title'),
+    };
+  }
+
   async function runDuelAction(action: DuelShareAction, name: string): Promise<void> {
     const s = $lastSummary;
     if (!s) return;
-    // "Send result back": encode the return leg (original challenge + my name + my score) as an
-    // #/duel?r=… link and share it, so the original challenger sees who won.
+    // "Send result back": a #/duel?r=… link the original challenger opens to see who won.
     if (action === 'return') {
       const challenge = $pendingDuel;
       if (!challenge) return;
@@ -279,40 +301,21 @@
     const payload = buildDuelPayload(s, name);
     if (!payload) return;
     const code = encodeDuel(payload);
+    const url = duelLink(code, 'c');
     if (action === 'code') {
       if (await copyToClipboard(code)) flashFeedback('duel.codeCopied');
       return;
     }
-    const url = duelLink(code, 'c');
-    const text = name ? $t('duel.shareText', { name }) : $t('duel.shareTextAnon');
-    // "Share as image": a personalised PNG scorecard via the share sheet (link in the caption).
-    if (action === 'image') {
-      const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region;
-      const scope = `${$t(MODE_LABEL[s.mode] ?? s.mode)} · ${
-        regionKey ? $localizedRegion(regionKey) : $t('duel.scopeWorld')
-      }`;
-      const isBlitz = s.type === 'blitz';
-      const card = {
-        eyebrow: name ? $t('duel.incomingTitle', { name }) : $t('duel.incomingTitleAnon'),
-        scoreValue: isBlitz
-          ? payload.challengerScore.primary.toLocaleString()
-          : s.type === 'survival'
-            ? s.total.toLocaleString()
-            : `${s.correct}/${s.total}`,
-        scoreUnit: isBlitz ? $t('duel.points') : '',
-        scope,
-        cta: $t('duel.cardCta'),
-        brand: $t('app.title'),
-      };
-      const outcome = await shareDuelImage(card, { title: $t('duel.shareTitle'), text, url });
-      if (outcome === 'copied') flashFeedback('duel.linkCopied');
-      else if (outcome === 'failed') flashFeedback('duel.imageFailed');
+    if (action === 'link') {
+      if (await copyToClipboard(url)) flashFeedback('duel.linkCopied');
       return;
     }
-    // Native share sheet where available, else the link is copied — reflected in the feedback line.
-    if ((await shareDuel(url, { title: $t('duel.shareTitle'), text })) === 'copied') {
-      flashFeedback('duel.linkCopied');
-    }
+    // Primary: image + link caption where the device can share files, else the link.
+    const text = name ? $t('duel.shareText', { name }) : $t('duel.shareTextAnon');
+    const card = duelCardText(payload.challengerScore.primary, name);
+    const outcome = await shareDuelSmart(card, { title: $t('duel.shareTitle'), text, url });
+    if (outcome === 'copied') flashFeedback('duel.linkCopied');
+    else if (outcome === 'failed') flashFeedback('duel.imageFailed');
   }
 
   // Rematch a received duel: replay the same scope with a *fresh* seed (roles swap — the responder
@@ -534,18 +537,17 @@
           <h2>{$t('duel.title')}</h2>
         </div>
         <p class="duel-sub">{$t('duel.subtitle')}</p>
-        <div class="duel-actions">
-          <button type="button" class="primary" onclick={() => onDuelAction('link')}>
-            <Icon name="share" size="1em" />
-            {$t('duel.share')}
+        <button type="button" class="duel-primary" onclick={() => onDuelAction('share')}>
+          <Icon name="share" size="1.15em" />
+          {$t('duel.share')}
+        </button>
+        <div class="duel-fallback">
+          <button type="button" class="linkish" onclick={() => onDuelAction('link')}>
+            {$t('duel.copyLink')}
           </button>
-          <button type="button" class="secondary" onclick={() => onDuelAction('code')}>
-            <Icon name="copy" size="1em" />
+          <span aria-hidden="true">·</span>
+          <button type="button" class="linkish" onclick={() => onDuelAction('code')}>
             {$t('duel.copyCode')}
-          </button>
-          <button type="button" class="secondary" onclick={() => onDuelAction('image')}>
-            <Icon name="image" size="1em" />
-            {$t('duel.shareImage')}
           </button>
         </div>
         <p class="duel-feedback" role="status" aria-live="polite">
@@ -974,43 +976,58 @@
     color: var(--color-muted);
   }
 
-  .duel-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 0.2rem;
-  }
-
-  .duel-actions button {
+  /* One prominent primary action — the "super easy to share" path. */
+  .duel-primary {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.55rem 1.2rem;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+    padding: 0.8rem 1.4rem;
     border-radius: 999px;
-    font-weight: 700;
+    font-weight: 800;
+    font-size: 1.05rem;
     border: 2px solid transparent;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    box-shadow: var(--shadow-chunky);
     transition:
       transform 0.12s ease,
-      border-color 0.12s ease,
       box-shadow 0.12s ease;
   }
 
-  .duel-actions .primary:hover {
+  .duel-primary:hover {
     transform: translateY(-2px);
   }
 
-  .duel-actions .primary:active {
+  .duel-primary:active {
     transform: translateY(2px);
     box-shadow: var(--shadow-chunky-press);
   }
 
-  .duel-actions .secondary {
-    background: var(--color-bg);
+  /* Quiet fallbacks for desktop / manual sending. */
+  .duel-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    color: var(--color-muted);
+    font-size: 0.9rem;
   }
 
-  .duel-actions .secondary:hover {
-    border-color: var(--color-accent);
-    transform: translateY(-2px);
+  .linkish {
+    background: none;
+    border: none;
+    padding: 0.2rem 0.1rem;
+    color: var(--color-muted);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .linkish:hover {
+    color: var(--color-accent-strong);
   }
 
   .duel-feedback {
@@ -1028,12 +1045,11 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .duel-actions button {
+    .duel-primary {
       transition: none;
     }
 
-    .duel-actions .primary:hover,
-    .duel-actions .secondary:hover {
+    .duel-primary:hover {
       transform: none;
     }
   }

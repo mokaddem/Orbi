@@ -684,6 +684,7 @@ const en = {
     title: 'Duel a friend',
     subtitle: 'Send this exact round — same questions, same order — and see who wins.',
     share: 'Challenge a friend',
+    copyLink: 'Copy link',
     copyCode: 'Copy code',
     shareImage: 'Share as image',
     cardCta: 'Can you beat it?',

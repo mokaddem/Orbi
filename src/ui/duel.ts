@@ -442,5 +442,31 @@ export async function shareDuelImage(
   return 'copied';
 }
 
+/** Can this browser share image *files* via the native sheet? (Mostly mobile / installed PWAs.) */
+export function canShareFiles(): boolean {
+  if (typeof navigator === 'undefined' || typeof navigator.canShare !== 'function') return false;
+  try {
+    return navigator.canShare({
+      files: [new File([new Uint8Array()], 'orbi-duel.png', { type: 'image/png' })],
+    });
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The one-tap "Challenge a friend" action (Phase 46): share the **personalised scorecard image** with
+ * the play link in the caption where file-sharing is supported (mostly mobile), else share/copy the
+ * **link** (mostly desktop — it unfurls to the branded OG card and stays tappable). One button, the
+ * best result per device.
+ */
+export async function shareDuelSmart(
+  card: DuelCardText,
+  opts: { title: string; text: string; url: string },
+): Promise<DuelShareOutcome> {
+  if (canShareFiles()) return shareDuelImage(card, opts);
+  return shareDuel(opts.url, { title: opts.title, text: opts.text });
+}
+
 /** Re-export the score shape for consumers that display a head-to-head. */
 export type { DuelScore };

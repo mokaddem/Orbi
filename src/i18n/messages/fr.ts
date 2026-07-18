@@ -688,6 +688,7 @@ const fr: typeof en = {
     title: 'Défier un ami',
     subtitle: 'Envoie cette manche exacte — mêmes questions, même ordre — et vois qui gagne.',
     share: 'Défier un ami',
+    copyLink: 'Copier le lien',
     copyCode: 'Copier le code',
     shareImage: 'Partager en image',
     cardCta: 'Peux-tu faire mieux ?',
