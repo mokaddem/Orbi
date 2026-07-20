@@ -22,7 +22,10 @@ import {
   type SessionSummary,
   type SessionType,
 } from '../../domain';
-import { getCountries, type Country, type Prefs } from '../../data';
+import { getCountries, preloadFlags, type Country, type Prefs } from '../../data';
+
+/** Modes that render country flags (prompt or options) — the ones a flag-load stall can hurt. */
+const FLAG_MODES: readonly GameMode[] = ['flag-to-country', 'country-to-flag', 'map-highlight'];
 
 /** UI-level description of a session to run — everything needed to (re)start one. */
 export interface RunConfig {
@@ -157,6 +160,11 @@ function createPlayStore() {
         rng: cfg.rng,
         now: cfg.now,
       });
+      // Blitz races the clock, so a question that has to wait on a flag fetch quietly costs points.
+      // Warm every candidate flag (answers + possible distractors, i.e. the whole universe) up front
+      // for a flag-showing Blitz run, so each new question renders its flags from cache. Other formats
+      // dwell between questions, so their flags load in time without this.
+      if (cfg.type === 'blitz' && FLAG_MODES.includes(cfg.mode)) preloadFlags(countries);
       // A "Grand Tour" (full) run asks about every eligible country once — a count only the
       // session knows (after the map-geometry filter). Pin it into the config as `fixedLength`
       // so the HUD progress bar and the summary total read the real length, not a prefs default.
