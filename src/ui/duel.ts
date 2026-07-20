@@ -230,14 +230,23 @@ function roundRectPath(
   ctx.closePath();
 }
 
-/** Draw the Orbi globe mascot (the favicon), fitted into a `size`×`size` box at (x, y). */
-function drawOrbi(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+/**
+ * Draw one Orbi globe centred at (cx, cy) with radius `r`, its face turned by `look` (px, +right)
+ * so a head-to-head pair reads as sizing each other up. The globe art lives in the favicon's own
+ * coordinate space (disc at 60,56 r32); the transform maps that onto the target circle.
+ */
+function drawDuelGlobe(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  look: number,
+): void {
   ctx.save();
-  // The favicon art lives in viewBox "25 21 70 70"; map it into the target box.
-  const s = size / 70;
-  ctx.translate(x, y);
+  const s = r / 32;
+  ctx.translate(cx, cy);
   ctx.scale(s, s);
-  ctx.translate(-25, -21);
+  ctx.translate(-60, -56);
 
   // Globe disc + ink outline.
   ctx.beginPath();
@@ -273,40 +282,75 @@ function drawOrbi(ctx: CanvasRenderingContext2D, x: number, y: number, size: num
   ctx.fill();
   ctx.restore();
 
-  // Cheeks, eyes (+ highlights), smile.
+  // Cheeks.
   ctx.fillStyle = '#f2a891';
-  for (const cx of [44, 76]) {
+  for (const chX of [44, 76]) {
     ctx.beginPath();
-    ctx.arc(cx, 61, 3, 0, Math.PI * 2);
+    ctx.arc(chX, 61, 3, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  // A single raised brow over the *outer* eye — tilts each globe toward the other.
+  ctx.strokeStyle = '#2a2320';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  if (look >= 0) {
+    ctx.moveTo(46, 50);
+    ctx.quadraticCurveTo(50.5, 48.6, 55, 50);
+  } else {
+    ctx.moveTo(65, 50);
+    ctx.quadraticCurveTo(69.5, 48.6, 74, 50);
+  }
+  ctx.stroke();
+
+  // Eyes (pupils nudged by `look` so the pair glance inward) + highlights.
   ctx.fillStyle = '#2a2320';
-  for (const cx of [51, 69]) {
+  for (const eX of [51 + look, 69 + look]) {
     ctx.beginPath();
-    ctx.arc(cx, 54, 3, 0, Math.PI * 2);
+    ctx.arc(eX, 54, 3, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.fillStyle = '#ffffff';
-  for (const cx of [52.1, 70.1]) {
+  for (const eX of [51 + look, 69 + look]) {
     ctx.beginPath();
-    ctx.arc(cx, 52.9, 0.9, 0, Math.PI * 2);
+    ctx.arc(eX + 1.1, 52.9, 0.9, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  // Confident grin.
   ctx.strokeStyle = '#2a2320';
-  ctx.lineWidth = 2.4;
-  ctx.lineCap = 'round';
+  ctx.lineWidth = 2.3;
   ctx.beginPath();
-  ctx.moveTo(52, 63);
-  ctx.quadraticCurveTo(60, 70, 68, 63);
+  ctx.moveTo(52, 63.4);
+  ctx.quadraticCurveTo(60, 68.6, 68, 63.4);
   ctx.stroke();
 
+  ctx.restore();
+}
+
+/** Draw the coral "VS" badge that sits between the two globes. */
+function drawVsBadge(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = '#ff7a59';
+  ctx.fill();
+  ctx.lineWidth = 4.5;
+  ctx.strokeStyle = '#ffffff';
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `800 30px ${CARD_FONT_STACK}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('VS', cx, cy + 1);
   ctx.restore();
 }
 
 /**
  * Draw the duel scorecard (Design A — "Orbi playroom") to a PNG blob (1080×1080), or `null` if canvas
  * is unavailable. Mirrors the app's chunky rounded look: a mint ground, an offset-shadow white card,
- * the Orbi mascot, a coral challenge eyebrow, the score in a teal pill, a scope chip and a CTA.
+ * the head-to-head Orbi duo, a coral challenge eyebrow, the score in a teal pill, a scope chip and a CTA.
  */
 export async function renderDuelCard(text: DuelCardText): Promise<Blob | null> {
   if (typeof document === 'undefined') return null;
@@ -348,7 +392,10 @@ export async function renderDuelCard(text: DuelCardText): Promise<Blob | null> {
   ctx.strokeStyle = '#d3efeb';
   ctx.stroke();
 
-  drawOrbi(ctx, 440, 150, 200);
+  // Head-to-head Orbi duo: two globes eyeing each other across a coral "VS".
+  drawDuelGlobe(ctx, 470, 256, 92, 1.6);
+  drawDuelGlobe(ctx, 610, 256, 92, -1.6);
+  drawVsBadge(ctx, 540, 256, 30);
 
   ctx.textAlign = 'center';
 
