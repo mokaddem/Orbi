@@ -7,7 +7,7 @@
   import type { CountryFeature } from '../../data';
   import { t } from '../../i18n';
   import Icon from './Icon.svelte';
-  import { nearestCountryWithinCap, type CentroidTarget } from './map-hit';
+  import { nearestCountryWithinCap, lenientLocatePick, type CentroidTarget } from './map-hit';
   import {
     TEX_W,
     TEX_H,
@@ -39,6 +39,7 @@
     highlightIso = null,
     pickedIso = null,
     pickedLabel = null,
+    answerIso = null,
     revealIso = null,
     revealLabel = null,
     focusIsos = null,
@@ -52,6 +53,8 @@
     highlightIso?: string | null;
     pickedIso?: string | null;
     pickedLabel?: string | null;
+    /** Asked country in map-locate, for lenient grading only (never drawn). See `lenientLocatePick`. */
+    answerIso?: string | null;
     revealIso?: string | null;
     revealLabel?: string | null;
     focusIsos?: string[] | null;
@@ -75,8 +78,16 @@
   const ZOOM_SPEED = 0.9;
   const ZOOM_SPEED_TOUCH = 0.45;
   const PICK_MOVE = 6; // px a pointer may drift and still count as a click, not a drag
-  const MICRO_CAP = 26; // px aim-assist radius around a micro-state's screen centroid
-  const OCEAN_CAP = 42; // px snap radius for a near-miss on open water
+  // Coarse pointers (touch, the primary platform) get a wider magnet than a mouse.
+  const coarsePointer =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: coarse)').matches;
+  const MICRO_CAP = coarsePointer ? 36 : 26; // px aim-assist radius around a micro-state's centroid
+  const OCEAN_CAP = coarsePointer ? 56 : 42; // px snap radius for a near-miss on open water
+  // px accept radius around the *asked* micro-state's dot — a tap this close counts as it even if it
+  // resolved to the surrounding country (only ever accepts the asked country). Mirrors the flat map.
+  const TARGET_ACCEPT_CAP = coarsePointer ? 66 : 50;
   const MICRO_STER = 3e-5; // geoArea (steradians) below which a country is "micro" (aim-assisted)
   const AUTOROTATE_SPEED = 0.5;
   // Drag-spin speed at the world view; scaled down as the camera dollies in so a zoomed-in
@@ -586,7 +597,16 @@
     // 3) near-miss on open water → snap to the nearest visible country within a cap.
     if (!iso) iso = nearestCountryWithinCap(cx, cy, all, OCEAN_CAP);
 
-    if (iso) onpick?.(iso);
+    if (!iso) return;
+
+    // Answer-aware leniency (map-locate), shared with the flat map: a tap near the asked micro-state's
+    // dot, or one that resolved to an enclave whose host was asked, counts as the asked country.
+    const tgtDot = answerIso ? micro.find((m) => m.iso2 === answerIso) : undefined;
+    const targetWithinAccept =
+      !!tgtDot &&
+      (tgtDot.cx - cx) * (tgtDot.cx - cx) + (tgtDot.cy - cy) * (tgtDot.cy - cy) <=
+        TARGET_ACCEPT_CAP * TARGET_ACCEPT_CAP;
+    onpick?.(lenientLocatePick(iso, answerIso, targetWithinAccept) ?? iso);
   }
 
   // --- Hover pop (locate mode) ---------------------------------------------------

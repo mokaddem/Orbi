@@ -1126,6 +1126,7 @@
               pickedLabel={pickedWrong && pickedWrong.iso2 !== question.answer.iso2
                 ? $localizedName(pickedWrong)
                 : null}
+              answerIso={qMode === 'map-locate' && !answered ? question.answer.iso2 : null}
               revealIso={qMode === 'map-locate' && answered ? question.answer.iso2 : null}
               revealLabel={qMode === 'map-locate' && answered
                 ? $localizedName(question.answer)
