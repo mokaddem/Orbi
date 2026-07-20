@@ -286,6 +286,41 @@ const en = {
       title: 'Grandmaster — {family} · {region}',
       desc: 'Cleared the {region} {family} Grandmaster Run — every country, both directions, one life.',
     },
+    // Phase 46b: the "become a Grandmaster too" friend invite. A certified player dares a friend to
+    // sweep the same continent × family; shared as a link/image with an embedded scan-to-play QR that
+    // opens `#/challenge-invite`. No score (pass/fail on the receiver's own run); the return leg is
+    // silent. `{scope}` is a composed "{family} · {region}" label.
+    friendInvite: {
+      // Challenger side (victory bloom + Progress capstone).
+      share: 'Challenge a friend',
+      shareTitle: 'Become a Grandmaster on Orbi',
+      shareText: '{scope} — I earned the crest. Can you become a Grandmaster too?',
+      // The shared image card (arena / ember).
+      cardEyebrow: '{name} challenges you',
+      cardEyebrowAnon: 'You’re challenged',
+      cardSubhead: 'Carry the fire into the gauntlet.',
+      cardHint: 'Scan to accept',
+      // Receiver landing (`#/challenge-invite`).
+      incomingTitle: '{name} challenges you',
+      incomingTitleAnon: 'You’ve been challenged',
+      subtitle: 'Become a Grandmaster too',
+      accept: 'Enter the gauntlet',
+      decline: 'Not now',
+      alreadyCertified: 'You’re already a Grandmaster of {scope}.',
+      loading: 'Loading the challenge…',
+      locked: {
+        title: 'Not unlocked yet',
+        body: 'Master {scope} first — then you can take on its Grandmaster Run.',
+        cta: 'See your progress',
+      },
+      cooldown: {
+        title: 'Come back tomorrow',
+        body: 'You’ve already used today’s Grandmaster attempt for {scope}.',
+      },
+      brokenTitle: 'This invite looks broken',
+      brokenBody: 'The challenge link may be incomplete — ask your friend to send it again.',
+      home: 'Back to Orbi',
+    },
   },
   practice: {
     title: 'Targeted practice',

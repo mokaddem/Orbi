@@ -1,6 +1,6 @@
 # Phase 46 — Async friend duels (seeded share-a-run challenge)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 Built — awaiting review/merge · **Progress:** ~95%
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 Built (incl. 46b) — awaiting review/merge · **Progress:** ~100%
 · **Track:** v2.8 — Social · friend duels
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -145,8 +145,14 @@ name in prefs). Independent of any unbuilt phase.
 - [x] Verdict screen + "send result back" return code (`#/duel?r=…`, carries both scores) + "rematch"
       (fresh seed, swapped roles); opening a return link shows the challenger the verdict.
 - [x] `playerName` prefs field + first-duel prompt (`DuelNamePrompt`) + Settings editor; embedded in the challenge.
-- [ ] Grandmaster "become a grandmaster too" invite (link → arena for the same region × family;
-      pass/fail; optional "I did it too" return). **→ deferred to Phase 46b per OQ7 (not in this phase).**
+- [x] Grandmaster "become a grandmaster too" invite (link → arena for the same region × family;
+      pass/fail; **silent** return per OQ7). **→ Phase 46b — built 2026-07-20.** A separate, smaller
+      codec (`domain/grandmaster-invite.ts`, `{ family, region, challengerName }`, no seed/score) +
+      a dedicated `#/challenge-invite` route with a **LOCKED** state (receiver hasn't mastered the
+      capstone — the owner's requirement), plus COOLDOWN / already-certified / ACCEPT; challenger
+      entry on the **victory bloom** *and* each **certified Progress capstone** (the gilded crown);
+      full share treatment (arena/ember canvas image + embedded scan-to-play QR + smart share);
+      EN/FR/DE; +29 tests.
 - [x] Static Open Graph card (meta tags + `public/og-card.png`) so duel links unfurl as a branded Orbi
       card; **plus** the in-app PNG duel scorecard via `navigator.share({ files })` (OQ4 — both shipped).
 - [x] EN/FR/DE strings for all duel copy; `messages.test.ts` parity green.
@@ -280,3 +286,26 @@ name in prefs). Independent of any unbuilt phase.
 - **2026-07-18 — Owner tried the flow: "works well."** Committed on the worktree branch. Owner flagged
   **follow-ups** (not blockers): polish the **share UX** (how the link/code/image are offered) and the
   **generated PNG scorecard** (nicer design). Tracked for a fast-follow / 46b pass.
+- **2026-07-20 — Merged latest `main` (v2.5.0) into the worktree branch (signed merge).** Then built
+  **Phase 46b — the "become a Grandmaster too" invite** (owner said "implement 46b"; design confirmed
+  in a clarifying round). Decisions: **persistent** entry (victory bloom **+** each certified Progress
+  capstone); **full share treatment** (image + QR); card direction **C — arena/ember** (the Challenger
+  Orbi, per the existing invite-mascot convention) picked from a 3-way glance-prototype; **silent**
+  return (OQ7); and — owner mid-build request — a **LOCKED** landing state when the receiver hasn't
+  yet mastered the region × family. Landed:
+  - **Domain:** shared `base64url.ts` (factored out of `duel.ts`), `grandmaster-invite.ts` — a
+    separate, smaller codec (`{ family, region, challengerName }`, protocol-versioned, never-throws
+    typed decode, `isMasteryFamily` guard). No seed, no score (pass/fail on the receiver's own board).
+  - **UI glue (`challenge-invite.ts`):** link mint / query read, and a canvas **arena/ember invite
+    card** (faithful port of `ChallengerOrbi` + an embedded scan-to-play QR) + smart share (reuses the
+    duel's generic share plumbing).
+  - **Route (`#/challenge-invite`, `ChallengeInvite.svelte`):** decode → gated landing — **LOCKED**
+    (not yet mastered → "master {scope} first"), **COOLDOWN** (today's attempt spent),
+    already-certified note, or **ACCEPT** (stakes → stage `pendingChallenge` → `#/challenge`); robust
+    broken-link / cold-start.
+  - **Challenger entries:** "Challenge a friend" on the victory bloom + the gilded crown on each
+    certified Progress capstone (`FamilyRegionBreakdown` gained an `onInvite`), each with the one-time
+    `DuelNamePrompt`.
+  - **i18n:** `challenge.friendInvite.*` in EN/FR/DE (parity green). **Tests:** codec, UI glue +
+    route states (+29 vs 46 v1) → **920 total**; `check` / `lint` clean; verified the route in the
+    real app (headless, mobile) and the canvas card render. Not yet merged to main.

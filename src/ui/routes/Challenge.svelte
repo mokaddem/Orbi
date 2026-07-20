@@ -3,10 +3,11 @@
   import { get } from 'svelte/store';
   import { push } from 'svelte-spa-router';
   import { t, localizedName, localizedText, localizedRegion } from '../../i18n';
-  import { isMapMode, filterCountries, type GameMode } from '../../domain';
+  import { isMapMode, filterCountries, type GameMode, type MasteryFamily } from '../../domain';
   import { getCountries, getCountry, type Country } from '../../data';
   import { challenge, pendingChallenge, justCertified } from '../stores/challenge';
-  import { prefs, recordChallengeResult } from '../stores/persistence';
+  import { prefs, recordChallengeResult, updatePrefs } from '../stores/persistence';
+  import { inviteLinkFor, shareInviteSmart, type InviteCardText } from '../challenge-invite';
   import { sound } from '../sound';
   import { bedTierFor } from '../sound.bed';
   import Flag from '../components/Flag.svelte';
@@ -18,6 +19,7 @@
   import ChallengerOrbi from '../components/ChallengerOrbi.svelte';
   import SadOrbi from '../components/SadOrbi.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
+  import DuelNamePrompt from '../components/DuelNamePrompt.svelte';
 
   // The Grandmaster Run Play shell (Phase 44/45). Drives the dedicated one-life `challenge` store —
   // deliberately separate from `Play.svelte` / `QuizSession`, since a run interleaves both of a
@@ -61,6 +63,8 @@
     cleared: number;
     total: number;
     missed: Country | null;
+    family: MasteryFamily;
+    region: string;
   } | null>(null);
   // Forfeit guard (Phase 45 follow-up): a forfeit now spends today's per-family×region attempt (see
   // `forfeit()`), so a stray tap on the HUD's Forfeit control opens this confirm rather than ending
@@ -214,7 +218,14 @@
     const rich = challenge.summary();
     // Reveal the in-arena end screen (Phase 45 ④) — a run never routes to the generic /summary.
     ended = rich
-      ? { passed: rich.passed, cleared: rich.cleared, total: rich.total, missed: rich.missed }
+      ? {
+          passed: rich.passed,
+          cleared: rich.cleared,
+          total: rich.total,
+          missed: rich.missed,
+          family: rich.family,
+          region: rich.region,
+        }
       : null;
     // No XP / no history (Phase 45 ⑤): record the finished run to the dedicated `grandmaster` store —
     // always consuming today's per-family×region attempt (win or lose), and certifying on a clean
@@ -234,6 +245,57 @@
   function returnToProgress(): void {
     challenge.reset();
     push('/progress');
+  }
+
+  // "Challenge a friend" (Phase 46b): from the victory bloom, mint a `#/challenge-invite` link for the
+  // just-certified capstone and share it (arena/ember image + link on mobile, link on desktop). A
+  // one-time name prompt captures the challenger's name the first time, exactly like the duel.
+  let namePromptOpen = $state(false);
+  let sharing = $state(false);
+
+  function inviteCardText(name: string, family: MasteryFamily, region: string): InviteCardText {
+    const scope = `${$t(`modes.group.${family}`)} · ${$localizedRegion(region)}`;
+    return {
+      eyebrow: name
+        ? $t('challenge.friendInvite.cardEyebrow', { name })
+        : $t('challenge.friendInvite.cardEyebrowAnon'),
+      title: scope,
+      subhead: $t('challenge.friendInvite.cardSubhead'),
+      hint: $t('challenge.friendInvite.cardHint'),
+      brand: $t('app.title'),
+    };
+  }
+
+  async function shareInvite(name: string): Promise<void> {
+    if (!ended || sharing) return;
+    sharing = true;
+    const { family, region } = ended;
+    const scope = `${$t(`modes.group.${family}`)} · ${$localizedRegion(region)}`;
+    try {
+      await shareInviteSmart(inviteCardText(name, family, region), {
+        title: $t('challenge.friendInvite.shareTitle'),
+        text: $t('challenge.friendInvite.shareText', { scope }),
+        url: inviteLinkFor(family, region, name),
+      });
+    } finally {
+      sharing = false;
+    }
+  }
+
+  // Prompt for a name once, then share; a saved name shares straight away.
+  function challengeFriend(): void {
+    const name = $prefs.playerName ?? '';
+    if (!name) {
+      namePromptOpen = true;
+      return;
+    }
+    void shareInvite(name);
+  }
+
+  function onInviteNameSave(name: string): void {
+    updatePrefs({ playerName: name });
+    namePromptOpen = false;
+    void shareInvite(name);
   }
 
   // Forfeit the run — it counts as a failed attempt (owner request). End the session mid-run (so it
@@ -555,9 +617,14 @@
         <p class="pill">{$t('challenge.victory.pill')}</p>
         <h1 class="shimmer-title">{$t('challenge.victory.title')}</h1>
         <p class="end-body">{$t('challenge.victory.body', { total: ended.total })}</p>
-        <button type="button" class="end-return" onclick={returnToProgress}>
-          {$t('challenge.victory.cta')}
-        </button>
+        <div class="end-actions">
+          <button type="button" class="end-return" onclick={returnToProgress}>
+            {$t('challenge.victory.cta')}
+          </button>
+          <button type="button" class="invite-friend" onclick={challengeFriend} disabled={sharing}>
+            {$t('challenge.friendInvite.share')}
+          </button>
+        </div>
       </div>
     {:else}
       <div class="runover-inner" role="status">
@@ -580,6 +647,15 @@
     {/if}
   </section>
 {/if}
+
+<!-- One-time "what should we call you?" prompt (Phase 46b) — captured before the first invite share,
+     then reused; persisted to prefs. Sits above the end screen (z-index in DuelNamePrompt). -->
+<DuelNamePrompt
+  open={namePromptOpen}
+  initial={$prefs.playerName ?? ''}
+  onsave={onInviteNameSave}
+  oncancel={() => (namePromptOpen = false)}
+/>
 
 <style>
   /* The Grandmaster arena (Phase 45): a scoped dark-teal "Orbi at nightfall" surface that bleeds
@@ -1179,6 +1255,36 @@
   .end-return:active {
     transform: translateY(2px);
     box-shadow: 0 2px 0 #9c7328;
+  }
+
+  /* Victory-bloom actions: the gold "Onward" primary, with a quieter gold-outline "Challenge a
+     friend" beside it (Phase 46b). Stacks on narrow screens. */
+  .end-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .invite-friend {
+    padding: 0.7rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--g-gold);
+    background: color-mix(in oklab, var(--g-gold), transparent 90%);
+    border: 1px solid color-mix(in oklab, var(--g-gold), transparent 55%);
+  }
+
+  .invite-friend:hover {
+    background: color-mix(in oklab, var(--g-gold), transparent 82%);
+    border-color: var(--g-gold);
+  }
+
+  .invite-friend:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 
   .end-cooldown {

@@ -22,6 +22,7 @@
     variant = 'stacked',
     onPractise,
     onChallenge,
+    onInvite,
     certified,
     spent,
     cooldownText,
@@ -30,6 +31,8 @@
     variant?: 'stacked' | 'toggle';
     onPractise?: (region: string, family: MasteryFamily) => void;
     onChallenge?: (region: string, family: MasteryFamily) => void;
+    /** Certified cell → "challenge a friend" (Phase 46b): the gilded crown becomes this invite tap. */
+    onInvite?: (region: string, family: MasteryFamily) => void;
     /** Keys `${family}|${region}` of family × continents whose Grandmaster Run is passed. */
     certified?: Set<string>;
     /** Keys `${family}|${region}` whose daily attempt is already spent — shown on cooldown. */
@@ -56,6 +59,10 @@
       family: $t(`modes.group.${family}`),
       region: $localizedRegion(region),
     });
+
+  // Label for the certified-cell "challenge a friend" invite (Phase 46b).
+  const inviteLabel = (family: MasteryFamily, region: string): string =>
+    `${$t('challenge.friendInvite.share')} · ${$t(`modes.group.${family}`)} · ${$localizedRegion(region)}`;
 
   type Lens = 'overall' | MasteryFamily;
   let lens = $state<Lens>('overall');
@@ -173,8 +180,21 @@
                     ></span>
                   {/if}
                 </span>
-                {#if cert}
-                  <!-- Certified: gilded in place, a crown standing in for the (redundant) 100%. -->
+                {#if cert && onInvite}
+                  <!-- Certified: the gilded crown doubles as "challenge a friend" (Phase 46b) — tap
+                       to share an invite for this capstone to someone else. -->
+                  <button
+                    type="button"
+                    class="mpct gm-crown gm-crown-btn"
+                    title={inviteLabel(f.key, r.region)}
+                    aria-label={inviteLabel(f.key, r.region)}
+                    onclick={() => onInvite(r.region, f.key)}
+                  >
+                    <Icon name="crown" size={15} />
+                  </button>
+                {:else if cert}
+                  <!-- Certified but no invite handler wired (e.g. the Home 'toggle' variant): a static
+                       gilded crown standing in for the (redundant) 100%. -->
                   <span
                     class="mpct gm-crown"
                     title={$t('challenge.certified')}
@@ -494,6 +514,27 @@
     align-items: center;
     justify-content: flex-end;
     color: var(--color-gold-deep);
+  }
+
+  /* The certified crown as a tappable "challenge a friend" invite (Phase 46b): keeps the gilded look
+     but reads as interactive (pointer + a gentle hover lift). */
+  .gm-crown-btn {
+    appearance: none;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+
+  .gm-crown-btn:hover {
+    transform: translateY(-1px) scale(1.08);
+  }
+
+  .gm-crown-btn:focus-visible {
+    outline: 2px solid var(--color-gold-deep);
+    outline-offset: 2px;
+    border-radius: 999px;
   }
 
   /* A fully-certified continent: a gold ring on its region emblem + a "Grandmaster" tag. */

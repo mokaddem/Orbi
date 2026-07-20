@@ -261,3 +261,13 @@ export {
   encodeDuel,
   decodeDuel,
 } from './duel';
+
+export {
+  GM_INVITE_PROTOCOL_VERSION,
+  type GrandmasterInvitePayload,
+  type GmInviteDecodeError,
+  type GmInviteDecodeResult,
+  isMasteryFamily,
+  encodeGmInvite,
+  decodeGmInvite,
+} from './grandmaster-invite';

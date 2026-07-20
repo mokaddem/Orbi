@@ -3,6 +3,7 @@ import type { IconName } from './components/icons';
 import Home from './routes/Home.svelte';
 import Play from './routes/Play.svelte';
 import Challenge from './routes/Challenge.svelte';
+import ChallengeInvite from './routes/ChallengeInvite.svelte';
 import Duel from './routes/Duel.svelte';
 import Practice from './routes/Practice.svelte';
 import ReviewPreview from './routes/ReviewPreview.svelte';
@@ -20,6 +21,7 @@ const routes: RouteDefinition = {
   '/': Home,
   '/play': Play,
   '/challenge': Challenge,
+  '/challenge-invite': ChallengeInvite,
   '/duel': Duel,
   '/practice': Practice,
   '/review': ReviewPreview,

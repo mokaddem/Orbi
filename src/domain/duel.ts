@@ -15,6 +15,7 @@
 
 import type { SessionSummary, SessionType } from './types';
 import { computeBlitzPoints } from './blitz';
+import { fromBase64Url, toBase64Url } from './base64url';
 
 /** Bumped only for a breaking change to the code's *structure* (keys/shape), not its data. */
 export const DUEL_PROTOCOL_VERSION = 1;
@@ -151,23 +152,6 @@ export type DuelDecodeError = 'malformed' | 'unsupported-protocol' | 'invalid';
 /** Result of {@link decodeDuel}: the payload, or a typed reason it failed (never throws). */
 export type DuelDecodeResult =
   { ok: true; payload: DuelPayload } | { ok: false; error: DuelDecodeError };
-
-/** UTF-8-safe base64url of a string (handles accented names/regions). */
-function toBase64Url(text: string): string {
-  const bytes = new TextEncoder().encode(text);
-  let bin = '';
-  for (const byte of bytes) bin += String.fromCharCode(byte);
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-/** Inverse of {@link toBase64Url}; throws on invalid input (caught by {@link decodeDuel}). */
-function fromBase64Url(code: string): string {
-  const b64 = code.replace(/-/g, '+').replace(/_/g, '/');
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
-}
 
 /** Encode a duel payload into a compact, URL-safe code (goes into `#/duel?c=<code>`). */
 export function encodeDuel(payload: DuelPayload): string {
