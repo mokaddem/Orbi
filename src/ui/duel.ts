@@ -205,7 +205,7 @@ export interface DuelCardText {
 // The app's rounded system-font stack (see src/app.css) — rounded where the OS has SF Pro Rounded,
 // friendly fallbacks elsewhere. Reused verbatim so the card matches the app and needs no webfont
 // fetch (offline/PWA-safe) and no async font-load before toBlob.
-const CARD_FONT_STACK =
+export const CARD_FONT_STACK =
   "ui-rounded, 'SF Pro Rounded', 'Segoe UI', system-ui, 'Trebuchet MS', -apple-system, Roboto, Helvetica, Arial, sans-serif";
 
 /** Rounded-rect path (uses native roundRect where available, else a manual fallback). */

@@ -45,6 +45,7 @@
   import { getCountry, type Country } from '../../data';
   import { sound } from '../sound';
   import DuelNamePrompt from '../components/DuelNamePrompt.svelte';
+  import DuelQrModal from '../components/DuelQrModal.svelte';
   import DuelVerdictCard from '../components/DuelVerdictCard.svelte';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
@@ -254,10 +255,13 @@
   // One primary "Challenge a friend" tap (`share`) does the right thing per device (image + link on
   // mobile, link on desktop); `image` copies the scorecard to the clipboard (desktop paste); `link` /
   // `code` are the quiet fallbacks; `return` sends a result back.
-  type DuelShareAction = 'share' | 'image' | 'link' | 'code' | 'return';
+  type DuelShareAction = 'share' | 'image' | 'link' | 'qr' | 'return';
   let namePromptOpen = $state(false);
   let pendingAction = $state<DuelShareAction | null>(null);
   let duelFeedback = $state<string | null>(null);
+  // "Show QR" opens a full-screen, scannable card for offline share (no chat app / network).
+  let qrOpen = $state(false);
+  let qrView = $state<{ url: string; eyebrow: string; context: string } | null>(null);
   let feedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
   function flashFeedback(key: string): void {
@@ -305,8 +309,15 @@
     if (!payload) return;
     const code = encodeDuel(payload);
     const url = duelLink(code, 'c');
-    if (action === 'code') {
-      if (await copyToClipboard(code)) flashFeedback('duel.codeCopied');
+    // "Show QR": a scannable full-screen card — the friend's camera opens the challenge, fully offline.
+    if (action === 'qr') {
+      const card = duelCardText(payload.challengerScore.primary, name);
+      const beat =
+        s.type === 'blitz'
+          ? $t('duel.targetPoints', { score: card.scoreValue })
+          : $t('duel.targetScore', { score: card.scoreValue });
+      qrView = { url, eyebrow: card.eyebrow, context: `${card.scope} · ${beat}` };
+      qrOpen = true;
       return;
     }
     if (action === 'link') {
@@ -590,14 +601,13 @@
             {$t('duel.copyLink')}
           </button>
           <span aria-hidden="true">·</span>
-          <button type="button" class="linkish" onclick={() => onDuelAction('code')}>
-            {$t('duel.copyCode')}
+          <button type="button" class="linkish" onclick={() => onDuelAction('qr')}>
+            {$t('duel.showQr')}
           </button>
         </div>
         <p class="duel-feedback" role="status" aria-live="polite">
           {duelFeedback ? $t(duelFeedback) : ''}
         </p>
-        <p class="duel-note">{$t('duel.selfReported')}</p>
       </div>
     {/if}
 
@@ -606,6 +616,14 @@
       initial={$prefs.playerName ?? ''}
       onsave={onDuelNameSave}
       oncancel={onDuelNameCancel}
+    />
+
+    <DuelQrModal
+      open={qrOpen}
+      url={qrView?.url ?? ''}
+      eyebrow={qrView?.eyebrow ?? ''}
+      context={qrView?.context ?? ''}
+      onClose={() => (qrOpen = false)}
     />
 
     <!-- New-best burst overlay (Phase 42): fixed-position, so its place in the tree is immaterial;
@@ -1091,12 +1109,6 @@
     color: var(--color-correct);
     font-weight: 600;
     font-size: 0.9rem;
-  }
-
-  .duel-note {
-    margin: 0;
-    color: var(--color-muted);
-    font-size: 0.8rem;
   }
 
   @media (prefers-reduced-motion: reduce) {

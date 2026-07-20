@@ -128,7 +128,6 @@
         </button>
         <button type="button" class="ghost" onclick={home}>{$t('duel.home')}</button>
       </div>
-      <p class="muted note">{$t('duel.selfReported')}</p>
     </div>
   {/if}
 </section>
@@ -210,10 +209,6 @@
     color: var(--color-wrong);
     font-weight: 600;
     font-size: 0.9rem;
-  }
-
-  .note {
-    font-size: 0.8rem;
   }
 
   .actions {

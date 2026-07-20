@@ -176,7 +176,7 @@ describe('Summary route — Challenge a friend (Phase 46)', () => {
     render(Summary);
     expect(screen.getByRole('heading', { name: 'Challenge a friend' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Share the challenge' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show QR' })).toBeInTheDocument();
   });
 
   it('hides the duel on a too-short run', () => {
