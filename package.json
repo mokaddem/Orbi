@@ -3,6 +3,9 @@
   "private": true,
   "version": "2.6.0",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite --port 5180 --strictPort",
     "data:build": "node scripts/build-data.mjs",
