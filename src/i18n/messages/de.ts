@@ -738,7 +738,7 @@ const de: typeof en = {
     save: 'Speichern',
     cancel: 'Abbrechen',
     settingsTitle: 'Freund-Herausforderungen',
-    settingsLabel: 'Herausforderungs-Name',
+    settingsLabel: 'Dein Name',
     settingsHelp: 'Wird Freunden gezeigt, die du herausforderst.',
     incomingTitle: '{name} fordert dich heraus!',
     incomingTitleAnon: 'Du wurdest herausgefordert!',

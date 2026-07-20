@@ -295,6 +295,21 @@
     border-color: var(--color-accent);
   }
 
+  input[type='text'] {
+    width: 12rem;
+    padding: 0.4rem 0.55rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  input[type='text']:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+
   select {
     padding: 0.4rem 0.55rem;
     background: var(--color-surface);

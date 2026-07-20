@@ -741,7 +741,7 @@ const en = {
     save: 'Save',
     cancel: 'Cancel',
     settingsTitle: 'Friend challenges',
-    settingsLabel: 'Challenge name',
+    settingsLabel: 'Your name',
     settingsHelp: 'Shown to friends you challenge.',
     incomingTitle: '{name} challenges you!',
     incomingTitleAnon: 'You’ve been challenged!',

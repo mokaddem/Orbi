@@ -738,7 +738,7 @@ const fr: typeof en = {
     save: 'Enregistrer',
     cancel: 'Annuler',
     settingsTitle: 'Défis entre amis',
-    settingsLabel: 'Nom de défi',
+    settingsLabel: 'Ton nom',
     settingsHelp: 'Affiché aux amis que tu défies.',
     incomingTitle: '{name} te défie !',
     incomingTitleAnon: 'Tu es défié·e !',
