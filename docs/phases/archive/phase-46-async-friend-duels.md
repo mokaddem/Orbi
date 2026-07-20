@@ -1,6 +1,6 @@
 # Phase 46 — Async friend duels (seeded share-a-run challenge)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🚧 Built (incl. 46b) — awaiting review/merge · **Progress:** ~100%
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done — shipped in v2.6.0 · **Progress:** 100%
 · **Track:** v2.8 — Social · friend duels
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
@@ -317,3 +317,10 @@ name in prefs). Independent of any unbuilt phase.
     `duel.copyLink/copyImage/showQr/*Copied` — no new keys). **Tests:** codec, UI glue + route states
     + sheet (+32 vs 46 v1) → **923 total**; `check` / `lint` clean; verified the route + the canvas
     card + the sheet layout (headless, mobile). Not yet merged to main.
+- **2026-07-20 — ✅ Done: merged latest `main` into the branch and released as v2.6.0 "Challenge a
+  friend."** Brought main's 9 post-2.5.0 commits into the worktree branch (signed merge `790bac8`);
+  5 additive conflicts resolved by keeping both sides (the run-record `seed`/`choices`/`lives` duel
+  fields alongside main's targeted-practice `answerPool`/`setId`, plus the `Summary.svelte` import
+  list). Full suite green on the combined tree: `check` 0 errors, **938 tests** pass, `lint` clean,
+  prod build ships `og-card.png`. Bumped `package.json` → 2.6.0, wrote the CHANGELOG entry, and
+  archived this PRD. Handed the `main` fast-forward + tag + push to the owner.

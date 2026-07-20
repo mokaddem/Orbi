@@ -7,6 +7,46 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.6.0] — 2026-07-20 — _Challenge a friend_
+
+### Added
+
+- 🤝 **Challenge a friend** — turn a run you just played into a **seeded, shareable challenge**: a
+  friend opens your link and plays the _exact same_ round — same questions, same order, same
+  distractors — then the two scores go head-to-head. It's fully **asynchronous** and **100%
+  backend-free** (the whole round is baked into the link), so it works offline and on a static host.
+  Share it as a **link, a QR code, or an image scorecard**; when your friend finishes they can
+  **send the result back** so you both see the verdict, and either of you can fire off a **rematch**
+  (same scope, fresh questions, roles swapped). Set **"Your name"** in Settings to personalise the
+  challenge your friend sees. Offered on the run **Summary**, and only once a run is long enough to
+  be worth challenging.
+- 👑 **"Become a Grandmaster too" invite** — a certified Grandmaster can now **dare a friend to
+  certify the same region × family**. This one is pass/fail, not a score race: the invite rides on
+  the victory bloom and every certified Progress capstone as a slide-up share sheet (an arena card
+  with Share / Copy image / Copy link / **scan-to-play QR**). If the receiver hasn't mastered the
+  scope yet the challenge shows a **locked** state until they do; once eligible, one tap drops them
+  straight into the Grandmaster Run.
+- 🎯 **Blitz + Retry for custom sets** — targeted practice can now be played as a **Blitz** run, and
+  **"Retry"** replays the _exact same_ custom set instead of falling back to the whole world
+  (custom-set Blitz bests are tracked per set).
+
+### Changed
+
+- 🧭 **Bigger topbar mascot** — Orbi in the mobile top bar grows (30 → 44px) for a friendlier,
+  more legible brand mark.
+- ⚡ **No wait on timed flags** — Blitz now preloads upcoming flags so a timed flag question never
+  stalls on a fetch.
+
+### Fixed
+
+- 🗺️ **Kinder map hits** — map answers now resolve with answer-aware leniency for tiny enclave and
+  dot countries, so a near-miss tap on a speck still counts.
+- 🎖️ **Cleaner region silhouettes** — badge and region shapes no longer trail stray overseas specks.
+- 🃏 **Steadier answer screens** — the Grandmaster flag grid collapses on answer so your pick no
+  longer jumps, and the review study-card's action bar now blends into the page.
+- 📱 **Mobile touch polish** — the page no longer pinch-zooms by accident, and buttons no longer
+  show a text-selection highlight when tapped.
+
 ## [2.5.0] — 2026-07-19 — _Study & polish_
 
 ### Added
