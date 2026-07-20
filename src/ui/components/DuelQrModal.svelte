@@ -154,7 +154,8 @@
   .backdrop {
     position: fixed;
     inset: 0;
-    z-index: 60;
+    /* Above the app (60) AND the Grandmaster invite sheet (90), since that sheet opens the QR. */
+    z-index: 96;
     display: flex;
     align-items: center;
     justify-content: center;

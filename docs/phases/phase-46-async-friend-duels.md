@@ -306,6 +306,14 @@ name in prefs). Independent of any unbuilt phase.
   - **Challenger entries:** "Challenge a friend" on the victory bloom + the gilded crown on each
     certified Progress capstone (`FamilyRegionBreakdown` gained an `onInvite`), each with the one-time
     `DuelNamePrompt`.
-  - **i18n:** `challenge.friendInvite.*` in EN/FR/DE (parity green). **Tests:** codec, UI glue +
-    route states (+29 vs 46 v1) → **920 total**; `check` / `lint` clean; verified the route in the
-    real app (headless, mobile) and the canvas card render. Not yet merged to main.
+  - **Share sheet (`ChallengeInviteSheet.svelte`) — owner follow-up (2026-07-20):** the original
+    fire-and-forget `shareInviteSmart` "did nothing" visible on desktop (silent link copy, no image).
+    Replaced both challenger entries with a **slide-from-bottom sheet** mirroring the duel Summary
+    card: the **rendered arena/ember card inline** (visible on desktop) + Share / Copy image / Copy
+    link / Show QR + a feedback line. Dark-arena themed; `DuelQrModal` z-index bumped (60 → 96) so its
+    QR opens above the sheet. This also removed the duplicated card-text builder from
+    `Challenge.svelte` / `Progress.svelte`.
+  - **i18n:** `challenge.friendInvite.*` in EN/FR/DE (parity green; the sheet reuses generic
+    `duel.copyLink/copyImage/showQr/*Copied` — no new keys). **Tests:** codec, UI glue + route states
+    + sheet (+32 vs 46 v1) → **923 total**; `check` / `lint` clean; verified the route + the canvas
+    card + the sheet layout (headless, mobile). Not yet merged to main.

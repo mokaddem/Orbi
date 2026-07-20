@@ -43,7 +43,6 @@
     type GrandmasterState,
     type RankState,
   } from '../stores/persistence';
-  import { inviteLinkFor, shareInviteSmart, type InviteCardText } from '../challenge-invite';
   import { sound } from '../sound';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
@@ -55,6 +54,7 @@
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
   import GauntletOfferModal from '../components/GauntletOfferModal.svelte';
   import DuelNamePrompt from '../components/DuelNamePrompt.svelte';
+  import ChallengeInviteSheet from '../components/ChallengeInviteSheet.svelte';
   import ExtraMasteryTopic from '../components/ExtraMasteryTopic.svelte';
   import AchievementsGrid from '../components/AchievementsGrid.svelte';
   import WeeklyRecap from '../components/WeeklyRecap.svelte';
@@ -210,50 +210,24 @@
 
   // "Challenge a friend" from a certified capstone (Phase 46b) — the persistent counterpart to the
   // victory-bloom invite, reachable any time from the gilded crown. Prompts once for a name, then
-  // shares a `#/challenge-invite` link (arena/ember image + link on mobile, link on desktop).
+  // opens the invite share sheet (rendered card + Share / Copy image / Copy link / Show QR).
   let invitePromptOpen = $state(false);
+  let inviteSheetOpen = $state(false);
   let inviteTarget = $state<{ family: MasteryFamily; region: string } | null>(null);
-  let inviteSharing = $state(false);
-
-  async function shareInvite(name: string): Promise<void> {
-    if (!inviteTarget || inviteSharing) return;
-    inviteSharing = true;
-    const { family, region } = inviteTarget;
-    const scope = `${$t(`modes.group.${family}`)} · ${$localizedRegion(region)}`;
-    const card: InviteCardText = {
-      eyebrow: name
-        ? $t('challenge.friendInvite.cardEyebrow', { name })
-        : $t('challenge.friendInvite.cardEyebrowAnon'),
-      title: scope,
-      subhead: $t('challenge.friendInvite.cardSubhead'),
-      hint: $t('challenge.friendInvite.cardHint'),
-      brand: $t('app.title'),
-    };
-    try {
-      await shareInviteSmart(card, {
-        title: $t('challenge.friendInvite.shareTitle'),
-        text: $t('challenge.friendInvite.shareText', { scope }),
-        url: inviteLinkFor(family, region, name),
-      });
-    } finally {
-      inviteSharing = false;
-    }
-  }
 
   function inviteFriend(region: string, family: MasteryFamily): void {
     inviteTarget = { family, region };
-    const name = $prefs.playerName ?? '';
-    if (!name) {
+    if (!$prefs.playerName) {
       invitePromptOpen = true;
       return;
     }
-    void shareInvite(name);
+    inviteSheetOpen = true;
   }
 
   function onInviteNameSave(name: string): void {
     updatePrefs({ playerName: name });
     invitePromptOpen = false;
-    void shareInvite(name);
+    inviteSheetOpen = true;
   }
 
   // The unlock banner names each just-earned badge via its `badges.<id>` key (capstones are no longer
@@ -594,6 +568,17 @@
   onsave={onInviteNameSave}
   oncancel={() => (invitePromptOpen = false)}
 />
+
+<!-- Invite share sheet: opens from a certified capstone's crown. -->
+{#if inviteTarget}
+  <ChallengeInviteSheet
+    open={inviteSheetOpen}
+    family={inviteTarget.family}
+    region={inviteTarget.region}
+    name={$prefs.playerName ?? ''}
+    onClose={() => (inviteSheetOpen = false)}
+  />
+{/if}
 
 <style>
   .progress {

@@ -7,7 +7,6 @@
   import { getCountries, getCountry, type Country } from '../../data';
   import { challenge, pendingChallenge, justCertified } from '../stores/challenge';
   import { prefs, recordChallengeResult, updatePrefs } from '../stores/persistence';
-  import { inviteLinkFor, shareInviteSmart, type InviteCardText } from '../challenge-invite';
   import { sound } from '../sound';
   import { bedTierFor } from '../sound.bed';
   import Flag from '../components/Flag.svelte';
@@ -20,6 +19,7 @@
   import SadOrbi from '../components/SadOrbi.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import DuelNamePrompt from '../components/DuelNamePrompt.svelte';
+  import ChallengeInviteSheet from '../components/ChallengeInviteSheet.svelte';
 
   // The Grandmaster Run Play shell (Phase 44/45). Drives the dedicated one-life `challenge` store —
   // deliberately separate from `Play.svelte` / `QuizSession`, since a run interleaves both of a
@@ -247,55 +247,24 @@
     push('/progress');
   }
 
-  // "Challenge a friend" (Phase 46b): from the victory bloom, mint a `#/challenge-invite` link for the
-  // just-certified capstone and share it (arena/ember image + link on mobile, link on desktop). A
-  // one-time name prompt captures the challenger's name the first time, exactly like the duel.
+  // "Challenge a friend" (Phase 46b): from the victory bloom, open the invite share sheet for the
+  // just-certified capstone (rendered arena/ember card + Share / Copy image / Copy link / Show QR). A
+  // one-time name prompt captures the challenger's name the first time (like the duel), then the sheet.
   let namePromptOpen = $state(false);
-  let sharing = $state(false);
+  let inviteSheetOpen = $state(false);
 
-  function inviteCardText(name: string, family: MasteryFamily, region: string): InviteCardText {
-    const scope = `${$t(`modes.group.${family}`)} · ${$localizedRegion(region)}`;
-    return {
-      eyebrow: name
-        ? $t('challenge.friendInvite.cardEyebrow', { name })
-        : $t('challenge.friendInvite.cardEyebrowAnon'),
-      title: scope,
-      subhead: $t('challenge.friendInvite.cardSubhead'),
-      hint: $t('challenge.friendInvite.cardHint'),
-      brand: $t('app.title'),
-    };
-  }
-
-  async function shareInvite(name: string): Promise<void> {
-    if (!ended || sharing) return;
-    sharing = true;
-    const { family, region } = ended;
-    const scope = `${$t(`modes.group.${family}`)} · ${$localizedRegion(region)}`;
-    try {
-      await shareInviteSmart(inviteCardText(name, family, region), {
-        title: $t('challenge.friendInvite.shareTitle'),
-        text: $t('challenge.friendInvite.shareText', { scope }),
-        url: inviteLinkFor(family, region, name),
-      });
-    } finally {
-      sharing = false;
-    }
-  }
-
-  // Prompt for a name once, then share; a saved name shares straight away.
   function challengeFriend(): void {
-    const name = $prefs.playerName ?? '';
-    if (!name) {
+    if (!$prefs.playerName) {
       namePromptOpen = true;
       return;
     }
-    void shareInvite(name);
+    inviteSheetOpen = true;
   }
 
   function onInviteNameSave(name: string): void {
     updatePrefs({ playerName: name });
     namePromptOpen = false;
-    void shareInvite(name);
+    inviteSheetOpen = true;
   }
 
   // Forfeit the run — it counts as a failed attempt (owner request). End the session mid-run (so it
@@ -621,7 +590,7 @@
           <button type="button" class="end-return" onclick={returnToProgress}>
             {$t('challenge.victory.cta')}
           </button>
-          <button type="button" class="invite-friend" onclick={challengeFriend} disabled={sharing}>
+          <button type="button" class="invite-friend" onclick={challengeFriend}>
             {$t('challenge.friendInvite.share')}
           </button>
         </div>
@@ -656,6 +625,17 @@
   onsave={onInviteNameSave}
   oncancel={() => (namePromptOpen = false)}
 />
+
+<!-- Invite share sheet (Phase 46b): opens over the victory bloom for the just-certified capstone. -->
+{#if ended}
+  <ChallengeInviteSheet
+    open={inviteSheetOpen}
+    family={ended.family}
+    region={ended.region}
+    name={$prefs.playerName ?? ''}
+    onClose={() => (inviteSheetOpen = false)}
+  />
+{/if}
 
 <style>
   /* The Grandmaster arena (Phase 45): a scoped dark-teal "Orbi at nightfall" surface that bleeds
@@ -1280,11 +1260,6 @@
   .invite-friend:hover {
     background: color-mix(in oklab, var(--g-gold), transparent 82%);
     border-color: var(--g-gold);
-  }
-
-  .invite-friend:disabled {
-    opacity: 0.6;
-    cursor: default;
   }
 
   .end-cooldown {
