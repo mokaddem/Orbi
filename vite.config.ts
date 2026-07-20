@@ -53,6 +53,12 @@ export default defineConfig(({ command, isPreview }) => ({
         background_color: '#eafaf8',
         display: 'standalone',
         orientation: 'any',
+        // Prefer opening in-scope links (e.g. a shared `…/Orbi/#/duel?c=…` challenge) in the
+        // installed app rather than a browser tab, and navigate an already-open instance to the
+        // link instead of spawning a new window. Chromium (Android/desktop) honours these; iOS and
+        // in-app chat browsers ignore them and still open a tab (platform limitation).
+        handle_links: 'preferred',
+        launch_handler: { client_mode: 'navigate-existing' },
         // start_url and scope intentionally omitted: browsers derive them from the
         // manifest's location (served from BASE), so this stays base-path-agnostic.
         icons: [
