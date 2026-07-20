@@ -89,7 +89,7 @@
   {#if !inGame}
     <header class="appbar">
       <a class="appbar-brand" href="#/">
-        <Mascot pose="wave" size={30} />
+        <Mascot pose="wave" size={44} />
         <span>{$t('app.title')}</span>
       </a>
       <div class="appbar-actions">
