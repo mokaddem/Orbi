@@ -21,6 +21,7 @@ export {
   countryCount,
   getCountry,
   flagUrl,
+  preloadFlags,
   getRegions,
   getSubregions,
   getCountriesByRegion,

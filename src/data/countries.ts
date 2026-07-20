@@ -45,6 +45,28 @@ export function flagUrl(country: Country | string): string {
   return url;
 }
 
+// ISO codes whose flag has already been warmed, so repeat calls (e.g. every session start) don't
+// re-issue requests for the same asset.
+const preloadedFlags = new Set<string>();
+
+/**
+ * Warm the browser cache for a set of countries' flag SVGs by kicking off an off-screen `Image`
+ * load for each — so a later `<img src=…>` (a fresh quiz question) renders from cache instead of
+ * blocking on a fetch. Most valuable in Blitz, where the clock runs while a flag loads. Deduped
+ * across calls; a no-op outside the browser (SSR / tests without an `Image`) and for unknown codes.
+ */
+export function preloadFlags(list: Iterable<Country | string>): void {
+  if (typeof Image === 'undefined') return;
+  for (const item of list) {
+    const c = typeof item === 'string' ? getCountry(item) : item;
+    if (!c || preloadedFlags.has(c.iso2)) continue;
+    preloadedFlags.add(c.iso2);
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = flagUrl(c);
+  }
+}
+
 /** The distinct regions, in first-appearance (alphabetical) order. */
 export function getRegions(): string[] {
   return [...new Set(countries.map((c) => c.region))];

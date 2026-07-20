@@ -151,4 +151,11 @@ export interface SessionSummary {
    * duel replays under the same end condition; absent for non-survival types.
    */
   lives?: number;
+  /**
+   * The explicit ISO alpha-2 pool a targeted-practice / training run drilled (the codes passed as
+   * `answerPool`), else undefined. It records *what specific set was played* — a region/World run
+   * has none — so "Retry" can re-run the same custom set instead of falling back to the whole
+   * world, and so a targeted run is distinguishable from a region run when scoring Blitz bests.
+   */
+  answerPool?: string[];
 }

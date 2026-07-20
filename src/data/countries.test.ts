@@ -7,6 +7,7 @@ import {
   countryCount,
   getCountry,
   flagUrl,
+  preloadFlags,
   getRegions,
   getSubregions,
   getCountriesByRegion,
@@ -163,6 +164,37 @@ describe('flagUrl', () => {
 
   it('throws for an unknown country', () => {
     expect(() => flagUrl('ZZ')).toThrow();
+  });
+});
+
+describe('preloadFlags', () => {
+  it('warms each valid flag once and skips unknowns, without throwing', () => {
+    const created: string[] = [];
+    const RealImage = globalThis.Image;
+    // Capture the src set on each off-screen Image so we can assert what got warmed + deduped.
+    class FakeImage {
+      decoding = '';
+      #src = '';
+      set src(v: string) {
+        this.#src = v;
+        created.push(v);
+      }
+      get src(): string {
+        return this.#src;
+      }
+    }
+    globalThis.Image = FakeImage as unknown as typeof Image;
+    try {
+      preloadFlags(['FR', getCountry('DE')!, 'ZZ']); // FR + DE warm; ZZ ignored
+      expect(created).toContain(flagUrl('FR'));
+      expect(created).toContain(flagUrl('DE'));
+      expect(created).not.toContain(undefined);
+      const after = created.length;
+      preloadFlags(['FR', 'DE']); // already warmed → no new loads
+      expect(created.length).toBe(after);
+    } finally {
+      globalThis.Image = RealImage;
+    }
   });
 });
 

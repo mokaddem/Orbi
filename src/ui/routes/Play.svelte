@@ -15,6 +15,8 @@
     blitzRemainingMs,
     computeBlitzPoints,
     computeBlitzBest,
+    computeBlitzSetBest,
+    blitzAllows,
     type GameMode,
     type QuestionResult,
     type RegionFilter,
@@ -161,18 +163,8 @@
     },
   ];
 
-  // Blitz (Phase 42, OQ8) is a quick-tap format, so it allows only the five tap-a-card modes:
-  // flags↔country, map-highlight, and capitals↔country. Excluded: map-locate (slower to click),
-  // country-to-languages (multi-select) and country-to-industry (nichier) — the whole "extra"
-  // family plus the "locate" half of the map family.
-  const BLITZ_MODES: readonly GameMode[] = [
-    'flag-to-country',
-    'country-to-flag',
-    'map-highlight',
-    'capital-to-country',
-    'country-to-capital',
-  ];
-  const blitzAllows = (m: GameMode): boolean => BLITZ_MODES.includes(m);
+  // Blitz's allowed modes (the five quick-tap directions) and the `blitzAllows` gate now live in the
+  // domain (`blitz.ts`), shared with the targeted-practice picker so both offer Blitz on the same set.
 
   // The families/directions offered by the current format. Blitz trims each family to its
   // allowed modes and drops families left empty (so "extra" disappears and the map family shows
@@ -489,7 +481,8 @@
       lastRunConfig.set(get(play).config ?? null); // hand the run's config to the Summary duel gate
       lastBlitzResult.set(null); // a normal finish clears any prior blitz result
       if (summary) {
-        void saveSession(summary);
+        // Carry the saved-set id (if any) onto the record so a set's runs are attributable to it.
+        void saveSession(summary, get(play).config?.setId);
         // If this was the Daily Challenge, record its result so Home shows "done today".
         // It's still a normal session otherwise (feeds SR + history like any other run).
         const dailyDate = get(play).config?.dailyDate;
@@ -694,14 +687,31 @@
       return;
     }
     const points = computeBlitzPoints(summary.results);
-    const prevBest = computeBlitzBest(blitzSessions, {
-      mode: summary.mode,
-      region: summary.regionFilter?.region,
-      subregion: summary.regionFilter?.subregion,
-    });
-    const isNewBest = points > 0 && points > prevBest;
-    lastBlitzResult.set({ points, best: Math.max(points, prevBest), isNewBest });
-    void saveSession(summary);
+    // Which "best" this run counts toward depends on where it was played:
+    //  • a saved custom set → its own per-set best ("beat your best on this set"),
+    //  • an ad-hoc custom set → no best (just show the score; `best: null`),
+    //  • a region / World run → the region/World slot best (the original Phase-42 path).
+    const cfg = get(play).config;
+    const setId = cfg?.setId;
+    const isTargeted = !!(cfg?.answerPoolIso && cfg.answerPoolIso.length);
+    let best: number | null;
+    let isNewBest: boolean;
+    if (isTargeted && !setId) {
+      best = null; // ad-hoc set: no personal best tracked
+      isNewBest = false;
+    } else {
+      const prevBest = setId
+        ? computeBlitzSetBest(blitzSessions, { mode: summary.mode, setId })
+        : computeBlitzBest(blitzSessions, {
+            mode: summary.mode,
+            region: summary.regionFilter?.region,
+            subregion: summary.regionFilter?.subregion,
+          });
+      isNewBest = points > 0 && points > prevBest;
+      best = Math.max(points, prevBest);
+    }
+    lastBlitzResult.set({ points, best, isNewBest });
+    void saveSession(summary, setId);
     // Time's-up cue now; the celebratory jingle a beat later so the two don't muddy each other.
     sound.play('timesup');
     setTimeout(() => sound.play(isNewBest ? 'perfect' : 'finish'), 700);
@@ -1119,6 +1129,7 @@
               pickedLabel={pickedWrong && pickedWrong.iso2 !== question.answer.iso2
                 ? $localizedName(pickedWrong)
                 : null}
+              answerIso={qMode === 'map-locate' && !answered ? question.answer.iso2 : null}
               revealIso={qMode === 'map-locate' && answered ? question.answer.iso2 : null}
               revealLabel={qMode === 'map-locate' && answered
                 ? $localizedName(question.answer)

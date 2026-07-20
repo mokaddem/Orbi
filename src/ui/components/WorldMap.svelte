@@ -15,7 +15,7 @@
   import { largestPolygon } from './globe-geo';
   import Icon from './Icon.svelte';
   import { focusFrame } from './map-framing';
-  import { nearestCountryWithinCap } from './map-hit';
+  import { nearestCountryWithinCap, lenientLocatePick } from './map-hit';
   import { projectionFor } from './projection';
 
   // Presentational D3-geo world map, shared by both map modes. It renders one SVG
@@ -41,6 +41,7 @@
     highlightIso = null,
     pickedIso = null,
     pickedLabel = null,
+    answerIso = null,
     revealIso = null,
     revealLabel = null,
     focusIsos = null,
@@ -63,6 +64,13 @@
      * answer; ignored when the pick equals the reveal target.
      */
     pickedLabel?: string | null;
+    /**
+     * The asked country in map-locate, supplied *during* the question (unlike `revealIso`, which is
+     * only set once answered). The map never draws it — it uses it solely to grade taps leniently:
+     * a tap near the asked micro-state's dot, or on an enclave whose host is the asked country,
+     * resolves to the asked country. `null` outside locate mode. See `lenientLocatePick`.
+     */
+    answerIso?: string | null;
     /** Correct country to reveal in green once answered (map-locate). */
     revealIso?: string | null;
     /**
@@ -113,12 +121,23 @@
   const ZOOM_STEP = 1.6; // +/- button factor
   const ZOOM_MS = 350; // animated re-frame duration (0 when reduce-motion)
   const CLICK_DISTANCE = 12; // viewBox units a tap may drift before it counts as a pan
-  const SNAP_CAP = 44; // nearest-country snap radius, in logical units
+  // Touch is coarse — fingers miss by more than a mouse — so the snap radii open up on a coarse
+  // pointer (the app's primary platform is mobile). A fine pointer (mouse) keeps the tighter values.
+  const coarsePointer =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: coarse)').matches;
+  const SNAP_CAP = coarsePointer ? 58 : 44; // nearest-country snap radius, in logical units
   // Micro-state aim-dot magnet radius (logical units). The dot magnet wins over a direct hit on
   // a country, so too wide a radius steals taps meant for a big neighbour (tapping Switzerland
   // grabbed Liechtenstein's dot). Tightened 30 → 18 so a body tap lands on the country you're on,
   // while a near-the-dot tap still snaps the micro-state (Phase 40, narrowed later).
-  const DOT_SNAP_CAP = 18;
+  const DOT_SNAP_CAP = coarsePointer ? 26 : 18;
+  // Answer-biased accept radius (logical units): when the asked country is a micro-state, a tap this
+  // close to *its* dot counts as it — even if the tap technically resolved to the surrounding
+  // country. Safe to be generous because it only ever accepts the asked country (never a neighbour),
+  // so it fixes the enclave frustration (tapping just off Vatican) without making the mode trivial.
+  const TARGET_ACCEPT_CAP = coarsePointer ? 50 : 36;
   const DOT_R = 9; // aim-dot radius at k=1 (counter-scaled so it stays ~constant on screen)
   const REVEAL_FONT = 22; // reveal label px at k=1 (counter-scaled while zoomed)
   const PICKED_FONT = 20; // wrong-pick label px at k=1
@@ -277,17 +296,24 @@
   function resolvePick(event: MouseEvent, fallbackIso: string | null): void {
     if (!interactive || disabled || !zoomLayer) return;
     const [x, y] = pointer(event, zoomLayer);
+    // Raw resolution (unchanged priority): micro-dot magnet (only over water / its own body), else
+    // the directly-hit path, else the ocean snap. Yields the country the tap literally landed on.
     const dot = nearestCountryWithinCap(x, y, hitDots, DOT_SNAP_CAP);
-    if (dot && (!fallbackIso || dot === fallbackIso)) {
-      pick(dot);
-      return;
-    }
-    if (fallbackIso) {
-      pick(fallbackIso);
-      return;
-    }
-    const near = nearestCountryWithinCap(x, y, rendered, SNAP_CAP);
-    if (near) pick(near);
+    let rawPick: string | null;
+    if (dot && (!fallbackIso || dot === fallbackIso)) rawPick = dot;
+    else rawPick = fallbackIso ?? nearestCountryWithinCap(x, y, rendered, SNAP_CAP);
+    if (rawPick === null) return; // a clear miss past every cap → leave the question open
+
+    // Answer-aware leniency (map-locate): a tap near the asked micro-state's own dot, or one that
+    // resolved to an enclave whose host was asked, counts as the asked country. Never accepts any
+    // *other* country, so it can't make the mode trivial — it only forgives the enclave/host and
+    // fat-finger confusions. `answerIso` is null outside locate, so this is a pass-through there.
+    const tgtDot = answerIso ? hitDots.find((c) => c.iso2 === answerIso) : undefined;
+    const targetWithinAccept =
+      !!tgtDot &&
+      (tgtDot.cx - x) * (tgtDot.cx - x) + (tgtDot.cy - y) * (tgtDot.cy - y) <=
+        TARGET_ACCEPT_CAP * TARGET_ACCEPT_CAP;
+    pick(lenientLocatePick(rawPick, answerIso, targetWithinAccept) ?? rawPick);
   }
 
   // --- Zoom / pan (Phase 37) ------------------------------------------------------

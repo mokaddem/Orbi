@@ -1,5 +1,6 @@
 <script lang="ts">
   import { push } from 'svelte-spa-router';
+  import { get } from 'svelte/store';
   import { t, localizedName, localizedRegion } from '../../i18n';
   import { formatDuration, formatPercent } from '../format';
   import {
@@ -9,6 +10,7 @@
     lastRunConfig,
     pendingConfig,
     pendingDuel,
+    practiceToConfig,
   } from '../stores/game';
   import {
     loadRank,
@@ -186,6 +188,16 @@
         fixedLength: iso2s.length,
         choices: p.choicesPerQuestion,
       });
+      push('/play');
+      return;
+    }
+    // A targeted-practice run (fixed / survival / blitz over a picked set) carries an explicit
+    // `answerPool` and no region filter — re-run that same custom set, not the whole world. Preserve
+    // the format, and re-thread the saved-set id (from the still-live run config) so a Blitz best
+    // keeps tracking against the set it was played from.
+    if (s.answerPool && s.answerPool.length) {
+      const setId = get(play).config?.setId;
+      pendingConfig.set(practiceToConfig(s.mode, s.type, s.answerPool, p, setId));
       push('/play');
       return;
     }
@@ -458,7 +470,7 @@
             <Icon name="trophy" size="1em" />
             {$t('summary.newBest')}
           </p>
-        {:else}
+        {:else if br.best !== null}
           <p class="blitz-best">
             {$t('summary.personalBest', { points: br.best.toLocaleString() })}
           </p>

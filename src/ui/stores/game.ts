@@ -23,7 +23,10 @@ import {
   type SessionSummary,
   type SessionType,
 } from '../../domain';
-import { getCountries, type Country, type Prefs } from '../../data';
+import { getCountries, preloadFlags, type Country, type Prefs } from '../../data';
+
+/** Modes that render country flags (prompt or options) — the ones a flag-load stall can hurt. */
+const FLAG_MODES: readonly GameMode[] = ['flag-to-country', 'country-to-flag', 'map-highlight'];
 
 /** UI-level description of a session to run — everything needed to (re)start one. */
 export interface RunConfig {
@@ -42,6 +45,12 @@ export interface RunConfig {
    * the regions these codes belong to, exactly as `answerPoolIso` does.
    */
   answerSlots?: { mode: GameMode; iso2: string }[];
+  /**
+   * Targeted practice launched from a **saved** custom set: its id. Threaded through so a Blitz run's
+   * personal best can be scoped to the set ("beat your best on this set"). Absent for ad-hoc
+   * selections and for region/World runs.
+   */
+  setId?: string;
   fixedLength?: number;
   lives?: number;
   choices?: number;
@@ -175,6 +184,11 @@ function createPlayStore() {
         seed,
         now: cfg.now,
       });
+      // Blitz races the clock, so a question that has to wait on a flag fetch quietly costs points.
+      // Warm every candidate flag (answers + possible distractors, i.e. the whole universe) up front
+      // for a flag-showing Blitz run, so each new question renders its flags from cache. Other formats
+      // dwell between questions, so their flags load in time without this.
+      if (cfg.type === 'blitz' && FLAG_MODES.includes(cfg.mode)) preloadFlags(countries);
       // A "Grand Tour" (full) run asks about every eligible country once — a count only the
       // session knows (after the map-geometry filter). Pin it into the config as `fixedLength`
       // so the HUD progress bar and the summary total read the real length, not a prefs default.
@@ -289,9 +303,13 @@ export const lastSummary = writable<SessionSummary | null>(null);
 export interface BlitzResult {
   /** Points scored this run. */
   points: number;
-  /** The best score for this slot, including this run (so ≥ `points`). */
-  best: number;
-  /** `true` when this run set a new personal best (fires the celebration). */
+  /**
+   * The best score for this slot, including this run (so ≥ `points`), or `null` when this run's slot
+   * tracks no best — an ad-hoc targeted-practice set (Phase-49 follow-on). A `null` best shows just
+   * the run's score with no "personal best" line and no new-best celebration.
+   */
+  best: number | null;
+  /** `true` when this run set a new personal best (fires the celebration). Always `false` when `best` is `null`. */
   isNewBest: boolean;
 }
 
@@ -426,15 +444,21 @@ export function practiceToConfig(
   type: SessionType,
   eligibleIso: readonly string[],
   prefs: Prefs,
+  setId?: string,
 ): RunConfig {
   const answerPoolIso = [...eligibleIso];
   return {
     mode,
     type,
     answerPoolIso,
-    fixedLength: type === 'survival' ? prefs.fixedLength : answerPoolIso.length,
+    // A **fixed** run drills each eligible country once; **survival** and **blitz** run on lives /
+    // the clock (their draw bag refills), so the pool size isn't the length — carry the prefs default.
+    fixedLength: type === 'fixed' ? answerPoolIso.length : prefs.fixedLength,
     lives: prefs.survivalLives,
     choices: prefs.choicesPerQuestion,
+    // A saved-set launch carries its id so a Blitz run's best is scoped to the set; omitted for
+    // ad-hoc selections (which track no Blitz best).
+    ...(setId ? { setId } : {}),
   };
 }
 

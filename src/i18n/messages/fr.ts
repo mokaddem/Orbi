@@ -331,6 +331,7 @@ const fr: typeof en = {
     },
     type: {
       title: 'Choisir un format',
+      blitzUnavailable: 'Le Blitz n’est pas disponible pour ce mode.',
     },
     save: {
       title: 'Enregistrer cet ensemble',

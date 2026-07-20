@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { nearestCountryWithinCap, type CentroidTarget } from './map-hit';
+import {
+  nearestCountryWithinCap,
+  isEnclaveOf,
+  lenientLocatePick,
+  type CentroidTarget,
+} from './map-hit';
 
 // Three centroids on the logical surface; distances are easy to reason about.
 const targets: CentroidTarget[] = [
@@ -49,5 +54,40 @@ describe('nearestCountryWithinCap', () => {
     expect(nearestCountryWithinCap(NaN, 100, targets, 40)).toBeNull();
     expect(nearestCountryWithinCap(100, 100, targets, 0)).toBeNull();
     expect(nearestCountryWithinCap(100, 100, targets, -5)).toBeNull();
+  });
+});
+
+describe('isEnclaveOf', () => {
+  it('knows the curated enclave → host relationships (directional)', () => {
+    expect(isEnclaveOf('VA', 'IT')).toBe(true); // Vatican is inside Italy
+    expect(isEnclaveOf('IT', 'VA')).toBe(false); // …but not the reverse
+    expect(isEnclaveOf('LI', 'CH')).toBe(true);
+    expect(isEnclaveOf('LI', 'AT')).toBe(true); // two hosts
+    expect(isEnclaveOf('FR', 'DE')).toBe(false); // ordinary neighbours are not enclaves
+  });
+});
+
+describe('lenientLocatePick', () => {
+  it('passes an exact hit (or no target) straight through', () => {
+    expect(lenientLocatePick('IT', 'IT', false)).toBe('IT');
+    expect(lenientLocatePick('FR', null, false)).toBe('FR');
+    expect(lenientLocatePick(null, 'IT', false)).toBeNull();
+  });
+
+  it('accepts the asked micro-state when the tap was within its dot accept radius', () => {
+    // Wanted Vatican, the tap resolved to Italy but landed within Vatican's dot radius → Vatican.
+    expect(lenientLocatePick('IT', 'VA', true)).toBe('VA');
+  });
+
+  it('accepts the host when the tap hit its enclave (both enclave directions covered)', () => {
+    // Wanted Italy, tapped Vatican (its enclave) → Italy. Not near Vatican's *own* asked dot here.
+    expect(lenientLocatePick('VA', 'IT', false)).toBe('IT');
+    // Wanted Vatican, tapped Italy's body far from Vatican → stays Italy (a genuine miss).
+    expect(lenientLocatePick('IT', 'VA', false)).toBe('IT');
+  });
+
+  it('never turns a tap into an unrelated country', () => {
+    // Wanted France, tapped Germany, not near France's dot, not an enclave pair → Germany stands.
+    expect(lenientLocatePick('DE', 'FR', false)).toBe('DE');
   });
 });

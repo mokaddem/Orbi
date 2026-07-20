@@ -226,6 +226,35 @@ function buildRegionShapes(countryRecords) {
     return kept.length ? kept : members;
   }
 
+  // A polygon this small (deg²) may be dropped when it's a far longitude outlier — a stray overseas
+  // speck like France's French Guiana (~7 deg²) sitting across the Atlantic in the Europe silhouette.
+  // Comfortably above such territories yet far below a real landmass (Alaska ≈ 278 deg²), so big
+  // far parts (Alaska in the Americas) are always kept.
+  const OUTLIER_POLY_MAX_AREA = 40;
+
+  /**
+   * Drop far *longitude* outlier polygons from a merged region geometry — the country-level
+   * `trimOutliers` keeps a country like France whole (its centroid is European), so its overseas
+   * polygons (French Guiana) ride along into the merge. This removes only the small ones that sit far
+   * off in longitude (a different continent across an ocean), leaving genuine north–south extremes
+   * (Svalbard, Tierra del Fuego) and any large far landmass (Alaska) in place.
+   */
+  function trimOutlierPolygons(geo, centreLon) {
+    if (geo.type !== 'MultiPolygon' || geo.coordinates.length < 4) return geo;
+    const cents = geo.coordinates.map((poly) =>
+      geoCentroid({ type: 'Polygon', coordinates: poly }),
+    );
+    const relLon = cents.map((c) => wrap180(c[0] - centreLon));
+    const med = median(relLon);
+    const mad = median(relLon.map((v) => Math.abs(v - med)));
+    const thr = Math.max(MAD_K * mad, OUTLIER_FLOOR_DEG);
+    const kept = geo.coordinates.filter((poly, i) => {
+      const farInLon = Math.abs(relLon[i] - med) > thr;
+      return !(farInLon && ringArea(poly[0]) < OUTLIER_POLY_MAX_AREA);
+    });
+    return kept.length ? { type: 'MultiPolygon', coordinates: kept } : geo;
+  }
+
   // Icons render at ~40–90px, so sub-degree coastline detail is invisible: simplify
   // the geometry (Douglas–Peucker, tolerance in degrees) and cull tiny islands before
   // projecting. This keeps the whole file to a few KB with no visible loss.
@@ -315,14 +344,17 @@ function buildRegionShapes(countryRecords) {
   function silhouette(region) {
     const members = region ? trimOutliers(membersOf(region)) : membersOf('');
     if (!members.length) return '';
+    // Recentre the projection on the region so wide/Pacific spreads don't wrap.
+    const centreLon = region ? meanLon(members.map((m) => m.centroid[0])) : 0;
     const merged = merge(
       topo110,
       members.map((m) => m.geom),
     );
-    const simplified = simplifyGeometry(merged, TOL_DEG, MIN_AREA_DEG2);
+    // Strip stray overseas specks (e.g. French Guiana in Europe) before framing, so the fitExtent
+    // hugs the continent instead of stretching across an ocean to reach a lone dot.
+    const trimmed = region ? trimOutlierPolygons(merged, centreLon) : merged;
+    const simplified = simplifyGeometry(trimmed, TOL_DEG, MIN_AREA_DEG2);
     if (!simplified) return '';
-    // Recentre the projection on the region so wide/Pacific spreads don't wrap.
-    const centreLon = region ? meanLon(members.map((m) => m.centroid[0])) : 0;
     const projection = geoNaturalEarth1()
       .rotate([-centreLon, 0])
       .fitExtent(

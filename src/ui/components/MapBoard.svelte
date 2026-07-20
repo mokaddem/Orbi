@@ -18,6 +18,7 @@
     highlightIso = null,
     pickedIso = null,
     pickedLabel = null,
+    answerIso = null,
     revealIso = null,
     revealLabel = null,
     focusIsos = null,
@@ -31,6 +32,8 @@
     highlightIso?: string | null;
     pickedIso?: string | null;
     pickedLabel?: string | null;
+    /** Asked country in map-locate, for lenient grading only (never drawn). See `lenientLocatePick`. */
+    answerIso?: string | null;
     revealIso?: string | null;
     revealLabel?: string | null;
     focusIsos?: string[] | null;
@@ -89,6 +92,7 @@
         {highlightIso}
         {pickedIso}
         {pickedLabel}
+        {answerIso}
         {revealIso}
         {revealLabel}
         {focusIsos}
@@ -107,6 +111,7 @@
       {highlightIso}
       {pickedIso}
       {pickedLabel}
+      {answerIso}
       {revealIso}
       {revealLabel}
       {focusIsos}

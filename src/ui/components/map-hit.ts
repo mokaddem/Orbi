@@ -22,6 +22,58 @@ export interface CentroidTarget {
 }
 
 /**
+ * Enclave / tight-neighbour confusions for map-locate grading: each SMALL "inner" country → the
+ * larger country(ies) it sits inside or hugs. The bundled map cuts enclave-shaped holes in the host,
+ * so there's no geometric tell that a tap on the inner country is "inside" the host (Vatican inside
+ * Italy). This curated table restores that: tapping the inner one when the host was asked still
+ * counts (you found the right spot). Only the inner→host direction is listed — the reverse (host
+ * asked, you meant the tiny inner) is handled by proximity to the inner's own aim-dot, not this
+ * table, so a tap anywhere on a big host can never be mistaken for its enclave.
+ */
+export const ENCLAVE_HOSTS: Readonly<Record<string, readonly string[]>> = {
+  VA: ['IT'], // Vatican City → Italy
+  SM: ['IT'], // San Marino → Italy
+  MC: ['FR'], // Monaco → France
+  LI: ['CH', 'AT'], // Liechtenstein → Switzerland / Austria
+  LS: ['ZA'], // Lesotho → South Africa
+  AD: ['FR', 'ES'], // Andorra → France / Spain
+  SG: ['MY'], // Singapore → Malaysia
+  BN: ['MY'], // Brunei → Malaysia
+  GM: ['SN'], // The Gambia → Senegal
+};
+
+/** Whether `inner` is a curated enclave / tight neighbour of `outer` (see {@link ENCLAVE_HOSTS}). */
+export function isEnclaveOf(inner: string, outer: string): boolean {
+  return (ENCLAVE_HOSTS[inner] ?? []).includes(outer);
+}
+
+/**
+ * Apply map-locate answer leniency to a raw pick, returning the ISO to actually grade. Given the raw
+ * resolution (`rawPick`), the asked country (`targetIso`), and whether the tap landed within the
+ * accept radius of the target's *own* aim-dot (`targetWithinAccept`, computed by the caller in its
+ * coordinate space — only meaningful for a micro-state target that has a dot):
+ *
+ *  1. An exact hit, or no target, passes through unchanged.
+ *  2. A tap close enough to the asked micro-state's dot counts as that state — even if it technically
+ *     resolved to the surrounding country (you found where the speck is).
+ *  3. A tap that resolved to an enclave whose host is the asked country counts as the host (you tapped
+ *     inside it, through the map's enclave hole).
+ *  4. Otherwise the raw pick stands.
+ *
+ * Pure and framework-free; both the flat and globe maps route through it so grading stays identical.
+ */
+export function lenientLocatePick(
+  rawPick: string | null,
+  targetIso: string | null | undefined,
+  targetWithinAccept: boolean,
+): string | null {
+  if (!targetIso || rawPick === targetIso) return rawPick;
+  if (targetWithinAccept) return targetIso;
+  if (rawPick && isEnclaveOf(rawPick, targetIso)) return targetIso;
+  return rawPick;
+}
+
+/**
  * Return the ISO alpha-2 of the country whose projected centroid is nearest to
  * `(x, y)` and within `capLogical` logical units, or `null` if none is close enough
  * (or the inputs are degenerate). Ties resolve to the last candidate in `targets`.

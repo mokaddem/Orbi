@@ -205,6 +205,10 @@ export {
 export {
   type BlitzBestQuery,
   type BlitzBestEntry,
+  type BlitzSetBestQuery,
+  BLITZ_MODES,
+  blitzAllows,
+  computeBlitzSetBest,
   BLITZ_START_SECONDS,
   BLITZ_CAP_SECONDS,
   BLITZ_BONUS_SECONDS,

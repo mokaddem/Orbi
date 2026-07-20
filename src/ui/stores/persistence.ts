@@ -93,8 +93,16 @@ function newId(): string {
   return `s_${Date.now().toString(36)}_${Math.floor(Math.random() * 1e9).toString(36)}`;
 }
 
-/** Map an end-of-session {@link SessionSummary} onto the persisted {@link SessionRecord}. */
-export function summaryToRecord(summary: SessionSummary, id: string = newId()): SessionRecord {
+/**
+ * Map an end-of-session {@link SessionSummary} onto the persisted {@link SessionRecord}. `setId` is
+ * the saved custom-set id a targeted-practice run was launched from (UI-owned, not in the domain
+ * summary) — carried through only to scope a targeted Blitz run's personal best to that set.
+ */
+export function summaryToRecord(
+  summary: SessionSummary,
+  id: string = newId(),
+  setId?: string,
+): SessionRecord {
   return {
     id,
     startedAt: summary.startedAt,
@@ -113,6 +121,10 @@ export function summaryToRecord(summary: SessionSummary, id: string = newId()): 
     ...(summary.type === 'blitz' ? { points: computeBlitzPoints(summary.results) } : {}),
     // Remember the run's seed so a duel/rematch can reproduce it from history (Phase 46).
     ...(summary.seed !== undefined ? { seed: summary.seed } : {}),
+    // A targeted-practice run carries its drilled pool (marks it as a custom set, not region play) and
+    // — when launched from a saved set — that set's id, both scoping its Blitz best (Phase-49 follow-on).
+    ...(summary.answerPool ? { answerPool: [...summary.answerPool] } : {}),
+    ...(setId ? { setId } : {}),
     questions: summary.results,
   };
 }
@@ -182,10 +194,10 @@ export function updatePrefs(patch: Partial<Omit<Prefs, 'language'>>): void {
  * (e.g. quota exceeded mid-session) is swallowed so it can't surface as an unhandled
  * rejection or interrupt the run to the summary. No-op before {@link initPersistence}.
  */
-export async function saveSession(summary: SessionSummary): Promise<void> {
+export async function saveSession(summary: SessionSummary, setId?: string): Promise<void> {
   if (!store) return;
   try {
-    await store.addSession(summaryToRecord(summary));
+    await store.addSession(summaryToRecord(summary, undefined, setId));
   } catch {
     // Storage became unwritable (quota/private mode) — history just won't include this run.
   }

@@ -340,8 +340,35 @@
     justify-content: flex-end;
     position: sticky;
     bottom: 0;
-    padding: 0.5rem 0;
-    background: linear-gradient(to top, var(--color-bg) 60%, transparent);
+    z-index: 1;
+    padding: 0.85rem 0 calc(0.85rem + env(safe-area-inset-bottom, 0px));
+    /* A solid ground so the grid never shows *through* the buttons — the old fade-to-transparent let
+       cards bleed in behind them. The fade now lives above the bar (::before); a solid fill below
+       (::after) covers the content region's bottom padding so no card peeks *beneath* the bar. */
+    background: var(--color-bg);
+  }
+
+  /* Dissolve the grid into the bar as it scrolls under. */
+  .actions::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: 1.75rem;
+    background: linear-gradient(to top, var(--color-bg), transparent);
+    pointer-events: none;
+  }
+
+  /* Solid fill below the bar, clipped by the scroll region's overflow — so it covers the content's
+     bottom padding (any viewport) without ever painting over the nav, which sits outside `.content`. */
+  .actions::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 6rem;
+    background: var(--color-bg);
+    pointer-events: none;
   }
 
   .start {

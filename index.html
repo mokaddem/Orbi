@@ -4,7 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Lock the page scale: this is a game, so browser pinch-to-zoom on the page (and the
+         double-tap zoom) just gets in the way of tapping answers. The interactive map keeps its
+         own pinch/zoom — d3-zoom drives it on elements marked `touch-action: none`, independent of
+         the browser's page zoom this disables. (iOS Safari may still honour a deliberate zoom.) -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <meta name="theme-color" content="#10a5a0" />
     <meta
       name="description"

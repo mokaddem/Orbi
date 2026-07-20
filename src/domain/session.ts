@@ -91,6 +91,14 @@ export class QuizSession {
   private readonly byIso2: Map<string, Country>;
 
   /**
+   * The ISO alpha-2 codes of an explicit `answerPool` (targeted practice / training), or `null` for
+   * a region/World run that had none. Recorded verbatim (before the mode's eligibility filter) so the
+   * summary reports the set the caller asked to drill — what "Retry" re-runs and what marks a run as
+   * targeted rather than region-scoped.
+   */
+  private readonly answerPoolIso: string[] | null;
+
+  /**
    * The interleaved `(mode, country)` queue for a multi-mode run (combined practice), or `null`
    * for an ordinary single-mode session. When set it drives `next()` instead of `answers`, so each
    * question carries its own slot's mode.
@@ -123,6 +131,7 @@ export class QuizSession {
 
     this.universe = config.countries;
     this.byIso2 = new Map(this.universe.map((c) => [c.iso2, c]));
+    this.answerPoolIso = config.answerPool ? config.answerPool.map((c) => c.iso2) : null;
 
     // A multi-mode slot queue (combined practice) wins over everything: resolve each slot's country
     // and keep only those the slot's own mode can ask about (map modes drop geometry-less countries,
@@ -305,6 +314,9 @@ export class QuizSession {
       ...(this.seed !== undefined ? { seed: this.seed } : {}),
       choices: this.choices,
       ...(this.type === 'survival' ? { lives: this.lives } : {}),
+      // Carry the drilled pool through so the UI can re-run the exact set on Retry and tell a
+      // targeted run apart from a region run; omitted entirely for region/World runs.
+      ...(this.answerPoolIso ? { answerPool: this.answerPoolIso.slice() } : {}),
     };
   }
 
