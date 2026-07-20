@@ -161,7 +161,7 @@ describe('Summary route — Blitz result (Phase 42)', () => {
   });
 });
 
-describe('Summary route — Duel a friend (Phase 46)', () => {
+describe('Summary route — Challenge a friend (Phase 46)', () => {
   const duelable = (over: Partial<SessionSummary> = {}) =>
     summary({
       type: 'fixed',
@@ -174,28 +174,28 @@ describe('Summary route — Duel a friend (Phase 46)', () => {
   it('offers a duel for a qualifying run (seeded, ≥ 10 questions, duel-able format)', () => {
     lastSummary.set(duelable());
     render(Summary);
-    expect(screen.getByRole('heading', { name: 'Duel a friend' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Challenge a friend' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Challenge a friend' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Share the challenge' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
   });
 
   it('hides the duel on a too-short run', () => {
     lastSummary.set(duelable({ total: 6 }));
     render(Summary);
-    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Challenge a friend' })).not.toBeInTheDocument();
   });
 
   it('hides the duel for a training run (not reproducible cross-player)', () => {
     lastSummary.set(duelable({ type: 'training' }));
     render(Summary);
-    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Challenge a friend' })).not.toBeInTheDocument();
   });
 
   it('hides the duel for the Daily Challenge (its own flow)', () => {
     lastSummary.set(duelable());
     lastRunConfig.set({ mode: 'flag-to-country', type: 'fixed', dailyDate: '2026-07-18' });
     render(Summary);
-    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Challenge a friend' })).not.toBeInTheDocument();
   });
 
   it('shows the head-to-head verdict for a finished received duel (matched by seed)', () => {
@@ -218,6 +218,6 @@ describe('Summary route — Duel a friend (Phase 46)', () => {
     expect(screen.getByRole('button', { name: 'Send result back' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Rematch' })).toBeInTheDocument();
     // The generic "start a new duel" affordance is replaced by the verdict.
-    expect(screen.queryByRole('heading', { name: 'Duel a friend' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Challenge a friend' })).not.toBeInTheDocument();
   });
 });
