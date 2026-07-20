@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           # Exact patch pin: node 24.11.0 bundles npm 11.6.1, matching the dev toolchain.
           # A floating "24" pulls npm 12, whose stricter lockfile check rejects the
