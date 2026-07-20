@@ -152,6 +152,10 @@ h3 {
 button {
   font: inherit;
   cursor: pointer;
+  /* Buttons are tap targets, not prose — a press (especially a long-press on touch) should
+     never begin a text selection. Scoped to real <button>s so ordinary copyable text is unaffected. */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 :focus-visible {
