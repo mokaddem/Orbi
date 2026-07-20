@@ -443,9 +443,21 @@
             label: $localizedName(c),
             country: c,
           }))}
-          <div class="flag-scroll">
+          <!-- On the answered reveal, collapse the whole-continent flag grid to just the correct flag
+               (plus the player's flag if they missed) — mirroring the name-list reveal. Without this
+               the tapped flag stays in a long scroll box that reflows as the feedback card appears,
+               so the list jumps under the finger; the collapse keeps the pick put. -->
+          {@const revealFlags = answered
+            ? [
+                flagOptions.find((o) => o.id === question.answer.iso2),
+                ...(fb?.pickedIso && fb.pickedIso !== question.answer.iso2
+                  ? [flagOptions.find((o) => o.id === fb.pickedIso)]
+                  : []),
+              ].filter((o): o is (typeof flagOptions)[number] => !!o)
+            : flagOptions}
+          <div class="flag-scroll" class:answered>
             <ChoiceGrid
-              options={flagOptions}
+              options={revealFlags}
               variant="flag"
               {answered}
               correctId={question.answer.iso2}
@@ -957,6 +969,17 @@
     padding: 0.25rem 0.25rem 2rem;
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 2rem), transparent);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 2rem), transparent);
+  }
+
+  /* On the answered reveal the grid is only 1–2 flags — stop growing / scrolling so it sits right
+     above the verdict card (mirrors `.search.answered .results`), and drop the scroll mask/pad that
+     only made sense for the long list. This is what keeps the pick from jumping on answer. */
+  .flag-scroll.answered {
+    flex: 0 0 auto;
+    overflow: visible;
+    padding: 0.25rem;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .feedback {

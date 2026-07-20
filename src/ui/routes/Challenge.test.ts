@@ -90,6 +90,38 @@ describe('Challenge route', () => {
     expect(get(challenge).state!.cleared).toBe(1);
   });
 
+  it('collapses the whole-continent flag grid to the reveal on a correct pick (no scroll jump)', async () => {
+    vi.useFakeTimers();
+    try {
+      stage();
+      const { container } = render(Challenge);
+      // Advance (clearing slots) until we're sitting on a playing country-to-flag question.
+      for (let guard = 0; guard < 60; guard++) {
+        const v = get(challenge);
+        if (v.status !== 'playing' || !v.question) break;
+        if (v.question.mode === 'country-to-flag') break;
+        await fireEvent.click(pickButton(container, v.question.answer.iso2));
+        await vi.advanceTimersByTimeAsync(CORRECT_MS + 100);
+      }
+      const v = get(challenge);
+      expect(v.status).toBe('playing');
+      expect(v.question!.mode).toBe('country-to-flag');
+      // Before answering, the flag grid is the whole continent (no 4-choice crutch) — many flags.
+      const flagsBefore = container.querySelectorAll('.flag-scroll button[data-id]');
+      expect(flagsBefore.length).toBeGreaterThan(1);
+      // A correct pick collapses the grid to just the correct flag, so the tapped flag can't jump
+      // inside a reflowing scroll box.
+      const answer = v.question!.answer.iso2;
+      await fireEvent.click(pickButton(container, answer));
+      expect(get(challenge).status).toBe('answered');
+      const flagsAfter = container.querySelectorAll('.flag-scroll button[data-id]');
+      expect(flagsAfter.length).toBe(1);
+      expect(flagsAfter[0].getAttribute('data-id')).toBe(answer);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('a single miss ends the run in the in-arena runover (no /summary route)', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
