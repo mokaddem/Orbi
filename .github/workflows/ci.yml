@@ -20,7 +20,10 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          # Exact patch pin: node 24.11.0 bundles npm 11.6.1, matching the dev toolchain.
+          # A floating "24" pulls npm 12, whose stricter lockfile check rejects the
+          # optional-dep layout npm 11 writes. Bump in lockstep with .nvmrc + package.json engines.
+          node-version: 24.11.0
           cache: npm
       - run: npm ci
       - name: Lint (ESLint + Prettier)
