@@ -16,7 +16,10 @@ import {
   blitzTiersLost,
   computeBlitzBest,
   computeBlitzBests,
+  computeBlitzSetBest,
   computeBlitzPoints,
+  blitzAllows,
+  BLITZ_MODES,
 } from './blitz';
 import type { GameMode, QuestionResult, RegionFilter } from './types';
 import type { SessionRecord } from '../data/persistence/types';
@@ -307,6 +310,48 @@ describe('computeBlitzBest', () => {
     expect(record.points).toBeUndefined();
     expect(computeBlitzBest([record], { mode: 'flag-to-country' })).toBe(900);
   });
+
+  it('excludes targeted-practice (custom-set) runs from the World/region best', () => {
+    const sessions = [
+      blitzRecord({ points: 900 }), // World run → counts
+      blitzRecord({ points: 5000, answerPool: ['FR', 'DE'] }), // custom set → excluded
+      blitzRecord({ points: 6000, answerPool: ['FR', 'DE'], setId: 's1' }), // saved set → excluded
+    ];
+    expect(computeBlitzBest(sessions, { mode: 'flag-to-country' })).toBe(900);
+  });
+});
+
+describe('blitzAllows / BLITZ_MODES', () => {
+  it('allows the five quick-tap modes and rejects the rest', () => {
+    expect(BLITZ_MODES).toHaveLength(5);
+    for (const m of BLITZ_MODES) expect(blitzAllows(m)).toBe(true);
+    expect(blitzAllows('map-locate')).toBe(false);
+    expect(blitzAllows('country-to-languages')).toBe(false);
+    expect(blitzAllows('country-to-industry')).toBe(false);
+  });
+});
+
+describe('computeBlitzSetBest', () => {
+  it('is 0 when no blitz run matches the set + mode', () => {
+    expect(computeBlitzSetBest([], { mode: 'flag-to-country', setId: 's1' })).toBe(0);
+    const other = blitzRecord({ points: 999, setId: 's2', answerPool: ['FR'] });
+    expect(computeBlitzSetBest([other], { mode: 'flag-to-country', setId: 's1' })).toBe(0);
+  });
+
+  it('returns the max points among runs of that saved set in that mode', () => {
+    const sessions = [
+      blitzRecord({ points: 400, setId: 's1', answerPool: ['FR', 'DE'] }),
+      blitzRecord({ points: 1200, setId: 's1', answerPool: ['FR', 'DE'] }), // same set → wins
+      blitzRecord({ points: 9000, setId: 's1', mode: 'country-to-flag', answerPool: ['FR'] }), // other mode
+      blitzRecord({ points: 9000, setId: 's2', answerPool: ['FR'] }), // other set
+    ];
+    expect(computeBlitzSetBest(sessions, { mode: 'flag-to-country', setId: 's1' })).toBe(1200);
+  });
+
+  it('ignores ad-hoc runs (no setId)', () => {
+    const adHoc = blitzRecord({ points: 5000, answerPool: ['FR', 'DE'] }); // no setId
+    expect(computeBlitzSetBest([adHoc], { mode: 'flag-to-country', setId: 's1' })).toBe(0);
+  });
 });
 
 describe('computeBlitzBests', () => {
@@ -329,6 +374,16 @@ describe('computeBlitzBests', () => {
       ['flag-to-country', 'Europe', null, 1200],
       ['country-to-capital', null, null, 800],
       ['flag-to-country', 'Europe', 'Northern Europe', 300],
+    ]);
+  });
+
+  it('omits targeted-practice (custom-set) runs from the per-region panel', () => {
+    const bests = computeBlitzBests([
+      blitzRecord({ points: 700 }), // World slot → kept
+      blitzRecord({ points: 9000, answerPool: ['FR', 'DE'], setId: 's1' }), // custom set → omitted
+    ]);
+    expect(bests.map((b) => [b.region ?? null, b.subregion ?? null, b.points])).toEqual([
+      [null, null, 700],
     ]);
   });
 });

@@ -428,6 +428,20 @@ describe('QuizSession — explicit answer pool (training)', () => {
   it('throws when the answer pool is empty', () => {
     expect(() => new QuizSession(base({ type: 'training', answerPool: [] }))).toThrow();
   });
+
+  it('records the explicit pool codes in the summary (for Retry / targeted-run tagging)', () => {
+    const pool = [mk('AA', 'R1', 'S1'), mk('BA', 'R1', 'S2')];
+    const s = new QuizSession(base({ type: 'fixed', answerPool: pool, fixedLength: 2 }));
+    s.submit(s.next()!.answer);
+    s.submit(s.next()!.answer);
+    expect(s.summary().answerPool?.sort()).toEqual(['AA', 'BA']);
+  });
+
+  it('leaves the summary answerPool undefined for a region/World run', () => {
+    const s = new QuizSession(base({ type: 'fixed', filter: { region: 'R1' }, fixedLength: 1 }));
+    s.submit(s.next()!.answer);
+    expect(s.summary().answerPool).toBeUndefined();
+  });
 });
 
 describe('QuizSession — summary', () => {

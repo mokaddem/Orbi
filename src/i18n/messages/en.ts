@@ -317,6 +317,7 @@ const en = {
     },
     type: {
       title: 'Choose a format',
+      blitzUnavailable: 'Blitz isn’t available for this mode.',
     },
     save: {
       title: 'Save this set',

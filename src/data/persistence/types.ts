@@ -31,6 +31,19 @@ export interface SessionRecord {
    * record without it (or a non-blitz record) is simply scored 0 / recomputed on read.
    */
   points?: number;
+  /**
+   * Targeted-practice runs only: the explicit ISO alpha-2 pool that was drilled (Phase-49 follow-on).
+   * Its presence marks a run as a *custom set*, not region/World play — so a targeted Blitz run is
+   * kept out of the region/World personal bests. Absent on ordinary region/World runs.
+   */
+  answerPool?: string[];
+  /**
+   * The saved custom-set id a targeted-practice run was launched from, when it was played from a
+   * saved set (not an ad-hoc selection). Scopes a targeted **Blitz** run's personal best to that set
+   * — "beat your best on this set". Absent for ad-hoc selections (which track no best) and for
+   * region/World runs.
+   */
+  setId?: string;
   /** Per-question outcomes, in the order they were answered. */
   questions: QuestionResult[];
 }

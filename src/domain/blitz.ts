@@ -13,6 +13,24 @@ import type { GameMode, QuestionResult, RegionFilter } from './types';
 // `recap.ts`) — no runtime dependency on the persistence layer, so no import cycle.
 import type { SessionRecord } from '../data/persistence/types';
 
+/**
+ * The modes Blitz allows: the quick-tap directions only (Phase 42, OQ8). Excludes map-locate (slower
+ * to click), country-to-languages (multi-select) and country-to-industry (nichier). Shared by the
+ * Play setup and the targeted-practice picker so both gate Blitz to the same set.
+ */
+export const BLITZ_MODES: readonly GameMode[] = [
+  'flag-to-country',
+  'country-to-flag',
+  'map-highlight',
+  'capital-to-country',
+  'country-to-capital',
+];
+
+/** Whether `mode` can be played as a Blitz run (see {@link BLITZ_MODES}). */
+export function blitzAllows(mode: GameMode): boolean {
+  return BLITZ_MODES.includes(mode);
+}
+
 /** Seconds on the clock when a Blitz run begins. */
 export const BLITZ_START_SECONDS = 60;
 /** Hard ceiling on total run length — earned time can never push a run past this. */
@@ -232,7 +250,36 @@ export function computeBlitzBest(
   let best = 0;
   for (const s of sessions) {
     if (s.type !== 'blitz' || s.mode !== query.mode) continue;
+    // A targeted-practice (custom-set) run is scored against its own set, not the region/World slot —
+    // exclude it so an ad-hoc World-less set never inflates (or matches) the World best.
+    if (s.answerPool) continue;
     if (!blitzSlotMatches(s.regionFilter, query)) continue;
+    const points = s.points ?? computeBlitzPoints(s.questions);
+    if (points > best) best = points;
+  }
+  return best;
+}
+
+/** Identifies a targeted-practice Blitz "best" slot: a saved custom set played in a given mode. */
+export interface BlitzSetBestQuery {
+  mode: GameMode;
+  /** The saved custom-set id. */
+  setId: string;
+}
+
+/**
+ * The best Blitz score for a saved custom set in a given mode — the personal best for a targeted
+ * "beat your best on this set" run (Phase-49 follow-on). A record counts when it is a `blitz` run in
+ * the same mode tagged with the same `setId`. Ad-hoc (un-saved) runs carry no `setId`, so they never
+ * match — those track no best by design. Returns 0 when nothing matches (no best yet).
+ */
+export function computeBlitzSetBest(
+  sessions: readonly SessionRecord[],
+  query: BlitzSetBestQuery,
+): number {
+  let best = 0;
+  for (const s of sessions) {
+    if (s.type !== 'blitz' || s.mode !== query.mode || s.setId !== query.setId) continue;
     const points = s.points ?? computeBlitzPoints(s.questions);
     if (points > best) best = points;
   }
@@ -259,6 +306,8 @@ export function computeBlitzBests(sessions: readonly SessionRecord[]): BlitzBest
   const best = new Map<string, BlitzBestEntry>();
   for (const s of sessions) {
     if (s.type !== 'blitz') continue;
+    // Targeted custom-set runs aren't region/World slots — keep them out of this per-region panel.
+    if (s.answerPool) continue;
     const region = s.regionFilter?.region ?? '';
     const subregion = s.regionFilter?.subregion ?? '';
     const key = `${s.mode}|${region}|${subregion}`;

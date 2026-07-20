@@ -310,6 +310,7 @@ const de: typeof en = {
     },
     type: {
       title: 'Format wählen',
+      blitzUnavailable: 'Blitz ist für diesen Modus nicht verfügbar.',
     },
     save: {
       title: 'Diesen Satz speichern',

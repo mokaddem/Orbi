@@ -2,7 +2,13 @@
   import { onMount } from 'svelte';
   import { push } from 'svelte-spa-router';
   import { t, localizedName, localizedRegion } from '../../i18n';
-  import { practiceEligibility, type GameMode, type SessionType } from '../../domain';
+  import {
+    practiceEligibility,
+    blitzAllows,
+    BLITZ_START_SECONDS,
+    type GameMode,
+    type SessionType,
+  } from '../../domain';
   import { getCountries, getRegionTree, type Country, type CustomSet } from '../../data';
   import { pendingConfig, practiceToConfig } from '../stores/game';
   import {
@@ -97,8 +103,18 @@
   const eligibility = $derived(practiceEligibility(mode, chosenCountries));
   const canStart = $derived(eligibility.eligible.length > 0);
 
+  // Blitz is a quick-tap format, so it only offers the tap-a-card modes (see `blitzAllows`). When the
+  // picked mode can't do Blitz the option is disabled below; if Blitz was already selected, drop back
+  // to Fixed so a start can't launch an impossible format.
+  const blitzEligible = $derived(blitzAllows(mode));
+  $effect(() => {
+    if (!blitzEligible && type === 'blitz') type = 'fixed';
+  });
+
   // --- Launch: stage the config and hand off to the Play route (like Retry from Summary) ---
-  function launch(isoList: readonly string[]): void {
+  // `setId` is passed only for a **saved** set — it scopes a Blitz run's personal best to that set.
+  // An ad-hoc working selection launches without one (it tracks no Blitz best).
+  function launch(isoList: readonly string[], setId?: string): void {
     const eligible = practiceEligibility(
       mode,
       isoList.map((iso) => byIso.get(iso)).filter((c): c is Country => !!c),
@@ -110,13 +126,24 @@
         type,
         eligible.map((c) => c.iso2),
         $prefs,
+        setId,
       ),
     );
     push('/play');
   }
 
   function startPractice(): void {
-    launch(selected);
+    // The working selection counts as "this saved set" only while it still exactly matches the set
+    // being edited — an unmodified saved set tracks its Blitz best; any edit makes it an ad-hoc run.
+    launch(selected, editingId && matchesEditingSet() ? editingId : undefined);
+  }
+
+  /** Whether the current working selection is exactly the saved set being edited (order-independent). */
+  function matchesEditingSet(): boolean {
+    const set = savedSets.find((s) => s.id === editingId);
+    if (!set || set.iso2.length !== selected.length) return false;
+    const have = new Set(selected);
+    return set.iso2.every((iso) => have.has(iso));
   }
 
   // --- Saved sets ---
@@ -212,7 +239,11 @@
                   >
                 </div>
                 <div class="set-actions">
-                  <button type="button" class="pill accent" onclick={() => launch(set.iso2)}>
+                  <button
+                    type="button"
+                    class="pill accent"
+                    onclick={() => launch(set.iso2, set.id)}
+                  >
                     <Icon name="play" size={14} />
                     {$t('practice.savedSets.play')}
                   </button>
@@ -422,7 +453,24 @@
             >
             <small>{$t('play.setup.survivalHint', { lives: $prefs.survivalLives })}</small>
           </button>
+          <button
+            type="button"
+            class="opt"
+            class:selected={type === 'blitz'}
+            aria-pressed={type === 'blitz'}
+            disabled={!blitzEligible}
+            title={!blitzEligible ? $t('practice.type.blitzUnavailable') : undefined}
+            onclick={() => (type = 'blitz')}
+          >
+            <span class="opt-title"
+              ><Icon name="flame" size="1.05em" /> {$t('sessionType.blitz')}</span
+            >
+            <small>{$t('play.setup.blitzHint', { seconds: BLITZ_START_SECONDS })}</small>
+          </button>
         </div>
+        {#if !blitzEligible}
+          <p class="coverage" role="status">{$t('practice.type.blitzUnavailable')}</p>
+        {/if}
       </section>
 
       <div class="start-row">
@@ -871,7 +919,7 @@
     color: var(--color-accent);
   }
 
-  .opt:hover {
+  .opt:not(:disabled):hover {
     border-color: var(--color-accent);
   }
 
@@ -879,6 +927,13 @@
     border-color: var(--color-accent);
     background: var(--color-accent-weak);
     box-shadow: var(--ring-selected);
+  }
+
+  /* A format the current mode can't use (Blitz on a non-tap mode): dimmed and inert. */
+  .opt:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 
   .coverage {
