@@ -12,6 +12,9 @@ import {
   XP_PER_SESSION,
   XP_PER_STREAK_DAY,
   XP_PER_BADGE,
+  estimateReach,
+  EST_XP_PER_GAME,
+  EST_MINUTES_PER_GAME,
   type XpInput,
 } from './xp';
 import type { QuestionResult } from './types';
@@ -316,6 +319,33 @@ describe('rankForXp — ladder boundaries', () => {
       if (i > 0) expect(RANKS[i].minXp).toBeGreaterThan(RANKS[i - 1].minXp);
     }
     expect(RANKS[0].minXp).toBe(0);
-    expect(RANKS).toHaveLength(10);
+    expect(RANKS).toHaveLength(15);
+  });
+});
+
+describe('estimateReach', () => {
+  it('the starting rank (0 XP) costs no games and no time', () => {
+    expect(estimateReach(0)).toEqual({ games: 0, minutes: 0 });
+  });
+
+  it('rounds games up and derives minutes from the per-game constants', () => {
+    expect(estimateReach(EST_XP_PER_GAME)).toEqual({
+      games: 1,
+      minutes: EST_MINUTES_PER_GAME,
+    });
+    // One XP into the next game still counts as a whole game.
+    expect(estimateReach(EST_XP_PER_GAME + 1)).toEqual({
+      games: 2,
+      minutes: 2 * EST_MINUTES_PER_GAME,
+    });
+  });
+
+  it('is non-decreasing across the ladder and floors negatives to zero', () => {
+    expect(estimateReach(-500)).toEqual({ games: 0, minutes: 0 });
+    for (let i = 1; i < RANKS.length; i++) {
+      expect(estimateReach(RANKS[i].minXp).games).toBeGreaterThanOrEqual(
+        estimateReach(RANKS[i - 1].minXp).games,
+      );
+    }
   });
 });

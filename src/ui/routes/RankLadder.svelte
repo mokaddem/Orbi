@@ -8,6 +8,7 @@
     XP_PER_STREAK_DAY,
     XP_PER_BADGE,
     STREAK_MILESTONE_XP,
+    estimateReach,
   } from '../../domain';
   import { rankMedal, METAL_PALETTES, type RankMetal } from '../components/rankMedal';
   import type { IconName } from '../components/icons';
@@ -33,13 +34,19 @@
     return out;
   })();
 
-  /** The XP band a rank spans: from its threshold up to just below the next rank's (open-ended at top). */
-  function bandRange(index: number): string {
-    const min = RANKS[index].minXp;
-    const next = RANKS[index + 1];
-    return next
-      ? `${min.toLocaleString()}–${(next.minXp - 1).toLocaleString()} XP`
-      : `${min.toLocaleString()}+ XP`;
+  /** Estimated effort to reach a rank from zero: "≈ N games · ≈ T" (games + rounded play-time). The
+   *  figures come from the domain's tunable {@link estimateReach}; both are labelled "≈". */
+  function effortLabel(minXp: number): string {
+    const { games, minutes } = estimateReach(minXp);
+    const gamesStr = $t('ranksPage.estGames', { games: games.toLocaleString() });
+    const timeStr =
+      minutes < 60
+        ? $t('ranksPage.estMinutes', { n: Math.round(minutes / 5) * 5 })
+        : $t('ranksPage.estHours', {
+            // One decimal below 10 h (2.5 h), whole hours beyond (80 h) — tidy at every scale.
+            n: minutes < 600 ? Math.round(minutes / 6) / 10 : Math.round(minutes / 60),
+          });
+    return `${gamesStr} · ${timeStr}`;
   }
 
   // Live XP weights, pulled from the domain constants (labels reuse the existing rank.source.* keys).
@@ -85,10 +92,12 @@
                   {#if r.minXp === 0}
                     {$t('ranksPage.startRank')}
                   {:else}
-                    {$t('ranksPage.reachAt', { xp: r.minXp.toLocaleString() })}
+                    {$t('ranksPage.xpValue', { xp: r.minXp.toLocaleString() })}
                   {/if}
                 </span>
-                <span class="rung-band">{bandRange(r.index)}</span>
+                {#if r.minXp > 0}
+                  <span class="rung-effort">{effortLabel(r.minXp)}</span>
+                {/if}
               </div>
             </li>
           {/each}
@@ -231,7 +240,8 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .rung-band {
+  .rung-effort {
+    margin-top: 0.1rem;
     font-size: 0.82rem;
     color: var(--color-muted);
     font-variant-numeric: tabular-nums;

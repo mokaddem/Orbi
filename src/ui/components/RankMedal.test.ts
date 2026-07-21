@@ -10,7 +10,7 @@ describe('rankMedal()', () => {
     expect(new Set(glyphs).size).toBe(glyphs.length);
   });
 
-  it('climbs bronze → silver → gold, three to a band, then a crystal apex', () => {
+  it('climbs bronze → silver → gold → platinum → crystal, three rungs to a band', () => {
     expect(RANK_MEDALS.map((m) => m.metal)).toEqual([
       'bronze',
       'bronze',
@@ -21,8 +21,23 @@ describe('rankMedal()', () => {
       'gold',
       'gold',
       'gold',
+      'platinum',
+      'platinum',
+      'platinum',
+      'crystal',
+      'crystal',
       'crystal',
     ]);
+  });
+
+  it('sets the reflection glint by sub-level (1★ none · 2★ mild · 3★ medium), apex prismatic', () => {
+    // Each non-crystal band steps none → mild → medium with its stars.
+    expect(RANK_MEDALS.slice(0, 3).map((m) => m.glint)).toEqual(['none', 'mild', 'medium']);
+    expect(RANK_MEDALS.slice(6, 9).map((m) => m.glint)).toEqual(['none', 'mild', 'medium']);
+    // The crowned top rung — and only it — is prismatic.
+    const prismatic = RANK_MEDALS.filter((m) => m.glint === 'prismatic');
+    expect(prismatic).toHaveLength(1);
+    expect(RANK_MEDALS[RANK_MEDALS.length - 1].glint).toBe('prismatic');
   });
 
   it('floors and clamps out-of-range indices to the ladder', () => {
@@ -39,15 +54,22 @@ describe('RankMedal', () => {
     expect(container.querySelectorAll('.star')).toHaveLength(3);
   });
 
-  it('gives the crystal apex facets and no stars', () => {
+  it('no longer draws the facet burst on the crystal apex', () => {
     const { container } = render(RankMedal, { index: RANK_MEDALS.length - 1 });
-    expect(container.querySelectorAll('.star')).toHaveLength(0);
-    expect(container.querySelector('.facets')).not.toBeNull();
+    expect(container.querySelector('.facets')).toBeNull();
+    // The apex is the third crystal rung, so it wears its three sub-level stars like any 3★ coin.
+    expect(container.querySelectorAll('.star')).toHaveLength(3);
   });
 
-  it('draws facets only on the apex', () => {
-    const { container } = render(RankMedal, { index: 0 });
-    expect(container.querySelector('.facets')).toBeNull();
+  it('sweeps a reflection glint on glinting coins but not on a plain 1★ coin', () => {
+    // Novice (index 0) is 1★ / glint "none" — no sheen element at all.
+    const { container: plain } = render(RankMedal, { index: 0 });
+    expect(plain.querySelector('.sheen')).toBeNull();
+
+    // The crowned apex glints prismatically.
+    const { container: apex } = render(RankMedal, { index: RANK_MEDALS.length - 1 });
+    expect(apex.querySelector('.sheen.sheen-prismatic')).not.toBeNull();
+    expect(apex.querySelector('svg.medal.apex')).not.toBeNull();
   });
 
   it('is decorative by default and labelled when given a title', () => {

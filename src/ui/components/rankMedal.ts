@@ -6,36 +6,53 @@
 import type { IconName } from './icons';
 
 /**
- * The metal a rank's medal is struck in. Ranks climb bronze → silver → gold, three rungs to a
- * band, then a one-off faceted crystal apex for the Legendary Explorer — beyond metal entirely, so
- * the tier reads at a glance from the material alone, before the glyph.
+ * The metal a rank's medal is struck in. Ranks climb bronze → silver → gold → platinum → crystal,
+ * three rungs to a band, so the tier reads at a glance from the material alone, before the glyph.
+ * Crystal is the prestige band; its crowned top rung is the Legendary Explorer.
  */
-export type RankMetal = 'bronze' | 'silver' | 'gold' | 'crystal';
+export type RankMetal = 'bronze' | 'silver' | 'gold' | 'platinum' | 'crystal';
+
+/**
+ * How much a coin catches the light — a periodic reflection sweep that climbs with the sub-level:
+ * `none` (1★, a plain struck coin), `mild` (2★, a faint slow glint), `medium` (3★, a brighter
+ * sweep), and `prismatic` (the crowned Crystal apex only — the strongest sweep plus an ambient
+ * glow). Purely decorative and collapsed under reduce-motion.
+ */
+export type RankGlint = 'none' | 'mild' | 'medium' | 'prismatic';
 
 export interface RankMedalSpec {
   /** The "journey" glyph embossed on the coin (icon-registry name; see icons.ts). */
   glyph: IconName;
   metal: RankMetal;
-  /** Sub-level pips within the band, 1–3. The crystal apex uses 0 (it shows facets instead). */
+  /** Sub-level pips within the band, 1–3 — struck on the coin's lower rim. */
   stars: number;
+  /** The coin's reflection sweep intensity (see {@link RankGlint}). */
+  glint: RankGlint;
 }
 
 /**
- * Per-rank medal art, indexed by `RANKS[i].index` (Novice = 0 … Legendary Explorer = 9). The glyph
+ * Per-rank medal art, indexed by `RANKS[i].index` (Novice = 0 … Legendary Explorer = 14). The glyph
  * set tells one continuous journey: plant a flag → find your bearings → follow the signs → chart a
- * route → navigate → voyage → summit → map it → circle the globe → be crowned.
+ * route → navigate → voyage → summit → map it → circle the globe → earn the accolades → be crowned.
+ * Glint climbs with the sub-level within each band (1★ none · 2★ mild · 3★ medium); the crystal
+ * band shines from the start and its crowned apex is prismatic.
  */
 export const RANK_MEDALS: readonly RankMedalSpec[] = [
-  { glyph: 'flag', metal: 'bronze', stars: 1 }, // Novice
-  { glyph: 'compass', metal: 'bronze', stars: 2 }, // Scout
-  { glyph: 'signpost', metal: 'bronze', stars: 3 }, // Wanderer
-  { glyph: 'route', metal: 'silver', stars: 1 }, // Pathfinder
-  { glyph: 'navigation', metal: 'silver', stars: 2 }, // Navigator
-  { glyph: 'sailboat', metal: 'silver', stars: 3 }, // Voyager
-  { glyph: 'mountain', metal: 'gold', stars: 1 }, // Adventurer
-  { glyph: 'map', metal: 'gold', stars: 2 }, // Cartographer
-  { glyph: 'globe', metal: 'gold', stars: 3 }, // Globetrotter
-  { glyph: 'crown', metal: 'crystal', stars: 0 }, // Legendary Explorer
+  { glyph: 'flag', metal: 'bronze', stars: 1, glint: 'none' }, // Novice
+  { glyph: 'compass', metal: 'bronze', stars: 2, glint: 'mild' }, // Scout
+  { glyph: 'signpost', metal: 'bronze', stars: 3, glint: 'medium' }, // Wanderer
+  { glyph: 'route', metal: 'silver', stars: 1, glint: 'none' }, // Pathfinder
+  { glyph: 'navigation', metal: 'silver', stars: 2, glint: 'mild' }, // Navigator
+  { glyph: 'sailboat', metal: 'silver', stars: 3, glint: 'medium' }, // Voyager
+  { glyph: 'mountain', metal: 'gold', stars: 1, glint: 'none' }, // Adventurer
+  { glyph: 'map', metal: 'gold', stars: 2, glint: 'mild' }, // Cartographer
+  { glyph: 'globe', metal: 'gold', stars: 3, glint: 'medium' }, // Globetrotter
+  { glyph: 'award', metal: 'platinum', stars: 1, glint: 'none' }, // Pioneer
+  { glyph: 'trophy', metal: 'platinum', stars: 2, glint: 'mild' }, // Trailblazer
+  { glyph: 'shield', metal: 'platinum', stars: 3, glint: 'medium' }, // Vanguard
+  { glyph: 'gem', metal: 'crystal', stars: 1, glint: 'mild' }, // Luminary
+  { glyph: 'sparkles', metal: 'crystal', stars: 2, glint: 'medium' }, // Paragon
+  { glyph: 'crown', metal: 'crystal', stars: 3, glint: 'prismatic' }, // Legendary Explorer
 ];
 
 /** The four stops that shade one metal: coin gradient (hi→lo), rim highlight, disc face (1→2), and
@@ -49,9 +66,9 @@ export interface MetalPalette {
   ink: string;
 }
 
-// Kept here rather than as app.css tokens: these are self-contained medal art (four shades × four
-// materials), used only by RankMedal, not semantic app colours. The crystal apex stays in the
-// app's cool blue-teal family so the top rung still reads as "us".
+// Kept here rather than as app.css tokens: these are self-contained medal art (four shades × five
+// materials), used only by RankMedal, not semantic app colours. The crystal band stays in the
+// app's cool blue-teal family so the top rungs still read as "us".
 export const METAL_PALETTES: Record<RankMetal, MetalPalette> = {
   bronze: {
     hi: '#e0a869',
@@ -76,6 +93,17 @@ export const METAL_PALETTES: Record<RankMetal, MetalPalette> = {
     disc1: '#fdeeb6',
     disc2: '#e2ac35',
     ink: '#7d5808',
+  },
+  // Platinum: a cool blue-violet white-metal — deliberately given an indigo/lavender cast and more
+  // top-to-bottom contrast than silver's neutral bright grey, so the fourth band reads as a
+  // distinct, more precious material at a glance rather than "another silver".
+  platinum: {
+    hi: '#e6ecfa',
+    lo: '#6f7ba6',
+    rim: '#f6f8ff',
+    disc1: '#eef2fe',
+    disc2: '#b6c0e4',
+    ink: '#414c73',
   },
   crystal: {
     hi: '#bfeeff',

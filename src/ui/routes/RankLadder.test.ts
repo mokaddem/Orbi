@@ -20,16 +20,16 @@ describe('RankLadder route', () => {
     render(RankLadder);
     expect(screen.getByText('Novice')).toBeInTheDocument();
     expect(screen.getByText('Legendary Explorer')).toBeInTheDocument();
-    // Thresholds are rendered live from RANKS (Scout = 400, Legend = 45,000).
-    expect(screen.getByText(/Reached at 400 XP/)).toBeInTheDocument();
-    expect(screen.getByText(/Reached at 45,000 XP/)).toBeInTheDocument();
-    // The starting rank has no threshold.
+    // Thresholds are rendered live from RANKS (Scout = 400, Legend = 240,000) — bare XP, no prefix.
+    expect(screen.getByText('400 XP')).toBeInTheDocument();
+    expect(screen.getByText('240,000 XP')).toBeInTheDocument();
+    // The starting rank shows no threshold, just the "starting rank" label.
     expect(screen.getByText('Starting rank')).toBeInTheDocument();
   });
 
   it('groups the ladder by metal band', () => {
     render(RankLadder);
-    for (const band of ['Bronze', 'Silver', 'Gold', 'Crystal apex']) {
+    for (const band of ['Bronze', 'Silver', 'Gold', 'Platinum', 'Crystal']) {
       expect(screen.getByText(band)).toBeInTheDocument();
     }
   });

@@ -196,11 +196,14 @@ export {
   XP_PER_STREAK_DAY,
   XP_PER_BADGE,
   STREAK_MILESTONE_XP,
+  EST_XP_PER_GAME,
+  EST_MINUTES_PER_GAME,
   RANKS,
   computeXp,
   sessionXp,
   sessionXpBreakdown,
   rankForXp,
+  estimateReach,
 } from './xp';
 
 export {

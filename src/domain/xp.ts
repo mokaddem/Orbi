@@ -199,10 +199,11 @@ export interface Rank {
 }
 
 /**
- * The 10-tier Explorer ladder (owner-picked, Phase 43). Escalating thresholds — each rank costs
- * more than the last — so early rank-ups come quickly and the top rank stays aspirational but
- * reachable for a dedicated learner. Pure data: swap names or retune thresholds freely (the unit
- * tests pin the boundaries, not the exact numbers).
+ * The 15-tier Explorer ladder (owner-picked, Phase 43; extended to five medal bands). Escalating
+ * thresholds — each rank costs more than the last — so early rank-ups come quickly and the top rank
+ * stays aspirational but reachable for a dedicated learner. Pure data: swap names or retune
+ * thresholds freely (the unit tests pin the boundaries, not the exact numbers). The bronze/silver/
+ * gold rungs (0–8) keep their original thresholds; platinum + crystal (9–14) continue the curve.
  */
 export const RANKS: readonly Rank[] = [
   { index: 0, key: 'novice', minXp: 0 },
@@ -214,8 +215,37 @@ export const RANKS: readonly Rank[] = [
   { index: 6, key: 'adventurer', minXp: 12_500 },
   { index: 7, key: 'cartographer', minXp: 20_000 },
   { index: 8, key: 'globetrotter', minXp: 30_000 },
-  { index: 9, key: 'legend', minXp: 45_000 },
+  { index: 9, key: 'pioneer', minXp: 45_000 },
+  { index: 10, key: 'trailblazer', minXp: 65_000 },
+  { index: 11, key: 'vanguard', minXp: 92_000 },
+  { index: 12, key: 'luminary', minXp: 128_000 },
+  { index: 13, key: 'paragon', minXp: 175_000 },
+  { index: 14, key: 'legend', minXp: 240_000 },
 ];
+
+// --- "Effort to reach a rank" estimates (ranks page) --------------------------------------------
+//
+// Rough, deliberately-approximate figures for the ranks reference page: roughly how many games and
+// how much play-time it takes to climb to a given rank from zero. Tunable; the page labels every
+// figure with "≈". Modelled on a representative fixed game — the default 10 questions at ~70%
+// accuracy, which yields ≈150 XP (70 correct + 30 participation + 25 session + a small streak
+// bonus) in about 3 minutes. Daily-streak and badge XP make real progress a little faster, so these
+// are a mild over-estimate of the grind, which is the honest side to err on.
+
+/** Approx. XP a representative fixed game (10 questions, ~70% correct) yields. Tunable. */
+export const EST_XP_PER_GAME = 150;
+/** Approx. wall-clock minutes for that representative game. Tunable. */
+export const EST_MINUTES_PER_GAME = 3;
+
+/**
+ * Estimated games + play-time to reach a cumulative XP threshold from zero. Pure; `minXp` is floored
+ * to a non-negative integer, so the starting rank (0 XP) yields `{ games: 0, minutes: 0 }`.
+ */
+export function estimateReach(minXp: number): { games: number; minutes: number } {
+  const xp = Math.max(0, Math.floor(minXp));
+  const games = Math.ceil(xp / EST_XP_PER_GAME);
+  return { games, minutes: games * EST_MINUTES_PER_GAME };
+}
 
 /** Where a player sits on the ladder: current rank, the next rung, and progress toward it. */
 export interface RankProgress {
