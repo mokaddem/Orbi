@@ -41,7 +41,12 @@
       </span>
     </button>
   {/if}
-  <span class="map-error-code" title={$t('play.map.errorCodeLabel')}>{code}</span>
+  <!-- The code is a debug handle, not jargon to act on: caption it so a player knows it's a
+       reference to quote in a bug report, not an instruction. -->
+  <p class="map-error-ref">
+    {$t('play.map.errorCodeLabel')}
+    <span class="map-error-code">{code}</span>
+  </p>
 </div>
 
 <style>
@@ -118,16 +123,25 @@
     cursor: default;
   }
 
+  /* Caption framing the code as a reference to quote, not an instruction. */
+  .map-error-ref {
+    margin: 0.15rem 0 0;
+    max-width: 32ch;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+
   /* The debugging handle: quiet, monospace, selectable so a reporting player can copy it. */
   .map-error-code {
-    margin-top: 0.1rem;
-    padding: 0.1rem 0.5rem;
+    display: inline-block;
+    padding: 0.05rem 0.4rem;
     border-radius: 6px;
     background: var(--color-border);
     color: var(--color-muted);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.72rem;
     letter-spacing: 0.03em;
+    white-space: nowrap;
     user-select: all;
   }
 

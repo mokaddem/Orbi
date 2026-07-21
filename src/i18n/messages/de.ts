@@ -180,7 +180,7 @@ const de: typeof en = {
       retry: 'Erneut versuchen',
       reload: 'Neu laden',
       retrying: 'Neuer Versuch…',
-      errorCodeLabel: 'Fehlercode (hilfreich für Fehlerberichte)',
+      errorCodeLabel: 'Referenzcode',
       label: 'Weltkarte',
       zoomIn: 'Vergrößern',
       zoomOut: 'Verkleinern',

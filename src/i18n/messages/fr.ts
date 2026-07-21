@@ -174,7 +174,7 @@ const fr: typeof en = {
       retry: 'Réessayer',
       reload: 'Recharger',
       retrying: 'Nouvel essai…',
-      errorCodeLabel: 'Code d’erreur (utile pour les rapports de bug)',
+      errorCodeLabel: 'Code de référence',
       label: 'Carte du monde',
       zoomIn: 'Zoom avant',
       zoomOut: 'Zoom arrière',

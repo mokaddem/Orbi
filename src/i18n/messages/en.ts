@@ -171,7 +171,7 @@ const en = {
       retry: 'Retry',
       reload: 'Reload',
       retrying: 'Retrying…',
-      errorCodeLabel: 'Error code (handy for bug reports)',
+      errorCodeLabel: 'Reference code',
       label: 'World map',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',

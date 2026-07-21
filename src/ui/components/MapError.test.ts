@@ -14,8 +14,10 @@ describe('MapError', () => {
     render(MapError, { code: 'MAP-FETCH-503', onRetry });
 
     expect(screen.getByText('Could not load the map.')).toBeInTheDocument();
-    // The code is surfaced verbatim so a reporting player can copy it.
+    // The code is surfaced verbatim so a reporting player can copy it,
+    // captioned so it reads as a reference rather than jargon to act on.
     expect(screen.getByText('MAP-FETCH-503')).toBeInTheDocument();
+    expect(screen.getByText(/reference code/i)).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole('button', { name: /Retry/ }));
     expect(onRetry).toHaveBeenCalledTimes(1);
