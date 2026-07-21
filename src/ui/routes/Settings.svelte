@@ -21,6 +21,14 @@
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import CountryScopeNote from '../components/CountryScopeNote.svelte';
   import { backendStatus, type BackendStatus } from '../../backend/status';
+  import {
+    identity,
+    upgrade,
+    signIn,
+    signOut,
+    deleteAccount,
+    type AccountActionResult,
+  } from '../stores/identity';
 
   const B = PREFS_BOUNDS;
 
@@ -82,6 +90,61 @@
     await clearTraining();
     trainingPresent = false;
     trainingDialogOpen = false;
+  }
+
+  // --- Account (Phase 51) -------------------------------------------------------------
+  // A compact, optional form over the progressive-identity store. When anonymous, the
+  // player can create an account or sign in; when signed in, sign out or delete. All calls
+  // are best-effort and localised for feedback — they never throw.
+  let accountForm = $state<'none' | 'create' | 'signin'>('none');
+  let accountEmail = $state('');
+  let accountPassword = $state('');
+  let accountBusy = $state(false);
+  let accountFeedback = $state<{ kind: 'ok' | 'error'; key: string } | null>(null);
+  let accountDeleteDialogOpen = $state(false);
+
+  function resetAccountForm(): void {
+    accountForm = 'none';
+    accountEmail = '';
+    accountPassword = '';
+    accountFeedback = null;
+  }
+
+  function feedbackFor(result: AccountActionResult): void {
+    accountFeedback = result.ok
+      ? null
+      : {
+          kind: 'error',
+          key: result.error === 'no-backend' ? 'errorNoBackend' : 'errorFailed',
+        };
+  }
+
+  async function submitAccount(): Promise<void> {
+    if (accountBusy) return;
+    accountBusy = true;
+    accountFeedback = null;
+    const action = accountForm === 'create' ? upgrade : signIn;
+    const result = await action(accountEmail, accountPassword);
+    accountBusy = false;
+    if (result.ok) {
+      accountFeedback = {
+        kind: 'ok',
+        key: accountForm === 'create' ? 'created' : 'signedIn',
+      };
+      accountForm = 'none';
+      accountEmail = '';
+      accountPassword = '';
+    } else {
+      feedbackFor(result);
+    }
+  }
+
+  async function confirmDeleteAccount(): Promise<void> {
+    accountDeleteDialogOpen = false;
+    accountBusy = true;
+    const result = await deleteAccount();
+    accountBusy = false;
+    if (!result.ok) feedbackFor(result);
   }
 </script>
 
@@ -182,6 +245,96 @@
 
   <p class="hint">{$t('duel.settingsHelp')}</p>
 
+  <h2>{$t('settings.account.title')}</h2>
+
+  {#if $identity.tier === 'account'}
+    <div class="row">
+      <span class="label">{$t('settings.account.title')}</span>
+      <span class="account-status" data-signed-in="true">
+        {$identity.email
+          ? $t('settings.account.signedInAs', { email: $identity.email })
+          : $t('settings.account.signedIn')}
+      </span>
+    </div>
+    <div class="account-actions">
+      <button type="button" onclick={() => signOut()} disabled={accountBusy}>
+        {$t('settings.account.signOut')}
+      </button>
+      <button
+        type="button"
+        class="danger"
+        onclick={() => (accountDeleteDialogOpen = true)}
+        disabled={accountBusy}
+      >
+        {$t('settings.account.delete')}
+      </button>
+    </div>
+  {:else}
+    <div class="row">
+      <span class="label">{$t('settings.account.title')}</span>
+      <span class="account-status">{$t('settings.account.statusAnon')}</span>
+    </div>
+    <p class="hint">{$t('settings.account.anonNote')}</p>
+
+    {#if accountForm === 'none'}
+      <div class="account-actions">
+        <button type="button" onclick={() => ((accountForm = 'create'), (accountFeedback = null))}>
+          {$t('settings.account.create')}
+        </button>
+        <button
+          type="button"
+          class="link"
+          onclick={() => ((accountForm = 'signin'), (accountFeedback = null))}
+        >
+          {$t('settings.account.signInInstead')}
+        </button>
+      </div>
+    {:else}
+      <form
+        class="account-form"
+        onsubmit={(e) => {
+          e.preventDefault();
+          void submitAccount();
+        }}
+      >
+        <label class="label" for="account-email">{$t('settings.account.emailLabel')}</label>
+        <input
+          id="account-email"
+          type="email"
+          autocomplete="email"
+          bind:value={accountEmail}
+          required
+        />
+        <label class="label" for="account-password">{$t('settings.account.passwordLabel')}</label>
+        <input
+          id="account-password"
+          type="password"
+          autocomplete={accountForm === 'create' ? 'new-password' : 'current-password'}
+          minlength="8"
+          bind:value={accountPassword}
+          required
+        />
+        {#if accountForm === 'create'}
+          <p class="hint">{$t('settings.account.passwordHint')}</p>
+        {/if}
+        <div class="account-actions">
+          <button type="submit" disabled={accountBusy}>
+            {$t(accountForm === 'create' ? 'settings.account.create' : 'settings.account.signIn')}
+          </button>
+          <button type="button" class="link" onclick={resetAccountForm} disabled={accountBusy}>
+            {$t('common.cancel')}
+          </button>
+        </div>
+      </form>
+    {/if}
+  {/if}
+
+  {#if accountFeedback}
+    <p class="account-feedback" data-kind={accountFeedback.kind} role="status">
+      {$t(`settings.account.${accountFeedback.key}`)}
+    </p>
+  {/if}
+
   <h2>{$t('settings.map')}</h2>
 
   <div class="row">
@@ -268,6 +421,15 @@
   oncancel={() => (trainingDialogOpen = false)}
 />
 
+<ConfirmDialog
+  open={accountDeleteDialogOpen}
+  title={$t('settings.account.deleteTitle')}
+  message={$t('settings.account.deleteMessage')}
+  confirmLabel={$t('settings.account.delete')}
+  onconfirm={confirmDeleteAccount}
+  oncancel={() => (accountDeleteDialogOpen = false)}
+/>
+
 <style>
   .settings {
     display: flex;
@@ -313,7 +475,9 @@
     border-color: var(--color-accent);
   }
 
-  input[type='text'] {
+  input[type='text'],
+  input[type='email'],
+  input[type='password'] {
     width: 12rem;
     padding: 0.4rem 0.55rem;
     background: var(--color-surface);
@@ -323,7 +487,9 @@
     font: inherit;
   }
 
-  input[type='text']:focus {
+  input[type='text']:focus,
+  input[type='email']:focus,
+  input[type='password']:focus {
     outline: none;
     border-color: var(--color-accent);
   }
@@ -394,6 +560,52 @@
     color: var(--color-correct);
   }
   .backend-value[data-backend-status='unreachable'] {
+    color: var(--color-wrong);
+  }
+
+  /* Account (Phase 51) */
+  .account-status {
+    color: var(--color-muted);
+    font-weight: 600;
+  }
+  .account-status[data-signed-in='true'] {
+    color: var(--color-correct);
+  }
+  .account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-width: 26rem;
+  }
+  .account-form input {
+    width: 100%;
+  }
+  button.link {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0.4rem 0.2rem;
+    color: var(--color-accent-strong);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .account-feedback {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .account-feedback[data-kind='ok'] {
+    color: var(--color-correct);
+  }
+  .account-feedback[data-kind='error'] {
     color: var(--color-wrong);
   }
 

@@ -130,6 +130,24 @@ export interface ProgressionState {
 }
 
 /**
+ * Local player identity (Phase 51) — a persisted singleton, and the local source of truth for *who
+ * this player is* (the backend mirror is best-effort and additive; on divergence, local wins).
+ * Deliberately minimal and **backend-agnostic**: it holds only the stable device id and the secret
+ * for the progressive-identity flow — no auth token (that is owned by the backend seam) and no PII.
+ *
+ * `anonSecret` is the password of the auto-created anonymous backend account (paired with an
+ * `⟨deviceId⟩@anon.invalid` email). It is stored **only** here, on the device: it is the sole way
+ * back into the anonymous identity, which is exactly why clearing local storage loses it — and why
+ * upgrading to a real account (Tier 3) is what makes an identity durable.
+ */
+export interface IdentityRecord {
+  /** Stable per-device id (UUID when available), generated once on first run. */
+  deviceId: string;
+  /** Password of the auto-created anonymous account; local-only secret. Absent until minted. */
+  anonSecret?: string;
+}
+
+/**
  * A player-authored country set for targeted practice (Phase 27). Stores *only* the
  * countries — the mode is chosen at play time, so one set ("these 8 Balkans") is reusable
  * across modes (flags today, capitals tomorrow). Persisted as authored content (like prefs),
@@ -317,4 +335,10 @@ export interface QuizStore {
   putGrandmasterRecord(record: GrandmasterRecord): Promise<void>;
   /** Erase all Grandmaster certification + cooldown state (cleared alongside a progress reset). */
   clearGrandmaster(): Promise<void>;
+
+  // Identity (Phase 51 — a singleton row: the local device identity for progressive accounts)
+  getIdentity(): Promise<IdentityRecord | undefined>;
+  saveIdentity(identity: IdentityRecord): Promise<void>;
+  /** Erase the local identity (e.g. account deletion). Not part of the gameplay progress resets. */
+  clearIdentity(): Promise<void>;
 }

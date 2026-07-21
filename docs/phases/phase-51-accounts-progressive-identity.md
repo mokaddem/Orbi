@@ -1,8 +1,8 @@
 # Phase 51 — Accounts (progressive identity)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Planning — open questions
-resolved (2026-07-21), awaiting explicit build "go" · **Progress:** 0% (not built) · **Track:** v3.0 —
-Backend & multiplayer (slice 2 of 7)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟢 Built — local pipe + live
+browser round-trip verified, fast loop green (awaiting owner review/merge) · **Progress:** ~100%
+(local-only scope, OQ3) · **Track:** v3.0 — Backend & multiplayer (slice 2 of 7)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -131,29 +131,36 @@ data-model version bump), **Phase 46** (the existing `playerName` + URL-duel ide
 **Phase 8/17** (i18n). **Foundation for** Phases 52–56.
 
 ## Deliverables checklist
-- [ ] Committed migration(s): the auth collection (+ profile fields: `displayName`, `deviceId`,
-      `isAnonymous`/`tier`) with **owner-only** API rules; base seed if useful.
-- [ ] Client identity module extending the seam (`src/backend/identity.ts` + `identity` store):
-      `deviceId` gen/persist, best-effort anonymous auth, name update, upgrade/sign-in/sign-out; the seam
-      remains the only SDK importer.
-- [ ] Local-first identity in IndexedDB with a **data-model version bump** for `deviceId`; local wins on
-      conflict (OQ6); migration of existing installs (existing `playerName` preserved).
-- [ ] Account UI in Settings: current identity + tier, edit display name, opt-in upgrade flow, sign-in,
-      sign-out — clearly optional and unobtrusive.
-- [ ] **Offline-optional guard**: `VITE_PB_URL` unset **or** backend down → app unchanged; identity stays
-      local; no blocking waits, no console errors (guard test).
-- [ ] Security/privacy: owner-only rules; safe token storage; documented PII surface + anon-secret
-      fragility; anti-cheat still a non-goal.
-- [ ] EN/FR/DE for all identity/account strings; `messages.test.ts` parity green.
-- [ ] Tests: tier transitions, anonymous-ensure, name-sync, upgrade/sign-in/sign-out, offline guard —
-      **mocked** seam (no live server in CI); documented manual smoke.
-- [ ] **Deployment**: **local-only (OQ3)** — no hosting stood up. Cross-device sign-in is **simulated**
-      (two `deviceId`s + two SDK authStores against one local PocketBase); a runbook note records that
-      the real cross-device claim is verified when hosting goes live (path already in the Foundation
-      runbook).
-- [ ] Verified: fast loop green (`npm run test` / `check` / `lint`); real anon-create + name-sync +
-      upgrade + (simulated) sign-in round-trip confirmed against a **local** PocketBase; the app confirmed
-      unchanged with the backend absent/down.
+- [x] Committed migration (`1721560000_extend_users_profile.js`): **extends the built-in `users` auth
+      collection** (its default rules are already owner-only + public-create) with `displayName`,
+      `deviceId`, `isAnonymous`. (No new collection — creating one would collide with PB's default
+      `users`.)
+- [x] Client identity module extending the seam: `src/backend/identity.ts` (thin, never-throwing pb ops;
+      **not** the SDK importer — uses Foundation's `getClient()`) + `src/ui/stores/identity.ts` (the
+      reactive `identity` store + orchestration: `deviceId` gen/persist, best-effort anon auth, name
+      sync, upgrade, sign-in, sign-out, delete). The seam remains the only SDK importer.
+- [x] Local-first identity in IndexedDB with a **DB version bump (v6 → v7)** adding an `identity`
+      singleton store (`IdentityRecord = { deviceId, anonSecret? }`); additive upgrade preserves all
+      existing data (proven by the reopen test); local wins on conflict (OQ6); existing `playerName` is
+      untouched.
+- [x] Account UI in Settings: current identity + tier, opt-in **Create account** (email+password),
+      **sign in**, **sign out**, and **delete account** (confirm dialog) — clearly optional/unobtrusive.
+- [x] **Offline-optional guard**: `VITE_PB_URL` unset **or** backend down → app unchanged; identity
+      stays local; no blocking waits, no console errors (store test + a live backend-down browser run).
+- [x] Security/privacy: owner-only rules (PB defaults); anon secret stored local-only + its fragility
+      documented; minimal PII (displayName always, email only on upgrade) + a delete-account affordance;
+      anti-cheat still a non-goal.
+- [x] EN/FR/DE for all identity/account strings (`settings.account.*`); `messages.test.ts` parity green.
+- [x] Tests: tier transitions, anonymous-ensure, name-sync, upgrade/sign-in/sign-out, delete, offline
+      guard — **mocked** seam (no live server in CI): `backend/identity.test.ts` +
+      `ui/stores/identity.test.ts`; DB-migration test in `store.test.ts`.
+- [x] **Deployment**: **local-only (OQ3)** — no hosting stood up. Real cross-device sign-in is deferred
+      to when hosting goes live (path in the Foundation runbook); this phase verified every flow against
+      a **local** PocketBase (incl. a live browser round-trip).
+- [x] Verified: fast loop green (`npm run test` **995**✓ / `check` 0 errors / `lint`+prettier clean);
+      real anon-create + name-update + upgrade + sign-in + delete round-trip confirmed against a local
+      PocketBase (via `curl` **and** a live headless-browser session that self-registered anon accounts);
+      the app confirmed unchanged with the backend absent/down.
 
 ## Technical notes
 - **Reuse the seam.** Identity is one more module behind `src/backend/`; components read the `identity`
@@ -251,3 +258,22 @@ Phase 48/49 relabels) so `main_PRD.md` is edited once, cleanly.
   PII (displayName always, email on upgrade) + a "delete my account" affordance; **OQ10** wrap the SDK
   authStore in the seam. Status → *planning, OQs resolved.* **Still NOT built — awaiting the explicit
   build "go."**
+- **2026-07-21 — BUILT (with explicit owner "go").** Implemented the full identity layer. **Server:**
+  migration `1721560000_extend_users_profile.js` extends PB's built-in `users` auth collection (default
+  rules already owner-only + public-create) with `displayName`/`deviceId`/`isAnonymous` — verified a
+  fresh PB applies it. **Local:** DB **v6 → v7** adds an `identity` singleton store
+  (`IdentityRecord = { deviceId, anonSecret? }`) in `idb-store`/`memory-store`/`types`, with
+  round-trip + reopen (migration-preserves-data) tests. **Client:** `src/backend/identity.ts` (thin,
+  never-throwing pb ops over Foundation's `getClient()` — anon ensure, sign-in, register/upgrade,
+  rename, delete, currentProfile) + `src/ui/stores/identity.ts` (reactive `identity` store +
+  orchestration, fired from `App.svelte` after `initPersistence`). **UI:** a Settings → Account section
+  (create/sign-in/sign-out/delete + confirm dialog) with EN/FR/DE copy. **Key design fact discovered by
+  testing against real PB:** direct email-change is blocked without SMTP, so **upgrade registers a NEW
+  real account** (local progress is untouched — it lives in IndexedDB keyed by `deviceId`). **Verified
+  for real:** every flow (anon create → auth → rename → upgrade → sign-in → delete) via `curl`, **and a
+  live headless-browser session** that self-registered `⟨uuid⟩@anon.invalid` anon accounts against a
+  running PB (CORS + seam + identity chain end-to-end); a **backend-down** browser run confirms the app
+  is unchanged. Fast loop green: **995 tests**, `check` 0 errors, `lint`/prettier clean. **Local-only
+  (OQ3):** no hosting stood up; real cross-device claim deferred to when hosting goes live. Did **not**
+  touch `main_PRD.md` (merge-time owner sign-off). Committed on `worktree-phase-50-backend-foundation`;
+  **not pushed** (owner ff's/pushes).

@@ -10,6 +10,7 @@ import type {
   CustomSet,
   DailyResult,
   GrandmasterRecord,
+  IdentityRecord,
   Prefs,
   ProgressionState,
   QuizStore,
@@ -28,6 +29,7 @@ export class MemoryQuizStore implements QuizStore {
   private customSets = new Map<string, CustomSet>();
   private progression: ProgressionState | undefined;
   private grandmaster = new Map<string, GrandmasterRecord>();
+  private identity: IdentityRecord | undefined;
 
   async addSession(record: SessionRecord): Promise<void> {
     this.sessions.push(record);
@@ -130,5 +132,17 @@ export class MemoryQuizStore implements QuizStore {
 
   async clearGrandmaster(): Promise<void> {
     this.grandmaster.clear();
+  }
+
+  async getIdentity(): Promise<IdentityRecord | undefined> {
+    return this.identity ? { ...this.identity } : undefined;
+  }
+
+  async saveIdentity(identity: IdentityRecord): Promise<void> {
+    this.identity = { ...identity };
+  }
+
+  async clearIdentity(): Promise<void> {
+    this.identity = undefined;
   }
 }

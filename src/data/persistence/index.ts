@@ -5,6 +5,7 @@ export type {
   CustomSet,
   DailyResult,
   GrandmasterRecord,
+  IdentityRecord,
   MapProjection,
   Prefs,
   ProgressionState,

@@ -12,6 +12,7 @@
   import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
   import { sound } from './ui/sound';
   import { startBackendProbe } from './backend/status';
+  import { initIdentity } from './ui/stores/identity';
 
   // The scrolling region (app-shell layout): the shell is pinned to the viewport and only
   // `.content` scrolls, so the top/bottom bars can't detach on scroll. Because the document
@@ -34,7 +35,10 @@
   });
 
   onMount(() => {
-    void initPersistence();
+    // Identity (Phase 51) needs the local store open first (it reads/writes the durable
+    // deviceId), so chain it after persistence. Both are fire-and-forget: startup never
+    // waits, and identity mirrors to the backend only in the background.
+    void initPersistence().then(() => initIdentity());
 
     // Probe the optional backend once, in the background (Phase 50). Fire-and-forget:
     // it never blocks startup and never throws; the UI reacts to the `backendStatus`

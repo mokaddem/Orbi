@@ -708,6 +708,28 @@ const en = {
       checking: 'Checking…',
       off: 'Off',
     },
+    account: {
+      title: 'Account',
+      anonNote:
+        'Your progress is saved on this device. Create an account to sync it across devices — it’s optional.',
+      statusAnon: 'Anonymous (this device)',
+      signedInAs: 'Signed in as {email}',
+      emailLabel: 'Email',
+      passwordLabel: 'Password',
+      passwordHint: 'At least 8 characters.',
+      create: 'Create account',
+      signInInstead: 'I already have an account',
+      signIn: 'Sign in',
+      signOut: 'Sign out',
+      delete: 'Delete account',
+      deleteTitle: 'Delete account?',
+      deleteMessage:
+        'This permanently deletes your account on the server. Your progress on this device is kept. This can’t be undone.',
+      created: 'Account created — you’re signed in.',
+      signedIn: 'Signed in.',
+      errorNoBackend: 'The server isn’t configured, so accounts aren’t available in this build.',
+      errorFailed: 'That didn’t work. Check your details and that the server is reachable.',
+    },
     data: {
       title: 'Data',
       historyLabel: 'Play history',

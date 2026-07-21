@@ -700,6 +700,29 @@ const de: typeof en = {
       checking: 'Wird geprüft…',
       off: 'Aus',
     },
+    account: {
+      title: 'Konto',
+      anonNote:
+        'Dein Fortschritt wird auf diesem Gerät gespeichert. Erstelle ein Konto, um ihn geräteübergreifend zu synchronisieren — freiwillig.',
+      statusAnon: 'Anonym (dieses Gerät)',
+      signedInAs: 'Angemeldet als {email}',
+      emailLabel: 'E-Mail',
+      passwordLabel: 'Passwort',
+      passwordHint: 'Mindestens 8 Zeichen.',
+      create: 'Konto erstellen',
+      signInInstead: 'Ich habe bereits ein Konto',
+      signIn: 'Anmelden',
+      signOut: 'Abmelden',
+      delete: 'Konto löschen',
+      deleteTitle: 'Konto löschen?',
+      deleteMessage:
+        'Dies löscht dein Konto auf dem Server endgültig. Dein Fortschritt auf diesem Gerät bleibt erhalten. Kann nicht rückgängig gemacht werden.',
+      created: 'Konto erstellt — du bist angemeldet.',
+      signedIn: 'Angemeldet.',
+      errorNoBackend:
+        'Der Server ist nicht konfiguriert, daher sind Konten in dieser Version nicht verfügbar.',
+      errorFailed: 'Das hat nicht geklappt. Prüfe deine Angaben und ob der Server erreichbar ist.',
+    },
     data: {
       title: 'Daten',
       historyLabel: 'Spielverlauf',

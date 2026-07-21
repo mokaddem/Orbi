@@ -14,6 +14,7 @@ import type {
   CustomSet,
   DailyResult,
   GrandmasterRecord,
+  IdentityRecord,
   Prefs,
   ProgressionState,
   QuizStore,
@@ -24,8 +25,9 @@ import type {
 const DB_NAME = 'geo-quiz';
 // v2 (Phase 15): add `dailyChallenge`. v3 (Phase 16): add `achievements`. v4 (Phase 27):
 // add `customSets`. v5 (Phase 43): add `progression`. v6 (Phase 45): add `grandmaster`.
-// Upgrades are additive (only missing stores are created), so existing data is preserved.
-const DB_VERSION = 6;
+// v7 (Phase 51): add `identity`. Upgrades are additive (only missing stores are created),
+// so existing data (history / SR / prefs / …) is always preserved across a bump.
+const DB_VERSION = 7;
 
 /** The single prefs row lives under a fixed, out-of-line key. */
 const PREFS_KEY = 'app';
@@ -33,6 +35,8 @@ const PREFS_KEY = 'app';
 const DAILY_KEY = 'current';
 /** The single progression (rank/XP) row, likewise under a fixed key. */
 const PROGRESSION_KEY = 'current';
+/** The single identity row (Phase 51), likewise under a fixed key. */
+const IDENTITY_KEY = 'current';
 
 interface GeoQuizDB extends DBSchema {
   sessions: {
@@ -68,6 +72,10 @@ interface GeoQuizDB extends DBSchema {
   grandmaster: {
     key: string;
     value: GrandmasterRecord;
+  };
+  identity: {
+    key: string;
+    value: IdentityRecord;
   };
 }
 
@@ -105,6 +113,9 @@ export class IdbQuizStore implements QuizStore {
         }
         if (!db.objectStoreNames.contains('grandmaster')) {
           db.createObjectStore('grandmaster', { keyPath: 'key' });
+        }
+        if (!db.objectStoreNames.contains('identity')) {
+          db.createObjectStore('identity');
         }
       },
     });
@@ -210,5 +221,17 @@ export class IdbQuizStore implements QuizStore {
 
   async clearGrandmaster(): Promise<void> {
     await this.db.clear('grandmaster');
+  }
+
+  async getIdentity(): Promise<IdentityRecord | undefined> {
+    return this.db.get('identity', IDENTITY_KEY);
+  }
+
+  async saveIdentity(identity: IdentityRecord): Promise<void> {
+    await this.db.put('identity', identity, IDENTITY_KEY);
+  }
+
+  async clearIdentity(): Promise<void> {
+    await this.db.delete('identity', IDENTITY_KEY);
   }
 }

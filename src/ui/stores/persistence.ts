@@ -19,6 +19,7 @@ import {
   type CustomSet,
   type DailyResult,
   type GrandmasterRecord,
+  type IdentityRecord,
   type Prefs,
   type ProgressionState,
   type QuizStore,
@@ -179,6 +180,37 @@ export async function initPersistence(): Promise<void> {
   }
 
   storageReady.set(true);
+}
+
+/**
+ * Read the persisted local identity (Phase 51), or `undefined` when none is stored yet
+ * (or storage is unavailable). Best-effort — never throws; a no-op before
+ * {@link initPersistence} resolves.
+ */
+export async function getStoredIdentity(): Promise<IdentityRecord | undefined> {
+  try {
+    return await store?.getIdentity();
+  } catch {
+    return undefined;
+  }
+}
+
+/** Persist the local identity (Phase 51). Best-effort — never throws. */
+export async function saveStoredIdentity(identity: IdentityRecord): Promise<void> {
+  try {
+    await store?.saveIdentity(identity);
+  } catch {
+    // Storage unwritable (quota/private mode) — identity just stays in memory this session.
+  }
+}
+
+/** Erase the local identity (Phase 51 — e.g. account deletion). Best-effort — never throws. */
+export async function clearStoredIdentity(): Promise<void> {
+  try {
+    await store?.clearIdentity();
+  } catch {
+    // Ignore — nothing else depends on the erase succeeding synchronously.
+  }
 }
 
 /** Update the numeric gameplay prefs (language flows through the locale store). */

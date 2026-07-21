@@ -701,6 +701,30 @@ const fr: typeof en = {
       checking: 'Vérification…',
       off: 'Désactivé',
     },
+    account: {
+      title: 'Compte',
+      anonNote:
+        'Ta progression est enregistrée sur cet appareil. Crée un compte pour la synchroniser entre tes appareils — c’est facultatif.',
+      statusAnon: 'Anonyme (cet appareil)',
+      signedInAs: 'Connecté en tant que {email}',
+      emailLabel: 'E-mail',
+      passwordLabel: 'Mot de passe',
+      passwordHint: 'Au moins 8 caractères.',
+      create: 'Créer un compte',
+      signInInstead: 'J’ai déjà un compte',
+      signIn: 'Se connecter',
+      signOut: 'Se déconnecter',
+      delete: 'Supprimer le compte',
+      deleteTitle: 'Supprimer le compte ?',
+      deleteMessage:
+        'Cela supprime définitivement ton compte sur le serveur. Ta progression sur cet appareil est conservée. Action irréversible.',
+      created: 'Compte créé — tu es connecté.',
+      signedIn: 'Connecté.',
+      errorNoBackend:
+        'Le serveur n’est pas configuré : les comptes ne sont pas disponibles dans cette version.',
+      errorFailed:
+        'Échec de l’opération. Vérifie tes informations et que le serveur est accessible.',
+    },
     data: {
       title: 'Données',
       historyLabel: 'Historique de jeu',

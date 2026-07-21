@@ -9,6 +9,7 @@ import {
   type CustomSet,
   type DailyResult,
   type GrandmasterRecord,
+  type IdentityRecord,
   type Prefs,
   type ProgressionState,
   type QuizStore,
@@ -252,6 +253,19 @@ function contractTests(name: string, makeStore: () => Promise<QuizStore>): void 
       expect(await store.getGrandmasterRecords()).toEqual([]);
     });
 
+    it('round-trips the identity singleton (last write wins) and clears it', async () => {
+      expect(await store.getIdentity()).toBeUndefined();
+      const identity: IdentityRecord = { deviceId: 'dev-1', anonSecret: 'secret-1' };
+      await store.saveIdentity(identity);
+      expect(await store.getIdentity()).toEqual(identity);
+      // A later write (e.g. minting the anon secret) overwrites the single row.
+      await store.saveIdentity({ deviceId: 'dev-1', anonSecret: 'secret-2' });
+      expect((await store.getIdentity())?.anonSecret).toBe('secret-2');
+
+      await store.clearIdentity();
+      expect(await store.getIdentity()).toBeUndefined();
+    });
+
     it('keeps custom sets separate from SR and history resets', async () => {
       await store.addSession(record({ id: 's1' }));
       await store.putSRItem(srItem);
@@ -293,12 +307,15 @@ describe('IdbQuizStore persistence', () => {
       createdAt: 1,
       updatedAt: 1,
     });
+    await first.saveIdentity({ deviceId: 'dev-kept', anonSecret: 'sek' });
 
     // A new instance over the same DB name sees the previously written data.
     const second = await IdbQuizStore.open();
     expect((await second.getAllSessions()).map((s) => s.id)).toEqual(['kept']);
     expect(await second.getPrefs()).toEqual(prefs);
     expect((await second.getCustomSets()).map((s) => s.name)).toEqual(['Kept']);
+    // The v7 `identity` store round-trips across a reopen (the DB-version bump is additive).
+    expect(await second.getIdentity()).toEqual({ deviceId: 'dev-kept', anonSecret: 'sek' });
   });
 });
 
