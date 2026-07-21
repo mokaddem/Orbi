@@ -200,6 +200,8 @@ const fr: typeof en = {
       revealLanguages: '{country} : {languages}',
       revealIndustries: '{country} : {industries}',
       didYouKnow: 'Le saviez-vous ?',
+      tapToContinue: 'Appuyez pour continuer',
+      skipAria: 'Passer à la question suivante',
     },
     quit: 'Quitter',
   },

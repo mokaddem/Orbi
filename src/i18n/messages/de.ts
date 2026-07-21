@@ -206,6 +206,8 @@ const de: typeof en = {
       revealLanguages: '{country}: {languages}',
       revealIndustries: '{country}: {industries}',
       didYouKnow: 'Schon gewusst?',
+      tapToContinue: 'Zum Fortfahren tippen',
+      skipAria: 'Zur nächsten Frage springen',
     },
     quit: 'Beenden',
   },

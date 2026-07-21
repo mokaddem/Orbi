@@ -510,6 +510,16 @@
     play.reset();
   }
 
+  // Tap-to-skip: the feedback toast doubles as a tap target — tapping it jumps straight to the
+  // next question instead of waiting out the auto-advance dwell. Guarded on `answered` so a tap
+  // that lands just after the timer has already advanced can't skip a second question (the
+  // 'answered' effect below has, by then, torn its timer down). Blitz opts out — its dwell is a
+  // near-instant verdict flash and the clock, not a dwell, sets the pace.
+  function skipToNext(): void {
+    if ($play.status !== 'answered') return;
+    onContinue();
+  }
+
   // Auto-advance: once a question is answered, show feedback briefly, then move on with
   // no manual "Continue" — a longer dwell on a wrong answer so the reveal can be read.
   // The timer is cancelled whenever the view leaves the answered state (next question,
@@ -1205,7 +1215,13 @@
 
       {#if answered && view.feedback}
         {@const fb = view.feedback}
-        <div class="feedback" class:correct={fb.correct} class:wrong={!fb.correct} role="status">
+        <div
+          class="feedback"
+          class:correct={fb.correct}
+          class:wrong={!fb.correct}
+          class:skippable={cfg.type !== 'blitz'}
+          role="status"
+        >
           <p class="verdict">
             {fb.correct ? $t('play.feedback.correct') : $t('play.feedback.wrong')}
           </p>
@@ -1276,9 +1292,20 @@
             {/if}
           {/if}
           {#if cfg.type !== 'blitz'}
+            <!-- Tap-to-skip: a transparent full-surface button so a tap anywhere on the toast
+                 jumps to the next question. It sits above the content for hit-testing but is
+                 see-through, so the verdict/reveal keep their own `role="status"` announcement
+                 underneath. The countdown + hint below are decorative (`aria-hidden`). -->
+            <button
+              type="button"
+              class="feedback-skip"
+              onclick={skipToNext}
+              aria-label={$t('play.feedback.skipAria')}
+            ></button>
             <div class="countdown" style="--countdown-ms: {dwellMs(fb)}ms" aria-hidden="true">
               <div class="countdown-fill"></div>
             </div>
+            <p class="skip-hint" aria-hidden="true">{$t('play.feedback.tapToContinue')}</p>
           {/if}
         </div>
       {/if}
@@ -2172,6 +2199,44 @@
   .feedback.wrong {
     background: var(--color-wrong-bg);
     border-color: var(--color-wrong);
+  }
+
+  /* Tap-to-skip: a skippable toast anchors the full-surface button and shows the pointer cursor. */
+  .feedback.skippable {
+    position: relative;
+    cursor: pointer;
+  }
+
+  /* The transparent tap target: covers the whole toast (`inset: 0`) so a tap anywhere skips the
+     auto-advance dwell. It paints above the (non-positioned) verdict/reveal but is see-through, so
+     those stay visible and keep their `role="status"` announcement. */
+  .feedback-skip {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .feedback-skip:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Discoverability hint under the countdown bar. Purely decorative (announced content lives in
+     the verdict/reveal), and it sits beneath the transparent button so its taps still skip. */
+  .skip-hint {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--color-muted);
   }
 
   .verdict {

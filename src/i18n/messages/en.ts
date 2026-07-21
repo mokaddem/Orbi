@@ -197,6 +197,10 @@ const en = {
       revealLanguages: '{country}: {languages}',
       revealIndustries: '{country}: {industries}',
       didYouKnow: 'Did you know?',
+      // Tap-to-skip: the feedback toast doubles as a tap target that jumps to the next
+      // question without waiting out the auto-advance dwell.
+      tapToContinue: 'Tap to continue',
+      skipAria: 'Skip to the next question',
     },
     quit: 'Quit',
   },

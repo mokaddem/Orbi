@@ -452,6 +452,41 @@ describe('Play route', () => {
     }
   });
 
+  it('skips to the next question when the feedback toast is tapped', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      pendingConfig.set({
+        mode: 'flag-to-country',
+        type: 'fixed',
+        fixedLength: 5,
+        rng: mulberry32(11),
+        now: makeClock(),
+      });
+      const { container } = render(Play);
+
+      // Answer Q1 correctly — the toast appears with its skip target.
+      const q1 = get(play).question!;
+      await fireEvent.click(container.querySelector(`button[data-id="${q1.answer.iso2}"]`)!);
+      expect(get(play).status).toBe('answered');
+      const idx = get(play).state!.index;
+      const skip = container.querySelector<HTMLButtonElement>('button.feedback-skip');
+      expect(skip).not.toBeNull();
+
+      // Tapping it advances at once — no waiting out the ~WRONG_MS/CORRECT_MS dwell.
+      await fireEvent.click(skip!);
+      expect(get(play).status).toBe('playing');
+      expect(get(play).state!.index).toBe(idx + 1);
+
+      // The pending auto-advance timer was torn down by the skip, so letting the full dwell
+      // elapse afterwards can't skip a second question.
+      await vi.advanceTimersByTimeAsync(WRONG_MS + 100);
+      expect(get(play).status).toBe('playing');
+      expect(get(play).state!.index).toBe(idx + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('renders survival lives as heart glyphs, dimming one per wrong answer', async () => {
     pendingConfig.set({
       mode: 'map-highlight',
