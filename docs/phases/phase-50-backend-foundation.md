@@ -1,7 +1,8 @@
 # Phase 50 — Backend foundation (PocketBase service + client seam)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started — PRD draft
-· **Progress:** 0% (planning) · **Track:** v3.0 — Backend & multiplayer (foundation)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟢 Built — local pipe verified,
+fast loop green (awaiting owner review/merge) · **Progress:** ~100% (runbook-only hosting scope, OQ9)
+· **Track:** v3.0 — Backend & multiplayer (foundation)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -154,32 +155,39 @@ duels, Live rooms). Independent of the in-flight incremental phases (47 physical
 preview, 49 Atlas content).
 
 ## Deliverables checklist
-- [ ] `server/`: pinned PocketBase version + run script (downloads the binary; **binary not
-      committed**), committed `pb_migrations/` (base schema), gitignored `pb_data/`, `docker-compose.yml`
-      **or** systemd unit (OQ8), and a **README runbook** (local run · laptop + Cloudflare Tunnel deploy
-      · backups). A fresh checkout can bring the backend up from the README.
-- [ ] `src/backend/client.ts` — the single PocketBase-SDK seam; base URL from `VITE_PB_URL` (dev
-      default); the only module importing the SDK; thin + swappable.
-- [ ] `backend` connectivity store — health-checked status
-      (`unknown`/`reachable`/`unreachable`/`disabled-no-url`); non-blocking; never throws into the UI.
-- [ ] **Offline-optional guard**: with `VITE_PB_URL` unset **or** the backend down, the app builds,
-      loads, and plays exactly as today — no errors, no blocking waits (guard test).
-- [ ] End-to-end proof: one health/version round-trip (± a tiny `meta`/`ping` read) reflected in a
-      minimal, unobtrusive status indicator (dev-only or one Settings line, OQ4). No player feature.
-- [ ] Config: committed `.env.example` (`VITE_PB_URL`), documented dev/prod values; the Pages build
-      stays fully static and backend-optional.
-- [ ] CORS restricted to the Pages prod origin + `localhost:5180`; backend served over **HTTPS** via the
-      tunnel (no mixed-content).
-- [ ] Security: no secrets committed; admin UI protected (strong creds; `/_/` not openly exposed / IP-
-      limited).
-- [ ] `pocketbase` client SDK added; bundle-size impact noted (lazy-load the seam if warranted so the
-      offline core isn't penalised).
-- [ ] EN/FR/DE for any status string; `messages.test.ts` parity green.
-- [ ] Tests: offline-optional guard; connectivity-store transitions (mocked client, no live server in
-      CI); documented manual/local smoke against a real PocketBase.
-- [ ] Verified: fast loop green (`npm run test` / `check` / `lint`); a real round-trip confirmed
-      locally **and** via the laptop + tunnel per the runbook; the app confirmed unchanged with the
-      backend absent/down.
+- [x] `server/`: pinned PocketBase **v0.39.8** + `run.sh` (downloads the binary into gitignored
+      `server/bin/`; **binary not committed**), committed `pb_migrations/` (base `ping` schema + seed),
+      gitignored `pb_data/`, and a **README runbook** (local run · CORS · backups · upgrades). Per OQ8,
+      supervision is a plain `run.sh` now with **both** systemd **and** docker-compose documented in the
+      README for later (not shipped as files). A fresh checkout brings the backend up from the README.
+- [x] `src/backend/client.ts` — the single PocketBase-SDK seam; URL from `VITE_PB_URL` (dev default
+      `http://localhost:8090`); the **only** module importing the SDK (type-only + one dynamic import);
+      thin + swappable.
+- [x] `backend` connectivity store (`src/backend/status.ts`) — health-checked status
+      (`unknown`/`reachable`/`unreachable`/`disabled-no-url`); non-blocking (fired from App `onMount`);
+      never throws into the UI.
+- [x] **Offline-optional guard**: with `VITE_PB_URL` unset **or** the backend down, the app builds,
+      loads, and plays exactly as today (pure `resolveBackendUrl` covers prod-unset→null; seam + store
+      guard tests; verified prod build is backend-optional).
+- [x] End-to-end proof: `GET /api/health` **and** a real `ping` record read verified via `curl` against
+      a running PocketBase; reflected in **one Settings → About line** next to the version (OQ4). No
+      player feature.
+- [x] Config: committed `.env.example` (`VITE_PB_URL`), documented dev/prod values; `ImportMetaEnv`
+      typed; the Pages build stays fully static and backend-optional.
+- [x] CORS restricted to the Pages prod origin (`https://mokaddem.github.io`) + `http://localhost:5180`
+      (verified via a preflight). **HTTPS/tunnel is runbook-only this phase (OQ9)** — documented, not
+      stood up; no mixed-content locally (http↔http on localhost).
+- [x] Security: no secrets committed (`pb_data/` + `.env.local` gitignored); admin/superuser setup and
+      admin-surface protection documented in the runbook. Real end-user auth is Phase 51.
+- [x] `pocketbase` SDK added (`^0.27.0`); bundle-size impact noted — **lazy-loaded into its own chunk
+      (~10.5 KB gzip), zero added to the offline entry** beyond the tiny seam.
+- [x] EN/FR/DE for the status string (`settings.backend.*`); `messages.test.ts` parity green.
+- [x] Tests: offline-optional guard + URL resolution (`client.test.ts`); connectivity-store transitions
+      with a **mocked** client, no live server in CI (`status.test.ts`); manual/local smoke documented in
+      the README.
+- [x] Verified: fast loop green (`npm run test` 969✓ / `check` 0 errors / `lint` clean); a real
+      round-trip confirmed **locally**; the app confirmed unchanged with the backend absent/down. _The
+      laptop + tunnel round-trip is deferred to when a later phase goes live (OQ9: runbook-only)._
 
 ## Technical notes
 - **Offline-first is non-negotiable.** Wrap every backend call so failure is silent and non-blocking;
@@ -302,3 +310,22 @@ owner** when the track lands (not in this PRD):
   remain; the owner will run the clarifying round **after** the numbering mess is settled. **NOT built —
   awaiting the clarifying round and explicit build approval** (see the callout at the top of the main
   PRD).
+- **2026-07-21 — Open questions resolved + Foundation BUILT (with explicit owner "go").** Owner
+  decisions: **OQ1** `server/` dir in this repo (monorepo); **OQ2** **no tunnel this phase** (local-only
+  verification; named tunnel/domain deferred); **OQ3** build-time `VITE_PB_URL` + dev default; **OQ4**
+  **one Settings → About line, next to the version**; **OQ5** pin **v0.39.8**, upgrades documented;
+  **OQ6** PocketBase scheduled backups + offsite copy, documented; **OQ7** CORS =
+  `https://mokaddem.github.io` + `http://localhost:5180`; **OQ8** plain `run.sh` now, systemd **and**
+  docker-compose documented for later; **OQ9** **runbook-only hosting** (build + verify the local pipe;
+  laptop+tunnel deferred to when a later phase goes live); **OQ10** mock the seam in CI + a documented
+  manual smoke. Built: `server/` (`run.sh` fetching pinned PocketBase, committed `pb_migrations/` with a
+  public read-only `ping` collection + seed, gitignored `pb_data/`/`bin/`, README runbook); the single
+  seam `src/backend/client.ts` (lazy-loaded SDK, sole importer); the `src/backend/status.ts` connectivity
+  store (probed from App `onMount`, non-blocking); the Settings status line + EN/FR/DE copy;
+  `.env.example` + `ImportMetaEnv` type. **Verified for real:** downloaded PocketBase v0.39.8, booted it,
+  the committed migration auto-applied, and `GET /api/health` + a `ping` record read + a CORS preflight
+  all succeeded; fast loop green (**969 tests**, `check` 0 errors, `lint`/prettier clean); prod build
+  confirms the SDK is a separate ~10.5 KB-gzip lazy chunk (offline entry unpenalised) and the Pages build
+  stays static + backend-optional. Did **not** touch `main_PRD.md` (Status-Table row + pillar/Non-Goal
+  reframe remain merge-time owner sign-off; other agents still live on it). Committed on
+  `worktree-phase-50-backend-foundation`; **not pushed** (owner ff's/pushes).

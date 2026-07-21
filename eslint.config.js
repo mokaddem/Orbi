@@ -9,7 +9,19 @@ export default ts.config(
     // `.claude/` holds agent scratch and (locked) git worktrees — nested repo copies with their
     // own tsconfig. Linting into them makes typescript-eslint's project service see multiple
     // candidate roots and fail to parse; never lint them.
-    ignores: ['dist/', 'dev-dist/', 'node_modules/', '.svelte-kit/', 'coverage/', '.claude/'],
+    // `server/` is PocketBase infrastructure, not app code: gitignored generated data
+    // (pb_data/types.d.ts is 24k lines) + the downloaded binary + JS migrations that run
+    // in PocketBase's own runtime (globals like `migrate`/`Collection`/`Record`). It has
+    // its own lifecycle and is not part of the SPA's lint domain.
+    ignores: [
+      'dist/',
+      'dev-dist/',
+      'node_modules/',
+      '.svelte-kit/',
+      'coverage/',
+      '.claude/',
+      'server/',
+    ],
   },
   js.configs.recommended,
   ...ts.configs.recommended,

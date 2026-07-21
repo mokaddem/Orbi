@@ -57,6 +57,7 @@
     "d3-zoom": "^3.0.0",
     "earcut": "^3.2.3",
     "idb": "^8.0.3",
+    "pocketbase": "^0.27.0",
     "qrcode-generator": "^2.0.4",
     "svelte-spa-router": "^5.1.1",
     "three": "^0.185.1",

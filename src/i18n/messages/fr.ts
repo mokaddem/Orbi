@@ -694,6 +694,13 @@ const fr: typeof en = {
       'Le stockage est indisponible — les paramètres et l’historique ne seront pas enregistrés.',
     about: 'À propos',
     version: 'Version',
+    backend: {
+      label: 'Serveur',
+      reachable: 'Accessible',
+      unreachable: 'Inaccessible',
+      checking: 'Vérification…',
+      off: 'Désactivé',
+    },
     data: {
       title: 'Données',
       historyLabel: 'Historique de jeu',

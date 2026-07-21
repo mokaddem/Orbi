@@ -1,0 +1,8 @@
+# Local PocketBase state — NEVER committed.
+# Holds the SQLite database, uploaded files, logs, and auto-backups. This folder
+# is the single source of data on a laptop host; back it up by copying it
+# (see README → Backups).
+/pb_data/
+
+# The pinned PocketBase binary is downloaded by run.sh, not committed.
+/bin/

@@ -7,3 +7,6 @@ src/data/generated/
 pnpm-lock.yaml
 package-lock.json
 *.md
+# PocketBase infra: generated data, the downloaded binary, and PB-runtime migrations
+# (which PocketBase can auto-generate in its own, non-Prettier style).
+server/

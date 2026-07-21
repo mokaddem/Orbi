@@ -11,6 +11,7 @@
   import { t } from './i18n';
   import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
   import { sound } from './ui/sound';
+  import { startBackendProbe } from './backend/status';
 
   // The scrolling region (app-shell layout): the shell is pinned to the viewport and only
   // `.content` scrolls, so the top/bottom bars can't detach on scroll. Because the document
@@ -34,6 +35,11 @@
 
   onMount(() => {
     void initPersistence();
+
+    // Probe the optional backend once, in the background (Phase 50). Fire-and-forget:
+    // it never blocks startup and never throws; the UI reacts to the `backendStatus`
+    // store. A no-op network-wise when no backend URL is configured.
+    startBackendProbe();
 
     // Autoplay-safe unlock (Phase 36): browsers block audio until a user gesture, so create /
     // resume the audio backend on the first interaction — then cues are free. Runs once; cues

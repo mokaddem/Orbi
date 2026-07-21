@@ -20,11 +20,22 @@
   import LanguageSwitcher from '../components/LanguageSwitcher.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import CountryScopeNote from '../components/CountryScopeNote.svelte';
+  import { backendStatus, type BackendStatus } from '../../backend/status';
 
   const B = PREFS_BOUNDS;
 
   // App version, injected at build time from package.json (see vite.config.ts `define`).
   const APP_VERSION = __APP_VERSION__;
+
+  // Backend connectivity (Phase 50) — an unobtrusive proof line next to the version.
+  // The store is driven by a background health probe (App.svelte); this just maps its
+  // state to copy. It's not a user feature — it only proves the optional pipe works.
+  const BACKEND_STATUS_KEY: Record<BackendStatus, string> = {
+    'disabled-no-url': 'settings.backend.off',
+    unknown: 'settings.backend.checking',
+    reachable: 'settings.backend.reachable',
+    unreachable: 'settings.backend.unreachable',
+  };
 
   function onNumber(field: 'fixedLength' | 'survivalLives' | 'choicesPerQuestion') {
     return (e: Event & { currentTarget: HTMLInputElement }) => {
@@ -230,6 +241,13 @@
     <span class="label">{$t('settings.version')}</span>
     <span class="version-value">{APP_VERSION}</span>
   </div>
+
+  <div class="row">
+    <span class="label">{$t('settings.backend.label')}</span>
+    <span class="backend-value" data-backend-status={$backendStatus}>
+      {$t(BACKEND_STATUS_KEY[$backendStatus])}
+    </span>
+  </div>
 </section>
 
 <ConfirmDialog
@@ -365,6 +383,18 @@
   .version-value {
     color: var(--color-muted);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Backend status (Phase 50): subtle, reuses the app's semantic palette. */
+  .backend-value {
+    color: var(--color-muted);
+    font-weight: 600;
+  }
+  .backend-value[data-backend-status='reachable'] {
+    color: var(--color-correct);
+  }
+  .backend-value[data-backend-status='unreachable'] {
+    color: var(--color-wrong);
   }
 
   /* Data section */

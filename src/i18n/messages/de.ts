@@ -693,6 +693,13 @@ const de: typeof en = {
       'Der Speicher ist nicht verfügbar — Einstellungen und Verlauf werden nicht gesichert.',
     about: 'Über',
     version: 'Version',
+    backend: {
+      label: 'Server',
+      reachable: 'Erreichbar',
+      unreachable: 'Nicht erreichbar',
+      checking: 'Wird geprüft…',
+      off: 'Aus',
+    },
     data: {
       title: 'Daten',
       historyLabel: 'Spielverlauf',

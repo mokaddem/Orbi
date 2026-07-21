@@ -701,6 +701,13 @@ const en = {
     notPersisted: 'Storage is unavailable — settings and history won’t be saved.',
     about: 'About',
     version: 'Version',
+    backend: {
+      label: 'Backend',
+      reachable: 'Reachable',
+      unreachable: 'Unreachable',
+      checking: 'Checking…',
+      off: 'Off',
+    },
     data: {
       title: 'Data',
       historyLabel: 'Play history',
