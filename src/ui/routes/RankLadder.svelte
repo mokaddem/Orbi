@@ -297,16 +297,12 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Mobile-first: keep the badge-left / text-right row all the way down — the medal stays the hero,
+     the metadata stays flushed right. Just tighten the spacing so it fits a narrow phone. */
   @media (max-width: 520px) {
     .rung {
-      flex-direction: column;
-      justify-content: center;
-      text-align: center;
-      gap: 0.5rem;
-    }
-    .rung-body {
-      align-items: center;
-      text-align: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1rem;
     }
   }
 </style>
