@@ -1,7 +1,8 @@
 # Phase 51 — Accounts (progressive identity)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started — PRD draft
-· **Progress:** 0% (planning) · **Track:** v3.0 — Backend & multiplayer (slice 2 of 7)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Planning — open questions
+resolved (2026-07-21), awaiting explicit build "go" · **Progress:** 0% (not built) · **Track:** v3.0 —
+Backend & multiplayer (slice 2 of 7)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -146,11 +147,13 @@ data-model version bump), **Phase 46** (the existing `playerName` + URL-duel ide
 - [ ] EN/FR/DE for all identity/account strings; `messages.test.ts` parity green.
 - [ ] Tests: tier transitions, anonymous-ensure, name-sync, upgrade/sign-in/sign-out, offline guard —
       **mocked** seam (no live server in CI); documented manual smoke.
-- [ ] **Deployment**: if OQ3 says go live, a real reachable **HTTPS** backend (named Cloudflare Tunnel +
-      owned subdomain) with prod `VITE_PB_URL` baked into the Pages build and CORS updated — and a
-      **real cross-device sign-in verified**. If not, an explicit local-only verification + runbook note.
+- [ ] **Deployment**: **local-only (OQ3)** — no hosting stood up. Cross-device sign-in is **simulated**
+      (two `deviceId`s + two SDK authStores against one local PocketBase); a runbook note records that
+      the real cross-device claim is verified when hosting goes live (path already in the Foundation
+      runbook).
 - [ ] Verified: fast loop green (`npm run test` / `check` / `lint`); real anon-create + name-sync +
-      upgrade + sign-in round-trip confirmed; the app confirmed unchanged with the backend absent/down.
+      upgrade + (simulated) sign-in round-trip confirmed against a **local** PocketBase; the app confirmed
+      unchanged with the backend absent/down.
 
 ## Technical notes
 - **Reuse the seam.** Identity is one more module behind `src/backend/`; components read the `identity`
@@ -177,41 +180,40 @@ merge): the **Non-Goals** "No multi-user accounts, login, or cross-device sync" 
 optional additive backend*. Coordinate with the Phase-50 merge-time follow-ups (Status-Table rows;
 Phase 48/49 relabels) so `main_PRD.md` is edited once, cleanly.
 
-## Open Questions — to resolve with the owner
-1. **Collection shape.** One auth collection that *is* the profile, or an auth collection + a separate
-   owned `profiles` base collection? (Rec: **single auth collection** with profile fields — simplest;
-   split later only if friend-visible fields need different rules than auth fields.)
-2. **Upgrade methods.** Email+password, OAuth2 (which providers — Google? GitHub?), or both, and in
-   which order? (Rec: **email+password first** — fully self-hostable, no third-party setup; add **one**
-   OAuth provider later if there's demand.)
-3. **Go live now?** Accounts are the "real reason" Foundation (OQ9) deferred hosting — cross-device
-   claim needs a reachable server. Stand up the **named Cloudflare Tunnel + owned subdomain** this
-   phase? (Rec: **yes** — this is the trigger; a domain is needed. Confirm Sami has one to point at it.)
-4. **SMTP / email verification.** Configure an SMTP provider (which free tier — e.g. a transactional
-   sender?) to verify emails + support reset, or **allow unverified accounts** initially and defer
-   verification? (Rec: allow unverified to start; add SMTP when verification/reset actually matters,
-   documented in the runbook.)
-5. **Anonymous mechanism.** Generated-credential auth record (`⟨deviceId⟩@anon.invalid` + random local
-   password) vs a rules-guarded non-auth `players` row vs PB OTP. (Rec: **generated-credential auth
-   record** — gives a clean, secure upgrade path to Tier 3; document the "clear-storage-loses-anon"
-   fragility as the reason to upgrade.)
-6. **Source-of-truth / conflict.** Local `deviceId`+`playerName` are authoritative; server mirror is
-   best-effort; on divergence **local wins**? (Rec: **yes** for this phase — real multi-device merge
-   logic is a board/sync concern for 52+.)
-7. **Upgrade / sign-in collisions.** Signing into an existing account on a device that already has a
-   *different* anon identity — replace local identity with the signed-in one (and keep local *progress*
-   under the new identity)? Merge? (Rec: **replace identity, keep local progress**; warn before
-   discarding an un-upgraded anon identity that has server data.)
-8. **Persistence schema.** Put `deviceId` in `prefs` or a dedicated identity store, and how to migrate
-   existing installs (bump `QuizStore` version, preserve `playerName`). (Rec: a small dedicated identity
-   record; version bump with a no-op-preserving upgrade.)
-9. **PII / privacy posture.** Confirm the minimal surface (displayName always; email only on upgrade)
-   and whether a short privacy note / data-deletion path is wanted now, given the owner's domain. (Rec:
-   document the surface + a "delete my account" affordance that removes the server record; keep it
-   minimal.)
-10. **Token storage & refresh.** SDK default `LocalAuthStore` (localStorage) vs routing through our
-    IndexedDB-backed seam; rely on SDK `autoRefresh`? (Rec: **wrap the SDK authStore in the seam** so
-    storage + refresh live in one place, consistent with the client-seam principle.)
+## Open Questions — RESOLVED with the owner (2026-07-21)
+> The clarifying round is done; decisions below. **Resolution ≠ build approval** — the plan still needs
+> an explicit "go" before any implementation (see the callout at the top).
+
+1. **Collection shape.** → **RESOLVED (adopted rec): single auth collection that *is* the profile**
+   (`displayName`, `deviceId`, `isAnonymous`/`tier`). Split into a separate `profiles` base collection
+   later only if friend-visible fields need different rules than auth fields.
+2. **Upgrade methods.** → **RESOLVED: email + password first.** Fully self-hostable, no third-party
+   setup, works on the laptop today. Add **one** OAuth provider later only if there's demand.
+3. **Go live now?** → **RESOLVED: NO — local-only again.** Build & verify entirely against a localhost
+   PocketBase; defer real hosting (named tunnel + owned subdomain + prod `VITE_PB_URL` + CORS) to a
+   later phase. **Consequence:** true cross-device sign-in can only be **simulated** this phase (two
+   `deviceId`s + two SDK authStores against one local server); the real cross-device claim is verified
+   when hosting actually goes live. The Foundation runbook already documents that path.
+4. **SMTP / email verification.** → **RESOLVED: allow unverified accounts to start** (no SMTP this
+   phase). Email+password works without address verification; add a transactional SMTP sender
+   (verification + reset) when it matters, documented in the runbook.
+5. **Anonymous mechanism.** → **RESOLVED (adopted rec): generated-credential auth record**
+   (`⟨deviceId⟩@anon.invalid` + a strong random password stored **only** client-side). Document the
+   "clear-storage-loses-anon" fragility as the concrete reason to upgrade to Tier 3.
+6. **Source-of-truth / conflict.** → **RESOLVED (adopted rec): local wins.** Local `deviceId` +
+   `playerName` are authoritative; the server mirror is best-effort. Real multi-device merge is a
+   board/sync concern for 52+.
+7. **Upgrade / sign-in collisions.** → **RESOLVED: replace identity, keep local progress.** The
+   signed-in account becomes the identity; local gameplay progress carries over under it. **Warn first**
+   if the anon identity being discarded already has server-side data.
+8. **Persistence schema.** → **RESOLVED (adopted rec): a small dedicated identity record** (not stuffed
+   into `prefs`); bump the `QuizStore` version with a no-op-preserving upgrade that **retains existing
+   `playerName`** on old installs.
+9. **PII / privacy posture.** → **RESOLVED (adopted rec): minimal surface** — `displayName` always,
+   `email` only on upgrade — plus a **"delete my account"** affordance that removes the server record.
+   Keep it minimal and documented (owner works in privacy/security).
+10. **Token storage & refresh.** → **RESOLVED (adopted rec): wrap the SDK authStore in our seam** so
+    token storage + refresh live in one place, consistent with the Foundation client-seam principle.
 
 ## Acceptance criteria
 - A fresh install is immediately a **Tier-1 anonymous** player (stable `deviceId` + display name) with
@@ -237,3 +239,15 @@ Phase 48/49 relabels) so `main_PRD.md` is edited once, cleanly.
   board/sync (52), friend graph (53), and duels (54+). Recorded 10 open questions — the pivotal one being
   **OQ3: does this phase finally stand up the deployed HTTPS backend** (accounts are the "real reason"
   Foundation deferred hosting). **NOT built — awaiting the clarifying round + explicit build approval.**
+- **2026-07-21 — Open questions resolved (owner clarifying round).** **OQ3: NO — local-only again**
+  (defer real hosting; cross-device sign-in is **simulated** with two deviceIds/authStores against one
+  local PocketBase, real claim verified when hosting later goes live). **OQ2: email + password first**
+  (self-hostable, no OAuth this phase). **OQ4: allow unverified accounts** (no SMTP this phase; add
+  verification/reset later). **OQ7: sign-in replaces identity, keeps local progress** (warn if the
+  discarded anon identity has server data). Adopted recommendations for the rest: **OQ1** single auth
+  collection = profile; **OQ5** generated-credential anon record (`⟨deviceId⟩@anon.invalid` + local-only
+  random password; document the clear-storage fragility); **OQ6** local wins on conflict; **OQ8**
+  dedicated identity record + `QuizStore` version bump preserving existing `playerName`; **OQ9** minimal
+  PII (displayName always, email on upgrade) + a "delete my account" affordance; **OQ10** wrap the SDK
+  authStore in the seam. Status → *planning, OQs resolved.* **Still NOT built — awaiting the explicit
+  build "go."**
