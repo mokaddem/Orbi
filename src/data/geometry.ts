@@ -14,15 +14,75 @@ import { getCountries } from './countries';
 /** A country's map geometry as a GeoJSON feature. */
 export type CountryFeature = Feature<Geometry, GeoJsonProperties>;
 
+/**
+ * Which stage of the map load failed. Surfaced to the player as a short `MAP-…` code (see
+ * {@link mapErrorCode}) so a bug report tells us *where* it broke: `'chunk'` — the map component
+ * couldn't be code-split in (usually a stale service-worker chunk after a deploy); `'fetch'` — the
+ * TopoJSON request failed (offline / non-2xx); `'decode'` — the bytes arrived but weren't valid
+ * TopoJSON (truncated download, cache corruption).
+ */
+export type MapLoadStage = 'chunk' | 'fetch' | 'decode';
+
+/** A staged map-load failure. `stage` (and any HTTP `status`) drive the user-facing error code. */
+export class MapLoadError extends Error {
+  readonly stage: MapLoadStage;
+  readonly status?: number;
+  constructor(
+    stage: MapLoadStage,
+    message: string,
+    options: { status?: number; cause?: unknown } = {},
+  ) {
+    super(message, options.cause !== undefined ? { cause: options.cause } : undefined);
+    this.name = 'MapLoadError';
+    this.stage = stage;
+    this.status = options.status;
+  }
+}
+
+/**
+ * A short, copy-pasteable code for the map-error card, e.g. `MAP-FETCH-503`, `MAP-DECODE`. Falls
+ * back to `MAP-UNKNOWN` for anything that isn't a {@link MapLoadError}. Not a message — it's a
+ * debugging handle: it never needs translating, and it's the same in every locale.
+ */
+export function mapErrorCode(err: unknown): string {
+  if (err instanceof MapLoadError) {
+    const base = `MAP-${err.stage.toUpperCase()}`;
+    return err.status ? `${base}-${err.status}` : base;
+  }
+  return 'MAP-UNKNOWN';
+}
+
 let topologyPromise: Promise<Topology> | null = null;
 let featuresPromise: Promise<Map<string, CountryFeature>> | null = null;
 
-/** Fetch and cache the bundled TopoJSON. Loaded at most once per session. */
+/**
+ * Fetch and cache the bundled TopoJSON. Loaded at most once per session — but a *rejection* is
+ * never cached: the first failure used to poison `topologyPromise` for the whole session, so every
+ * later map attempt returned the same rejected promise and failed instantly (even after the network
+ * recovered). On any failure we null the memo so a later call — e.g. a Retry tap — re-fetches.
+ */
 export function loadTopology(): Promise<Topology> {
   if (!topologyPromise) {
-    topologyPromise = fetch(topoUrl).then((res) => {
-      if (!res.ok) throw new Error(`Failed to load TopoJSON (${res.status})`);
-      return res.json() as Promise<Topology>;
+    topologyPromise = (async () => {
+      let res: Response;
+      try {
+        res = await fetch(topoUrl);
+      } catch (cause) {
+        throw new MapLoadError('fetch', 'Could not fetch the map data', { cause });
+      }
+      if (!res.ok) {
+        throw new MapLoadError('fetch', `Map data request failed (${res.status})`, {
+          status: res.status,
+        });
+      }
+      try {
+        return (await res.json()) as Topology;
+      } catch (cause) {
+        throw new MapLoadError('decode', 'Map data was not valid JSON', { cause });
+      }
+    })().catch((err: unknown) => {
+      topologyPromise = null; // don't cache a rejection — let a later attempt retry the fetch
+      throw err;
     });
   }
   return topologyPromise;
@@ -55,10 +115,23 @@ export function indexFeaturesByCountry(
  */
 export function loadCountryFeatures(): Promise<Map<string, CountryFeature>> {
   if (!featuresPromise) {
-    featuresPromise = loadTopology().then((topo) => {
-      const collection = feature(topo, topo.objects.countries as GeometryCollection);
-      return indexFeaturesByCountry(collection.features);
-    });
+    featuresPromise = loadTopology()
+      .then((topo) => {
+        try {
+          const collection = feature(topo, topo.objects.countries as GeometryCollection);
+          return indexFeaturesByCountry(collection.features);
+        } catch (cause) {
+          throw new MapLoadError('decode', 'Could not decode the map geometry', { cause });
+        }
+      })
+      .catch((err: unknown) => {
+        // Same anti-poison guard as loadTopology: a failed decode/fetch mustn't stick for the
+        // session. Re-throw MapLoadErrors as-is so the stage/code survives; wrap anything else.
+        featuresPromise = null;
+        throw err instanceof MapLoadError
+          ? err
+          : new MapLoadError('decode', 'Could not build the map', { cause: err });
+      });
   }
   return featuresPromise;
 }

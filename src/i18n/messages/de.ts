@@ -176,6 +176,10 @@ const de: typeof en = {
     map: {
       loading: 'Karte wird geladen…',
       error: 'Die Karte konnte nicht geladen werden.',
+      errorHint: 'Prüfe deine Verbindung und versuche es erneut.',
+      retry: 'Erneut versuchen',
+      retrying: 'Neuer Versuch…',
+      errorCodeLabel: 'Fehlercode (hilfreich für Fehlerberichte)',
       label: 'Weltkarte',
       zoomIn: 'Vergrößern',
       zoomOut: 'Verkleinern',

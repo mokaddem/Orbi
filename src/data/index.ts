@@ -31,6 +31,9 @@ export {
 
 export {
   type CountryFeature,
+  type MapLoadStage,
+  MapLoadError,
+  mapErrorCode,
   loadTopology,
   loadCountryFeatures,
   indexFeaturesByCountry,

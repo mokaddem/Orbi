@@ -170,6 +170,10 @@ const fr: typeof en = {
     map: {
       loading: 'Chargement de la carte…',
       error: 'Impossible de charger la carte.',
+      errorHint: 'Vérifiez votre connexion, puis réessayez.',
+      retry: 'Réessayer',
+      retrying: 'Nouvel essai…',
+      errorCodeLabel: 'Code d’erreur (utile pour les rapports de bug)',
       label: 'Carte du monde',
       zoomIn: 'Zoom avant',
       zoomOut: 'Zoom arrière',

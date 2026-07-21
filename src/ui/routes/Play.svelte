@@ -61,6 +61,7 @@
   import ModeGroupIcon, { type ModeGroup } from '../components/ModeGroupIcon.svelte';
   import RegionIcon from '../components/RegionIcon.svelte';
   import Icon from '../components/Icon.svelte';
+  import MapError from '../components/MapError.svelte';
 
   // Auto-advance timings (ms): a brief dwell on a plain correct answer, a longer one
   // whenever there's a reveal to read. Fixed by design (not a setting).
@@ -288,16 +289,39 @@
   // The map board pulls in d3-geo + the TopoJSON chunk, so it is lazy-imported only
   // once a map-mode session is under way — flag-only sessions never pay for it.
   let MapBoard = $state<typeof import('../components/MapBoard.svelte').default | null>(null);
-  let mapFailed = $state(false);
+  // A code (always MAP-CHUNK here — the *component* chunk itself failed to load, usually a stale
+  // service-worker chunk after a deploy) when the lazy import fails, else null. The geometry fetch
+  // inside the board reports its own MAP-FETCH / MAP-DECODE codes.
+  let mapBoardError = $state<string | null>(null);
+  let mapBoardRetrying = $state(false);
+
+  // Lazy-import the map board, recording a code + logging the raw error on failure so a stuck import
+  // is debuggable instead of a silent spinner. Returns the promise so Retry can await it.
+  function loadMapBoard(): Promise<void> {
+    mapBoardError = null;
+    return import('../components/MapBoard.svelte')
+      .then((m) => {
+        MapBoard = m.default;
+      })
+      .catch((err: unknown) => {
+        mapBoardError = 'MAP-CHUNK';
+        console.error('[map] board component import failed (MAP-CHUNK)', err);
+      });
+  }
 
   $effect(() => {
     const cfg = $play.config;
-    if (cfg && isMapMode(cfg.mode) && !MapBoard && !mapFailed) {
-      import('../components/MapBoard.svelte')
-        .then((m) => (MapBoard = m.default))
-        .catch(() => (mapFailed = true));
+    if (cfg && isMapMode(cfg.mode) && !MapBoard && !mapBoardError) {
+      void loadMapBoard();
     }
   });
+
+  async function retryMapBoard(): Promise<void> {
+    if (mapBoardRetrying) return;
+    mapBoardRetrying = true;
+    await loadMapBoard();
+    mapBoardRetrying = false;
+  }
 
   // Auto-start a staged config (e.g. Retry from the summary); otherwise leave a
   // finished session behind so this route shows setup, and resume an in-progress one.
@@ -1150,10 +1174,10 @@
               questionKey={s.index}
               onpick={onMapPick}
             />
+          {:else if mapBoardError}
+            <MapError code={mapBoardError} retrying={mapBoardRetrying} onRetry={retryMapBoard} />
           {:else}
-            <div class="placeholder" role="status">
-              {mapFailed ? $t('play.map.error') : $t('play.map.loading')}
-            </div>
+            <div class="placeholder" role="status">{$t('play.map.loading')}</div>
           {/if}
         </div>
       {/if}

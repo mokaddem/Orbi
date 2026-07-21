@@ -167,6 +167,10 @@ const en = {
     map: {
       loading: 'Loading map…',
       error: 'Could not load the map.',
+      errorHint: 'Check your connection, then try again.',
+      retry: 'Retry',
+      retrying: 'Retrying…',
+      errorCodeLabel: 'Error code (handy for bug reports)',
       label: 'World map',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',

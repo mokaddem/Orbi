@@ -1,8 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { loadCountryFeatures, type CountryFeature, type MapProjection } from '../../data';
+  import {
+    loadCountryFeatures,
+    mapErrorCode,
+    type CountryFeature,
+    type MapProjection,
+  } from '../../data';
   import { t } from '../../i18n';
   import WorldMap from './WorldMap.svelte';
+  import MapError from './MapError.svelte';
 
   // Async wrapper around the map renderers: it fetches + decodes the bundled TopoJSON on
   // mount (memoized in the data layer, so it runs at most once per session) and shows a
@@ -46,7 +52,12 @@
   } = $props();
 
   let features = $state<Map<string, CountryFeature> | null>(null);
-  let failed = $state(false);
+  // The short MAP-… code when the geometry load fails, else null. Drives the error card.
+  let errorCode = $state<string | null>(null);
+  let retrying = $state(false);
+  // Set when the globe renderer chunk can't be imported (e.g. stale SW after a deploy): we quietly
+  // fall back to the flat map rather than blocking play, matching the no-WebGL fallback below.
+  let globeUnavailable = $state(false);
 
   function detectWebGL(): boolean {
     try {
@@ -61,7 +72,7 @@
   }
 
   const webglSupported = detectWebGL();
-  const useGlobe = $derived(projection === 'globe' && webglSupported);
+  const useGlobe = $derived(projection === 'globe' && webglSupported && !globeUnavailable);
   // WorldMap only renders when we're not on the globe; if the globe was requested but
   // WebGL is missing, fall its projection back to the historical default.
   const flatProjection = $derived<MapProjection>(
@@ -71,20 +82,41 @@
   let GlobeMap = $state<typeof import('./GlobeMap.svelte').default | null>(null);
   $effect(() => {
     if (useGlobe && !GlobeMap) {
-      void import('./GlobeMap.svelte').then((m) => (GlobeMap = m.default));
+      void import('./GlobeMap.svelte')
+        .then((m) => (GlobeMap = m.default))
+        .catch((err: unknown) => {
+          console.error('[map] globe renderer import failed; falling back to the flat map', err);
+          globeUnavailable = true;
+        });
     }
   });
 
-  onMount(async () => {
+  // Load (or reload) the country geometry. On failure it records the MAP-… code and logs the raw
+  // error to the console for debugging — the loader no longer caches a rejected promise, so a Retry
+  // (or a later map screen) re-attempts cleanly instead of failing instantly for the whole session.
+  async function loadFeatures(): Promise<void> {
+    errorCode = null;
     try {
       features = await loadCountryFeatures();
-    } catch {
-      failed = true;
+    } catch (err) {
+      errorCode = mapErrorCode(err);
+      console.error(`[map] load failed (${errorCode})`, err);
     }
-  });
+  }
+
+  onMount(loadFeatures);
+
+  async function retry(): Promise<void> {
+    if (retrying) return;
+    retrying = true;
+    await loadFeatures();
+    retrying = false;
+  }
 </script>
 
-{#if features}
+{#if errorCode}
+  <MapError code={errorCode} {retrying} onRetry={retry} />
+{:else if features}
   {#if useGlobe}
     {#if GlobeMap}
       <GlobeMap
@@ -124,9 +156,7 @@
     />
   {/if}
 {:else}
-  <div class="placeholder" role="status">
-    {failed ? $t('play.map.error') : $t('play.map.loading')}
-  </div>
+  <div class="placeholder" role="status">{$t('play.map.loading')}</div>
 {/if}
 
 <style>
