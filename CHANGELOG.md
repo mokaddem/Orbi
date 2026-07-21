@@ -7,6 +7,43 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.7.0] — 2026-07-21 — _Explorer ranks_
+
+### Added
+
+- 🏅 **A bigger Explorer ladder** — the rank ladder grows from **10 to 15 rungs**, five metal
+  bands of three: bronze · silver · gold · **platinum** · crystal. A brand-new **Platinum** band
+  (Pioneer, Trailblazer, Vanguard) sits between gold and crystal, and two new crystal ranks
+  (Luminary, Paragon) lead up to the crowned **Legendary Explorer** at the very top. The XP curve
+  keeps climbing (45k → 240k); the rank you're already at is unchanged.
+- 📜 **Ranks reference page** — a new `#/ranks` page (reachable by URL) lays out every rank with
+  its real in-game medal, grouped by band, showing each rung's XP threshold and a rough effort
+  estimate (“≈ N games · ≈ T”). It reads straight from the game's own data, so it can never drift
+  from what you actually earn.
+- ⏩ **Tap to skip** — the answer feedback is now a full-surface tap target: tap it to jump straight
+  to the next question instead of waiting out the auto-advance dwell, with a “Tap to continue” hint
+  under the countdown. (Blitz keeps its own fast pace.)
+
+### Changed
+
+- ✨ **Living rank medals** — each metal band now has its own motion that grows with the sub-level:
+  a reflection sweep for bronze/silver, a **sparkle** for gold, a **shimmer** for platinum, and a
+  drifting **aurora** for crystal up to the crowned apex. Everything collapses under the in-app
+  reduce-motion preference (and the OS one).
+
+### Fixed
+
+- 🗺️ **Maps recover from a bad load** — a single failed map load no longer breaks maps for the rest
+  of the session (the failure was being cached). When a load does fail you now get a clear card with
+  a **Retry** (or **Reload**, for a stale app update) and a short reference code to quote in a bug
+  report; a failed globe now falls back to the flat map instead of hanging on a spinner.
+- 🃏 **No ghost flag** — the Grandmaster flag grid no longer leaves the previous pick faintly painted
+  behind the next question.
+- 📲 **Challenge links open in the app** — a shared challenge link or scanned QR now prefers opening
+  in the installed Orbi rather than a browser tab, on platforms that support it.
+- 🔧 **Greener CI** — the toolchain is pinned to Node 24.11.0 so CI's npm matches the dev machine and
+  `npm ci` stops failing on the lockfile.
+
 ## [2.6.0] — 2026-07-20 — _Challenge a friend_
 
 ### Added
