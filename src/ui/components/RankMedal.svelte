@@ -6,6 +6,15 @@
     uidCounter += 1;
     return `rm${uidCounter}`;
   }
+
+  // Sparkle positions (gold band): a few off-beat twinkle points scattered over the coin. Percentages
+  // are within the clipped coin window; staggered delays so they never all fire at once.
+  const SPARKS = [
+    { top: '12%', left: '18%', delay: '0s' },
+    { top: '68%', left: '26%', delay: '0.5s' },
+    { top: '24%', left: '70%', delay: '1s' },
+    { top: '62%', left: '66%', delay: '1.5s' },
+  ];
 </script>
 
 <script lang="ts">
@@ -13,17 +22,18 @@
   import { rankMedal, METAL_PALETTES } from './rankMedal';
 
   // A single rank's medal (Direction B): a struck metal coin — tier band + rim, the rank's embossed
-  // journey glyph, and 1–3 sub-level stars on the face. Higher rungs catch the light: a periodic
-  // reflection sweep whose intensity climbs with the sub-level (`spec.glint`), and an ambient glow
-  // on the crowned crystal apex. Self-contained SVG on a 64×64 canvas, scaled to `size`; decorative
-  // by default (the rank name always sits beside it), so pass `title` only when it must stand alone.
+  // journey glyph, and 1–3 sub-level stars on the face. Higher rungs catch the light through a
+  // per-band motion (owner-picked): a plain `sweep` for bronze/silver, `sparkle` for gold, `shimmer`
+  // for platinum, and a drifting `aurora` under a sweep for the crystal band — intensity ramping with
+  // the sub-level. The struck coin is a self-contained SVG on a 64×64 canvas; the motion rides in
+  // HTML overlay layers over it, all clipped to the coin. Decorative by default (the rank name always
+  // sits beside it), so pass `title` only when the medal must stand alone.
   let { index, size = 44, title }: { index: number; size?: number; title?: string } = $props();
 
   const spec = $derived(rankMedal(index));
   const pal = $derived(METAL_PALETTES[spec.metal]);
-  // The crowned top rung — the only coin with the prismatic sweep + ambient glow.
-  const isApex = $derived(spec.glint === 'prismatic');
   const glyph = $derived(icons[spec.glyph]);
+  const fx = $derived(new Set(spec.effects));
 
   const uid = nextUid();
 
@@ -50,155 +60,251 @@
   });
 </script>
 
-<svg
-  class="medal"
-  class:apex={isApex}
-  viewBox="0 0 64 64"
+<span
+  class="rank-medal i-{spec.intensity}"
   style:width="{size}px"
   style:height="{size}px"
+  style:--sz={size}
   role={title ? 'img' : undefined}
   aria-label={title}
   aria-hidden={title ? undefined : 'true'}
 >
-  <defs>
-    <linearGradient id="{uid}-coin" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color={pal.hi} />
-      <stop offset="1" stop-color={pal.lo} />
-    </linearGradient>
-    <radialGradient id="{uid}-disc" cx="0.4" cy="0.35" r="0.75">
-      <stop offset="0" stop-color={pal.disc1} />
-      <stop offset="1" stop-color={pal.disc2} />
-    </radialGradient>
-    {#if spec.glint !== 'none'}
-      <!-- Clip the reflection sweep to the coin so it never spills past the rim. -->
-      <clipPath id="{uid}-clip"><circle cx="32" cy="32" r="22" /></clipPath>
-      <!-- A soft white light-band, feathered at both edges, that sweeps across the coin. -->
-      <linearGradient id="{uid}-sheen" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#fff" stop-opacity="0" />
-        <stop offset="0.5" stop-color="#fff" stop-opacity="0.9" />
-        <stop offset="1" stop-color="#fff" stop-opacity="0" />
+  <svg class="medal" viewBox="0 0 64 64" aria-hidden="true">
+    <defs>
+      <linearGradient id="{uid}-coin" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color={pal.hi} />
+        <stop offset="1" stop-color={pal.lo} />
       </linearGradient>
-    {/if}
-  </defs>
+      <radialGradient id="{uid}-disc" cx="0.4" cy="0.35" r="0.75">
+        <stop offset="0" stop-color={pal.disc1} />
+        <stop offset="1" stop-color={pal.disc2} />
+      </radialGradient>
+    </defs>
 
-  <!-- The struck coin: tier-metal ring, then a lighter inner disc with a rim highlight. -->
-  <circle cx="32" cy="32" r="22" fill="url(#{uid}-coin)" stroke={pal.lo} stroke-width="1.5" />
-  <circle cx="32" cy="32" r="16.5" fill="url(#{uid}-disc)" stroke={pal.rim} stroke-width="1" />
+    <!-- The struck coin: tier-metal ring, then a lighter inner disc with a rim highlight. -->
+    <circle cx="32" cy="32" r="22" fill="url(#{uid}-coin)" stroke={pal.lo} stroke-width="1.5" />
+    <circle cx="32" cy="32" r="16.5" fill="url(#{uid}-disc)" stroke={pal.rim} stroke-width="1" />
 
-  <!-- The rank's journey glyph, embossed in the metal's ink. Registry markup is build-generated
-       from Lucide (static, no user input) — {@html} carries no XSS risk here. -->
-  <svg
-    x="20"
-    y="20"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={pal.ink}
-    stroke-width="1.9"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-    {@html glyph}
+    <!-- The rank's journey glyph, embossed in the metal's ink. Registry markup is build-generated
+         from Lucide (static, no user input) — {@html} carries no XSS risk here. -->
+    <svg
+      x="20"
+      y="20"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={pal.ink}
+      stroke-width="1.9"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+      {@html glyph}
+    </svg>
+
+    {#each stars as pts, i (i)}
+      <polygon class="star" points={pts} fill={pal.rim} />
+    {/each}
   </svg>
 
-  {#each stars as pts, i (i)}
-    <polygon class="star" points={pts} fill={pal.rim} />
-  {/each}
-
-  <!-- Reflection sweep: a light-band clipped to the coin, sweeping across on a loop with a long
-       idle between passes. Intensity climbs with the sub-level via the `sheen-*` class. -->
-  {#if spec.glint !== 'none'}
-    <g class="sheen sheen-{spec.glint}" clip-path="url(#{uid}-clip)">
-      <rect class="sheen-bar" x="0" y="6" width="13" height="52" fill="url(#{uid}-sheen)" />
-    </g>
+  <!-- Motion layers, clipped to the coin. Aurora sits under the sweep; sparkles fall over. -->
+  {#if fx.has('aurora')}
+    <span class="fx clip"><span class="aurora"></span></span>
   {/if}
-</svg>
+  {#if fx.has('sweep')}
+    <span class="fx clip"><span class="sweep"></span></span>
+  {/if}
+  {#if fx.has('shimmer')}
+    <span class="fx clip"><span class="shimmer"></span></span>
+  {/if}
+  {#if fx.has('sparkle')}
+    <span class="fx">
+      {#each SPARKS as s, i (i)}
+        <span class="spk" style="top:{s.top};left:{s.left};animation-delay:{s.delay}"></span>
+      {/each}
+    </span>
+  {/if}
+</span>
 
 <style>
+  /* Intensity dials, set on the wrapper and read by every effect: how bright, and how often. */
+  .rank-medal {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    vertical-align: middle;
+    line-height: 0;
+    --fx-op: 0.85;
+    --fx-dur: 3.4s;
+  }
+  .rank-medal.i-mild {
+    --fx-op: 0.5;
+    --fx-dur: 4.4s;
+  }
+  .rank-medal.i-medium {
+    --fx-op: 0.85;
+    --fx-dur: 3.4s;
+  }
+  .rank-medal.i-strong {
+    --fx-op: 1;
+    --fx-dur: 2.5s;
+  }
+
   .medal {
     display: block;
-    flex: 0 0 auto;
+    width: 100%;
+    height: 100%;
     /* Lift the coin off the surface a touch — it reads as a struck object, not a flat sticker. */
     filter: drop-shadow(0 1px 1px rgb(18 49 48 / 18%));
   }
 
-  /* Reflection sweep. The bar starts left-of-coin and slides across, fading in and back out, then
-     rests off-frame for the rest of the cycle — a periodic glint, not a constant shimmer. Higher
-     sub-levels use a shorter cycle (glints more often) and a stronger group opacity. */
-  .sheen {
-    opacity: 0;
+  /* Effect windows: centred on the coin (r22 → 68.75% of the box). `.clip` masks to the rim. */
+  .fx {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 68.75%;
+    height: 68.75%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .fx.clip {
+    border-radius: 50%;
+    overflow: hidden;
   }
 
-  .sheen-bar {
-    transform: translateX(-16px);
-    animation: rm-sweep 6s linear infinite;
+  /* SWEEP — a soft light-band crosses, fades out, then rests off-frame for the rest of the cycle. */
+  .sweep {
+    position: absolute;
+    inset: 0;
   }
-
-  .sheen-mild {
-    opacity: 0.5;
+  .sweep::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -30%;
+    width: 26%;
+    height: 140%;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    transform: translateX(-60%) rotate(8deg);
+    animation: rm-sweep var(--fx-dur) linear infinite;
   }
-
-  .sheen-medium {
-    opacity: 0.85;
-  }
-  .sheen-medium .sheen-bar {
-    animation-duration: 4.6s;
-  }
-
-  /* The crowned crystal apex: the brightest, most frequent sweep, plus an ambient glow that breathes
-     around the rim (see .medal.apex below). */
-  .sheen-prismatic {
-    opacity: 1;
-  }
-  .sheen-prismatic .sheen-bar {
-    animation-duration: 3.4s;
-  }
-
   @keyframes rm-sweep {
     0% {
-      transform: translateX(-16px);
+      transform: translateX(-60%) rotate(8deg);
       opacity: 0;
     }
-    5% {
-      opacity: 1;
+    8% {
+      opacity: var(--fx-op);
     }
-    22% {
-      transform: translateX(62px);
+    34% {
+      transform: translateX(300%) rotate(8deg);
       opacity: 0;
     }
     100% {
-      transform: translateX(62px);
+      transform: translateX(300%) rotate(8deg);
       opacity: 0;
     }
   }
 
-  /* Prismatic apex: a soft cyan halo that breathes, layered over the base lift shadow. */
-  .medal.apex {
-    animation: rm-aura 3.4s ease-in-out infinite;
+  /* SHIMMER — a continuous soft sheen drifting across, no idle gap (platinum). */
+  .shimmer {
+    position: absolute;
+    inset: 0;
+  }
+  .shimmer::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -60%;
+    width: 60%;
+    height: 140%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / calc(var(--fx-op) * 0.85)),
+      transparent
+    );
+    transform: translateX(0) rotate(12deg);
+    animation: rm-shimmer calc(var(--fx-dur) * 1.15) linear infinite;
+  }
+  @keyframes rm-shimmer {
+    0% {
+      transform: translateX(0) rotate(12deg);
+    }
+    100% {
+      transform: translateX(300%) rotate(12deg);
+    }
   }
 
-  @keyframes rm-aura {
+  /* SPARKLE — four-point stars twinkle off-beat at the coin's edge (gold). */
+  .spk {
+    position: absolute;
+    width: 26%;
+    height: 26%;
+    background: radial-gradient(closest-side, #fff, rgb(255 255 255 / 50%) 30%, transparent 70%);
+    opacity: 0;
+    transform: scale(0.2);
+    animation: rm-twinkle calc(var(--fx-dur) * 0.72) ease-in-out infinite;
+  }
+  .spk::before,
+  .spk::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 44%, #fff 50%, transparent 56%);
+  }
+  .spk::after {
+    transform: rotate(90deg);
+  }
+  @keyframes rm-twinkle {
     0%,
     100% {
-      filter: drop-shadow(0 1px 1px rgb(18 49 48 / 18%)) drop-shadow(0 0 1px rgb(120 220 255 / 0%));
+      opacity: 0;
+      transform: scale(0.2);
     }
     50% {
-      filter: drop-shadow(0 1px 1px rgb(18 49 48 / 18%)) drop-shadow(0 0 6px rgb(120 220 255 / 75%));
+      opacity: var(--fx-op);
+      transform: scale(1);
+    }
+  }
+
+  /* AURORA — cyan/violet/mint light drifts under the surface (crystal), screen-blended over the coin. */
+  .aurora {
+    position: absolute;
+    inset: -25%;
+    background:
+      radial-gradient(35% 45% at 30% 35%, rgb(127 214 242 / 90%), transparent 60%),
+      radial-gradient(40% 50% at 70% 65%, rgb(168 132 255 / 75%), transparent 60%),
+      radial-gradient(45% 40% at 55% 50%, rgb(120 255 214 / 60%), transparent 60%);
+    filter: blur(calc(var(--sz) * 0.045px));
+    mix-blend-mode: screen;
+    opacity: calc(var(--fx-op) * 0.8);
+    animation: rm-aurora calc(var(--fx-dur) * 1.9) ease-in-out infinite alternate;
+  }
+  @keyframes rm-aurora {
+    0% {
+      transform: translate(-6%, -4%) rotate(-8deg) scale(1.05);
+    }
+    100% {
+      transform: translate(6%, 4%) rotate(10deg) scale(1.15);
     }
   }
 
   /* Respect the OS reduce-motion setting (the in-app pref is handled app-wide in app.css via the
-     `:root[data-reduce-motion] *` rule, which already collapses these animations). */
+     `:root[data-reduce-motion] *` rule, which already collapses these animations). Freeze the motion
+     and hide the moving highlights; the aurora stays as a soft static tint. */
   @media (prefers-reduced-motion: reduce) {
-    .sheen-bar,
-    .medal.apex {
+    .sweep::before,
+    .shimmer::before,
+    .spk {
       animation: none;
-    }
-    /* Keep a static hint of shine on the coins that glint, so the prestige still reads at rest. */
-    .sheen {
       opacity: 0;
+    }
+    .aurora {
+      animation: none;
     }
   }
 </style>

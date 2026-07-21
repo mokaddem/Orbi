@@ -13,12 +13,15 @@ import type { IconName } from './icons';
 export type RankMetal = 'bronze' | 'silver' | 'gold' | 'platinum' | 'crystal';
 
 /**
- * How much a coin catches the light — a periodic reflection sweep that climbs with the sub-level:
- * `none` (1★, a plain struck coin), `mild` (2★, a faint slow glint), `medium` (3★, a brighter
- * sweep), and `prismatic` (the crowned Crystal apex only — the strongest sweep plus an ambient
- * glow). Purely decorative and collapsed under reduce-motion.
+ * The motion a coin catches the light with — a per-band character (owner-picked): a `sweep` light-band
+ * for the lower metals, `sparkle` twinkles for gold, a continuous `shimmer` for platinum, and a
+ * drifting `aurora` (paired with a sweep) for the crystal band. A coin can layer more than one.
+ * Purely decorative and collapsed under reduce-motion.
  */
-export type RankGlint = 'none' | 'mild' | 'medium' | 'prismatic';
+export type RankEffect = 'sweep' | 'sparkle' | 'shimmer' | 'aurora';
+
+/** How intense the effects run (opacity + how often they cycle) — ramps with the sub-level. */
+export type RankIntensity = 'mild' | 'medium' | 'strong';
 
 export interface RankMedalSpec {
   /** The "journey" glyph embossed on the coin (icon-registry name; see icons.ts). */
@@ -26,33 +29,42 @@ export interface RankMedalSpec {
   metal: RankMetal;
   /** Sub-level pips within the band, 1–3 — struck on the coin's lower rim. */
   stars: number;
-  /** The coin's reflection sweep intensity (see {@link RankGlint}). */
-  glint: RankGlint;
+  /** The motion layers on this coin; empty for a plain struck coin (the first rung of a band). */
+  effects: readonly RankEffect[];
+  /** Effect intensity — climbs with the sub-level within the band. */
+  intensity: RankIntensity;
 }
 
 /**
  * Per-rank medal art, indexed by `RANKS[i].index` (Novice = 0 … Legendary Explorer = 14). The glyph
  * set tells one continuous journey: plant a flag → find your bearings → follow the signs → chart a
  * route → navigate → voyage → summit → map it → circle the globe → earn the accolades → be crowned.
- * Glint climbs with the sub-level within each band (1★ none · 2★ mild · 3★ medium); the crystal
- * band shines from the start and its crowned apex is prismatic.
+ * Motion is a per-band character with intensity ramping by sub-level: bronze & silver catch a plain
+ * `sweep` (and their 1★ rung stays still); gold `sparkle`s; platinum `shimmer`s; the crystal band
+ * drifts an `aurora` under a `sweep`, up to the crowned apex at full strength.
  */
 export const RANK_MEDALS: readonly RankMedalSpec[] = [
-  { glyph: 'flag', metal: 'bronze', stars: 1, glint: 'none' }, // Novice
-  { glyph: 'compass', metal: 'bronze', stars: 2, glint: 'mild' }, // Scout
-  { glyph: 'signpost', metal: 'bronze', stars: 3, glint: 'medium' }, // Wanderer
-  { glyph: 'route', metal: 'silver', stars: 1, glint: 'none' }, // Pathfinder
-  { glyph: 'navigation', metal: 'silver', stars: 2, glint: 'mild' }, // Navigator
-  { glyph: 'sailboat', metal: 'silver', stars: 3, glint: 'medium' }, // Voyager
-  { glyph: 'mountain', metal: 'gold', stars: 1, glint: 'none' }, // Adventurer
-  { glyph: 'map', metal: 'gold', stars: 2, glint: 'mild' }, // Cartographer
-  { glyph: 'globe', metal: 'gold', stars: 3, glint: 'medium' }, // Globetrotter
-  { glyph: 'award', metal: 'platinum', stars: 1, glint: 'none' }, // Pioneer
-  { glyph: 'trophy', metal: 'platinum', stars: 2, glint: 'mild' }, // Trailblazer
-  { glyph: 'shield', metal: 'platinum', stars: 3, glint: 'medium' }, // Vanguard
-  { glyph: 'gem', metal: 'crystal', stars: 1, glint: 'mild' }, // Luminary
-  { glyph: 'sparkles', metal: 'crystal', stars: 2, glint: 'medium' }, // Paragon
-  { glyph: 'crown', metal: 'crystal', stars: 3, glint: 'prismatic' }, // Legendary Explorer
+  { glyph: 'flag', metal: 'bronze', stars: 1, effects: [], intensity: 'mild' }, // Novice
+  { glyph: 'compass', metal: 'bronze', stars: 2, effects: ['sweep'], intensity: 'mild' }, // Scout
+  { glyph: 'signpost', metal: 'bronze', stars: 3, effects: ['sweep'], intensity: 'medium' }, // Wanderer
+  { glyph: 'route', metal: 'silver', stars: 1, effects: [], intensity: 'mild' }, // Pathfinder
+  { glyph: 'navigation', metal: 'silver', stars: 2, effects: ['sweep'], intensity: 'mild' }, // Navigator
+  { glyph: 'sailboat', metal: 'silver', stars: 3, effects: ['sweep'], intensity: 'medium' }, // Voyager
+  { glyph: 'mountain', metal: 'gold', stars: 1, effects: ['sparkle'], intensity: 'mild' }, // Adventurer
+  { glyph: 'map', metal: 'gold', stars: 2, effects: ['sparkle'], intensity: 'medium' }, // Cartographer
+  { glyph: 'globe', metal: 'gold', stars: 3, effects: ['sparkle'], intensity: 'strong' }, // Globetrotter
+  { glyph: 'award', metal: 'platinum', stars: 1, effects: ['shimmer'], intensity: 'mild' }, // Pioneer
+  { glyph: 'trophy', metal: 'platinum', stars: 2, effects: ['shimmer'], intensity: 'medium' }, // Trailblazer
+  { glyph: 'shield', metal: 'platinum', stars: 3, effects: ['shimmer'], intensity: 'strong' }, // Vanguard
+  { glyph: 'gem', metal: 'crystal', stars: 1, effects: ['aurora', 'sweep'], intensity: 'mild' }, // Luminary
+  {
+    glyph: 'sparkles',
+    metal: 'crystal',
+    stars: 2,
+    effects: ['aurora', 'sweep'],
+    intensity: 'medium',
+  }, // Paragon
+  { glyph: 'crown', metal: 'crystal', stars: 3, effects: ['aurora', 'sweep'], intensity: 'strong' }, // Legendary Explorer
 ];
 
 /** The four stops that shade one metal: coin gradient (hi→lo), rim highlight, disc face (1→2), and
