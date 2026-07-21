@@ -27,6 +27,7 @@ import {
   type ProfileRecord,
 } from '../../backend/identity';
 import { prefs, updatePrefs, getStoredIdentity, saveStoredIdentity } from './persistence';
+import { syncBoard } from './board';
 
 /** Server-side tier of the active identity (Tier 2 "named" is anonymous + a name). */
 export type IdentityTier = 'anonymous' | 'account';
@@ -101,6 +102,9 @@ function adopt(profile: ProfileRecord): void {
     email: profile.email || null,
     sync: 'synced',
   });
+  // Now that we hold a signed-in record, mirror the local headline stats (Phase 52). This is
+  // the startup/sign-in/upgrade/re-anon trigger — best-effort, non-blocking, never throws.
+  void syncBoard();
 }
 
 /**
@@ -160,6 +164,8 @@ export async function renameTo(name: string): Promise<void> {
   updatePrefs({ playerName: clean });
   patch({ displayName: clean });
   if (currentId) void updateDisplayName(currentId, clean);
+  // Keep the board's denormalized display name in step (Phase 52). Best-effort; no-op offline.
+  void syncBoard();
 }
 
 export interface AccountActionResult {

@@ -4,6 +4,7 @@
   import { getCountry, type SessionRecord } from '../../data';
   import { formatPercent } from '../format';
   import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
+  import { syncBoard } from '../stores/board';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import MascotScene from '../components/MascotScene.svelte';
@@ -49,6 +50,7 @@
     if (typeof confirm === 'function' && !confirm($t('history.clearConfirm'))) return;
     await clearHistory();
     await refresh();
+    void syncBoard(); // reset coherence: push the now-zeroed snapshot (Phase 52)
   }
 
   const timeline = $derived(stats ? stats.byDay.slice(-CHART_DAYS) : []);

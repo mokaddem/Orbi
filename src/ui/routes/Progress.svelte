@@ -50,6 +50,7 @@
   import PageHero from '../components/PageHero.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
   import RankPanel from '../components/RankPanel.svelte';
+  import RankMedal from '../components/RankMedal.svelte';
   import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
   import GauntletOfferModal from '../components/GauntletOfferModal.svelte';
@@ -404,6 +405,46 @@
       <div class="panel rank-panel" bind:this={rankPanelEl}>
         <h2>{$t('rank.title')}</h2>
         <RankPanel xp={rank.xp} progress={rank.progress} />
+      </div>
+    {/if}
+
+    <!-- Progress board (Phase 52): your own row today; friends join in Phase 53. Sourced from the
+         local stats above, so it renders instantly and works fully offline (the server sync is an
+         additive, best-effort mirror). Self is always shown and highlighted. -->
+    {#if rank}
+      <div class="panel board">
+        <h2>{$t('board.title')}</h2>
+        <p class="panel-sub">{$t('board.subtitle')}</p>
+        <ul class="board-list">
+          <li class="board-row is-self">
+            <span class="br-medal" aria-hidden="true">
+              <RankMedal index={rank.progress.rank.index} size={40} />
+            </span>
+            <span class="br-id">
+              <span class="br-name">{$prefs.playerName?.trim() || $t('board.you')}</span>
+              <span class="br-tier">{$t(`rank.names.${rank.progress.rank.key}`)}</span>
+            </span>
+            <span class="br-metrics">
+              <span class="br-xp">
+                {rank.xp.total.toLocaleString()}<small>{$t('board.xpUnit')}</small>
+              </span>
+              <span class="br-secondary">
+                <span class="br-metric" title={$t('board.metric.fullyMastered')}>
+                  <Icon name="globe" size="0.85em" />
+                  {mastery?.overall.fullyMastered ?? 0}
+                </span>
+                <span class="br-metric" title={$t('board.metric.sessions')}>
+                  <Icon name="play" size="0.85em" />
+                  {s.sessionCount}
+                </span>
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p class="board-empty">
+          <Icon name="sparkles" size="0.9em" />
+          {$t('board.friendsComing')}
+        </p>
       </div>
     {/if}
 
@@ -936,6 +977,112 @@
   /* Leave a little headroom when deep-linked into via scrollIntoView (from Home's rank chip). */
   .rank-panel {
     scroll-margin-top: 1rem;
+  }
+
+  /* Progress board (Phase 52): the self row + the "friends coming" note. One row for now, so the
+     list is a single highlighted card; Phase 53 adds friend rows above/below it. */
+  .board-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .board-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.55rem 0.7rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+  }
+
+  /* You — highlighted so a friend list will read "which one is me" at a glance (Phase 53). */
+  .board-row.is-self {
+    border-color: var(--color-accent);
+    background: var(--color-accent-weak);
+  }
+
+  .br-medal {
+    flex: 0 0 auto;
+    display: inline-flex;
+  }
+
+  .br-id {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .br-name {
+    font-weight: 800;
+    font-size: 0.98rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .br-tier {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  .br-metrics {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+  }
+
+  .br-xp {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-accent-strong);
+  }
+
+  .br-xp small {
+    margin-left: 0.15rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .br-secondary {
+    display: inline-flex;
+    gap: 0.6rem;
+  }
+
+  .br-metric {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
+  .br-metric :global(.icon) {
+    color: var(--color-accent);
+  }
+
+  /* The "friends arrive next" note that names Phase 53 — soft, below the self row. */
+  .board-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  .board-empty :global(.icon) {
+    color: var(--color-accent);
+    flex: 0 0 auto;
   }
 
   .panel h2 {

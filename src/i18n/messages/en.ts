@@ -835,6 +835,18 @@ const en = {
     returnTie: 'You tied!',
     playAgain: 'Play again',
   },
+
+  board: {
+    title: 'Your board',
+    subtitle: 'Where you stand — friends join in soon.',
+    you: 'You',
+    xpUnit: 'XP',
+    metric: {
+      fullyMastered: 'Fully mastered',
+      sessions: 'Sessions',
+    },
+    friendsComing: 'Friends will show up here once you connect — compare your progress together.',
+  },
 };
 
 export default en;

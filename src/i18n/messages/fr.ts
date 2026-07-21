@@ -832,6 +832,18 @@ const fr: typeof en = {
     returnTie: 'Égalité !',
     playAgain: 'Rejouer',
   },
+
+  board: {
+    title: 'Votre tableau',
+    subtitle: 'Votre position — vos amis arrivent bientôt.',
+    you: 'Vous',
+    xpUnit: 'XP',
+    metric: {
+      fullyMastered: 'Maîtrisés',
+      sessions: 'Sessions',
+    },
+    friendsComing: 'Vos amis apparaîtront ici une fois connectés — comparez vos progrès ensemble.',
+  },
 };
 
 export default fr;

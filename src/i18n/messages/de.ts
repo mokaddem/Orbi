@@ -831,6 +831,19 @@ const de: typeof en = {
     returnTie: 'Unentschieden!',
     playAgain: 'Erneut spielen',
   },
+
+  board: {
+    title: 'Deine Tafel',
+    subtitle: 'Dein Stand — Freunde kommen bald dazu.',
+    you: 'Du',
+    xpUnit: 'XP',
+    metric: {
+      fullyMastered: 'Gemeistert',
+      sessions: 'Runden',
+    },
+    friendsComing:
+      'Freunde erscheinen hier, sobald ihr verbunden seid — vergleicht euren Fortschritt.',
+  },
 };
 
 export default de;

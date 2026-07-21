@@ -41,6 +41,7 @@
     focusIsosForConfig,
     type RunConfig,
   } from '../stores/game';
+  import { syncBoard } from '../stores/board';
   import {
     prefs,
     updatePrefs,
@@ -506,6 +507,7 @@
       if (summary) {
         // Carry the saved-set id (if any) onto the record so a set's runs are attributable to it.
         void saveSession(summary, get(play).config?.setId);
+        void syncBoard(); // best-effort mirror of the updated headline stats (Phase 52)
         // If this was the Daily Challenge, record its result so Home shows "done today".
         // It's still a normal session otherwise (feeds SR + history like any other run).
         const dailyDate = get(play).config?.dailyDate;
@@ -745,6 +747,7 @@
     }
     lastBlitzResult.set({ points, best, isNewBest });
     void saveSession(summary, setId);
+    void syncBoard(); // best-effort mirror of the updated headline stats (Phase 52)
     // Time's-up cue now; the celebratory jingle a beat later so the two don't muddy each other.
     sound.play('timesup');
     setTimeout(() => sound.play(isNewBest ? 'perfect' : 'finish'), 700);

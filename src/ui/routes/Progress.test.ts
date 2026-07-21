@@ -61,6 +61,17 @@ describe('Progress route (learning & achievements)', () => {
     expect(screen.queryByText('Sessions per day')).not.toBeInTheDocument();
   });
 
+  it('renders the self row on the progress board (from local stats) after a session', async () => {
+    await saveSession(summary());
+    render(Progress);
+
+    // The board panel + the empty-state that names the friends coming in Phase 53.
+    expect(await screen.findByText('Your board', {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(screen.getByText(/Friends will show up here/i)).toBeInTheDocument();
+    // With no display name set, the self row is labelled "You".
+    expect(screen.getByText('You')).toBeInTheDocument();
+  });
+
   it('reveals the combined extra-knowledge panel with a Capitals meter once capitals are played', async () => {
     await saveSession(summary());
     // A capital-mode answer creates capital SR state, which drives the combined panel.

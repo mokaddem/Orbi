@@ -17,6 +17,7 @@
     hasSessions,
     hasTrainingData,
   } from '../stores/persistence';
+  import { syncBoard } from '../stores/board';
   import LanguageSwitcher from '../components/LanguageSwitcher.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import CountryScopeNote from '../components/CountryScopeNote.svelte';
@@ -84,12 +85,14 @@
     await clearHistory();
     historyPresent = false;
     historyDialogOpen = false;
+    void syncBoard(); // reset coherence: push the now-zeroed snapshot (Phase 52)
   }
 
   async function confirmResetTraining(): Promise<void> {
     await clearTraining();
     trainingPresent = false;
     trainingDialogOpen = false;
+    void syncBoard(); // training reset changes mastery → refresh the mirrored snapshot (Phase 52)
   }
 
   // --- Account (Phase 51) -------------------------------------------------------------
