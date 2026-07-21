@@ -648,6 +648,22 @@ const en = {
       legend: 'Legendary Explorer',
     },
   },
+  ranksPage: {
+    title: 'Explorer ranks',
+    intro:
+      'Every rank, its medal, and the XP it takes to reach it — rendered live from the game data, so this page always matches the app.',
+    reachAt: 'Reached at {xp} XP',
+    startRank: 'Starting rank',
+    band: {
+      bronze: 'Bronze',
+      silver: 'Silver',
+      gold: 'Gold',
+      crystal: 'Crystal apex',
+    },
+    earnTitle: 'How XP is earned',
+    streakTitle: 'Streak milestones',
+    inARow: '{count} in a row',
+  },
   settings: {
     title: 'Settings',
     language: 'Language',

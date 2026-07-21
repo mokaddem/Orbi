@@ -639,6 +639,22 @@ const de: typeof en = {
       legend: 'Legendärer Entdecker',
     },
   },
+  ranksPage: {
+    title: 'Entdecker-Ränge',
+    intro:
+      'Jeder Rang, seine Medaille und die nötige XP — live aus den Spieldaten erzeugt, sodass diese Seite immer der App entspricht.',
+    reachAt: 'Erreicht bei {xp} XP',
+    startRank: 'Startrang',
+    band: {
+      bronze: 'Bronze',
+      silver: 'Silber',
+      gold: 'Gold',
+      crystal: 'Kristall-Apex',
+    },
+    earnTitle: 'Wie man XP verdient',
+    streakTitle: 'Serien-Meilensteine',
+    inARow: '{count} in Folge',
+  },
   settings: {
     title: 'Einstellungen',
     language: 'Sprache',

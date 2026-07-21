@@ -195,6 +195,7 @@ export {
   XP_PER_SESSION,
   XP_PER_STREAK_DAY,
   XP_PER_BADGE,
+  STREAK_MILESTONE_XP,
   RANKS,
   computeXp,
   sessionXp,

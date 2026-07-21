@@ -10,6 +10,7 @@ import ReviewPreview from './routes/ReviewPreview.svelte';
 import Summary from './routes/Summary.svelte';
 import History from './routes/History.svelte';
 import Progress from './routes/Progress.svelte';
+import RankLadder from './routes/RankLadder.svelte';
 import Settings from './routes/Settings.svelte';
 import Atlas from './routes/Atlas.svelte';
 import AtlasRegion from './routes/AtlasRegion.svelte';
@@ -28,6 +29,9 @@ const routes: RouteDefinition = {
   '/summary': Summary,
   '/history': History,
   '/progress': Progress,
+  // Living rank reference (not in the primary nav) — reachable at #/ranks; renders the real
+  // RankMedal for every rank so it always matches the game.
+  '/ranks': RankLadder,
   '/atlas': Atlas,
   '/atlas/region/:region': AtlasRegion,
   '/atlas/country/:iso2': AtlasCountry,

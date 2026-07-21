@@ -640,6 +640,22 @@ const fr: typeof en = {
       legend: 'Explorateur légendaire',
     },
   },
+  ranksPage: {
+    title: 'Rangs d’explorateur',
+    intro:
+      'Chaque rang, sa médaille et l’XP nécessaire pour l’atteindre — généré en direct depuis les données du jeu, donc cette page reflète toujours l’application.',
+    reachAt: 'Atteint à {xp} XP',
+    startRank: 'Rang de départ',
+    band: {
+      bronze: 'Bronze',
+      silver: 'Argent',
+      gold: 'Or',
+      crystal: 'Apex de cristal',
+    },
+    earnTitle: 'Comment gagner de l’XP',
+    streakTitle: 'Paliers de série',
+    inARow: '{count} d’affilée',
+  },
   settings: {
     title: 'Paramètres',
     language: 'Langue',
