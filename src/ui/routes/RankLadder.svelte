@@ -74,7 +74,7 @@
           {#each band.ranks as r (r.key)}
             <li class="rung">
               <div class="rung-medal">
-                <RankMedal index={r.index} size={band.metal === 'crystal' ? 84 : 72} />
+                <RankMedal index={r.index} size={band.metal === 'crystal' ? 132 : 116} />
               </div>
               <div class="rung-body">
                 <span class="rung-level"
@@ -185,26 +185,29 @@
   .rung {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.85rem 1rem;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 1rem 1.35rem;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
   }
 
+  /* The medal is the hero — sized large and left, with the metadata flushed to the right edge. */
   .rung-medal {
     flex: 0 0 auto;
     display: grid;
     place-items: center;
-    width: 88px;
   }
 
   .rung-body {
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: 0.1rem;
     min-width: 0;
+    text-align: right;
   }
 
   .rung-level {
@@ -297,11 +300,13 @@
   @media (max-width: 520px) {
     .rung {
       flex-direction: column;
+      justify-content: center;
       text-align: center;
       gap: 0.5rem;
     }
     .rung-body {
       align-items: center;
+      text-align: center;
     }
   }
 </style>
