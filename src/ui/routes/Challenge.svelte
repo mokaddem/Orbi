@@ -487,16 +487,23 @@
                   : []),
               ].filter((o): o is (typeof flagOptions)[number] => !!o)
             : flagOptions}
-          <div class="flag-scroll" class:answered>
-            <ChoiceGrid
-              options={revealFlags}
-              variant="flag"
-              {answered}
-              correctId={question.answer.iso2}
-              pickedId={fb?.pickedIso ?? null}
-              onpick={onPick}
-            />
-          </div>
+          <!-- Key the grid to the question so its DOM subtree — and its compositing layer — is torn
+               down and rebuilt fresh each question. `.flag-scroll` carries a mask-image (its own
+               layer) that toggles off for the collapsed answered reveal and back on for the next
+               question's full list; reusing that layer across the collapse leaves the previous pick
+               painted behind the new grid. A fresh element per question drops the stale layer. -->
+          {#key question.answer.iso2}
+            <div class="flag-scroll" class:answered>
+              <ChoiceGrid
+                options={revealFlags}
+                variant="flag"
+                {answered}
+                correctId={question.answer.iso2}
+                pickedId={fb?.pickedIso ?? null}
+                onpick={onPick}
+              />
+            </div>
+          {/key}
         {:else if question.options}
           {@const nameOptions = question.options.map((c) => ({
             id: c.iso2,
