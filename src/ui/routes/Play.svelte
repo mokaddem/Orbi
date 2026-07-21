@@ -289,17 +289,16 @@
   // The map board pulls in d3-geo + the TopoJSON chunk, so it is lazy-imported only
   // once a map-mode session is under way — flag-only sessions never pay for it.
   let MapBoard = $state<typeof import('../components/MapBoard.svelte').default | null>(null);
-  // A code (always MAP-CHUNK here — the *component* chunk itself failed to load, usually a stale
-  // service-worker chunk after a deploy) when the lazy import fails, else null. The geometry fetch
-  // inside the board reports its own MAP-FETCH / MAP-DECODE codes.
+  // A code (always MAP-CHUNK here — the *component* chunk itself failed to load, usually offline or
+  // a stale service-worker chunk after a deploy) when the lazy import fails, else null. The geometry
+  // fetch inside the board reports its own MAP-FETCH / MAP-DECODE codes.
   let mapBoardError = $state<string | null>(null);
-  let mapBoardRetrying = $state(false);
 
   // Lazy-import the map board, recording a code + logging the raw error on failure so a stuck import
-  // is debuggable instead of a silent spinner. Returns the promise so Retry can await it.
-  function loadMapBoard(): Promise<void> {
+  // is debuggable instead of a silent spinner.
+  function loadMapBoard(): void {
     mapBoardError = null;
-    return import('../components/MapBoard.svelte')
+    void import('../components/MapBoard.svelte')
       .then((m) => {
         MapBoard = m.default;
       })
@@ -312,15 +311,15 @@
   $effect(() => {
     const cfg = $play.config;
     if (cfg && isMapMode(cfg.mode) && !MapBoard && !mapBoardError) {
-      void loadMapBoard();
+      loadMapBoard();
     }
   });
 
-  async function retryMapBoard(): Promise<void> {
-    if (mapBoardRetrying) return;
-    mapBoardRetrying = true;
-    await loadMapBoard();
-    mapBoardRetrying = false;
+  // A failed dynamic import is cached by the browser's module loader, so re-importing the same
+  // specifier just replays the cached rejection — the only reliable recovery (and the right move
+  // for a stale-deploy chunk) is a full reload. Hence the chunk-error card offers Reload, not Retry.
+  function reloadForMap(): void {
+    window.location.reload();
   }
 
   // Auto-start a staged config (e.g. Retry from the summary); otherwise leave a
@@ -1175,7 +1174,7 @@
               onpick={onMapPick}
             />
           {:else if mapBoardError}
-            <MapError code={mapBoardError} retrying={mapBoardRetrying} onRetry={retryMapBoard} />
+            <MapError code={mapBoardError} onRetry={reloadForMap} reload />
           {:else}
             <div class="placeholder" role="status">{$t('play.map.loading')}</div>
           {/if}

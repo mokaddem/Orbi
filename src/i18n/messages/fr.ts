@@ -172,6 +172,7 @@ const fr: typeof en = {
       error: 'Impossible de charger la carte.',
       errorHint: 'Vérifiez votre connexion, puis réessayez.',
       retry: 'Réessayer',
+      reload: 'Recharger',
       retrying: 'Nouvel essai…',
       errorCodeLabel: 'Code d’erreur (utile pour les rapports de bug)',
       label: 'Carte du monde',

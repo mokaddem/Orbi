@@ -32,4 +32,12 @@ describe('MapError', () => {
     const btn = screen.getByRole('button', { name: /Retrying/ });
     expect(btn).toBeDisabled();
   });
+
+  it('labels the action "Reload" (not "Retry") for a chunk-load failure', async () => {
+    const onRetry = vi.fn();
+    render(MapError, { code: 'MAP-CHUNK', reload: true, onRetry });
+    expect(screen.queryByRole('button', { name: /Retry/ })).toBeNull();
+    await fireEvent.click(screen.getByRole('button', { name: /Reload/ }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
 });

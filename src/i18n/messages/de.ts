@@ -178,6 +178,7 @@ const de: typeof en = {
       error: 'Die Karte konnte nicht geladen werden.',
       errorHint: 'Prüfe deine Verbindung und versuche es erneut.',
       retry: 'Erneut versuchen',
+      reload: 'Neu laden',
       retrying: 'Neuer Versuch…',
       errorCodeLabel: 'Fehlercode (hilfreich für Fehlerberichte)',
       label: 'Weltkarte',

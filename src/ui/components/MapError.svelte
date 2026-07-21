@@ -4,16 +4,21 @@
 
   // Shared map-load error card. Shown by MapBoard (data-load failures) and Play (map-component
   // chunk-load failures). Keeps the map board's footprint (`aspect-ratio`) so the layout doesn't
-  // jump when it swaps in. `code` is the short MAP-… debugging handle (see `mapErrorCode`); `onRetry`
-  // is optional — when present a Retry button re-attempts the load, which is now meaningful because
-  // the geometry loader no longer caches a rejected promise.
+  // jump when it swaps in. `code` is the short MAP-… debugging handle (see `mapErrorCode`).
+  //
+  // `onRetry` is optional. Two flavours: an in-place **Retry** (data-load failures — the geometry
+  // loader no longer caches a rejected promise, so a re-fetch works), or a **Reload** (`reload`),
+  // used for a failed component-chunk import — the browser caches a failed dynamic import, so the
+  // only reliable recovery is a full page reload (also the right move for a stale-deploy chunk).
   let {
     code,
     retrying = false,
+    reload = false,
     onRetry = null,
   }: {
     code: string;
     retrying?: boolean;
+    reload?: boolean;
     onRetry?: (() => void) | null;
   } = $props();
 </script>
@@ -24,8 +29,16 @@
   <p class="map-error-hint">{$t('play.map.errorHint')}</p>
   {#if onRetry}
     <button type="button" class="map-error-retry" onclick={onRetry} disabled={retrying}>
-      <Icon name="repeat" size={16} />
-      <span>{retrying ? $t('play.map.retrying') : $t('play.map.retry')}</span>
+      <Icon name={reload ? 'reset' : 'repeat'} size={16} />
+      <span>
+        {#if retrying}
+          {$t('play.map.retrying')}
+        {:else if reload}
+          {$t('play.map.reload')}
+        {:else}
+          {$t('play.map.retry')}
+        {/if}
+      </span>
     </button>
   {/if}
   <span class="map-error-code" title={$t('play.map.errorCodeLabel')}>{code}</span>
