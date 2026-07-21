@@ -340,6 +340,19 @@ implementation (see the callout at the top of the file).
 |---|---|---|---|---|---|
 | 47 | Physical geography modes (new `GeoFeature` entity · pilot) | [phase-47-physical-geography-modes.md](phases/phase-47-physical-geography-modes.md) | 1, 2, 4, 5, 22, 37, 40 | ⬜ Not started | PRD drafted 2026-07-17 from the "add more modes (mountains / deserts / seas)" discussion. Direction locked: **new `GeoFeature` entity** beside `Country` (features have no ISO code / flag and span countries); **first phase = cheap single-feature pilot** (not mountains) on a **light track** (XP-/SR-/mastery-neutral; `itemKey`/`parseItemKey` untouched); flat-map overlay only; **mountains + 3D-relief globe** and the choropleth/elevation-texture choice **deferred** to a follow-up. OQ1–OQ9 open (pilot feature type, question directions, engine fork, globe behaviour, data source, naming, Atlas, formats, granularity); **not built — awaiting clarifying round + approval.** |
 
+### v2.10 — Review preview
+
+Owner request (2026-07-17): give the "time to review" flow **intent and legibility** — name the
+**mode + region** on each review entry, and add a **"Ready to review?" study card** (`#/review`) that
+lets you revise the material (each country's flag / capital / region-framed map locator) *before* the
+test, then launches the identical review run. Pure presentation over the Phase-26 review data — no new
+learning logic. **Built and merged to `main`.** *(v2.11 is reserved for the in-flight Atlas-content
+phase, 49, which lands later.)*
+
+| # | Phase | Detailed PRD | Depends on | Status | Progress |
+|---|---|---|---|---|---|
+| 48 | Review preview (study-card before a review) | [phase-48-review-preview.md](phases/archive/phase-48-review-preview.md) | 26, 14, 7, 5, 2, 27 | ✅ Done | 100% (self-describing review entries show mode + region + count; new `#/review` "Ready to review?" study card revises each covered country by its mode — flag / capital / region-framed locator zoomed to the focus country — then launches the **identical** training run; `pendingReview` handoff, cold-start safe; EN/FR/DE. Merged to main + archived.) |
+
 ---
 
 ## Description

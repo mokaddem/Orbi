@@ -1,7 +1,7 @@
 # Phase 48 — Review preview (see what you'll drill before a review)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 In progress · **Progress:** 95%
-· **Track:** v3.0 — Review preview
+**Part of:** [Geography Quiz — Main PRD](../../main_PRD.md) · **Status:** ✅ Done — merged to main · **Progress:** 100%
+· **Track:** v2.10 — Review preview
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -310,3 +310,12 @@ Independent of Phase 46 (duels) and Phase 47 (physical geography), and of any un
   merge to the main integration branch, then reconcile the main-PRD Status Table (add the Phase 48 /
   v3.0 row — kept out of this worktree to avoid colliding with the owner's uncommitted v2.8/v2.9 edits)
   and archive this PRD.**
+- **2026-07-21 — ✅ Done: bookkeeping cleanup.** The implementation had already landed on `main`
+  (commits `a79bde0` study-card · `46b3887` region-frame locators · `d393a0f` zoom-to-focus · `b3d1898`
+  action-bar fix); only the paperwork was outstanding. Marked **Done / 100%**, corrected the track from
+  the erroneous **v3.0** to **v2.10 — Review preview** (v3.0 is now reserved for the backend era, Phases
+  50–56), added the Phase 48 row to the main-PRD Status Table, and archived this PRD to
+  `phases/archive/`. Done on a dedicated `worktree-phase-48-cleanup` branch off `main` (the Atlas-content
+  agent is parked far out and the tap-to-skip agent is done, so the shared table was safe to edit).
+  **NB:** Phase 49 (Atlas content, unmerged) still labels itself **v2.10** on its branch → bump it to
+  **v2.11** when it merges.
