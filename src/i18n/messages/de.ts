@@ -836,6 +836,7 @@ const de: typeof en = {
     title: 'Deine Tafel',
     subtitle: 'Dein Stand — Freunde kommen bald dazu.',
     you: 'Du',
+    anon: 'Freund',
     xpUnit: 'XP',
     metric: {
       fullyMastered: 'Gemeistert',
@@ -843,6 +844,49 @@ const de: typeof en = {
     },
     friendsComing:
       'Freunde erscheinen hier, sobald ihr verbunden seid — vergleicht euren Fortschritt.',
+    unfriend: 'Freund entfernen',
+    unfriendConfirm: '{name} von deiner Tafel entfernen?',
+    gate: {
+      body: 'Erstelle ein Konto, um Freunde hinzuzufügen und Fortschritte zu vergleichen.',
+      cta: 'Konto erstellen',
+    },
+    inviteEmpty: 'Lade einen Freund ein, um seinen Fortschritt neben deinem zu sehen.',
+    inviteCta: 'Freund einladen',
+  },
+
+  friends: {
+    close: 'Schließen',
+    invite: {
+      shareTitle: 'Freund einladen',
+      shareSub: 'Teile diesen Link oder QR-Code — dein Freund erscheint auf deiner Tafel.',
+      shareText: 'Füge mich bei Orbi hinzu und lass uns unsere Geografie-Fortschritte vergleichen!',
+      copy: 'Link kopieren',
+      copied: 'Kopiert!',
+      share: 'Teilen',
+      brokenTitle: 'Diese Einladung scheint ungültig',
+      brokenBody:
+        'Der Link ist vielleicht unvollständig. Bitte deinen Freund, ihn erneut zu senden.',
+      home: 'Zurück zur Startseite',
+      connecting: 'Verbinde dich…',
+      eyebrow: 'Freundschaftseinladung',
+      eyebrowFrom: '{name} hat dich eingeladen',
+      addedTitle: 'Du bist jetzt mit {name} befreundet!',
+      addedTitleAnon: 'Ihr seid jetzt befreundet!',
+      addedBody: 'Ihr seht euren Fortschritt gegenseitig auf der Tafel.',
+      viewBoard: 'Tafel ansehen',
+      selfTitle: 'Das ist deine eigene Einladung',
+      selfBody: 'Teile sie mit einem Freund, damit er sich mit dir verbinden kann.',
+      needAccountTitle: 'Erstelle ein Konto, um Freunde hinzuzufügen',
+      needAccountBody:
+        'Freunde sind mit deinem Konto verknüpft, damit sie geräteübergreifend erhalten bleiben. Erstelle eins und öffne dann diese Einladung erneut.',
+      later: 'Vielleicht später',
+      createAccount: 'Konto erstellen',
+      offlineTitle: 'Eine Verbindung ist nötig',
+      offlineBody:
+        'Freunde hinzufügen erfordert den Server. Versuche es erneut, wenn du online bist.',
+      failedTitle: 'Freund konnte nicht hinzugefügt werden',
+      failedBody: 'Etwas ist schiefgelaufen. Bitte versuche den Einladungslink erneut.',
+    },
   },
 };
 

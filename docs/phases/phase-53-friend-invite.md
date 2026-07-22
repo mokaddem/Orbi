@@ -1,7 +1,9 @@
 # Phase 53 — Friend invite (friend graph + friends on the board)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** ⬜ Not started — PRD draft
-· **Progress:** 0% (planning) · **Track:** v3.0 — Backend & multiplayer (slice 4 of 7)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟢 Built — friend graph +
+widened-read verified against real PocketBase (curl), fast loop green (awaiting owner review + a
+two-browser UI walkthrough / merge) · **Progress:** ~100% (local-only scope, OQ9) · **Track:** v3.0 —
+Backend & multiplayer (slice 4 of 7)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -120,30 +122,33 @@ routes), **Phase 43** (XP/rank spine the rows render), **Phase 8/17** (i18n). **
 54–56 (all target connected friends).
 
 ## Deliverables checklist
-- [ ] Committed migration: a `friendships` collection (symmetric edge, unique per pair); rules so only
-      the two endpoints can create/read/delete a row.
-- [ ] Committed migration: **widen the `stats` read** rule to "own or accepted-friend's" (back-relation
-      filter); create/update owner-only; delete locked. **Verified against real PB.**
-- [ ] `src/backend/friends.ts` — thin, never-throwing pb ops (add/list/remove friend; read friends'
-      snapshots); seam stays the only SDK importer.
-- [ ] Friend-invite payload codec + share via the reused `ChallengeInviteSheet`/`qr.ts`; a received
-      `#/friend-invite` route that establishes the friendship (OQ3), best-effort, never throws.
-- [ ] Board extended: self + accepted friends' rows (rank medal, name, XP, two secondaries), sorted XP
-      desc, self highlighted; empty-friends → "invite a friend" CTA. Refresh-on-load.
-- [ ] Unfriend (either side) with a confirm → mutual loss of read; row disappears.
-- [ ] **Offline-optional guard**: unset/down backend → self row from local + invite CTA, no throws
-      (guard test).
-- [ ] Friending gated on a real account (Tier 3); anonymous users see a "create an account to add
-      friends" gate (→ Phase-51 upgrade); the self row still works while anonymous.
-- [ ] Security/privacy: endpoints-only friendship rules; accepted-only stats read; render-fields-only;
-      anti-cheat non-goal; no secrets committed.
-- [ ] EN/FR/DE for friend/invite/board strings; `messages.test.ts` parity green.
-- [ ] Tests: add/list/remove, widened-read projection, invite codec, board self+friends sorted, offline
-      degrade — **mocked** seam (no live server in CI); documented manual/local + two-browser smoke.
-- [ ] **Deployment**: OQ9 — local-only (two local identities) **or** stand up the Cloudflare Tunnel so
-      real friends on separate devices can connect; documented either way.
-- [ ] Verified: fast loop green (`npm run test` / `check` / `lint`); real friendship + widened-read +
-      isolation round-trip against PocketBase (curl + two browsers); app unchanged with the backend off.
+- [x] Committed migration: a `friendships` collection (symmetric edge, unique per pair); rules so only
+      the two endpoints can create/read/delete a row. — `1721580000_friendships_and_widen_stats_read.js`.
+- [x] Committed migration: **widen the `stats` read** rule to "own or accepted-friend's" (a
+      `@collection.friendships` filter using the **`?=`** operator — see Technical notes); create/update
+      owner-only; delete locked. **Verified against real PocketBase 0.39.8.**
+- [x] `src/backend/friends.ts` — thin, never-throwing pb ops (add/list/remove friend; `listBoardEntries`
+      over the widened read); seam stays the only SDK importer; owner id bound inside the seam.
+- [x] Friend-invite payload codec (`domain/friend-invite.ts`) + share sheet (`FriendInviteSheet.svelte`,
+      reusing `qr.ts` + the duel share helpers); a received `#/friend-invite` route that establishes the
+      friendship instantly (OQ3), best-effort, never throws.
+- [x] Board extended: self (local) + accepted friends' rows (rank medal, name, XP, fully-mastered +
+      sessions), sorted XP desc, self highlighted; empty-friends → "invite a friend" CTA. Refresh-on-load.
+- [x] Unfriend (either side) with a confirm → mutual loss of read; row disappears.
+- [x] **Offline-optional guard**: no backend → self row from local + the "friends coming" note, sync
+      no-ops, no throws (store test: refresh no-op + add no-backend).
+- [x] Friending gated on a real account (Tier 3, OQ1 override); anonymous users see a "create an account
+      to add friends" gate (→ Phase-51 upgrade); the self row still works while anonymous.
+- [x] Security/privacy: endpoints-only friendship rules; accepted-only stats read (verified isolation);
+      render-fields-only; anti-cheat non-goal; no secrets committed.
+- [x] EN/FR/DE for friend/invite/board strings; `messages.test.ts` parity green.
+- [x] Tests: add/list/remove, `listBoardEntries` mapping, invite codec, board self+friends sorted,
+      offline degrade, account gate — **mocked** seam (no live server in CI). Real-PB curl smoke done.
+- [x] **Deployment**: local-only (OQ9) — verified with 3 identities against a local PocketBase; standing
+      up the Cloudflare Tunnel remains a separate owner decision.
+- [x] Verified: fast loop green (`npm run test` 1035 ✓ / `check` 0 errors / `lint` clean / build ok, SDK
+      still lazy); real friendship + widened-read + isolation + unfriend round-trip against a local
+      PocketBase (curl). **Remaining: a two-browser UI walkthrough (manual) before merge.**
 
 ## Technical notes
 - **Reuse the seam + identity + invite surfaces.** Friend ops sit behind `src/backend/friends.ts`;
@@ -252,3 +257,25 @@ Status-Table rows + Pillar-3 reframe, so `main_PRD.md` is edited once at merge w
   desc + self highlighted; **OQ8** unfriend severs the read both ways with a confirm, no block; **OQ11**
   soft friend cap + rely on PB rate limits. Scope updated above to reflect the OQ1 override. **Still NOT
   built — awaiting explicit build approval.**
+- **2026-07-22 — BUILT (with explicit owner "go").** Implemented the slice end to end. **Server:**
+  `pb_migrations/1721580000_friendships_and_widen_stats_read.js` — a `friendships` base collection
+  (canonical `userA`<`userB`, unique index on the pair, both relations cascade-delete, `status` select),
+  endpoints-only create/list/view/delete rules; **and** the widened `stats` read. **Crux resolved:** the
+  widened read MUST use PocketBase's **`?=`** ("any") operator, not `=`, on the `@collection.friendships`
+  references — with `=` the match silently breaks once the table holds >1 row (empirically confirmed on
+  0.39.8). `?=` correlates each branch's conditions to the same joined row, so it's correct **and**
+  leak-free (adversarial test: P-Q friends + R-S friends → P reads only P,Q). Verified via a superuser
+  `filter=` probe, then a full 3-account curl smoke (friends see each other; strangers see none; view +
+  write cross-user blocked; unfriend severs both ways). **Client:** `backend/friends.ts` (never-throwing
+  add/list/remove + `listBoardEntries` over the widened read; owner id bound from `authStore`), the store
+  `ui/stores/friends.ts` (reactive list, self excluded + XP-sorted; `addFriendFromInvite` gated on
+  backend + **account tier**; `unfriend`; no import cycle with identity), the pure codec
+  `domain/friend-invite.ts`, the UI glue `ui/friend-invite.ts` (link/QR/share, reusing the duel helpers),
+  the received `#/friend-invite` route, the `FriendInviteSheet` component, and the extended Progress
+  board (self + friends merged/sorted, unfriend affordance, invite CTA, anon account-gate). i18n
+  `board.*` + `friends.*` EN/FR/DE. **OQ2 scoped down:** shipped **uid-only** invite links (no guard
+  token) — ids aren't exposed anywhere else so possession of the link is the capability, and anti-cheat
+  is a non-goal; a rotatable token stays future hardening. **Verified:** 1035 tests green (incl. new
+  codec/seam/store/board tests), check 0 errors, lint clean, build ok (SDK still a lazy 37.5 kB chunk).
+  **Committed, unmerged. Remaining before merge:** a two-browser UI walkthrough (create two accounts,
+  exchange an invite, see each other on the board) + the merge-time `main_PRD.md` reframe.

@@ -7,6 +7,7 @@
     challengeSlotCount,
     filterCountries,
     GRANDMASTER_TOTAL,
+    RANKS,
     type BlitzBestEntry,
     type GameMode,
     type FamilyMasteryResult,
@@ -51,6 +52,11 @@
   import ModeIcon from '../components/ModeIcon.svelte';
   import RankPanel from '../components/RankPanel.svelte';
   import RankMedal from '../components/RankMedal.svelte';
+  import FriendInviteSheet from '../components/FriendInviteSheet.svelte';
+  import { isBackendConfigured } from '../../backend/client';
+  import { identity } from '../stores/identity';
+  import { friends, refreshFriends, unfriend, myUserId } from '../stores/friends';
+  import { friendInviteLinkFor } from '../friend-invite';
   import FamilyMasteryMeter from '../components/FamilyMasteryMeter.svelte';
   import FamilyRegionBreakdown from '../components/FamilyRegionBreakdown.svelte';
   import GauntletOfferModal from '../components/GauntletOfferModal.svelte';
@@ -99,6 +105,50 @@
   // the combined panel so the main grid doesn't grow with every new mode.
   // Header Orbi (Phase 33): proud once the player has mastered something, else a friendly wave.
   const heroPose = $derived(mastery && mastery.overall.fullyMastered > 0 ? 'proud' : 'wave');
+
+  // Progress board (Phase 52/53): self (from LOCAL stats — offline-first) + accepted friends (from the
+  // server store), merged and sorted by XP, self highlighted. Friending requires an account (OQ1); with
+  // no backend the board degrades to the "friends coming" note.
+  const hasBackend = isBackendConfigured();
+  const rankKey = (i: number): string =>
+    RANKS[Math.max(0, Math.min(RANKS.length - 1, i))]?.key ?? 'novice';
+  const selfName = $derived($prefs.playerName?.trim() || $t('board.you'));
+  const boardRows = $derived.by(() => {
+    if (!rank) return [];
+    const self = {
+      userId: null as string | null,
+      name: selfName,
+      rankIndex: rank.progress.rank.index,
+      xp: rank.xp.total,
+      fullyMastered: mastery?.overall.fullyMastered ?? 0,
+      sessionCount: stats?.sessionCount ?? 0,
+      isSelf: true,
+    };
+    const others = $friends.map((f) => ({
+      userId: f.userId,
+      name: f.displayName?.trim() || $t('board.anon'),
+      rankIndex: f.rankIndex,
+      xp: f.xp,
+      fullyMastered: f.fullyMastered,
+      sessionCount: f.sessionCount,
+      isSelf: false,
+    }));
+    return [self, ...others].sort((a, b) => b.xp - a.xp);
+  });
+
+  let inviteOpen = $state(false);
+  let inviteUrl = $state('');
+  async function openInvite(): Promise<void> {
+    const uid = await myUserId();
+    if (!uid) return;
+    inviteUrl = friendInviteLinkFor(uid, $prefs.playerName ?? '');
+    inviteOpen = true;
+  }
+  async function onUnfriend(userId: string | null, name: string): Promise<void> {
+    if (!userId) return;
+    if (typeof confirm === 'function' && !confirm($t('board.unfriendConfirm', { name }))) return;
+    await unfriend(userId);
+  }
 
   /**
    * Per-family "practise" shortcut on the world-mastery breakdown (Phase 41 follow-on): drill a
@@ -258,6 +308,8 @@
 
   async function refresh(): Promise<void> {
     loading = true;
+    // Friends board (Phase 53): best-effort, non-blocking refresh of the server-backed friend rows.
+    void refreshFriends();
     sessions = await loadSessions();
     stats = computeStats(sessions);
     // Progress surfaces (Phase 16): mastery + recap + achievements, computed from the same
@@ -408,43 +460,74 @@
       </div>
     {/if}
 
-    <!-- Progress board (Phase 52): your own row today; friends join in Phase 53. Sourced from the
-         local stats above, so it renders instantly and works fully offline (the server sync is an
-         additive, best-effort mirror). Self is always shown and highlighted. -->
+    <!-- Progress board (Phase 52/53): your row (from LOCAL stats — instant + offline) plus accepted
+         friends (from the server), merged and sorted by XP, self highlighted. Friending needs an
+         account; with no backend the board degrades to the "friends coming" note. -->
     {#if rank}
       <div class="panel board">
         <h2>{$t('board.title')}</h2>
         <p class="panel-sub">{$t('board.subtitle')}</p>
         <ul class="board-list">
-          <li class="board-row is-self">
-            <span class="br-medal" aria-hidden="true">
-              <RankMedal index={rank.progress.rank.index} size={40} />
-            </span>
-            <span class="br-id">
-              <span class="br-name">{$prefs.playerName?.trim() || $t('board.you')}</span>
-              <span class="br-tier">{$t(`rank.names.${rank.progress.rank.key}`)}</span>
-            </span>
-            <span class="br-metrics">
-              <span class="br-xp">
-                {rank.xp.total.toLocaleString()}<small>{$t('board.xpUnit')}</small>
+          {#each boardRows as row (row.isSelf ? '__self__' : row.userId)}
+            <li class="board-row" class:is-self={row.isSelf}>
+              <span class="br-medal" aria-hidden="true">
+                <RankMedal index={row.rankIndex} size={40} />
               </span>
-              <span class="br-secondary">
-                <span class="br-metric" title={$t('board.metric.fullyMastered')}>
-                  <Icon name="globe" size="0.85em" />
-                  {mastery?.overall.fullyMastered ?? 0}
+              <span class="br-id">
+                <span class="br-name">{row.name}</span>
+                <span class="br-tier">{$t(`rank.names.${rankKey(row.rankIndex)}`)}</span>
+              </span>
+              <span class="br-metrics">
+                <span class="br-xp">
+                  {row.xp.toLocaleString()}<small>{$t('board.xpUnit')}</small>
                 </span>
-                <span class="br-metric" title={$t('board.metric.sessions')}>
-                  <Icon name="play" size="0.85em" />
-                  {s.sessionCount}
+                <span class="br-secondary">
+                  <span class="br-metric" title={$t('board.metric.fullyMastered')}>
+                    <Icon name="globe" size="0.85em" />
+                    {row.fullyMastered}
+                  </span>
+                  <span class="br-metric" title={$t('board.metric.sessions')}>
+                    <Icon name="play" size="0.85em" />
+                    {row.sessionCount}
+                  </span>
                 </span>
               </span>
-            </span>
-          </li>
+              {#if !row.isSelf && row.userId}
+                <button
+                  type="button"
+                  class="br-unfriend"
+                  aria-label={$t('board.unfriend')}
+                  title={$t('board.unfriend')}
+                  onclick={() => onUnfriend(row.userId, row.name)}
+                >
+                  ×
+                </button>
+              {/if}
+            </li>
+          {/each}
         </ul>
-        <p class="board-empty">
-          <Icon name="sparkles" size="0.9em" />
-          {$t('board.friendsComing')}
-        </p>
+
+        {#if !hasBackend}
+          <p class="board-empty">
+            <Icon name="sparkles" size="0.9em" />
+            {$t('board.friendsComing')}
+          </p>
+        {:else if $identity.tier !== 'account'}
+          <div class="board-foot">
+            <p class="muted">{$t('board.gate.body')}</p>
+            <a class="board-btn" href="#/settings">{$t('board.gate.cta')}</a>
+          </div>
+        {:else}
+          <div class="board-foot">
+            {#if boardRows.length <= 1}
+              <p class="muted">{$t('board.inviteEmpty')}</p>
+            {/if}
+            <button type="button" class="board-btn" onclick={openInvite}>
+              <Icon name="share" size="0.9em" />
+              {$t('board.inviteCta')}
+            </button>
+          </div>
+        {/if}
       </div>
     {/if}
 
@@ -620,6 +703,9 @@
     onClose={() => (inviteSheetOpen = false)}
   />
 {/if}
+
+<!-- Friend-invite share sheet (Phase 53): opens from the board's "invite a friend" button. -->
+<FriendInviteSheet open={inviteOpen} url={inviteUrl} onClose={() => (inviteOpen = false)} />
 
 <style>
   .progress {
@@ -991,6 +1077,7 @@
   }
 
   .board-row {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.7rem;
@@ -1083,6 +1170,72 @@
   .board-empty :global(.icon) {
     color: var(--color-accent);
     flex: 0 0 auto;
+  }
+
+  /* Unfriend affordance on a friend row — a subtle × that firms up on hover. */
+  .br-unfriend {
+    flex: 0 0 auto;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.12s ease;
+  }
+
+  .br-unfriend:hover {
+    opacity: 1;
+    background: var(--color-wrong-bg);
+    color: var(--color-wrong);
+  }
+
+  /* Board footer: the account gate (anon) or the "invite a friend" action (account). */
+  .board-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+  }
+
+  .board-foot .muted {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+
+  .board-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    font-weight: 800;
+    font-size: 0.88rem;
+    color: var(--color-accent-contrast);
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-chunky);
+    cursor: pointer;
+  }
+
+  .board-btn:hover {
+    text-decoration: none;
+    filter: brightness(1.03);
+  }
+
+  .board-btn:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
   }
 
   .panel h2 {

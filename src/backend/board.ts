@@ -85,8 +85,9 @@ export function buildStatsSnapshot(input: StatsSnapshotInput): StatsSnapshot {
   };
 }
 
-/** Map a raw `stats` record back to the app's snapshot view (defensive type guards). */
-function toSnapshot(record: RecordModel): StatsSnapshot {
+/** Map a raw `stats` record back to the app's snapshot view (defensive type guards). Exported so
+ *  the friends seam can map friends' rows from the widened read (Phase 53). */
+export function snapshotFromRecord(record: RecordModel): StatsSnapshot {
   const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
   return {
     displayName: typeof record.displayName === 'string' ? record.displayName : '',
@@ -140,7 +141,7 @@ export async function readOwnSnapshot(): Promise<StatsSnapshot | null> {
   if (!ownerId) return null;
   try {
     const record = await pb.collection('stats').getFirstListItem(`user = "${ownerId}"`);
-    return toSnapshot(record);
+    return snapshotFromRecord(record);
   } catch {
     return null;
   }

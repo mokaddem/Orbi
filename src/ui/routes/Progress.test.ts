@@ -65,10 +65,10 @@ describe('Progress route (learning & achievements)', () => {
     await saveSession(summary());
     render(Progress);
 
-    // The board panel + the empty-state that names the friends coming in Phase 53.
+    // The board panel renders the self row from local stats (Phase 52). With no display name set,
+    // the self row is labelled "You". (The friends section below it — invite CTA / account gate /
+    // "friends coming" note — depends on backend + tier, exercised in Progress.board.test.ts.)
     expect(await screen.findByText('Your board', {}, { timeout: 3000 })).toBeInTheDocument();
-    expect(screen.getByText(/Friends will show up here/i)).toBeInTheDocument();
-    // With no display name set, the self row is labelled "You".
     expect(screen.getByText('You')).toBeInTheDocument();
   });
 

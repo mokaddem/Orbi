@@ -279,3 +279,12 @@ export {
   encodeGmInvite,
   decodeGmInvite,
 } from './grandmaster-invite';
+
+export {
+  FRIEND_INVITE_PROTOCOL_VERSION,
+  type FriendInvitePayload,
+  type FriendInviteDecodeError,
+  type FriendInviteDecodeResult,
+  encodeFriendInvite,
+  decodeFriendInvite,
+} from './friend-invite';
