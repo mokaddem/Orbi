@@ -1,0 +1,17 @@
+{
+  "name": "geography-quiz-manual-labs",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Hands-on Playwright labs for tuning interactions by feel. NOT part of the app or `npm test`.",
+  "scripts": {
+    "postinstall-note": "echo 'Run: npm run setup  (installs the Chromium browser)'",
+    "setup": "playwright install chromium",
+    "levelup": "playwright test --project=levelup",
+    "magnet:feel": "playwright test --project=magnet -g feel",
+    "magnet:sweep": "playwright test --project=magnet -g sweep"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
