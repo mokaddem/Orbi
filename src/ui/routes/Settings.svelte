@@ -105,6 +105,7 @@
   let accountBusy = $state(false);
   let accountFeedback = $state<{ kind: 'ok' | 'error'; key: string } | null>(null);
   let accountDeleteDialogOpen = $state(false);
+  let signOutDialogOpen = $state(false);
 
   function resetAccountForm(): void {
     accountForm = 'none';
@@ -138,6 +139,11 @@
     } else {
       feedbackFor(result);
     }
+  }
+
+  function confirmSignOut(): void {
+    signOutDialogOpen = false;
+    void signOut();
   }
 
   async function confirmDeleteAccount(): Promise<void> {
@@ -269,7 +275,12 @@
       </span>
     </div>
     <div class="account-actions">
-      <button type="button" class="ghost" onclick={() => signOut()} disabled={accountBusy}>
+      <button
+        type="button"
+        class="ghost"
+        onclick={() => (signOutDialogOpen = true)}
+        disabled={accountBusy}
+      >
         {$t('settings.account.signOut')}
       </button>
       <button
@@ -404,6 +415,15 @@
   confirmLabel={$t('settings.data.resetTraining')}
   onconfirm={confirmResetTraining}
   oncancel={() => (trainingDialogOpen = false)}
+/>
+
+<ConfirmDialog
+  open={signOutDialogOpen}
+  title={$t('settings.account.signOutTitle')}
+  message={$t('settings.account.signOutMessage')}
+  confirmLabel={$t('settings.account.signOut')}
+  onconfirm={confirmSignOut}
+  oncancel={() => (signOutDialogOpen = false)}
 />
 
 <ConfirmDialog

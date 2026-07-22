@@ -722,6 +722,8 @@ const en = {
       signInInstead: 'I already have an account',
       signIn: 'Sign in',
       signOut: 'Sign out',
+      signOutTitle: 'Sign out?',
+      signOutMessage: 'You can sign back in any time. Your progress stays on this device.',
       delete: 'Delete account',
       deleteTitle: 'Delete account?',
       deleteMessage:

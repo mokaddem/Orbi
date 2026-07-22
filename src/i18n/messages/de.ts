@@ -714,6 +714,9 @@ const de: typeof en = {
       signInInstead: 'Ich habe bereits ein Konto',
       signIn: 'Anmelden',
       signOut: 'Abmelden',
+      signOutTitle: 'Abmelden?',
+      signOutMessage:
+        'Du kannst dich jederzeit wieder anmelden. Dein Fortschritt bleibt auf diesem Gerät.',
       delete: 'Konto löschen',
       deleteTitle: 'Konto löschen?',
       deleteMessage:
