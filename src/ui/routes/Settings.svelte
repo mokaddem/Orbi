@@ -149,6 +149,19 @@
     accountBusy = false;
     if (!result.ok) feedbackFor(result);
   }
+
+  // Account form modal (open when accountForm !== 'none'): focus the email field on open, and let
+  // Escape / a backdrop click dismiss it (resetAccountForm also clears the fields + feedback).
+  let accountEmailEl = $state<HTMLInputElement | null>(null);
+  $effect(() => {
+    if (accountForm !== 'none') queueMicrotask(() => accountEmailEl?.focus());
+  });
+  function onAccountModalKeydown(e: KeyboardEvent): void {
+    if (accountForm !== 'none' && e.key === 'Escape') resetAccountForm();
+  }
+  function onAccountBackdrop(e: MouseEvent): void {
+    if (e.target === e.currentTarget) resetAccountForm();
+  }
 </script>
 
 <section class="settings">
@@ -287,64 +300,25 @@
     </div>
     <p class="hint">{$t('settings.account.anonNote')}</p>
 
-    {#if accountForm === 'none'}
-      <div class="account-actions">
-        <button
-          type="button"
-          class="primary"
-          onclick={() => ((accountForm = 'create'), (accountFeedback = null))}
-        >
-          {$t('settings.account.create')}
-        </button>
-        <button
-          type="button"
-          class="link"
-          onclick={() => ((accountForm = 'signin'), (accountFeedback = null))}
-        >
-          {$t('settings.account.signInInstead')}
-        </button>
-      </div>
-    {:else}
-      <form
-        class="account-form"
-        onsubmit={(e) => {
-          e.preventDefault();
-          void submitAccount();
-        }}
+    <div class="account-actions">
+      <button
+        type="button"
+        class="primary"
+        onclick={() => ((accountForm = 'create'), (accountFeedback = null))}
       >
-        <label class="label" for="account-email">{$t('settings.account.emailLabel')}</label>
-        <input
-          id="account-email"
-          type="email"
-          autocomplete="email"
-          bind:value={accountEmail}
-          required
-        />
-        <label class="label" for="account-password">{$t('settings.account.passwordLabel')}</label>
-        <input
-          id="account-password"
-          type="password"
-          autocomplete={accountForm === 'create' ? 'new-password' : 'current-password'}
-          minlength="8"
-          bind:value={accountPassword}
-          required
-        />
-        {#if accountForm === 'create'}
-          <p class="hint">{$t('settings.account.passwordHint')}</p>
-        {/if}
-        <div class="account-actions">
-          <button type="submit" class="primary" disabled={accountBusy}>
-            {$t(accountForm === 'create' ? 'settings.account.create' : 'settings.account.signIn')}
-          </button>
-          <button type="button" class="link" onclick={resetAccountForm} disabled={accountBusy}>
-            {$t('common.cancel')}
-          </button>
-        </div>
-      </form>
-    {/if}
+        {$t('settings.account.create')}
+      </button>
+      <button
+        type="button"
+        class="link"
+        onclick={() => ((accountForm = 'signin'), (accountFeedback = null))}
+      >
+        {$t('settings.account.signInInstead')}
+      </button>
+    </div>
   {/if}
 
-  {#if accountFeedback}
+  {#if accountFeedback && accountForm === 'none'}
     <p class="account-feedback" data-kind={accountFeedback.kind} role="status">
       {$t(`settings.account.${accountFeedback.key}`)}
     </p>
@@ -444,6 +418,65 @@
   onconfirm={confirmDeleteAccount}
   oncancel={() => (accountDeleteDialogOpen = false)}
 />
+
+<!-- Account create / sign-in form, in a modal (Escape / backdrop / Cancel dismiss). -->
+<svelte:window onkeydown={onAccountModalKeydown} />
+{#if accountForm !== 'none'}
+  <div class="backdrop" role="presentation" onclick={onAccountBackdrop}>
+    <div
+      class="account-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="account-modal-title"
+    >
+      <h2 id="account-modal-title">
+        {$t(accountForm === 'create' ? 'settings.account.create' : 'settings.account.signIn')}
+      </h2>
+      <form
+        class="account-form"
+        onsubmit={(e) => {
+          e.preventDefault();
+          void submitAccount();
+        }}
+      >
+        <label class="label" for="account-email">{$t('settings.account.emailLabel')}</label>
+        <input
+          bind:this={accountEmailEl}
+          id="account-email"
+          type="email"
+          autocomplete="email"
+          bind:value={accountEmail}
+          required
+        />
+        <label class="label" for="account-password">{$t('settings.account.passwordLabel')}</label>
+        <input
+          id="account-password"
+          type="password"
+          autocomplete={accountForm === 'create' ? 'new-password' : 'current-password'}
+          minlength="8"
+          bind:value={accountPassword}
+          required
+        />
+        {#if accountForm === 'create'}
+          <p class="hint">{$t('settings.account.passwordHint')}</p>
+        {/if}
+        {#if accountFeedback && accountFeedback.kind === 'error'}
+          <p class="account-feedback" data-kind="error" role="alert">
+            {$t(`settings.account.${accountFeedback.key}`)}
+          </p>
+        {/if}
+        <div class="account-actions end">
+          <button type="button" class="link" onclick={resetAccountForm} disabled={accountBusy}>
+            {$t('common.cancel')}
+          </button>
+          <button type="submit" class="primary" disabled={accountBusy}>
+            {$t(accountForm === 'create' ? 'settings.account.create' : 'settings.account.signIn')}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/if}
 
 <style>
   .settings {
@@ -667,6 +700,68 @@
   }
   .account-feedback[data-kind='error'] {
     color: var(--color-wrong);
+  }
+
+  /* Account form modal (create / sign in) — same idiom as the app's other dialogs. */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgb(26 36 51 / 45%);
+    animation: fade 0.12s ease;
+  }
+  .account-dialog {
+    width: 100%;
+    max-width: 26rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgb(26 36 51 / 25%);
+    animation: pop 0.12s ease;
+  }
+  .account-dialog h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+  .account-dialog input {
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius);
+    border: 2px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 1rem;
+  }
+  .account-dialog input:focus-visible {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+  .account-actions.end {
+    justify-content: flex-end;
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .backdrop,
+    .account-dialog {
+      animation: none;
+    }
   }
 
   /* Data section */
