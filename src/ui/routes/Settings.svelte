@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
+  import { router } from 'svelte-spa-router';
   import { t } from '../../i18n';
   import {
     PREFS_BOUNDS,
@@ -64,6 +66,11 @@
   let MapBoard = $state<typeof import('../components/MapBoard.svelte').default | null>(null);
   onMount(() => {
     void import('../components/MapBoard.svelte').then((m) => (MapBoard = m.default));
+    // Deep-link from the board's account gate (#/settings?account=create|signin): open that form.
+    const account = new URLSearchParams(router.querystring ?? '').get('account');
+    if ((account === 'create' || account === 'signin') && get(identity).tier !== 'account') {
+      accountForm = account;
+    }
   });
 
   // "Data" section — scoped, separately-confirmed resets (Phase 13). Each control

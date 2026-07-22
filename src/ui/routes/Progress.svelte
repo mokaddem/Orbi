@@ -533,9 +533,14 @@
             {$t('board.friendsComing')}
           </p>
         {:else if $identity.tier !== 'account'}
-          <div class="board-foot">
+          <div class="board-foot gate">
             <p class="muted">{$t('board.gate.body')}</p>
-            <a class="board-btn" href="#/settings">{$t('board.gate.cta')}</a>
+            <div class="gate-actions">
+              <a class="board-btn" href="#/settings?account=create">{$t('board.gate.cta')}</a>
+              <a class="gate-signin" href="#/settings?account=signin">
+                {$t('settings.account.signInInstead')}
+              </a>
+            </div>
           </div>
         {:else}
           <div class="board-foot">
@@ -1227,6 +1232,30 @@
     margin: 0;
     font-size: 0.85rem;
     color: var(--color-muted);
+  }
+
+  /* Anonymous account gate: message on top, then "Create an account" + a "Sign in" link. */
+  .board-foot.gate {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .gate-signin {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--color-accent-strong);
+    text-decoration: underline;
+  }
+
+  .gate-signin:hover {
+    color: var(--color-accent);
   }
 
   .board-btn {
