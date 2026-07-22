@@ -851,7 +851,7 @@ const en = {
     },
     friendsComing: 'Friends will show up here once you connect — compare your progress together.',
     unfriend: 'Remove friend',
-    unfriendConfirm: 'Remove {name} from your board?',
+    friendActions: 'Options for {name}',
     gate: {
       body: 'Create an account to add friends and compare progress.',
       cta: 'Create an account',
@@ -862,6 +862,8 @@ const en = {
 
   friends: {
     close: 'Close',
+    remove: 'Remove',
+    removeConfirm: 'Remove {name}?',
     invite: {
       shareTitle: 'Invite a friend',
       shareSub: 'Share this link or QR — they’ll appear on your board.',

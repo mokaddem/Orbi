@@ -849,7 +849,7 @@ const de: typeof en = {
     friendsComing:
       'Freunde erscheinen hier, sobald ihr verbunden seid — vergleicht euren Fortschritt.',
     unfriend: 'Freund entfernen',
-    unfriendConfirm: '{name} von deiner Tafel entfernen?',
+    friendActions: 'Optionen für {name}',
     gate: {
       body: 'Erstelle ein Konto, um Freunde hinzuzufügen und Fortschritte zu vergleichen.',
       cta: 'Konto erstellen',
@@ -860,6 +860,8 @@ const de: typeof en = {
 
   friends: {
     close: 'Schließen',
+    remove: 'Entfernen',
+    removeConfirm: '{name} entfernen?',
     invite: {
       shareTitle: 'Freund einladen',
       shareSub: 'Teile diesen Link oder QR-Code — dein Freund erscheint auf deiner Tafel.',

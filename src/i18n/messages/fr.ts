@@ -849,7 +849,7 @@ const fr: typeof en = {
     },
     friendsComing: 'Vos amis apparaîtront ici une fois connectés — comparez vos progrès ensemble.',
     unfriend: 'Retirer cet ami',
-    unfriendConfirm: 'Retirer {name} de votre tableau ?',
+    friendActions: 'Options pour {name}',
     gate: {
       body: 'Créez un compte pour ajouter des amis et comparer vos progrès.',
       cta: 'Créer un compte',
@@ -860,6 +860,8 @@ const fr: typeof en = {
 
   friends: {
     close: 'Fermer',
+    remove: 'Retirer',
+    removeConfirm: 'Retirer {name} ?',
     invite: {
       shareTitle: 'Inviter un ami',
       shareSub: 'Partagez ce lien ou ce QR — votre ami apparaîtra sur votre tableau.',

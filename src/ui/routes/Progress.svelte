@@ -53,6 +53,7 @@
   import RankPanel from '../components/RankPanel.svelte';
   import RankMedal from '../components/RankMedal.svelte';
   import FriendInviteSheet from '../components/FriendInviteSheet.svelte';
+  import FriendActionsSheet from '../components/FriendActionsSheet.svelte';
   import { isBackendConfigured } from '../../backend/client';
   import { identity } from '../stores/identity';
   import { friends, refreshFriends, unfriend, myUserId } from '../stores/friends';
@@ -113,7 +114,16 @@
   const rankKey = (i: number): string =>
     RANKS[Math.max(0, Math.min(RANKS.length - 1, i))]?.key ?? 'novice';
   const selfName = $derived($prefs.playerName?.trim() || $t('board.you'));
-  const boardRows = $derived.by(() => {
+  interface BoardVMRow {
+    userId: string | null;
+    name: string;
+    rankIndex: number;
+    xp: number;
+    fullyMastered: number;
+    sessionCount: number;
+    isSelf: boolean;
+  }
+  const boardRows = $derived.by((): BoardVMRow[] => {
     if (!rank) return [];
     const self = {
       userId: null as string | null,
@@ -144,10 +154,16 @@
     inviteUrl = friendInviteLinkFor(uid, $prefs.playerName ?? '');
     inviteOpen = true;
   }
-  async function onUnfriend(userId: string | null, name: string): Promise<void> {
-    if (!userId) return;
-    if (typeof confirm === 'function' && !confirm($t('board.unfriendConfirm', { name }))) return;
-    await unfriend(userId);
+  // Tapping a friend row opens the actions modal (remove now; profile / challenge later). Self isn't
+  // actionable yet, so its row is a plain, non-interactive entry.
+  let selectedFriend = $state<BoardVMRow | null>(null);
+  function openFriend(row: BoardVMRow): void {
+    if (row.isSelf || !row.userId) return;
+    selectedFriend = row;
+  }
+  function removeSelectedFriend(): void {
+    if (selectedFriend?.userId) void unfriend(selectedFriend.userId);
+    selectedFriend = null;
   }
 
   /**
@@ -467,43 +483,47 @@
       <div class="panel board">
         <h2>{$t('board.title')}</h2>
         <p class="panel-sub">{$t('board.subtitle')}</p>
+        {#snippet rowInner(row: BoardVMRow)}
+          <span class="br-medal" aria-hidden="true">
+            <RankMedal index={row.rankIndex} size={40} />
+          </span>
+          <span class="br-id">
+            <span class="br-name">{row.name}</span>
+            <span class="br-tier">{$t(`rank.names.${rankKey(row.rankIndex)}`)}</span>
+          </span>
+          <span class="br-metrics">
+            <span class="br-xp">
+              {row.xp.toLocaleString()}<small>{$t('board.xpUnit')}</small>
+            </span>
+            <span class="br-secondary">
+              <span class="br-metric" title={$t('board.metric.fullyMastered')}>
+                <Icon name="globe" size="0.85em" />
+                {row.fullyMastered}
+              </span>
+              <span class="br-metric" title={$t('board.metric.sessions')}>
+                <Icon name="play" size="0.85em" />
+                {row.sessionCount}
+              </span>
+            </span>
+          </span>
+        {/snippet}
         <ul class="board-list">
           {#each boardRows as row (row.isSelf ? '__self__' : row.userId)}
-            <li class="board-row" class:is-self={row.isSelf}>
-              <span class="br-medal" aria-hidden="true">
-                <RankMedal index={row.rankIndex} size={40} />
-              </span>
-              <span class="br-id">
-                <span class="br-name">{row.name}</span>
-                <span class="br-tier">{$t(`rank.names.${rankKey(row.rankIndex)}`)}</span>
-              </span>
-              <span class="br-metrics">
-                <span class="br-xp">
-                  {row.xp.toLocaleString()}<small>{$t('board.xpUnit')}</small>
-                </span>
-                <span class="br-secondary">
-                  <span class="br-metric" title={$t('board.metric.fullyMastered')}>
-                    <Icon name="globe" size="0.85em" />
-                    {row.fullyMastered}
-                  </span>
-                  <span class="br-metric" title={$t('board.metric.sessions')}>
-                    <Icon name="play" size="0.85em" />
-                    {row.sessionCount}
-                  </span>
-                </span>
-              </span>
-              {#if !row.isSelf && row.userId}
+            {#if row.isSelf}
+              <li class="board-row is-self">{@render rowInner(row)}</li>
+            {:else}
+              <!-- A friend row opens the actions modal (remove now; profile / challenge later). -->
+              <li>
                 <button
                   type="button"
-                  class="br-unfriend"
-                  aria-label={$t('board.unfriend')}
-                  title={$t('board.unfriend')}
-                  onclick={() => onUnfriend(row.userId, row.name)}
+                  class="board-row row-open"
+                  aria-label={$t('board.friendActions', { name: row.name })}
+                  onclick={() => openFriend(row)}
                 >
-                  ×
+                  {@render rowInner(row)}
                 </button>
-              {/if}
-            </li>
+              </li>
+            {/if}
           {/each}
         </ul>
 
@@ -706,6 +726,14 @@
 
 <!-- Friend-invite share sheet (Phase 53): opens from the board's "invite a friend" button. -->
 <FriendInviteSheet open={inviteOpen} url={inviteUrl} onClose={() => (inviteOpen = false)} />
+
+<!-- Friend actions modal: opens when a friend row is tapped (remove now; more actions later). -->
+<FriendActionsSheet
+  open={!!selectedFriend}
+  friend={selectedFriend}
+  onRemove={removeSelectedFriend}
+  onClose={() => (selectedFriend = null)}
+/>
 
 <style>
   .progress {
@@ -1077,7 +1105,6 @@
   }
 
   .board-row {
-    position: relative;
     display: flex;
     align-items: center;
     gap: 0.7rem;
@@ -1087,7 +1114,21 @@
     background: var(--color-bg);
   }
 
-  /* You — highlighted so a friend list will read "which one is me" at a glance (Phase 53). */
+  /* A friend row is a button that opens the actions modal — reset the native button chrome and
+     let the shared .board-row styles show through, with a subtle interactive affordance. */
+  .row-open {
+    width: 100%;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.12s ease;
+  }
+
+  .row-open:hover {
+    border-color: var(--color-accent);
+  }
+
+  /* You — highlighted so the friend list reads "which one is me" at a glance (Phase 53). */
   .board-row.is-self {
     border-color: var(--color-accent);
     background: var(--color-accent-weak);
@@ -1170,31 +1211,6 @@
   .board-empty :global(.icon) {
     color: var(--color-accent);
     flex: 0 0 auto;
-  }
-
-  /* Unfriend affordance on a friend row — a subtle × that firms up on hover. */
-  .br-unfriend {
-    flex: 0 0 auto;
-    width: 1.5rem;
-    height: 1.5rem;
-    display: grid;
-    place-items: center;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--color-muted);
-    font-size: 1.1rem;
-    line-height: 1;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: opacity 0.12s ease;
-  }
-
-  .br-unfriend:hover {
-    opacity: 1;
-    background: var(--color-wrong-bg);
-    color: var(--color-wrong);
   }
 
   /* Board footer: the account gate (anon) or the "invite a friend" action (account). */

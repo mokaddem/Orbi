@@ -1,8 +1,10 @@
 import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import { readable } from 'svelte/store';
+
+const unfriendMock = vi.hoisted(() => vi.fn());
 
 // Phase 53: with a backend + an account + a friend in the store, the Progress board renders self +
 // friend rows (sorted XP desc) and the "invite a friend" action. We mock the friends store, identity,
@@ -29,7 +31,7 @@ vi.mock('../stores/friends', () => ({
     },
   ]),
   refreshFriends: vi.fn(),
-  unfriend: vi.fn(),
+  unfriend: unfriendMock,
   myUserId: vi.fn().mockResolvedValue('me'),
 }));
 
@@ -83,5 +85,22 @@ describe('Progress board with friends (Phase 53)', () => {
     expect(screen.queryByText('Create an account')).not.toBeInTheDocument();
     // The friend's high XP renders (sorted above the fresh self row).
     expect(screen.getByText((_, el) => el?.textContent === '40,000XP')).toBeInTheDocument();
+  });
+
+  it('opens the friend actions modal from the row and removes the friend', async () => {
+    await saveSession(summary());
+    render(Progress);
+
+    // The friend row is a button; tapping it opens the actions modal.
+    const row = await screen.findByRole('button', { name: /Options for Bob/i }, { timeout: 3000 });
+    await fireEvent.click(row);
+
+    // "Remove friend" swaps into an inline confirm; only the confirm "Remove" calls unfriend.
+    const removeBtn = await screen.findByRole('button', { name: /Remove friend/i });
+    await fireEvent.click(removeBtn);
+    expect(unfriendMock).not.toHaveBeenCalled(); // not yet — awaiting the inline confirm
+    const confirmBtn = await screen.findByRole('button', { name: /^Remove$/i });
+    await fireEvent.click(confirmBtn);
+    expect(unfriendMock).toHaveBeenCalledWith('fr1');
   });
 });
