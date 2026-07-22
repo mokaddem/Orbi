@@ -62,10 +62,6 @@ const fr: typeof en = {
       milestoneTitle: 'Série de {count} jours !',
       milestoneBody: 'Vous êtes lancé — continuez comme ça.',
     },
-    mastery: {
-      showRegions: 'Afficher le détail par région',
-      hideRegions: 'Masquer le détail par région',
-    },
   },
   daily: {
     label: 'Défi du jour',
