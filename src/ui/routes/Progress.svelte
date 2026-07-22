@@ -114,6 +114,9 @@
   const rankKey = (i: number): string =>
     RANKS[Math.max(0, Math.min(RANKS.length - 1, i))]?.key ?? 'novice';
   const selfName = $derived($prefs.playerName?.trim() || $t('board.you'));
+  // Whether the player has a display name — drives the "You" chip on the self row (redundant when the
+  // name already falls back to "You").
+  const hasPlayerName = $derived(!!$prefs.playerName?.trim());
   interface BoardVMRow {
     userId: string | null;
     name: string;
@@ -488,7 +491,12 @@
             <RankMedal index={row.rankIndex} size={40} />
           </span>
           <span class="br-id">
-            <span class="br-name">{row.name}</span>
+            <span class="br-name-row">
+              <span class="br-name">{row.name}</span>
+              {#if row.isSelf && hasPlayerName}
+                <span class="you-chip">{$t('board.you')}</span>
+              {/if}
+            </span>
             <span class="br-tier">{$t(`rank.names.${rankKey(row.rankIndex)}`)}</span>
           </span>
           <span class="br-metrics">
@@ -1151,12 +1159,33 @@
     flex: 1 1 auto;
   }
 
+  .br-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
   .br-name {
     font-weight: 800;
     font-size: 0.98rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  /* "You" chip on the self row — an accent pill so your row is instantly findable among friends. */
+  .you-chip {
+    flex: 0 0 auto;
+    padding: 0.05rem 0.4rem;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-accent-contrast);
+    background: var(--color-accent);
+    border-radius: 999px;
   }
 
   .br-tier {
