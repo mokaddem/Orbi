@@ -76,6 +76,20 @@ MAGNET_FOCUS=IT,FR,CH,AT,SI npm run magnet:sweep   # frame a region instead of t
   the table lists which country stole it and at what distance. World framing is the hardest case
   (specks tiny, dots crowded); a `MAGNET_FOCUS` region spreads them out like an in-region game does.
 
+## Watch mode (live tuning loop)
+
+Each lab has a `:watch` variant that **re-launches it automatically whenever you save** the component
+you're tuning (or the spec). So the loop is just: edit → save → the lab reopens with the new code.
+
+```bash
+npm run levelup:watch
+npm run magnet:feel:watch
+npm run magnet:sweep:watch     # re-prints the radius table on every save — handy for tuning the caps
+```
+
+It watches `src/ui/components` (`SessionXpCard` / `WorldMap` / `map-hit` / `projection` / `map-framing`)
+and `manual/tests`. Env vars work the same (e.g. `LEVELUP_RANK=9 npm run levelup:watch`). Ctrl-C quits.
+
 ## Notes
 
 - Headed by default (that's the point). Close the window to end a `feel`/`levelup` lab; `sweep` ends
