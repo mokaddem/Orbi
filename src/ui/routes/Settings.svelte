@@ -130,10 +130,8 @@
     const result = await action(accountEmail, accountPassword);
     accountBusy = false;
     if (result.ok) {
-      accountFeedback = {
-        kind: 'ok',
-        key: accountForm === 'create' ? 'created' : 'signedIn',
-      };
+      // No success toast — the signed-in email appears next to the Account label right away.
+      accountFeedback = null;
       accountForm = 'none';
       accountEmail = '';
       accountPassword = '';
@@ -267,13 +265,11 @@
     <div class="row">
       <span class="label">{$t('settings.account.title')}</span>
       <span class="account-status" data-signed-in="true">
-        {$identity.email
-          ? $t('settings.account.signedInAs', { email: $identity.email })
-          : $t('settings.account.signedIn')}
+        {$identity.email || $t('settings.account.signedIn')}
       </span>
     </div>
     <div class="account-actions">
-      <button type="button" onclick={() => signOut()} disabled={accountBusy}>
+      <button type="button" class="ghost" onclick={() => signOut()} disabled={accountBusy}>
         {$t('settings.account.signOut')}
       </button>
       <button
@@ -646,6 +642,23 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  /* Secondary account action (Sign out) — a neutral bordered button sized to match the danger
+     delete beside it (full text colour + accent hover, vs the delete's muted + red). */
+  .ghost {
+    padding: 0.4rem 0.9rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font-weight: 600;
+  }
+  .ghost:hover:not(:disabled) {
+    border-color: var(--color-accent);
+  }
+  .ghost:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   /* Anonymous status + its device id, stacked and right-aligned against the label. */
   /* Top-align this row so "Anonymous" lines up with the "Account" label (the column below is taller). */
   .row-top {
@@ -694,9 +707,6 @@
     margin: 0.25rem 0 0;
     font-size: 0.9rem;
     font-weight: 600;
-  }
-  .account-feedback[data-kind='ok'] {
-    color: var(--color-correct);
   }
   .account-feedback[data-kind='error'] {
     color: var(--color-wrong);
