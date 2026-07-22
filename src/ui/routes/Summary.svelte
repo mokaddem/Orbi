@@ -45,6 +45,14 @@
     copyImageToClipboard,
   } from '../duel';
   import { getCountry, type Country } from '../../data';
+  import { isBackendConfigured } from '../../backend/client';
+  import { identity } from '../stores/identity';
+  import { friends, type FriendRow } from '../stores/friends';
+  import {
+    send as sendInboxDuel,
+    submit as submitInboxDuel,
+    pendingInboxDuelId,
+  } from '../stores/duels';
   import { sound } from '../sound';
   import DuelNamePrompt from '../components/DuelNamePrompt.svelte';
   import DuelQrModal from '../components/DuelQrModal.svelte';
@@ -233,6 +241,7 @@
     play.reset();
     pendingConfig.set(null);
     pendingDuel.set(null);
+    pendingInboxDuelId.set(null); // a fresh run is never a pending inbox duel (Phase 54)
     push('/play');
   }
 
@@ -263,6 +272,56 @@
     const myScore = duelScore(challenge.type, s);
     return { challenge, myScore, verdict: duelVerdict(myScore, challenge.challengerScore) };
   });
+
+  // --- Inbox duel (Phase 54) -------------------------------------------------------------------
+  // ADDITIVE to the Phase-46 link flow. When the finished run is a received *inbox* duel (an id was
+  // staged by the #/duels accept), auto-write MY score back to the server row — no "send result back"
+  // link, no lost challenge. `wasInboxResponse` picks the verdict variant (no return-leg / rematch);
+  // the challenger sees the outcome in their own history.
+  let inboxSubmitted = $state(false);
+  let wasInboxResponse = $state(false);
+  $effect(() => {
+    const r = duelResponse;
+    const id = $pendingInboxDuelId;
+    if (!r || !id || inboxSubmitted) return;
+    inboxSubmitted = true;
+    wasInboxResponse = true;
+    // Best-effort; consume the id so a re-render / cold reload can't resubmit. Local run is unaffected.
+    void submitInboxDuel(id, r.myScore).finally(() => pendingInboxDuelId.set(null));
+  });
+
+  // "Challenge a friend directly" — the additive send channel (backend + real account + ≥1 friend).
+  // The Phase-46 link / QR / code options are always present regardless (the backend-free path).
+  const canInboxSend = $derived(
+    isBackendConfigured() && $identity.tier === 'account' && $friends.length > 0,
+  );
+  let friendPickerOpen = $state(false);
+  let duelSendMsg = $state<string | null>(null);
+  let sendMsgTimer: ReturnType<typeof setTimeout> | null = null;
+
+  async function sendToFriend(friend: FriendRow): Promise<void> {
+    const s = $lastSummary;
+    if (!s) return;
+    const name = $prefs.playerName ?? '';
+    const payload = buildDuelPayload(s, name);
+    if (!payload) return;
+    const result = await sendInboxDuel(
+      friend.userId,
+      encodeDuel(payload),
+      payload.challengerScore,
+      name,
+    );
+    friendPickerOpen = false;
+    const who = friend.displayName || $t('board.anon');
+    duelSendMsg =
+      result === 'ok'
+        ? $t('duels.sent', { name: who })
+        : result === 'not-friends'
+          ? $t('duels.notFriends')
+          : $t('duels.sendFailed');
+    if (sendMsgTimer) clearTimeout(sendMsgTimer);
+    sendMsgTimer = setTimeout(() => (duelSendMsg = null), 2600);
+  }
 
   // One primary "Challenge a friend" tap (`share`) does the right thing per device (image + link on
   // mobile, link on desktop); `image` copies the scorecard to the clipboard (desktop paste); `link` /
@@ -358,6 +417,7 @@
     const r = duelResponse;
     if (!r) return;
     pendingDuel.set(null);
+    pendingInboxDuelId.set(null);
     pendingConfig.set({ ...duelToRunConfig(r.challenge), seed: undefined });
     push('/play');
   }
@@ -574,9 +634,11 @@
       </button>
     </div>
 
-    <!-- Duel a friend (Phase 46). A finished *received* duel shows the head-to-head verdict + return
-         leg + rematch; otherwise a reproducible run offers to start a fresh challenge (see `duelable`).
-         Builds a seeded share link + a copyable short code; the name is captured once on first use. -->
+    <!-- Duel a friend. A finished *received* duel shows the head-to-head verdict; a Phase-46 LINK duel
+         adds the return leg + rematch, while a Phase-54 INBOX duel needs neither (the result was
+         written straight back to the server row — the challenger sees it in their history). Otherwise a
+         reproducible run offers to start a fresh challenge (link / QR / code, plus — for a connected
+         account with friends — a direct inbox send). The name is captured once on first use. -->
     {#if duelResponse}
       <DuelVerdictCard
         verdict={duelResponse.verdict}
@@ -584,9 +646,9 @@
         youScore={duelResponse.myScore}
         theirScore={duelResponse.challenge.challengerScore}
         theirName={duelResponse.challenge.challengerName}
-        onSendResult={() => onDuelAction('return')}
-        onRematch={duelRematch}
-        feedback={duelFeedback}
+        onSendResult={wasInboxResponse ? undefined : () => onDuelAction('return')}
+        onRematch={wasInboxResponse ? undefined : duelRematch}
+        feedback={wasInboxResponse ? null : duelFeedback}
       />
     {:else if duelable}
       <div class="duel-card">
@@ -617,8 +679,31 @@
             {$t('duel.showQr')}
           </button>
         </div>
+        {#if canInboxSend}
+          <!-- Additive inbox channel (Phase 54): send the same challenge straight to an accepted
+               friend — no link to pass. The link / QR / code options above stay the backend-free path. -->
+          <div class="duel-send">
+            {#if friendPickerOpen}
+              <p class="duel-send-title">{$t('duels.pickFriend')}</p>
+              <div class="duel-friends">
+                {#each $friends as f (f.userId)}
+                  <button type="button" class="duel-friend" onclick={() => sendToFriend(f)}>
+                    <Icon name="swords" size="0.9em" />
+                    {f.displayName || $t('board.anon')}
+                  </button>
+                {/each}
+              </div>
+            {:else}
+              <button type="button" class="duel-send-btn" onclick={() => (friendPickerOpen = true)}>
+                <Icon name="swords" size="1em" />
+                {$t('duels.sendToFriend')}
+              </button>
+              <p class="duel-send-hint">{$t('duels.sendHint')}</p>
+            {/if}
+          </div>
+        {/if}
         <p class="duel-feedback" role="status" aria-live="polite">
-          {duelFeedback ? $t(duelFeedback) : ''}
+          {duelSendMsg ?? (duelFeedback ? $t(duelFeedback) : '')}
         </p>
       </div>
     {/if}
@@ -1115,6 +1200,77 @@
     color: var(--color-accent-strong);
   }
 
+  .duel-send {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .duel-send-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.3rem;
+    border-radius: 999px;
+    font-weight: 700;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+    transition: border-color 0.12s ease;
+  }
+
+  .duel-send-btn:hover {
+    border-color: var(--color-accent);
+  }
+
+  .duel-send-hint {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .duel-send-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .duel-friends {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .duel-friend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    border: 2px solid transparent;
+    box-shadow: var(--shadow-chunky);
+    transition: transform 0.12s ease;
+  }
+
+  .duel-friend:hover {
+    transform: translateY(-2px);
+  }
+
+  .duel-friend:active {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
+  }
+
   .duel-feedback {
     margin: 0;
     min-height: 1.2em;
@@ -1124,11 +1280,14 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .duel-primary {
+    .duel-primary,
+    .duel-friend,
+    .duel-send-btn {
       transition: none;
     }
 
-    .duel-primary:hover {
+    .duel-primary:hover,
+    .duel-friend:hover {
       transform: none;
     }
   }

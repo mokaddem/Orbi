@@ -13,6 +13,7 @@
   import { sound } from './ui/sound';
   import { startBackendProbe, probeBackend } from './backend/status';
   import { initIdentity } from './ui/stores/identity';
+  import { refreshDuels } from './ui/stores/duels';
 
   // The scrolling region (app-shell layout): the shell is pinned to the viewport and only
   // `.content` scrolls, so the top/bottom bars can't detach on scroll. Because the document
@@ -56,6 +57,9 @@
       if (now - lastProbeAt < 3000) return;
       lastProbeAt = now;
       void probeBackend();
+      // Refresh the duel inbox/history too (Phase 54) so the Home badge stays live when the app comes
+      // back into view. No-op when gated (no backend / anonymous); best-effort, never throws.
+      void refreshDuels();
     };
     const onVisibility = (): void => {
       if (!document.hidden) reprobeBackend();

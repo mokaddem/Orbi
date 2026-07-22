@@ -51,6 +51,7 @@
   import GauntletOfferModal from '../components/GauntletOfferModal.svelte';
   import RankChip from '../components/RankChip.svelte';
   import FriendBoard from '../components/FriendBoard.svelte';
+  import DuelsCard from '../components/DuelsCard.svelte';
 
   // The review hero (Phase 14, region-scoped in Phase 26): reads the player's own state and
   // surfaces what to review. When there are mistakes queued, the "Time to review" list offers
@@ -264,6 +265,10 @@
   <!-- Friend leaderboard (Phase 52/53): moved here from Progress so Home is the social hub. Shows
        your row (from LOCAL stats — instant + offline) plus accepted friends, sorted by XP. -->
   <FriendBoard />
+
+  <!-- Duels hub entry (Phase 54): a glanceable card with a pending-count badge → #/duels. Self-gating
+       (account + backend only); anonymous / no-backend players see nothing and keep the link duel. -->
+  <DuelsCard />
 
   {#if available.length > 0}
     <div class="invite-row">

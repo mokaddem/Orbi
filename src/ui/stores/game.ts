@@ -251,6 +251,25 @@ function createPlayStore() {
     },
 
     /**
+     * End a running session NOW with its progress so far, regardless of the normal finish condition
+     * (Phase 54): the player quit a received inbox duel mid-run, so the PARTIAL score is what gets
+     * submitted to the duel row. Generalises {@link endBlitz} to any format. `summary()` reflects the
+     * questions answered so far. Emits `finished`; a no-op with no live / already-finished session.
+     */
+    finishNow(): void {
+      if (!session || session.isFinished()) return;
+      session.end();
+      set({
+        status: 'finished',
+        config,
+        state: snapshot(),
+        question: null,
+        feedback: null,
+        answerCount: session.answerCount,
+      });
+    },
+
+    /**
      * Leave the feedback view: present the next question, or finish. Returns `true`
      * when the session is over (the caller then reads {@link summary} and routes on).
      */

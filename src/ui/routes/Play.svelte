@@ -37,11 +37,13 @@
     lastBlitzResult,
     lastRunConfig,
     pendingConfig,
+    pendingDuel,
     playFabAction,
     focusIsosForConfig,
     type RunConfig,
   } from '../stores/game';
   import { syncBoard } from '../stores/board';
+  import { pendingInboxDuelId } from '../stores/duels';
   import {
     prefs,
     updatePrefs,
@@ -63,6 +65,7 @@
   import RegionIcon from '../components/RegionIcon.svelte';
   import Icon from '../components/Icon.svelte';
   import MapError from '../components/MapError.svelte';
+  import ConfirmDialog from '../components/ConfirmDialog.svelte';
 
   // Auto-advance timings (ms): a brief dwell on a plain correct answer, a longer one
   // whenever there's a reveal to read. Fixed by design (not a setting).
@@ -531,8 +534,36 @@
     }
   }
 
+  // Quitting a received inbox duel (Phase 54) isn't a plain discard: the partial score still counts,
+  // so confirm, then end the run NOW and route to the Summary — its auto-submit writes the current
+  // score to the duel row (you can't dodge a loss by bailing). Any other run quits as before (discard
+  // → setup). The confirm names the challenger from the staged `pendingDuel`.
+  let confirmQuitOpen = $state(false);
+  const inboxDuelName = $derived($pendingInboxDuelId ? ($pendingDuel?.challengerName ?? '') : '');
+
   function quit(): void {
+    if (get(pendingInboxDuelId)) {
+      confirmQuitOpen = true;
+      return;
+    }
     play.reset();
+  }
+
+  function cancelQuit(): void {
+    confirmQuitOpen = false;
+  }
+
+  // Confirmed quit of an inbox duel: finish with progress so far, hand the partial summary to the
+  // Summary (which submits it to the row) — but do NOT record it locally (a quit discards the local
+  // run, exactly as today; only the duel result is sent).
+  function confirmQuit(): void {
+    confirmQuitOpen = false;
+    play.finishNow();
+    const summary = play.summary();
+    lastSummary.set(summary);
+    lastRunConfig.set(get(play).config ?? null);
+    lastBlitzResult.set(null);
+    push('/summary');
   }
 
   // Tap-to-skip: the feedback toast doubles as a tap target — tapping it jumps straight to the
@@ -1338,6 +1369,18 @@
     </section>
   {/if}
 {/if}
+
+<!-- Quit-a-received-duel confirmation (Phase 54): only shown for an inbox duel; confirming sends the
+     current (partial) score to the challenger. Ordinary runs quit instantly (no dialog). -->
+<ConfirmDialog
+  open={confirmQuitOpen}
+  title={$t('duels.quitTitle')}
+  message={inboxDuelName ? $t('duels.quitBody', { name: inboxDuelName }) : $t('duels.quitBodyAnon')}
+  confirmLabel={$t('duels.quitConfirm')}
+  cancelLabel={$t('duels.quitCancel')}
+  onconfirm={confirmQuit}
+  oncancel={cancelQuit}
+/>
 
 <style>
   /* Setup */

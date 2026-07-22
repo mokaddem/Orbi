@@ -1,8 +1,11 @@
 # Phase 54 — Duels (inbox-based) (persist the async duel as a server inbox + history)
 
-**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟠 Planned — open questions
-resolved (owner clarifying round 2026-07-22); **NOT built** (awaiting explicit build approval) ·
-**Progress:** 0% · **Track:** v3.0 — Backend & multiplayer (slice 5 of 7)
+**Part of:** [Geography Quiz — Main PRD](../main_PRD.md) · **Status:** 🟡 Built (approved & implemented
+2026-07-22) — fast-loop-green (`test`/`check`/`lint`/`build`); server rules + full A→B→A round-trip
+curl-verified on real PocketBase 0.39.8; unmerged. **Rematch descoped** (owner) and the inbox now also
+**auto-submits a partial score on quit** (owner). Remaining: an in-browser two-browser UI spot-check
+(needs the migration on the dev-reachable PB — a restart) + merge. · **Progress:** ~95% ·
+**Track:** v3.0 — Backend & multiplayer (slice 5 of 7)
 
 > ## ⚠️ Process requirement — clarify before building (MANDATORY)
 > This PRD is **planning only**. Reading it and answering its questions is **not** a green light to
@@ -186,41 +189,51 @@ account gate), **Phase 52** (the `stats` snapshot + denormalized `displayName` t
 contract), **Phase 8/17** (i18n). **Foundation for** Phase 55 (live duels) & Phase 56 (live rooms).
 
 ## Deliverables checklist
-- [ ] Committed migration `server/pb_migrations/1721590000_created_duels.js` — a `duels` collection
-      (`challenger`/`opponent` relations, `challenge`, `challengerScore`/`opponentScore`, `status`,
-      denormalized `opponentName`, per-side `challengerDismissed`/`opponentDismissed` bools; non-neg-int
-      score fields); endpoints-only list/view; **create gated on you-are-challenger + accepted
-      friendship** (`@collection.friendships` `?=` join); update endpoints-only; delete locked. Paired
-      `down`. **Verified against real PocketBase 0.39.8.**
-- [ ] `src/backend/duels.ts` — thin, never-throwing pb ops (`sendDuel`, `listInbox`, `listOutbox`,
-      `submitResult`, `listHistory`, `dismissDuel`); owner id bound inside the seam; seam stays the only
-      SDK importer; row→view projection.
-- [ ] `src/ui/stores/duels.ts` — reactive `inbox`/`history`/`pendingCount`; `refreshDuels`; `send`/
-      `submit`/`dismiss` returning stable string codes; gated on backend + account tier; coalesced;
-      no-ops offline; refresh on load/focus.
-- [ ] Summary: **add** "Challenge a friend" (pick an accepted friend → `sendDuel`) alongside the
-      unchanged link/QR/code options; same duel-ability gate.
-- [ ] Inbox surface: lists pending duels; accept → decode `challenge` → existing `duelToRunConfig`
-      launch; on finish `submitResult` → verdict via `DuelVerdictCard`.
-- [ ] History surface: completed duels (both directions, minus dismissed) + per-friend W/L tally +
+- [x] Committed migration `server/pb_migrations/1721590000_created_duels.js` — a `duels` collection
+      (`challenger`/`opponent` relations, `challenge`, `challengerPrimary/Tiebreak` +
+      `opponentPrimary/Tiebreak` non-neg-int score columns, `status`, denormalized `opponentName`,
+      per-side `challengerDismissed`/`opponentDismissed` bools + two lookup indexes); endpoints-only
+      list/view; **create gated on you-are-challenger + accepted friendship** (`@collection.friendships`
+      `?=` join, both orderings); update endpoints-only; delete locked. Paired `down`.
+      **Verified against real PocketBase 0.39.8** (friend create ✓, non-friend create denied ✓, stranger
+      list/view/update denied ✓, opponent submit ✓, delete locked ✓).
+- [x] `src/backend/duels.ts` — thin, never-throwing pb ops (`sendDuel`, `listInbox`, `listOutbox`,
+      `submitResult`, `listHistory`, `dismissDuel`) + `duelViewFromRecord` projection; owner id bound
+      inside the seam; seam stays the only SDK importer. Mocked-seam tests (17).
+- [x] `src/ui/stores/duels.ts` — reactive `inbox`/`history`/`pendingCount` (+ `pendingInboxDuelId`);
+      `refreshDuels`; `send`/`submit`/`dismiss` returning stable string codes; gated on backend +
+      account tier; coalesced; no-ops offline; refresh on load/focus (App re-probe). Tests (15).
+- [x] Summary: **add** "Challenge a friend directly" (pick an accepted friend → `send`) alongside the
+      unchanged link/QR/code options; same duel-ability gate; shown only for account + ≥1 friend.
+- [x] Inbox surface (`#/duels`): lists pending duels; accept → `duelToRunConfig` launch (stages
+      `pendingInboxDuelId`); on finish **auto-submit** → verdict via `DuelVerdictCard` (no return link).
+- [x] History surface: completed duels (both directions, minus dismissed) + per-friend W/L tally +
       per-row dismiss (own flag).
-- [ ] Placement (OQ8): a **Home "duels" card with a pending-count badge** → a dedicated **`#/duels`
-      route** (inbox + history), coordinated with moving the friend board onto Home.
-- [ ] Rematch through the inbox → a new row (fresh seed, roles swapped), same friend (OQ10).
-- [ ] **Offline-optional guard**: no backend / no account / not-friends → only the Phase-46 link path;
-      inbox/history hidden or noted; ops no-op; no throws (store test).
-- [ ] Account-/friend-gated send + receive (Tier 3 + accepted friendship); anonymous / link users
-      unaffected.
-- [ ] Security/privacy: endpoints-only + friend-gated-create rules (verified isolation); scores clamped;
-      minimal payload; anti-cheat non-goal; no secrets committed.
-- [ ] EN/FR/DE for inbox/history/send strings; `messages.test.ts` parity green.
-- [ ] Tests: send/list/submit/history/dismiss, verdict projection, Summary gate, inbox accept→launch,
-      offline degrade, account/friend gate — **mocked** seam (no live server in CI). Real-PB curl smoke
-      (friend-gated create + isolation) done.
-- [ ] **Deployment**: local-only (OQ12) — verified with two/three identities against a local PocketBase;
-      standing up the Cloudflare Tunnel remains a separate owner decision.
-- [ ] Verified: fast loop green (`npm run test` / `check` 0 errors / `lint` clean / build ok, SDK still a
-      lazy chunk); a full A→B→A inbox round-trip against a local PocketBase (curl + two browsers).
+- [x] Placement (OQ8): a **Home "duels" card with a pending-count badge** (`DuelsCard`) → a dedicated
+      **`#/duels` route** (inbox + history), beside the moved-in friend board.
+- [~] ~~Rematch through the inbox~~ — **descoped by the owner (2026-07-22)**; the Phase-46 link-rematch
+      stays for link duels. Easy to add later (a new row, fresh seed, roles swapped).
+- [x] **Quit auto-submit (owner add, 2026-07-22)**: quitting a received inbox duel confirms, then ends
+      the run and submits the **partial** score to the row (you can't dodge a loss by bailing); ordinary
+      runs quit instantly as before. `play.finishNow()` + a `ConfirmDialog`; Summary writes the row.
+- [x] **Offline-optional guard**: no backend / no account / not-friends → only the Phase-46 link path;
+      `#/duels` shows a connect-a-friend note; ops no-op; no throws (store + Summary tests).
+- [x] Account-/friend-gated send + receive (Tier 3 + accepted friendship); anonymous / link users
+      unaffected (the link duel is untouched).
+- [x] Security/privacy: endpoints-only + friend-gated-create rules (**isolation curl-verified**); scores
+      clamped (`nat` + `min:0,onlyInt`); minimal payload; anti-cheat non-goal; no secrets committed.
+- [x] EN/FR/DE `duels.*` namespace for inbox/history/send/quit strings; `messages.test.ts` parity green.
+- [x] Tests (mocked seam, no live server): seam send/list/submit/history/dismiss + projection; store
+      gating/coalescing/codes; Summary gate + send + finish auto-submit; inbox accept→launch; Play
+      quit-confirm→finish; offline degrade; account/friend gate. **Full suite 1078 green.**
+- [x] **Deployment**: local-only (OQ12) — server round-trip verified against a local PocketBase; the
+      Cloudflare Tunnel remains a separate owner decision.
+- [~] Verified: fast loop green (`test` 1078 / `check` 0 / `lint` clean / build ok, **SDK still a lazy
+      chunk** `pocketbase.es-*.js`); the A→B→A round-trip is **curl-verified** on real PocketBase;
+      real-browser render of `#/duels` + Home confirmed headless. **Remaining:** the in-app two-browser
+      UI round-trip (two signed-in friends dueling end-to-end) — needs the migration on the
+      dev-reachable PB (a restart of the running 8090) + is not headless-automatable here, so it's an
+      **owner spot-check**.
 
 ## Technical notes
 - **Reuse the codec + scoring + accept path verbatim.** The `challenge` column stores exactly the
@@ -379,3 +392,29 @@ accumulating (Phases 50–53 rows + the Pillar-3 / Non-Goal reframe), with owner
   new row (fresh seed, roles swapped); **OQ11** Grandmaster 46b invite stays link-only (out of scope);
   **OQ13** non-negative-int score clamp only, no validation. Scope/schema/deliverables above updated to
   reflect these. **Still NOT built — awaiting explicit build approval.**
+- **2026-07-22 — Approved & built.** Owner gave the go-ahead with two adjustments: **rematch descoped**
+  (leave it for a later slice; the Phase-46 link-rematch is untouched) and the inbox must **auto-submit a
+  partial score on quit** (quitting a received duel confirms, then ends the run and writes the current
+  score to the row — no dodging a loss by bailing). Built the full slice against the Phase 50–53 seam:
+  • **Migration** `1721590000_created_duels.js` — the `duels` collection with score int-columns, `status`,
+  denormalized `opponentName`, per-side dismiss bools, endpoints-only list/view/update, delete locked, and
+  the **friend-gated `?=` create** (the crux). **Verified first against real PocketBase 0.39.8** on a
+  throwaway instance: friend create ✓, non-friend create denied (400) ✓, stranger list/view/update denied
+  ✓, opponent submit ✓, delete locked (403) ✓, challenger reads the opponent's result ✓ — the full A→B→A
+  round-trip + isolation, exactly the Phase-53 verify-before-UI discipline.
+  • **Seam** `src/backend/duels.ts` (never-throwing, owner-id bound, 17 tests) + **store**
+  `src/ui/stores/duels.ts` (reactive inbox/history/pendingCount + `pendingInboxDuelId`, stable codes,
+  gated + coalesced + no-op offline, 15 tests).
+  • **UI**: Summary "Challenge a friend directly" send + finish auto-submit (reuses `buildDuelPayload`/
+  `duelToRunConfig`/`DuelVerdictCard` verbatim; link/QR/code path untouched); the **`#/duels` route**
+  (inbox accept→launch, history + per-friend W/L + dismiss, connect-a-friend gate); a Home **`DuelsCard`**
+  with a pending badge; `play.finishNow()` + a quit `ConfirmDialog` for the partial-score submit; the App
+  focus/online re-probe now also refreshes the inbox; stale-id hygiene at every `pendingDuel` mutation.
+  • **i18n** `duels.*` EN/FR/DE (parity green); **quit** strings too.
+  • **Verified**: `test` **1078 green** (11 new: seam/store/Duels route/Summary send+auto-submit/Play
+  quit), `check` 0, `lint` clean, `build` ok with the **PB SDK still a lazy chunk**; real-browser headless
+  render of `#/duels` (gate) + Home (card hidden for anon) confirmed. **Remaining:** the in-app
+  two-browser UI round-trip (two signed-in friends dueling end-to-end) — API-verified via curl, but not
+  headless-automatable here and needs the migration on the dev-reachable PB (restart the running 8090);
+  left as an **owner spot-check**. Unmerged; the `main_PRD.md` Status-Table row folds into the batched
+  backend-track merge edit (Phases 50–54 + the Pillar-3 / Non-Goal reframe).

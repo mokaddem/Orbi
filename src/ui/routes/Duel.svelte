@@ -10,6 +10,7 @@
   import { decodeDuel, duelVerdict, type DuelPayload } from '../../domain';
   import { duelToRunConfig, duelDataVersion, readDuelQuery } from '../duel';
   import { pendingConfig, pendingDuel } from '../stores/game';
+  import { pendingInboxDuelId } from '../stores/duels';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
   import ModeIcon from '../components/ModeIcon.svelte';
@@ -42,6 +43,7 @@
   function accept(p: DuelPayload): void {
     pendingDuel.set(p);
     pendingConfig.set(duelToRunConfig(p));
+    pendingInboxDuelId.set(null); // a LINK duel is not an inbox row — don't inherit a stale id (Phase 54)
     push('/play');
   }
 
@@ -50,6 +52,7 @@
   // "Duel a friend" affordance lets them send the new challenge back.
   function rematch(p: DuelPayload): void {
     pendingDuel.set(null);
+    pendingInboxDuelId.set(null);
     pendingConfig.set({ ...duelToRunConfig(p), seed: undefined });
     push('/play');
   }
