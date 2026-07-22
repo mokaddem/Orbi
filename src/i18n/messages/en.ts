@@ -713,6 +713,7 @@ const en = {
       anonNote:
         'Your progress is saved on this device. Create an account to sync it across devices — it’s optional.',
       statusAnon: 'Anonymous (this device)',
+      deviceIdLabel: 'Your anonymous device ID',
       signedInAs: 'Signed in as {email}',
       emailLabel: 'Email',
       passwordLabel: 'Password',

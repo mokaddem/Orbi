@@ -706,6 +706,7 @@ const fr: typeof en = {
       anonNote:
         'Ta progression est enregistrée sur cet appareil. Crée un compte pour la synchroniser entre tes appareils — c’est facultatif.',
       statusAnon: 'Anonyme (cet appareil)',
+      deviceIdLabel: 'Votre identifiant d’appareil anonyme',
       signedInAs: 'Connecté en tant que {email}',
       emailLabel: 'E-mail',
       passwordLabel: 'Mot de passe',

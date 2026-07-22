@@ -273,15 +273,27 @@
       </button>
     </div>
   {:else}
-    <div class="row">
+    <div class="row row-top">
       <span class="label">{$t('settings.account.title')}</span>
-      <span class="account-status">{$t('settings.account.statusAnon')}</span>
+      <span class="account-anon">
+        <span class="account-status">{$t('settings.account.statusAnon')}</span>
+        {#if $identity.deviceId}
+          <!-- The device's anonymous id, shown faintly for reference/support (selectable). -->
+          <span class="device-id" title={$t('settings.account.deviceIdLabel')}
+            >{$identity.deviceId}</span
+          >
+        {/if}
+      </span>
     </div>
     <p class="hint">{$t('settings.account.anonNote')}</p>
 
     {#if accountForm === 'none'}
       <div class="account-actions">
-        <button type="button" onclick={() => ((accountForm = 'create'), (accountFeedback = null))}>
+        <button
+          type="button"
+          class="primary"
+          onclick={() => ((accountForm = 'create'), (accountFeedback = null))}
+        >
           {$t('settings.account.create')}
         </button>
         <button
@@ -321,7 +333,7 @@
           <p class="hint">{$t('settings.account.passwordHint')}</p>
         {/if}
         <div class="account-actions">
-          <button type="submit" disabled={accountBusy}>
+          <button type="submit" class="primary" disabled={accountBusy}>
             {$t(accountForm === 'create' ? 'settings.account.create' : 'settings.account.signIn')}
           </button>
           <button type="button" class="link" onclick={resetAccountForm} disabled={accountBusy}>
@@ -579,6 +591,51 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
+  }
+  /* Primary account CTA (Create account / form submit) — the app's chunky accent button. */
+  .primary {
+    padding: 0.55rem 1.1rem;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 800;
+    box-shadow: var(--shadow-chunky);
+  }
+  .primary:hover:not(:disabled) {
+    filter: brightness(1.03);
+  }
+  .primary:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-chunky-press);
+  }
+  .primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* Anonymous status + its device id, stacked and right-aligned against the label. */
+  /* Top-align this row so "Anonymous" lines up with the "Account" label (the column below is taller). */
+  .row-top {
+    align-items: flex-start;
+  }
+  .account-anon {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+  /* The device's anonymous id — deliberately faint + tiny; selectable for support/reference. */
+  .device-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    text-align: right;
+    color: var(--color-muted);
+    opacity: 0.4;
+    word-break: break-all;
+    user-select: all;
   }
   .account-form {
     display: flex;
