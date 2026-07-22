@@ -838,7 +838,7 @@ const fr: typeof en = {
   },
 
   board: {
-    title: 'Votre tableau',
+    title: 'Classement',
     subtitle: 'Votre position — vos amis arrivent bientôt.',
     you: 'Vous',
     anon: 'Ami',

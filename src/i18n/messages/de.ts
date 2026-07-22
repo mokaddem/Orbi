@@ -837,7 +837,7 @@ const de: typeof en = {
   },
 
   board: {
-    title: 'Deine Tafel',
+    title: 'Rangliste',
     subtitle: 'Dein Stand — Freunde kommen bald dazu.',
     you: 'Du',
     anon: 'Freund',

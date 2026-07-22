@@ -840,7 +840,7 @@ const en = {
   },
 
   board: {
-    title: 'Your board',
+    title: 'Leaderboard',
     subtitle: 'Where you stand — friends join in soon.',
     you: 'You',
     anon: 'Friend',

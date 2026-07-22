@@ -6,9 +6,9 @@ import { readable } from 'svelte/store';
 
 const unfriendMock = vi.hoisted(() => vi.fn());
 
-// Phase 53: with a backend + an account + a friend in the store, the Progress board renders self +
-// friend rows (sorted XP desc) and the "invite a friend" action. We mock the friends store, identity,
-// and backend config so the component renders the friend path without a live server.
+// Phase 52/53: with a backend + an account + a friend in the store, the friend leaderboard renders
+// self + friend rows (sorted XP desc) and the "invite a friend" action. We mock the friends store,
+// identity, and backend config so the component renders the friend path without a live server.
 vi.mock('../../backend/client', () => ({ isBackendConfigured: () => true }));
 vi.mock('../stores/identity', () => ({
   identity: readable({
@@ -35,7 +35,7 @@ vi.mock('../stores/friends', () => ({
   myUserId: vi.fn().mockResolvedValue('me'),
 }));
 
-import Progress from './Progress.svelte';
+import FriendBoard from './FriendBoard.svelte';
 import { setLocale } from '../../i18n';
 import { clearHistory, initPersistence, saveSession } from '../stores/persistence';
 import type { SessionSummary } from '../../domain';
@@ -61,7 +61,7 @@ function summary(over: Partial<SessionSummary> = {}): SessionSummary {
   };
 }
 
-describe('Progress board with friends (Phase 53)', () => {
+describe('FriendBoard (friend leaderboard, Phase 52/53)', () => {
   beforeAll(async () => {
     setLocale('en');
     await initPersistence();
@@ -74,10 +74,10 @@ describe('Progress board with friends (Phase 53)', () => {
 
   it('renders self + a friend row and the invite action for an account holder', async () => {
     await saveSession(summary());
-    render(Progress);
+    render(FriendBoard);
 
-    // The board panel, the friend's name, and the self label are all present.
-    expect(await screen.findByText('Your board', {}, { timeout: 3000 })).toBeInTheDocument();
+    // The board panel (now titled "Leaderboard"), the friend's name, and the self label are present.
+    expect(await screen.findByText('Leaderboard', {}, { timeout: 3000 })).toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();
     expect(screen.getByText('You')).toBeInTheDocument();
     // Account holder with a friend → the "invite a friend" CTA, not the account gate.
@@ -89,7 +89,7 @@ describe('Progress board with friends (Phase 53)', () => {
 
   it('opens the friend actions modal from the row and removes the friend', async () => {
     await saveSession(summary());
-    render(Progress);
+    render(FriendBoard);
 
     // The friend row is a button; tapping it opens the actions modal.
     const row = await screen.findByRole('button', { name: /Options for Bob/i }, { timeout: 3000 });

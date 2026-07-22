@@ -279,3 +279,12 @@ Status-Table rows + Pillar-3 reframe, so `main_PRD.md` is edited once at merge w
   codec/seam/store/board tests), check 0 errors, lint clean, build ok (SDK still a lazy 37.5 kB chunk).
   **Committed, unmerged. Remaining before merge:** a two-browser UI walkthrough (create two accounts,
   exchange an invite, see each other on the board) + the merge-time `main_PRD.md` reframe.
+- **2026-07-22 — Board moved to Home + renamed "Leaderboard" (owner request).** The self+friends board
+  (Phase 52 shell + this phase's friend rows) was **extracted from Progress into a self-contained
+  `src/ui/components/FriendBoard.svelte`** and now renders on **Home**, below the Daily/Regions grid, so
+  Home is the social hub (and the natural home for the Phase-54 duel card). The `board.title` string was
+  renamed **"Your board" → "Leaderboard"** (fr "Classement", de "Rangliste"); all other board copy/logic
+  (self-from-local, XP-sorted friends, unfriend, invite CTA, anon account-gate, offline "friends coming"
+  note) is unchanged. Progress no longer renders the board. Supersedes Phase-52 OQ4 (board-as-Progress-
+  section) and the Phase-54 OQ8 note. Fast loop green (`check` 0, **1035 tests** incl. the relocated
+  `FriendBoard.test.ts`, `lint` clean); verified on Home at mobile portrait (headless). Unmerged.
