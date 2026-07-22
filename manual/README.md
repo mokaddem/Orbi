@@ -19,16 +19,21 @@ npm install
 npm run setup        # downloads the Chromium browser Playwright drives
 ```
 
-## Prerequisite: a dev server
+## The dev server (started for you)
 
-The labs point at **http://localhost:5180** by default. Start the app's dev server from the repo root
-in another terminal and leave it running:
+The labs load the app's real components from `/manual/harness-*.ts`, which only **this** checkout
+serves. So a lab **auto-starts its own Vite dev server from this checkout** (on port **5183**) and
+tears it down when it's done — you don't need to start one, and it won't collide with your normal
+`:5180` server. (Watch mode keeps that server up between restarts so re-runs are fast.)
 
-```bash
-npm run dev          # repo root — Vite on 5180
-```
-
-Point at a different server with `MANUAL_BASE_URL`, e.g. `MANUAL_BASE_URL=http://localhost:5181`.
+- **Don't** rely on your `:5180` server — if it's rooted in your *main* checkout it has no `manual/`
+  folder, and the lab's import will fail with `Failed to fetch dynamically imported module`.
+- Want to use your own server anyway? Set `MANUAL_BASE_URL` (then nothing is auto-started), e.g.
+  `MANUAL_BASE_URL=http://localhost:5180 npm run levelup` — but that server must be running from a
+  checkout that contains this `manual/` folder.
+- Change the auto-start port with `MANUAL_PORT=5190`.
+- Running from a *fresh* worktree/clone? It needs the app's `node_modules` for Vite (run `npm install`
+  at the repo root, or symlink your main checkout's).
 
 ## The labs
 
