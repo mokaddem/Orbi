@@ -103,24 +103,34 @@ describe('SessionXpCard', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
-  // Level-up animation (the bug this test pins): when a run crosses a rank threshold, the card must
-  // *open on the rank the player was already at* and fill its bar toward the top, then roll over —
-  // resetting the bar and swapping the badge/name — into the rank the run reached. It must NOT jump
-  // straight to the new rank with the bar reset into it (which is what showing only the post-run
-  // `progress` snapshot does).
-  it('on a level-up, opens on the current rank and only then rolls over to the earned rank', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    vi.stubGlobal('IntersectionObserver', fixedIO(1));
-    // The finale fires the confetti canvas; jsdom has no 2D context (the component already no-ops on
-    // a null ctx). Return null explicitly so it doesn't log "Not implemented: getContext" noise.
+  // Level-up animation (the behaviour this test pins): when a run crosses a rank threshold, the card
+  // *opens on the rank the player was already at* with the bar near the top of that rank, and rolls
+  // over — resetting the bar and swapping the badge/name — the MOMENT the accumulating XP crosses the
+  // threshold, then keeps filling the earned rank. It must NOT defer the roll-over to the end of the
+  // tally (nor jump straight to the earned rank at the start).
+  it('rolls over to the earned rank the instant the counting XP crosses the threshold', async () => {
+    // rAF drives the count-up (and thus the live roll-over), so fake it alongside the timers.
+    vi.useFakeTimers({
+      toFake: [
+        'setTimeout',
+        'clearTimeout',
+        'requestAnimationFrame',
+        'cancelAnimationFrame',
+        'performance',
+      ],
+    });
+    vi.stubGlobal('IntersectionObserver', fixedIO(1)); // whole card on screen → tally starts at once
+    // The burst fires the confetti canvas; jsdom has no 2D context (the component already no-ops on a
+    // null ctx). Return null explicitly so it doesn't log "Not implemented: getContext" noise.
     const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
     try {
-      // Player sits deep in Wanderer (rank 3 of 10), a hair short of Pathfinder's 2200-XP floor.
+      // Player sits deep in Wanderer, a hair short of Pathfinder's 2200-XP floor.
       const beforeXp = 2100;
       const start = rankForXp(beforeXp);
       expect(start.rank.key).toBe('wanderer');
 
-      // A won game: a flawless 12/12 run earns +231 XP, tipping the total over 2200 into Pathfinder.
+      // A won game: a flawless 12/12 run earns +231 XP, tipping the total over 2200 into Pathfinder —
+      // and the very first source row (+120 correct) alone already crosses it.
       const run = results(12, 12);
       const earned = sessionXp(run);
       const after = rankForXp(beforeXp + earned);
@@ -132,22 +142,28 @@ describe('SessionXpCard', () => {
         breakdown: sessionXpBreakdown(run),
         progress: after, // the post-run snapshot (the earned rank)
         startProgress: start, // …and the rank the player was at before the run
-        startFraction: 0, // what Summary reconstructs for a threshold-crossing run
+        startFraction: start.fraction, // what Summary reconstructs for a threshold-crossing run
         rankedUp: true,
       });
 
-      // At the *start* of the animation the card shows the CURRENT rank (Wanderer), with the bar near
-      // the top of that rank — not the earned rank reset to near-empty.
+      // At the *start* the card shows the CURRENT rank (Wanderer), bar near the top of that rank —
+      // not the earned rank reset to near-empty.
       expect(screen.getByText('Wanderer')).toBeInTheDocument();
       expect(screen.queryByText('Pathfinder')).not.toBeInTheDocument();
       const valueAtStart = Number(screen.getByRole('progressbar').getAttribute('aria-valuenow'));
-      expect(valueAtStart).toBeGreaterThan(50); // ~92% into Wanderer, not ~7% into Pathfinder
+      expect(valueAtStart).toBeGreaterThan(50); // ~92% into Wanderer
 
-      // Play the tally through to the level-up finale (3s reveal hold + the per-row cadence + the
-      // finale beat — advance well past it so the roll-over has fired).
+      // A short way into the tally — long before the last row lands (rows land 650ms apart) — the
+      // counting XP has crossed 2200, so the card has ALREADY rolled over to Pathfinder, with the bar
+      // reset low into the new rank (not still near the top of Wanderer).
+      await vi.advanceTimersByTimeAsync(700);
+      expect(screen.getByText('Pathfinder')).toBeInTheDocument();
+      expect(screen.queryByText('Wanderer')).not.toBeInTheDocument();
+      const valueAfterRoll = Number(screen.getByRole('progressbar').getAttribute('aria-valuenow'));
+      expect(valueAfterRoll).toBeLessThan(valueAtStart); // reset + regrowing within Pathfinder
+
+      // …and it stays on the earned rank through the rest of the tally.
       await vi.advanceTimersByTimeAsync(8000);
-
-      // …and only now has the bar rolled over to the earned rank.
       expect(screen.getByText('Pathfinder')).toBeInTheDocument();
       expect(screen.queryByText('Wanderer')).not.toBeInTheDocument();
     } finally {

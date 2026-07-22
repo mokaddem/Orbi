@@ -1,7 +1,13 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { t } from '../../i18n';
-  import { RANKS, type RankProgress, type XpSource, type XpSourceKey } from '../../domain';
+  import {
+    RANKS,
+    rankForXp,
+    type RankProgress,
+    type XpSource,
+    type XpSourceKey,
+  } from '../../domain';
   import Icon from './Icon.svelte';
   import type { IconName } from './icons';
   import RankMedal from './RankMedal.svelte';
@@ -28,8 +34,8 @@
     progress?: RankProgress | null;
     /**
      * The pre-run rank snapshot. When it's a *lower* rank than `progress`, the card opens on it and
-     * rolls the bar over to the earned rank at the finale — the level-up animation. Same rank (or
-     * absent) → a single-rank fill, exactly as before.
+     * rolls the bar over to the earned rank the moment the counting XP crosses the threshold — the
+     * level-up animation — then keeps filling the new rank. Same rank (or absent) → a single fill.
      */
     startProgress?: RankProgress | null;
     startFraction?: number;
@@ -47,31 +53,6 @@
   const rollingOver = $derived(
     canAnimate && !!startProgress && !!progress && startProgress.rank.index < progress.rank.index,
   );
-  // Has the bar rolled over to the earned rank yet? Flipped once, at the finale after the tally lands.
-  let rolled = $state(false);
-  // The rank the head + bar currently show: the pre-run rank until the roll-over, then the earned
-  // rank — a single rank otherwise (and always the final rank when not animating).
-  const shownProgress = $derived(rollingOver && !rolled ? startProgress! : progress);
-
-  const rankName = $derived(shownProgress ? $t(`rank.names.${shownProgress.rank.key}`) : '');
-  const nextName = $derived(shownProgress?.next ? $t(`rank.names.${shownProgress.next.key}`) : '');
-  const totalXp = $derived(shownProgress ? shownProgress.rank.minXp + shownProgress.xpIntoRank : 0);
-  // aria-valuenow reports how far into the *shown* rank the player is (its true fill, not the roll).
-  const valueNow = $derived(shownProgress ? Math.round(shownProgress.fraction * 100) : 0);
-  // The teal "banked" base and the gold gain's target, in current-rank percent, per phase:
-  //  • no level-up          → base = pre-run fill,               target = current fill
-  //  • level-up, pre-roll   → base = the OLD rank's pre-run fill, target = 100% (fill it to the top)
-  //  • level-up, post-roll  → base = 0,                          target = new rank's fill (from empty)
-  const startPct = $derived.by(() => {
-    if (!shownProgress) return 0;
-    if (rollingOver) return rolled ? 0 : Math.round(startProgress!.fraction * 100);
-    return Math.round(Math.max(0, Math.min(shownProgress.fraction, startFraction)) * 100);
-  });
-  const targetPct = $derived.by(() => {
-    if (!shownProgress) return 0;
-    if (rollingOver && !rolled) return 100;
-    return Math.round(shownProgress.fraction * 100);
-  });
 
   const SOURCE_ICON: Record<XpSourceKey, IconName> = {
     correct: 'check',
@@ -85,10 +66,6 @@
   // no streak milestone drops the streak row). Their `xp` sums to `earned`.
   const rows = $derived(breakdown.filter((s) => s.xp > 0));
 
-  // The bar is two segments of the current rank's span: a static `base` (banked before this run,
-  // teal) and the `gain` this run added (gold). The gain grows in from the base edge.
-  const gainPct = $derived(Math.max(0, targetPct - startPct));
-
   let cardEl = $state<HTMLDivElement>();
   let fxEl = $state<HTMLCanvasElement>();
   let totalEl = $state<HTMLElement>();
@@ -98,11 +75,73 @@
   let displayEarned = $state(0); // counts up during the tally
   let revealed = $state(0); // how many rows have landed
 
-  // Shown values: the animated ones while animating, the finished ones otherwise (so tests and
-  // reduced-motion see the full card at once, with no dependency on effect timing).
+  // Shown "+N XP" this run: the animated count while animating, the finished total otherwise (so
+  // tests and reduced-motion see the full card at once, with no dependency on effect timing).
   const shownEarned = $derived(canAnimate ? displayEarned : earned);
-  const gainWidth = $derived(
-    !canAnimate ? gainPct : earned > 0 ? gainPct * Math.min(1, displayEarned / earned) : 0,
+
+  // --- the bar + head are driven by the LIVE running total, so a level-up happens the instant the
+  //     accumulating XP crosses a threshold (not deferred to the end of the tally) ---
+  // The pre-run total (XP banked before this session) and the live total as the run's XP counts in.
+  const finalTotalXp = $derived(progress ? progress.rank.minXp + progress.xpIntoRank : 0);
+  const startTotalXp = $derived(finalTotalXp - earned);
+  const liveTotalXp = $derived(startTotalXp + shownEarned);
+  const liveProgress = $derived(rankForXp(liveTotalXp));
+
+  // The rank the head + bar show. It opens on the pre-run rank and climbs with the live total (never
+  // below it), so the level-up happens the instant the total crosses a threshold. Purely derived, so
+  // it's correct on the very first render — no init flash and no dependency on effect timing.
+  const baseRankIndex = $derived(
+    canAnimate ? (startProgress?.rank.index ?? liveProgress.rank.index) : liveProgress.rank.index,
+  );
+  const shownRankIndex = $derived(Math.max(baseRankIndex, liveProgress.rank.index));
+
+  // Fire the rank-up burst once each time the shown rank steps up (i.e. the live total crossed a
+  // threshold — the level-up). Seeded on the first settle so merely opening on a rank doesn't burst.
+  let celebratedIndex = $state(-1);
+  $effect(() => {
+    if (!progress || !canAnimate) return;
+    if (celebratedIndex < 0) {
+      celebratedIndex = shownRankIndex; // opening rank — no celebration
+      return;
+    }
+    if (shownRankIndex > celebratedIndex) {
+      celebratedIndex = shownRankIndex;
+      burstFromBadge();
+    }
+  });
+
+  const shownRank = $derived(RANKS[Math.max(0, shownRankIndex)]);
+  const shownNext = $derived(
+    Math.max(0, shownRankIndex) + 1 < RANKS.length ? RANKS[Math.max(0, shownRankIndex) + 1] : null,
+  );
+  const rankName = $derived($t(`rank.names.${shownRank.key}`));
+  const nextName = $derived(shownNext ? $t(`rank.names.${shownNext.key}`) : '');
+
+  // Fill within the *shown* rank, from the live total. While the shown rank lags the live rank by a
+  // frame at a crossing, `into/span` exceeds 1 and clamps to 100% — so the bar tops out the old rank,
+  // then the {#key} reset drops it to the new rank's (near-empty) fill and it grows on from there.
+  const fillFraction = $derived.by(() => {
+    if (!shownNext) return 1; // top rank
+    const span = shownNext.minXp - shownRank.minXp;
+    if (span <= 0) return 1;
+    return Math.max(0, Math.min(1, (liveTotalXp - shownRank.minXp) / span));
+  });
+  // Two segments of the shown rank's span: a static teal `base` (XP banked before this run — only in
+  // the rank you started in) and the gold `gain` this run added, growing in from the base edge.
+  // Widths are fractional percents driven frame-by-frame (no CSS transition), so growth is smooth.
+  const fillPct = $derived(fillFraction * 100);
+  const startRankIndex = $derived(startProgress?.rank.index ?? progress?.rank.index ?? 0);
+  const startBankPct = $derived((startProgress?.fraction ?? startFraction ?? 0) * 100);
+  const basePct = $derived(shownRankIndex === startRankIndex ? Math.min(fillPct, startBankPct) : 0);
+  const gainPct = $derived(Math.max(0, fillPct - basePct));
+
+  // The XP total + "to next" shown in the head, clamped to the shown rank's ceiling so they stay in
+  // step with the bar during the one-frame roll-over (bar at 100% → total reads exactly the threshold).
+  const shownTotalXp = $derived(
+    Math.round(shownNext ? Math.min(liveTotalXp, shownNext.minXp) : liveTotalXp),
+  );
+  const shownXpToNext = $derived(
+    shownNext ? Math.max(0, shownNext.minXp - Math.round(liveTotalXp)) : 0,
   );
 
   // --- tally engine timings ---
@@ -172,21 +211,12 @@
         }, k * STEP_MS),
       );
     });
-    // Level-up finale: a beat after the last row lands (the pre-run rank now filled to the top),
-    // roll the bar over to the earned rank — the badge/name swap and the bar resets and fills the
-    // fresh rank from empty — then burst off the new badge. No text callout: the badge + rank name
-    // already say which rank you reached. When we didn't open on a lower rank (`rollingOver` is
-    // false — e.g. a same-rank `rankedUp` handoff) there's nothing to roll, so we just pop the badge.
-    if (rollingOver || rankedUp) {
-      timers.push(
-        setTimeout(
-          () => {
-            if (rollingOver) rolled = true;
-            burstFromBadge();
-          },
-          rows.length * STEP_MS + 120,
-        ),
-      );
+    // A real level-up (crossing a threshold) is celebrated live, from the rank-step effect above —
+    // the moment the accumulating total passes the threshold — so there's no finale roll here.
+    // The only end-of-tally burst left is the same-rank `rankedUp` handoff (nothing to cross, e.g. no
+    // pre-run snapshot was supplied): pop the badge once the points have landed.
+    if (rankedUp && !rollingOver) {
+      timers.push(setTimeout(burstFromBadge, rows.length * STEP_MS + 120));
     }
   }
 
@@ -314,38 +344,39 @@
 <div class="xp-card" data-testid="session-xp-card" bind:this={cardEl}>
   <canvas class="fx" bind:this={fxEl} aria-hidden="true"></canvas>
 
-  {#if shownProgress}
+  {#if progress}
     <div class="rank-head">
       <span class="badge" aria-hidden="true" bind:this={badgeEl}
-        ><RankMedal index={shownProgress.rank.index} size={46} /></span
+        ><RankMedal index={Math.max(0, shownRankIndex)} size={46} /></span
       >
       <div class="rank-id">
         <span class="rank-name">{rankName}</span>
         <span class="rank-level">
-          {$t('rank.level', { n: shownProgress.rank.index + 1, total: RANKS.length })}
+          {$t('rank.level', { n: Math.max(0, shownRankIndex) + 1, total: RANKS.length })}
         </span>
       </div>
-      <span class="rank-xp">{$t('rank.xpTotal', { xp: totalXp.toLocaleString() })}</span>
+      <span class="rank-xp">{$t('rank.xpTotal', { xp: shownTotalXp.toLocaleString() })}</span>
     </div>
 
     <div
       class="track"
-      class:rolled
       role="progressbar"
       aria-valuemin="0"
       aria-valuemax="100"
-      aria-valuenow={valueNow}
+      aria-valuenow={Math.round(fillPct)}
       aria-label={$t('rank.title')}
     >
       <!-- Banked before this run (teal), then the gold gain this run added, growing in from it.
-           On a level-up roll-over both segments transition (see `.track.rolled`), so the bar visibly
-           resets and refills the fresh rank rather than snapping. -->
-      <div class="seg base" style="width:{startPct}%"></div>
-      <div class="seg gain" style="left:{startPct}%; width:{gainWidth}%"></div>
+           Keyed on the shown rank: when the live total crosses a threshold the segments are recreated
+           for the fresh rank, so the bar tops out the old rank, resets, and refills the new one. -->
+      {#key shownRankIndex}
+        <div class="seg base" style="width:{basePct}%"></div>
+        <div class="seg gain" style="left:{basePct}%; width:{gainPct}%"></div>
+      {/key}
     </div>
     <span class="to-next">
-      {#if shownProgress.next}
-        {$t('rank.toNext', { xp: shownProgress.xpToNext.toLocaleString(), rank: nextName })}
+      {#if shownNext}
+        {$t('rank.toNext', { xp: shownXpToNext.toLocaleString(), rank: nextName })}
       {:else}
         {$t('rank.max')}
       {/if}
@@ -474,25 +505,11 @@
   }
 
   /* This session's contribution — a distinct gold segment. Width is driven frame-by-frame during
-     the tally (so no CSS transition), and jumps to its final value when not animating. */
+     the tally (so no CSS transition), and jumps to its final value when not animating. On a level-up
+     the whole track is re-keyed to the new rank, which resets the fill cleanly (no shrink-back). */
   .seg.gain {
     background: var(--gain-grad);
     border-radius: 0 999px 999px 0;
-  }
-
-  /* Level-up roll-over: once the pre-run rank has filled to the top, flipping to the earned rank
-     collapses both segments (base → 0, the gold gain → the fresh rank's small fill). Transitioning
-     width/left here makes that read as a deliberate reset-and-refill rather than a hard snap. */
-  .track.rolled .seg {
-    transition:
-      width 0.5s cubic-bezier(0.25, 0.9, 0.3, 1),
-      left 0.5s cubic-bezier(0.25, 0.9, 0.3, 1);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .track.rolled .seg {
-      transition: none;
-    }
   }
 
   .to-next {
