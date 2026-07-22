@@ -84,9 +84,6 @@
                 <RankMedal index={r.index} size={band.metal === 'crystal' ? 132 : 116} />
               </div>
               <div class="rung-body">
-                <span class="rung-level"
-                  >{$t('rank.level', { n: r.index + 1, total: RANKS.length })}</span
-                >
                 <span class="rung-name">{$t(`rank.names.${r.key}`)}</span>
                 <span class="rung-xp">
                   {#if r.minXp === 0}
@@ -217,13 +214,6 @@
     gap: 0.1rem;
     min-width: 0;
     text-align: right;
-  }
-
-  .rung-level {
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    color: var(--color-muted);
   }
 
   .rung-name {
