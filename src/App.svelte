@@ -11,7 +11,7 @@
   import { t } from './i18n';
   import { initPersistence, persistent, prefs, storageReady } from './ui/stores/persistence';
   import { sound } from './ui/sound';
-  import { startBackendProbe } from './backend/status';
+  import { startBackendProbe, probeBackend } from './backend/status';
   import { initIdentity } from './ui/stores/identity';
 
   // The scrolling region (app-shell layout): the shell is pinned to the viewport and only
@@ -45,6 +45,25 @@
     // store. A no-op network-wise when no backend URL is configured.
     startBackendProbe();
 
+    // Re-probe the backend when the app comes back into view / the network returns, so a backend
+    // brought up after page load is picked up without a manual reload (Phase 53 follow-up). Purely
+    // event-driven — no idle polling. `probeBackend` dedupes in-flight calls; a light throttle keeps
+    // rapid focus/blur from bursting. Window `focus` catches an app-switch (e.g. back from a
+    // terminal), `visibilitychange` catches a tab-switch, `online` catches a network recovery.
+    let lastProbeAt = 0;
+    const reprobeBackend = (): void => {
+      const now = Date.now();
+      if (now - lastProbeAt < 3000) return;
+      lastProbeAt = now;
+      void probeBackend();
+    };
+    const onVisibility = (): void => {
+      if (!document.hidden) reprobeBackend();
+    };
+    window.addEventListener('focus', reprobeBackend);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('online', reprobeBackend);
+
     // Autoplay-safe unlock (Phase 36): browsers block audio until a user gesture, so create /
     // resume the audio backend on the first interaction — then cues are free. Runs once; cues
     // that (unlikely) fire before this are silently dropped by the service, never queued.
@@ -64,6 +83,9 @@
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
       window.removeEventListener('hashchange', resetScroll);
+      window.removeEventListener('focus', reprobeBackend);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('online', reprobeBackend);
     };
   });
 
