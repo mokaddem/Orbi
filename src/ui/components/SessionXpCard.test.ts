@@ -153,14 +153,22 @@ describe('SessionXpCard', () => {
       const valueAtStart = Number(screen.getByRole('progressbar').getAttribute('aria-valuenow'));
       expect(valueAtStart).toBeGreaterThan(50); // ~92% into Wanderer
 
-      // A short way into the tally — long before the last row lands (rows land 650ms apart) — the
-      // counting XP has crossed 2200, so the card has ALREADY rolled over to Pathfinder, with the bar
-      // reset low into the new rank (not still near the top of Wanderer).
-      await vi.advanceTimersByTimeAsync(700);
+      // A moment into the first row (+120 correct) the counting XP tips over 2200 → the LEVEL-UP BEAT:
+      // the bar completes to the top of Wanderer and holds there for ~600ms (still Wanderer, bar full)
+      // before popping over.
+      await vi.advanceTimersByTimeAsync(400);
+      expect(screen.getByText('Wanderer')).toBeInTheDocument();
+      expect(screen.queryByText('Pathfinder')).not.toBeInTheDocument();
+      expect(Number(screen.getByRole('progressbar').getAttribute('aria-valuenow'))).toBe(100);
+
+      // After the beat it pops over to Pathfinder, bar reset low into the new rank — still well before
+      // the last row lands.
+      await vi.advanceTimersByTimeAsync(1200);
       expect(screen.getByText('Pathfinder')).toBeInTheDocument();
       expect(screen.queryByText('Wanderer')).not.toBeInTheDocument();
-      const valueAfterRoll = Number(screen.getByRole('progressbar').getAttribute('aria-valuenow'));
-      expect(valueAfterRoll).toBeLessThan(valueAtStart); // reset + regrowing within Pathfinder
+      expect(Number(screen.getByRole('progressbar').getAttribute('aria-valuenow'))).toBeLessThan(
+        valueAtStart,
+      ); // reset + regrowing within Pathfinder
 
       // …and it stays on the earned rank through the rest of the tally.
       await vi.advanceTimersByTimeAsync(8000);

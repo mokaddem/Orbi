@@ -87,13 +87,21 @@
   const liveTotalXp = $derived(startTotalXp + shownEarned);
   const liveProgress = $derived(rankForXp(liveTotalXp));
 
+  // Level-up beat: while ≥ 0 the count-up is paused and the bar is pinned FULL on this rank (the one
+  // being completed); releasing it (-1) lets the crossed total pop through to the earned rank. Set
+  // and cleared by the tally (see tweenEarned).
+  let levelupHold = $state(-1);
+
   // The rank the head + bar show. It opens on the pre-run rank and climbs with the live total (never
   // below it), so the level-up happens the instant the total crosses a threshold. Purely derived, so
-  // it's correct on the very first render — no init flash and no dependency on effect timing.
+  // it's correct on the very first render — no init flash and no dependency on effect timing. During
+  // a level-up beat it's pinned to the rank being completed (bar full) until the hold releases.
   const baseRankIndex = $derived(
     canAnimate ? (startProgress?.rank.index ?? liveProgress.rank.index) : liveProgress.rank.index,
   );
-  const shownRankIndex = $derived(Math.max(baseRankIndex, liveProgress.rank.index));
+  const shownRankIndex = $derived(
+    levelupHold >= 0 ? levelupHold : Math.max(baseRankIndex, liveProgress.rank.index),
+  );
 
   // Fire the rank-up burst once each time the shown rank steps up (i.e. the live total crossed a
   // threshold — the level-up). Seeded on the first settle so merely opening on a rank doesn't burst.
@@ -152,8 +160,10 @@
   const REVEAL_HOLD_MS = 3000; // wait, once the card is partly visible, before the first row lands
   const STEP_MS = 650; // per-row cadence (unhurried — the run's points land one at a time)
   const TWEEN_MS = 460; // count-up per row
+  const LEVELUP_PAUSE_MS = 600; // the beat the bar holds, full, at a level-up before it pops over
   let timers: ReturnType<typeof setTimeout>[] = [];
   let raf = 0;
+  let reachedRankIndex = -1; // highest rank the counting total has reached (one beat per crossing)
 
   // Reveal gate: track how much of the card is on screen — "seen" at ≥50%, "fully on screen" at
   // ~100% (its bottom edge in view). Keep observing until fully visible, so a partial→full scroll
@@ -196,38 +206,72 @@
     }
   });
 
+  // Rows land one at a time, *sequentially*: the next row waits for the current one's count-up to
+  // finish (plus a beat) — so a level-up pause in one row naturally delays what follows, instead of
+  // the fixed upfront schedule letting a paused row overlap the next.
   function runTally(): void {
+    reachedRankIndex = rankForXp(startTotalXp).rank.index; // the rank we open on
+    const GAP_MS = Math.max(0, STEP_MS - TWEEN_MS); // beat between one row landing and the next
     let acc = 0;
-    rows.forEach((row, k) => {
+    let k = 0;
+    const runRow = (): void => {
+      if (k >= rows.length) {
+        // A real level-up is celebrated live, from its beat in tweenEarned. The only end-of-tally
+        // burst left is the same-rank `rankedUp` handoff (nothing to cross, e.g. no pre-run snapshot
+        // was supplied): pop the badge once the points have landed.
+        if (rankedUp && !rollingOver) burstFromBadge();
+        return;
+      }
+      const row = rows[k];
       const from = acc;
       const to = acc + row.xp;
       acc = to;
-      timers.push(
-        setTimeout(() => {
-          revealed = k + 1;
-          tweenEarned(from, to, () => {
-            if (row.key === 'streakBonus') burstFromTotal();
-          });
-        }, k * STEP_MS),
-      );
-    });
-    // A real level-up (crossing a threshold) is celebrated live, from the rank-step effect above —
-    // the moment the accumulating total passes the threshold — so there's no finale roll here.
-    // The only end-of-tally burst left is the same-rank `rankedUp` handoff (nothing to cross, e.g. no
-    // pre-run snapshot was supplied): pop the badge once the points have landed.
-    if (rankedUp && !rollingOver) {
-      timers.push(setTimeout(burstFromBadge, rows.length * STEP_MS + 120));
-    }
+      revealed = k + 1;
+      k += 1;
+      tweenEarned(from, to, () => {
+        if (row.key === 'streakBonus') burstFromTotal();
+        timers.push(setTimeout(runRow, GAP_MS));
+      });
+    };
+    runRow();
   }
 
   function tweenEarned(from: number, to: number, done: () => void): void {
-    const t0 = performance.now();
+    let elapsedBefore = 0; // ms already counted before the current rAF run (carried across a beat)
+    let runStart = 0;
+    let started = false;
+
     const frame = (now: number): void => {
-      // Clamp low as well as high: a first rAF timestamp can land just before t0, which would make
-      // the eased value briefly negative (a flashed "+-1 XP").
-      const p = Math.max(0, Math.min(1, (now - t0) / TWEEN_MS));
+      if (!started) {
+        runStart = now;
+        started = true;
+      }
+      // Clamp low as well as high: a first rAF timestamp can land just before runStart, which would
+      // make the eased value briefly negative (a flashed "+-1 XP").
+      const elapsed = elapsedBefore + (now - runStart);
+      const p = Math.max(0, Math.min(1, elapsed / TWEEN_MS));
       const e = 1 - Math.pow(1 - p, 3);
       displayEarned = Math.round(from + (to - from) * e);
+
+      // Crossed into a higher rank this frame → the LEVEL-UP BEAT: pin the bar full on the rank being
+      // completed and pause the count-up; after the hold, release it — the bar pops to the earned
+      // rank (reset + refill) and the burst fires from the rank-step effect — then resume counting.
+      const liveIdx = rankForXp(startTotalXp + displayEarned).rank.index;
+      if (liveIdx > reachedRankIndex) {
+        levelupHold = reachedRankIndex; // hold full on the rank we're leaving
+        reachedRankIndex = liveIdx;
+        elapsedBefore = elapsed; // remember how far the count-up got
+        started = false;
+        raf = 0;
+        timers.push(
+          setTimeout(() => {
+            levelupHold = -1;
+            raf = requestAnimationFrame(frame);
+          }, LEVELUP_PAUSE_MS),
+        );
+        return;
+      }
+
       if (p < 1) raf = requestAnimationFrame(frame);
       else {
         raf = 0;
