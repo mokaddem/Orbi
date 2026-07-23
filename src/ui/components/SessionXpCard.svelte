@@ -509,6 +509,14 @@
     g.restore();
   }
 
+  // A brief warm wash over the whole card — the "impact" flash on the punchier charge & burst.
+  function dCardFlash(p: FxP, g: CanvasRenderingContext2D): void {
+    g.save();
+    g.fillStyle = `rgba(255,222,150,${(p.a as number) * p.life})`;
+    g.fillRect(0, 0, fxW, fxH);
+    g.restore();
+  }
+
   function badgePop(scale: number): void {
     badgeEl?.animate?.(
       [{ transform: 'scale(1)' }, { transform: `scale(${scale})` }, { transform: 'scale(1)' }],
@@ -536,8 +544,8 @@
 
   // Mid bands (gold / platinum): motes rush in, the badge flashes, then it erupts in a ring of sparks.
   function fxChargeBurst(cx: number, cy: number): void {
-    const N = 22,
-      R = 58;
+    const N = 32,
+      R = 64;
     for (let i = 0; i < N; i++) {
       const a = (i / N) * Math.PI * 2 + Math.random() * 0.2;
       const col = i % 3 === 0 ? FXC.tealHi : i % 3 === 1 ? FXC.goldHi : FXC.coral;
@@ -546,7 +554,7 @@
       addP({
         x: sx,
         y: sy,
-        size: 2 + Math.random() * 1.4,
+        size: 2.4 + Math.random() * 1.8,
         color: col,
         glow: 8,
         decay: 0.032,
@@ -561,28 +569,40 @@
     timers.push(
       setTimeout(() => {
         if (!ctxBack) return;
-        addP({ x: cx, y: cy, r0: 4, r1: 96, decay: 0.06, draw: dFlash, front: false });
+        addP({ x: 0, y: 0, a: 0.26, decay: 0.07, draw: dCardFlash, front: true }); // warm impact flash
+        addP({ x: cx, y: cy, r0: 4, r1: 132, decay: 0.06, draw: dFlash, front: false });
         addP({
           x: cx,
           y: cy,
           r0: 8,
-          r1: 104,
-          w: 3,
+          r1: 122,
+          w: 4.5,
           color: FXC.goldHi,
           decay: 0.032,
           draw: dRing,
           front: false,
         });
-        for (let j = 0; j < 26; j++) {
+        addP({
+          x: cx,
+          y: cy,
+          r0: 8,
+          r1: 152,
+          w: 2.5,
+          color: FXC.tealHi,
+          decay: 0.03,
+          draw: dRing,
+          front: false,
+        });
+        for (let j = 0; j < 42; j++) {
           const ang = Math.random() * Math.PI * 2,
-            sp = 1.8 + Math.random() * 3.6;
+            sp = 2.4 + Math.random() * 4.6;
           const col = j % 3 === 0 ? FXC.tealHi : j % 3 === 1 ? FXC.goldHi : FXC.coral;
           addP({
             x: cx,
             y: cy,
             vx: Math.cos(ang) * sp,
             vy: Math.sin(ang) * sp,
-            size: 4 + Math.random() * 3.5,
+            size: 5 + Math.random() * 5,
             color: col,
             rot: Math.random() * 6,
             seed: Math.random() * 6,
@@ -600,8 +620,8 @@
             },
           });
         }
-        badgePop(1.34);
-      }, 340),
+        badgePop(1.44);
+      }, 300),
     );
   }
 
