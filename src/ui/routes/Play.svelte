@@ -1198,7 +1198,7 @@
           options={countryOptions}
           variant={qMode === 'country-to-flag'
             ? 'flag'
-            : qMode === 'map-highlight'
+            : qMode === 'map-highlight' || qMode === 'capital-to-country'
               ? 'name-flag'
               : 'name'}
           {answered}
