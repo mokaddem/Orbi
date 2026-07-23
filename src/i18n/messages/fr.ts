@@ -220,6 +220,7 @@ const fr: typeof en = {
       cleared: '{cleared} / {total} validés',
       oneLife: 'Une seule vie',
       quit: 'Abandonner',
+      time: 'Temps écoulé',
     },
     forfeitConfirm: {
       title: 'Abandonner le défi ?',

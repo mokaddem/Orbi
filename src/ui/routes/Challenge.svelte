@@ -101,6 +101,25 @@
   let shaking = $state(false);
   let missed = $state(false);
 
+  // Live "time spent" readout for the HUD — small and discrete. A single per-instance ticker; the
+  // shown value is derived from `clockNow` in the markup (elapsed = finishedAt/now − startedAt), so
+  // this effect never re-subscribes to the run state. It shows *wall-clock* elapsed on purpose: the
+  // recorded run duration excludes the feedback dwell (a study-time metric), but an on-screen clock
+  // that stalls on every reveal reads as broken, so this one counts real time from the first
+  // question onward.
+  let clockNow = $state(0);
+  $effect(() => {
+    clockNow = Date.now();
+    const id = setInterval(() => (clockNow = Date.now()), 1000);
+    return () => clearInterval(id);
+  });
+  function fmtClock(ms: number): string {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(total / 60);
+    const sec = total % 60;
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  }
+
   // The country's flag anchors the prompt for country-to-capital (the answer is the capital, so the
   // flag is a study aid, not the answer). Its flag is shown beside the reveal for the map/capital
   // modes (where the flag wasn't the question) once answered.
@@ -391,6 +410,17 @@
           <span class="run-title">
             {$t(`modes.group.${cfg.family}`)} · {$localizedRegion(cfg.region)}
           </span>
+          {#if s.startedAt !== null}
+            {@const elapsedMs = (s.finishedAt ?? clockNow) - s.startedAt}
+            <span class="time" aria-label={$t('challenge.hud.time')}>
+              <svg class="time-glyph" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="13" r="8" />
+                <path d="M12 13V9" />
+                <path d="M9 2.5h6" />
+              </svg>
+              {fmtClock(elapsedMs)}
+            </span>
+          {/if}
           <span
             class="counter"
             aria-label={$t('challenge.hud.cleared', { cleared: s.cleared, total: s.total })}
@@ -942,6 +972,30 @@
   .counter .sep {
     margin: 0 0.15rem;
     opacity: 0.55;
+  }
+
+  /* Small, discrete "time spent" readout — mirrors the mono counter but a notch quieter (faint,
+     not dim/gold) so it reads as ambient chrome and never competes with the score/heart. Sits at
+     the left of the right-hand cluster (`.run-title` eats the free space before it). */
+  .time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--g-mono);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--g-faint);
+  }
+
+  .time-glyph {
+    width: 0.82rem;
+    height: 0.82rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
   }
 
   .life {

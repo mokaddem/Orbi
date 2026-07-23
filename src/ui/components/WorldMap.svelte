@@ -544,7 +544,13 @@
       {/if}
 
       {#if marker?.micro}
-        <circle class="dot highlight-dot" cx={marker.cx} cy={marker.cy} r={DOT_R / zoomK} />
+        <circle
+          class="dot highlight-dot"
+          class:pulse={!reduceMotion}
+          cx={marker.cx}
+          cy={marker.cy}
+          r={DOT_R / zoomK}
+        />
       {/if}
 
       {#if revealMarker}
@@ -801,6 +807,17 @@
     animation: marker-in 0.45s ease;
   }
 
+  /* A small, slow pulse draws the eye to the tiny target the player must name (map-highlight):
+     a lone dot on a wide continent is easy to overlook. It scales from the dot's own centre
+     (via `.dot`'s `transform-box: fill-box`), so it stays put, and is layered *after* the fade-in.
+     Gated by the `.pulse` class (dropped under the in-app reduce-motion pref) and by the OS
+     reduced-motion media query below. */
+  .highlight-dot.pulse {
+    animation:
+      marker-in 0.45s ease,
+      dot-pulse 1.5s ease-in-out 0.45s infinite;
+  }
+
   /* Zoom controls — a small cluster in the corner (Phase 37). */
   .map-controls {
     position: absolute;
@@ -846,6 +863,19 @@
     }
   }
 
+  /* Subtle "look here" breathing for the highlighted micro-target (see `.highlight-dot.pulse`). */
+  @keyframes dot-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.9;
+    }
+    50% {
+      transform: scale(1.4);
+      opacity: 1;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .country,
     .dot,
@@ -855,7 +885,9 @@
 
     .marker,
     .reveal-ring,
-    .picked-ring {
+    .picked-ring,
+    .highlight-dot,
+    .highlight-dot.pulse {
       animation: none;
     }
   }

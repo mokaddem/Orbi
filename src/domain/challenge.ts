@@ -346,7 +346,10 @@ export class ChallengeSession {
       missed,
       startedAt: started,
       finishedAt: finished,
-      durationMs: Math.max(0, finished - started),
+      // Active answering time only — sum of per-question spans, excluding the between-question
+      // feedback dwell (UI pacing, not play time). Matches QuizSession.summary(); `answerMs` is
+      // reset per question after the dwell, so the gap is never counted.
+      durationMs: this.s.results.reduce((sum, r) => sum + r.answerMs, 0),
       results: this.s.results.slice(),
     };
   }

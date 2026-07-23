@@ -226,6 +226,7 @@ const de: typeof en = {
       cleared: '{cleared} / {total} geschafft',
       oneLife: 'Ein Leben',
       quit: 'Aufgeben',
+      time: 'Verstrichene Zeit',
     },
     forfeitConfirm: {
       title: 'Herausforderung aufgeben?',

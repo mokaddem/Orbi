@@ -300,7 +300,13 @@ export class QuizSession {
       bestStreak: this.s.bestStreak,
       startedAt: started,
       finishedAt: finished,
-      durationMs: Math.max(0, finished - started),
+      // Active answering time only: the sum of per-question "shown → answered" spans. This
+      // deliberately excludes the between-question feedback dwell (the reveal shown before the
+      // next question), which is UI pacing, not play time. `answerMs` is captured fresh per
+      // question (reset in `next()`, after the dwell), so it never includes that gap — summing
+      // the results yields a feedback-free duration. `startedAt`/`finishedAt` stay wall-clock for
+      // calendar bucketing (day/streak) elsewhere.
+      durationMs: results.reduce((sum, r) => sum + r.answerMs, 0),
       missed,
       results: results.slice(),
       // A survival run that *finished with lives left* can only have ended by clearing the

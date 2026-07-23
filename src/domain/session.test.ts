@@ -383,15 +383,18 @@ describe('QuizSession — timing', () => {
     expect(s.submit(null).answerMs).toBe(90);
   });
 
-  it('records overall duration in the summary', () => {
+  it('records active duration in the summary, excluding between-question feedback time', () => {
     const clock = makeClock(5000);
     const s = new QuizSession(base({ fixedLength: 2, now: clock.now }));
-    s.next(); // startedAt = 5000
-    clock.advance(300);
-    s.submit(null);
-    s.next();
-    clock.advance(200);
-    s.submit(null); // finishedAt = 5500
+    s.next(); // startedAt = 5000, question 1 shown
+    clock.advance(300); // answering question 1
+    s.submit(null); // answerMs = 300
+    clock.advance(1500); // feedback dwell — wall-clock time that must NOT count
+    s.next(); // question 2 shown (answerMs clock re-armed here)
+    clock.advance(200); // answering question 2
+    s.submit(null); // answerMs = 200; finishedAt = 7000
+    // Wall-clock span is 2000ms (500 answering + 1500 dwell); duration counts only the 500ms
+    // of active answering, proving the feedback dwell is excluded.
     expect(s.summary().durationMs).toBe(500);
   });
 });

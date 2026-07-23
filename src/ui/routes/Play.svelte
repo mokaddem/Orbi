@@ -212,12 +212,16 @@
     'capital-to-country',
     'country-to-capital',
   ];
-  // Attribute modes prompted by a country name: anchor the prompt with the country's flag.
-  // The answer is a capital / language / industry, so the flag never gives it away.
+  // Modes prompted by a country name whose answer is NOT the flag/country itself: anchor the prompt
+  // with the country's flag so the flag is (almost) always paired with the name. The answer is a
+  // capital / language / industry, or a map location — the flag is a study aid, never a giveaway.
+  // Deliberately excludes the modes where the flag or country IS the thing to guess
+  // (flag-to-country, country-to-flag, capital-to-country, map-highlight).
   const PROMPT_FLAG_MODES: GameMode[] = [
     'country-to-capital',
     'country-to-languages',
     'country-to-industry',
+    'map-locate',
   ];
 
   // Region filter selections. Empty string means "no narrowing": no region → World
@@ -458,12 +462,15 @@
     }
   });
 
-  // Feed an answer to spaced-repetition — **except in Blitz** (Phase 42, owner decision): Blitz is
-  // a pure score format, fully decoupled from the learning model, so a mistap under time pressure
-  // can't demote a country's mastery (and fast correct taps can't inflate it). Every other format
-  // records each answer to SR as usual.
+  // Feed an answer to spaced-repetition — **except in Blitz and the Daily Challenge** (owner
+  // decisions): Blitz (Phase 42) is a pure score format, fully decoupled from the learning model,
+  // so a mistap under time pressure can't demote a country's mastery (and fast correct taps can't
+  // inflate it). The Daily Challenge is a fixed one-a-day puzzle — it's meant to be played for its
+  // own sake, not to reshape your learning queue — so it likewise doesn't record to SR. Every other
+  // format records each answer to SR as usual. (A daily run is identified by `config.dailyDate`.)
   function recordSR(result: QuestionResult | null): void {
-    if (result && get(play).config?.type !== 'blitz') void recordAnswer(result);
+    const cfg = get(play).config;
+    if (result && cfg?.type !== 'blitz' && !cfg?.dailyDate) void recordAnswer(result);
   }
 
   function onPick(id: string): void {
@@ -2178,6 +2185,12 @@
   /* Smaller anchor flag above the country name in capital/language/industry prompts. */
   .prompt-country-flag {
     width: 132px;
+  }
+
+  /* In map prompts (map-locate) the caption is tight — the board is the surface — so the anchor
+     flag shrinks to a small cue above "Find X on the map" instead of pushing the board down. */
+  .prompt.map-prompt .prompt-country-flag {
+    width: 92px;
   }
 
   .prompt-name {

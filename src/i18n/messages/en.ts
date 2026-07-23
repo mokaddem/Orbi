@@ -223,6 +223,7 @@ const en = {
       cleared: '{cleared} / {total} cleared',
       oneLife: 'One life',
       quit: 'Forfeit',
+      time: 'Time elapsed',
     },
     // Forfeit guard: a forfeit counts as a failed attempt (spends today's per-family×region try), so
     // the HUD's Forfeit control confirms before it ends the run.
