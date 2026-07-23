@@ -4,22 +4,23 @@
   import Icon from './Icon.svelte';
   import RegionIcon from './RegionIcon.svelte';
 
-  // Per-region combined-mastery breakdown (Phase 41). Two layouts (owner pick, OQ4):
-  //  • 'stacked' (Progress) — three mini-bars (Map / Flags / Capitals) per region, all visible.
-  //  • 'toggle'  (Home)     — one bar per region + an Overall/Map/Flags/Capitals lens toggle.
-  // Rows arrive pre-ordered least-complete first (from `computeFamilyMastery`), so this stays
-  // presentational.
+  // Per-region combined-mastery breakdown (Phase 41; unified tab layout, Phase 47).
   //
-  // `onPractise` (stacked only) turns each not-fully-mastered family mini-bar into a "practise"
-  // shortcut: tapping it drills that region×family's unmastered countries (owner-chosen scope).
+  // A lens toggle (Overall / Map / Flags / Capitals) chooses what every region row shows: the
+  // blended bar on "Overall", or a single family's bar on Map / Flags / Capitals. Rows arrive
+  // pre-ordered least-complete first (from `computeFamilyMastery`), so this stays presentational.
   //
-  // Grandmaster Run reward (Phase 44, stacked only): once a family × continent is *fully* mastered
-  // its mini-bar climbs a two-rung ladder in place of the practise shortcut — a "prove it" launch
-  // (`onChallenge`) until the run is passed, then a **gilded** gold + crown cell once `certified`
-  // (a `${family}|${region}` set). A continent with every family certified gets a gold ring + tag.
+  // The interactive controls (Progress) ride the *active family lens* — a per-region × family
+  // control to the right of that family's bar:
+  //  • `onPractise`  — a not-fully-mastered family → "practise" its unmastered countries.
+  //  • `onChallenge` — a *fully* mastered but uncertified family → the "prove it" Grandmaster Run
+  //     launch (dims to a clock while today's attempt is `spent`, still tappable for the countdown).
+  //  • `onInvite` / `certified` — once the run is passed the cell gilds gold and the crown doubles
+  //     as "challenge a friend" (Phase 46b). A continent with every family certified wears a gold
+  //     ring + tag (shown on any lens). The Overall lens carries no per-family control.
+  // Home passes no handlers, so it renders as a pure viewer (bars only) — backwards compatible.
   let {
     regions,
-    variant = 'stacked',
     onPractise,
     onChallenge,
     onInvite,
@@ -28,7 +29,6 @@
     cooldownText,
   }: {
     regions: RegionFamilyMastery[];
-    variant?: 'stacked' | 'toggle';
     onPractise?: (region: string, family: MasteryFamily) => void;
     onChallenge?: (region: string, family: MasteryFamily) => void;
     /** Certified cell → "challenge a friend" (Phase 46b): the gilded crown becomes this invite tap. */
@@ -40,6 +40,10 @@
     /** The "next attempt in …" phrase for a spent (cooldown) cell's tooltip / label. */
     cooldownText?: string;
   } = $props();
+
+  // Any handler wired ⇒ this is the interactive (Progress) surface: reserve the action column so
+  // bars stay aligned across rows. Home passes none, so it renders as a bars-only viewer.
+  const interactive = $derived(Boolean(onPractise || onChallenge || onInvite));
 
   const isCertified = (region: string, family: MasteryFamily): boolean =>
     certified?.has(`${family}|${region}`) ?? false;
@@ -76,8 +80,6 @@
   const cellsOf = (r: RegionFamilyMastery): number => r.families.reduce((s, f) => s + f.total, 0);
   const sumBy = (r: RegionFamilyMastery, k: 'mastered' | 'learning'): number =>
     r.families.reduce((s, f) => s + f[k], 0);
-  const lensPct = (r: RegionFamilyMastery): number =>
-    lens === 'overall' ? blendedPct(r) : pct(famTally(r, lens).mastered, famTally(r, lens).total);
   // The lighter "learning" band (in-progress but not mastered) trailing the mastered fill.
   const lensLearnPct = (r: RegionFamilyMastery): number =>
     lens === 'overall'
@@ -93,36 +95,17 @@
     });
 </script>
 
-{#if variant === 'toggle'}
-  <div class="toggle" role="group" aria-label={$t('progress.mastery.regionsTitle')}>
-    {#each LENSES as l (l)}
-      <button
-        type="button"
-        class="lens fam-{l}"
-        aria-pressed={lens === l}
-        onclick={() => (lens = l)}>{lensLabel(l)}</button
-      >
-    {/each}
-  </div>
-{/if}
-
-{#if variant === 'stacked'}
-  <!-- Visible state key (mobile-friendly): the solid "mastered" vs striped "learning" band is
-       otherwise explained only by title tooltips, which never appear on touch devices. Mirrors
-       the key inside FamilyMasteryMeter so the whole mastery section reads consistently. -->
-  <div class="key">
-    <span class="key-item"
-      ><span class="sw sw-mastered"></span>{$t('progress.mastery.mastered')}</span
+<div class="toggle" role="group" aria-label={$t('progress.mastery.regionsTitle')}>
+  {#each LENSES as l (l)}
+    <button type="button" class="lens fam-{l}" aria-pressed={lens === l} onclick={() => (lens = l)}
+      >{lensLabel(l)}</button
     >
-    <span class="key-item"
-      ><span class="sw sw-learning"></span>{$t('progress.mastery.learning')}</span
-    >
-  </div>
-{/if}
+  {/each}
+</div>
 
 <ul class="regions" data-testid="family-region-mastery">
   {#each regions as r (r.region)}
-    {@const rowGm = variant === 'stacked' && regionGrandmastered(r)}
+    {@const rowGm = regionGrandmastered(r)}
     <li class:row-gm={rowGm}>
       <span class="icon" class:gm={rowGm} aria-hidden="true"><RegionIcon region={r.region} /></span>
       <div class="body">
@@ -135,7 +118,7 @@
             {/if}
           </span>
           <span class="count">
-            {#if variant === 'toggle' && lens !== 'overall'}
+            {#if lens !== 'overall'}
               <!-- On a family lens the bar shows that family's %; pair it with that family's
                    mastered/total so the number matches the bar, not the blended total. -->
               {$t('progress.mastery.regionCount', {
@@ -152,93 +135,8 @@
           </span>
         </div>
 
-        {#if variant === 'stacked'}
-          <div class="minis">
-            {#each FAMILIES as f (f.key)}
-              {@const fam = famTally(r, f.key)}
-              {@const p = pct(fam.mastered, fam.total)}
-              {@const lp = pct(fam.learning, fam.total)}
-              {@const done = fam.total > 0 && fam.mastered === fam.total}
-              <!-- Certified is *permanent* (the capstone is monotonic), so a passed family gilds
-                   even if its SR mastery later lapses — the gold reflects the earned run, not live %. -->
-              {@const cert = isCertified(r.region, f.key)}
-              <div class="mini" class:gilded={cert}>
-                <span class="tag">{$t(`modes.group.${f.key}`)}</span>
-                <span class="mtrack">
-                  {#if cert}
-                    <span class="mfill gm-fill" style="width:100%"></span>
-                  {:else}
-                    <span
-                      class="mfill fam-{f.key}"
-                      style="width:{p}%"
-                      title={$t('progress.mastery.mastered')}
-                    ></span>
-                    <span
-                      class="mfill learn-{f.key}"
-                      style="width:{lp}%"
-                      title={$t('progress.mastery.learning')}
-                    ></span>
-                  {/if}
-                </span>
-                {#if cert && onInvite}
-                  <!-- Certified: the gilded crown doubles as "challenge a friend" (Phase 46b) — tap
-                       to share an invite for this capstone to someone else. -->
-                  <button
-                    type="button"
-                    class="mpct gm-crown gm-crown-btn"
-                    title={inviteLabel(f.key, r.region)}
-                    aria-label={inviteLabel(f.key, r.region)}
-                    onclick={() => onInvite(r.region, f.key)}
-                  >
-                    <Icon name="crown" size={15} />
-                  </button>
-                {:else if cert}
-                  <!-- Certified but no invite handler wired (e.g. the Home 'toggle' variant): a static
-                       gilded crown standing in for the (redundant) 100%. -->
-                  <span
-                    class="mpct gm-crown"
-                    title={$t('challenge.certified')}
-                    aria-label={$t('challenge.certified')}
-                  >
-                    <Icon name="crown" size={15} />
-                  </span>
-                {:else}
-                  <span class="mpct">{p}%</span>
-                  {#if done && onChallenge}
-                    <!-- Fully mastered but not yet certified — the "prove it" launch. On cooldown
-                         (today's attempt spent) it dims to a clock; tapping still opens the offer
-                         modal, which explains the cooldown + shows the countdown. -->
-                    {@const cool = isSpent(r.region, f.key)}
-                    {@const label =
-                      cool && cooldownText ? cooldownText : challengeLabel(f.key, r.region)}
-                    <button
-                      type="button"
-                      class="prove"
-                      class:cooling={cool}
-                      aria-label={label}
-                      title={label}
-                      onclick={() => onChallenge(r.region, f.key)}
-                    >
-                      <Icon name={cool ? 'clock' : 'crown'} size={15} />
-                    </button>
-                  {:else if onPractise && fam.mastered < fam.total}
-                    {@const label = practiseLabel(f.key, r.region)}
-                    <button
-                      type="button"
-                      class="practise"
-                      aria-label={label}
-                      title={label}
-                      onclick={() => onPractise(r.region, f.key)}
-                    >
-                      <Icon name="target" size={15} />
-                    </button>
-                  {/if}
-                {/if}
-              </div>
-            {/each}
-          </div>
-        {:else}
-          {@const p = lensPct(r)}
+        {#if lens === 'overall'}
+          {@const p = blendedPct(r)}
           <div
             class="track"
             role="progressbar"
@@ -247,13 +145,103 @@
             aria-valuenow={p}
             aria-label="{$localizedRegion(r.region)} — {lensLabel(lens)}"
           >
-            <span class="fill fam-{lens}" style="width:{p}%" title={$t('progress.mastery.mastered')}
+            <span
+              class="fill fam-overall"
+              style="width:{p}%"
+              title={$t('progress.mastery.mastered')}
             ></span>
             <span
-              class="fill learn-{lens}"
+              class="fill learn-overall"
               style="width:{lensLearnPct(r)}%"
               title={$t('progress.mastery.learning')}
             ></span>
+          </div>
+        {:else}
+          <!-- Capture the active lens as a `MasteryFamily` const: the `{:else}` already narrows
+               `lens`, but the onclick closures below would otherwise widen it back to `Lens`. -->
+          {@const familyKey = lens}
+          {@const fam = famTally(r, familyKey)}
+          {@const p = pct(fam.mastered, fam.total)}
+          {@const lp = pct(fam.learning, fam.total)}
+          {@const done = fam.total > 0 && fam.mastered === fam.total}
+          <!-- Certified is *permanent* (the capstone is monotonic), so a passed family gilds even
+               if its SR mastery later lapses — the gold reflects the earned run, not live %. -->
+          {@const cert = isCertified(r.region, familyKey)}
+          <div class="bar-row" class:interactive>
+            <div
+              class="track"
+              class:gilded={cert}
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={cert ? 100 : p}
+              aria-label="{$localizedRegion(r.region)} — {lensLabel(familyKey)}"
+            >
+              {#if cert}
+                <span class="fill gm-fill" style="width:100%"></span>
+              {:else}
+                <span
+                  class="fill fam-{familyKey}"
+                  style="width:{p}%"
+                  title={$t('progress.mastery.mastered')}
+                ></span>
+                <span
+                  class="fill learn-{familyKey}"
+                  style="width:{lp}%"
+                  title={$t('progress.mastery.learning')}
+                ></span>
+              {/if}
+            </div>
+            {#if cert && onInvite}
+              <!-- Certified: the gilded crown doubles as "challenge a friend" (Phase 46b) — tap to
+                   share an invite for this capstone to someone else. -->
+              <button
+                type="button"
+                class="gm-crown gm-crown-btn"
+                title={inviteLabel(familyKey, r.region)}
+                aria-label={inviteLabel(familyKey, r.region)}
+                onclick={() => onInvite(r.region, familyKey)}
+              >
+                <Icon name="crown" size={15} />
+              </button>
+            {:else if cert}
+              <!-- Certified but no invite handler wired: a static gilded crown marking the capstone. -->
+              <span
+                class="gm-crown"
+                title={$t('challenge.certified')}
+                aria-label={$t('challenge.certified')}
+              >
+                <Icon name="crown" size={15} />
+              </span>
+            {:else if done && onChallenge}
+              <!-- Fully mastered but not yet certified — the "prove it" launch. On cooldown (today's
+                   attempt spent) it dims to a clock; tapping still opens the offer modal, which
+                   explains the cooldown + shows the countdown. -->
+              {@const cool = isSpent(r.region, familyKey)}
+              {@const label =
+                cool && cooldownText ? cooldownText : challengeLabel(familyKey, r.region)}
+              <button
+                type="button"
+                class="prove"
+                class:cooling={cool}
+                aria-label={label}
+                title={label}
+                onclick={() => onChallenge(r.region, familyKey)}
+              >
+                <Icon name={cool ? 'clock' : 'crown'} size={15} />
+              </button>
+            {:else if onPractise && fam.mastered < fam.total}
+              {@const label = practiseLabel(familyKey, r.region)}
+              <button
+                type="button"
+                class="practise"
+                aria-label={label}
+                title={label}
+                onclick={() => onPractise(r.region, familyKey)}
+              >
+                <Icon name="target" size={15} />
+              </button>
+            {/if}
           </div>
         {/if}
       </div>
@@ -313,44 +301,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Visible state key (Progress / stacked): names the solid "mastered" vs striped "learning" bar
-     segments so the encoding is legible on touch, where the title tooltip never shows. */
-  .key {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.85rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--color-muted);
-  }
-
-  .key-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .sw {
-    width: 0.85rem;
-    height: 0.62rem;
-    border-radius: 3px;
-    border: 1px solid var(--color-border);
-  }
-
-  .sw-mastered {
-    background: var(--color-accent);
-  }
-
-  .sw-learning {
-    background-image: repeating-linear-gradient(
-      45deg,
-      var(--color-accent) 0 2px,
-      var(--color-accent-weak) 2px 6px
-    );
-    opacity: 0.72;
-  }
-
-  /* Family palette shared by both variants. */
+  /* Family palette shared by the tab bar + the bars. */
   .fam-map {
     background: var(--color-accent);
   }
@@ -395,20 +346,17 @@
     opacity: 0.72;
   }
 
-  /* Stacked mini-bars (Progress, Option A). */
-  .minis {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .mini {
+  /* The bar + its per-family control (Progress). The control column stays reserved on the
+     interactive surface so the bars line up whether or not a given row carries an action. */
+  .bar-row {
     display: grid;
-    /* tag · track · % · practise-shortcut (the last column stays reserved even when a family is
-       fully mastered and its button is absent, so the % column never shifts between rows). */
-    grid-template-columns: 4.2rem 1fr 2.4rem 1.6rem;
+    grid-template-columns: 1fr;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  .bar-row.interactive {
+    grid-template-columns: 1fr 1.6rem;
   }
 
   /* Per-family "practise this region's unmastered countries" shortcut (Phase 41 follow-on).
@@ -493,13 +441,8 @@
     outline-color: var(--color-muted);
   }
 
-  /* Certified: the mini-bar gilds in place, the crown replacing the (redundant 100%) percentage. */
-  .mini.gilded .tag {
-    color: var(--color-gold-ink);
-    font-weight: 800;
-  }
-
-  .mini.gilded .mtrack {
+  /* Certified: the bar gilds gold and its crown replaces the (redundant 100%) percentage. */
+  .track.gilded {
     border-color: var(--color-gold);
   }
 
@@ -510,9 +453,10 @@
   }
 
   .gm-crown {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
     color: var(--color-gold-deep);
   }
 
@@ -577,34 +521,7 @@
     }
   }
 
-  .tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-muted);
-  }
-
-  .mtrack {
-    display: flex;
-    height: 0.4rem;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .mfill {
-    display: block;
-    height: 100%;
-  }
-
-  .mpct {
-    font-size: 0.72rem;
-    color: var(--color-muted);
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Family toggle (Home, Option B). */
+  /* Family lens toggle (the tab bar). */
   .toggle {
     display: flex;
     flex-wrap: wrap;

@@ -74,8 +74,9 @@ describe('Home — Grandmaster invitation card (Phase 45 ⑥)', () => {
 
     render(Home);
 
-    // Wait for the mastery panel to land, then confirm the invite never surfaces.
-    await screen.findByTestId('family-mastery-meter');
+    // Let Home's async reads settle (the daily card is co-loaded), then confirm the invite never
+    // surfaces — nothing is fully mastered, so no run is attemptable.
+    await screen.findByTestId('daily-card');
     expect(screen.queryByTestId('grandmaster-invite')).not.toBeInTheDocument();
   });
 

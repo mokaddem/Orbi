@@ -59,10 +59,6 @@ const en = {
       milestoneTitle: '{count}-day streak!',
       milestoneBody: 'You’re on a roll — keep it going.',
     },
-    mastery: {
-      showRegions: 'Show per-region breakdown',
-      hideRegions: 'Hide per-region breakdown',
-    },
   },
   daily: {
     label: 'Daily Challenge',

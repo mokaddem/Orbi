@@ -61,10 +61,10 @@ describe('Home invite after a forfeit-on-leave (no read/write race)', () => {
   it('a just-forfeited run is gone from the invite on the very next Home mount', async () => {
     loadMastery.mockResolvedValue(soleOceaniaFlags());
 
-    // First visit: the sole run is attemptable, so the invite is offered.
+    // First visit: the sole run is attemptable, so the invite is offered (it only surfaces once
+    // mastery + the Grandmaster mirror have loaded).
     const first = render(Home);
-    await screen.findByTestId('family-mastery-meter');
-    expect(screen.getByRole('button', { name: /Enter the gauntlet/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Enter the gauntlet/ })).toBeInTheDocument();
     first.unmount();
 
     // Leaving the arena mid-run records a failed attempt in the arena's teardown — and, like there,
@@ -74,7 +74,8 @@ describe('Home invite after a forfeit-on-leave (no read/write race)', () => {
     // Landing back on Home immediately: today's attempt is spent, so the invite must be gone (before
     // the fix it lingered, because Home read stale IndexedDB while the write was still in flight).
     render(Home);
-    await screen.findByTestId('family-mastery-meter');
+    // Let Home's async reads settle (the daily card is co-loaded) before asserting the invite is gone.
+    await screen.findByTestId('daily-card');
     expect(screen.queryByRole('button', { name: /Enter the gauntlet/ })).not.toBeInTheDocument();
     expect(screen.queryByTestId('grandmaster-invite')).not.toBeInTheDocument();
   });
