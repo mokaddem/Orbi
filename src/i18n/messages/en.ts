@@ -698,6 +698,13 @@ const en = {
     notPersisted: 'Storage is unavailable — settings and history won’t be saved.',
     about: 'About',
     version: 'Version',
+    update: {
+      check: 'Check for updates',
+      checking: 'Checking…',
+      upToDate: 'You’re up to date',
+      updating: 'Updating… the app will reload',
+      error: 'Couldn’t check — check your connection',
+    },
     data: {
       title: 'Data',
       historyLabel: 'Play history',

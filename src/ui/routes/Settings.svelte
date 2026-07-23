@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { t } from '../../i18n';
   import {
     PREFS_BOUNDS,
@@ -20,11 +20,39 @@
   import LanguageSwitcher from '../components/LanguageSwitcher.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import CountryScopeNote from '../components/CountryScopeNote.svelte';
+  import {
+    checkForAppUpdate,
+    updateStatusKey,
+    updateBadgeTone,
+    type UpdateUiState,
+  } from '../pwa-update';
 
   const B = PREFS_BOUNDS;
 
   // App version, injected at build time from package.json (see vite.config.ts `define`).
   const APP_VERSION = __APP_VERSION__;
+
+  // "Check for updates" (About): updates already ship silently (autoUpdate), but an installed
+  // PWA otherwise only re-checks on a cold launch or the browser's lazy poll — so give users a
+  // manual trigger instead of the force-quit-and-reopen workaround. Only shown where a service
+  // worker can run (hidden on the dev server / unsupported browsers). See src/ui/pwa-update.ts.
+  const swSupported = typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+  let updateState = $state<UpdateUiState>('idle');
+
+  // How long the outcome badge lingers before collapsing back to the button.
+  const BADGE_REVERT_MS = 3500;
+  let revertTimer: ReturnType<typeof setTimeout> | undefined;
+
+  async function onCheckUpdate(): Promise<void> {
+    clearTimeout(revertTimer);
+    updateState = 'checking';
+    updateState = await checkForAppUpdate();
+    // The button became a coloured outcome badge; drop back to a button after a beat so the
+    // control is ready for the next check. ('updating' reloads the page anyway.)
+    revertTimer = setTimeout(() => (updateState = 'idle'), BADGE_REVERT_MS);
+  }
+
+  onDestroy(() => clearTimeout(revertTimer));
 
   function onNumber(field: 'fixedLength' | 'survivalLives' | 'choicesPerQuestion') {
     return (e: Event & { currentTarget: HTMLInputElement }) => {
@@ -228,7 +256,26 @@
 
   <div class="row">
     <span class="label">{$t('settings.version')}</span>
-    <span class="version-value">{APP_VERSION}</span>
+    <span class="version-value">
+      {#if swSupported}
+        {#if updateState === 'idle'}
+          <button type="button" class="check-update" onclick={onCheckUpdate}>
+            {$t('settings.update.check')}
+          </button>
+        {:else}
+          {@const statusKey = updateStatusKey(updateState)}
+          {#if statusKey}
+            <span
+              class="update-badge"
+              data-tone={updateBadgeTone(updateState)}
+              role="status"
+              aria-live="polite">{$t(statusKey)}</span
+            >
+          {/if}
+        {/if}
+      {/if}
+      <span class="version-number">{APP_VERSION}</span>
+    </span>
   </div>
 </section>
 
@@ -405,5 +452,61 @@
   .danger:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* About → manual update check. A small "check" button sits left of the version number on
+     one line; on a check it is replaced in place by a coloured outcome badge (see
+     updateBadgeTone) that reverts to the button after a few seconds. */
+  .version-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .check-update {
+    flex: 0 0 auto;
+    padding: 0.15rem 0.5rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .check-update:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .update-badge {
+    flex: 0 0 auto;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .update-badge[data-tone='success'] {
+    color: var(--color-correct);
+    background: var(--color-correct-bg);
+  }
+
+  .update-badge[data-tone='info'] {
+    color: var(--color-accent-strong);
+    background: var(--color-accent-weak);
+  }
+
+  .update-badge[data-tone='error'] {
+    color: var(--color-wrong);
+    background: var(--color-wrong-bg);
+  }
+
+  .update-badge[data-tone='pending'] {
+    color: var(--color-muted);
+    border-color: var(--color-border);
   }
 </style>

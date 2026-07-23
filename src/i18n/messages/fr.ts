@@ -691,6 +691,13 @@ const fr: typeof en = {
       'Le stockage est indisponible — les paramètres et l’historique ne seront pas enregistrés.',
     about: 'À propos',
     version: 'Version',
+    update: {
+      check: 'Rechercher des mises à jour',
+      checking: 'Vérification…',
+      upToDate: 'Vous êtes à jour',
+      updating: 'Mise à jour… l’application va se recharger',
+      error: 'Échec de la vérification — vérifiez votre connexion',
+    },
     data: {
       title: 'Données',
       historyLabel: 'Historique de jeu',

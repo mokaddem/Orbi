@@ -690,6 +690,13 @@ const de: typeof en = {
       'Der Speicher ist nicht verfügbar — Einstellungen und Verlauf werden nicht gesichert.',
     about: 'Über',
     version: 'Version',
+    update: {
+      check: 'Nach Updates suchen',
+      checking: 'Wird geprüft…',
+      upToDate: 'Du bist auf dem neuesten Stand',
+      updating: 'Wird aktualisiert… die App wird neu geladen',
+      error: 'Prüfung fehlgeschlagen — überprüfe deine Verbindung',
+    },
     data: {
       title: 'Daten',
       historyLabel: 'Spielverlauf',
