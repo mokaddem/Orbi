@@ -7,6 +7,40 @@ All notable changes to Orbi are documented here. The format is based on
 Orbi was built feature-by-feature against a product spec (see [`docs/main_PRD.md`](docs/main_PRD.md));
 the entries below summarize that history, newest first. **v2.1 is the first public GitHub release.**
 
+## [2.8.0] — 2026-07-23 — _Daily streaks_
+
+### Added
+
+- 🔥 **A daily-streak flame that grows** — the Home daily-streak flame is no longer identical on
+  day 1 and day 365. It now climbs a milestone ladder — 3 days, 1 week, 2 weeks, then a monthly
+  cadence (1 / 2 / 3 / 6 months) and a full year — heating up a teal → gold → coral ramp and
+  throwing off an ever-denser shower of rising embers as the streak grows. Embers and the idle
+  pulse drop under reduce-motion. (Reward badges / XP for the longer milestones are a follow-up.)
+- ✨ **Rank-up celebrations, keyed to your medal band** — the rank-up confetti is replaced by a
+  flourish that escalates with the climb: a **Sunburst** for bronze / silver, a **Charge & Burst**
+  for gold / platinum, and an **Aurora Halo** for crystal that mirrors those medals' own motion —
+  with a brief hold at the exact moment you level up.
+- 🚩 **Flags paired with country names** — map-locate prompts and capital → country answer choices
+  now show each country's flag beside its name (matching the other country-name modes). Never a
+  giveaway: flags appear only where the flag isn't the answer, and every choice carries its own.
+- 🔄 **Check for updates** — a small control in Settings → About triggers an update check on demand
+  (installed apps already update silently on reopen / focus). It shows a colour-coded outcome —
+  up to date, updating, or couldn't check — for a few seconds, then returns to a button.
+- ⏱️ **Grandmaster run timer** — a discreet mm:ss clock in the Grandmaster HUD shows the time spent
+  on the current run.
+
+### Changed
+
+- 🗺️ **World Mastery on a single surface** — Progress adopts the tabbed lens layout (Overall / Map /
+  Flags / Capitals, one bar per region) with each family's controls riding the active lens; the
+  duplicate World Mastery glance is removed from Home.
+- 📅 **The Daily Challenge no longer feeds spaced-repetition** — a once-a-day puzzle shouldn't
+  reshape your training queue, so it is now excluded from SR writes (as Blitz already was).
+- ⏳ **Fairer game duration** — a recorded game's time now sums only active answering (per question)
+  and excludes answer-feedback dwell, in both regular and Grandmaster sessions.
+- 📍 **The highlighted micro-country dot now pulses** subtly, to help you spot a tiny target on the
+  map (respects the reduce-motion preference and the OS setting).
+
 ## [2.7.0] — 2026-07-21 — _Explorer ranks_
 
 ### Added
