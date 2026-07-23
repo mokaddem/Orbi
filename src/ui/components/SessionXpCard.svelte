@@ -610,7 +610,6 @@
             decay: 0.024 + Math.random() * 0.02,
             draw: dSpark,
             update: (p: FxP) => {
-              p.t as number;
               p.t = (p.t as number) + 0.016;
               p.x += p.vx as number;
               p.y += p.vy as number;

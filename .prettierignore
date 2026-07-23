@@ -3,6 +3,7 @@ dev-dist/
 coverage/
 node_modules/
 .claude/
+manual/
 src/data/generated/
 pnpm-lock.yaml
 package-lock.json
