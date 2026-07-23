@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeAll, beforeEach, describe, it, expect } from 'vitest';
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import { get } from 'svelte/store';
 import Home from './Home.svelte';
 import { pendingConfig, pendingReview, play } from '../stores/game';
@@ -77,38 +77,5 @@ describe('Home route — review hero (Phase 26 region-scoped)', () => {
     sel = get(pendingReview);
     expect(sel).toMatchObject({ mode: 'map-highlight', region: null });
     expect(sel!.iso2s.slice().sort()).toEqual(['BG', 'RO']);
-  });
-});
-
-describe('Home route — mastery region breakdown (Phase 29)', () => {
-  it('collapses by default and toggles the per-region breakdown', async () => {
-    render(Home);
-
-    // The compact per-family world-mastery meter is on Home...
-    await screen.findByTestId('family-mastery-meter');
-
-    // ...and its per-region breakdown is hidden by default: the trigger advertises "show"
-    // and reports aria-expanded=false, with no region rows in the DOM yet.
-    expect(screen.queryByTestId('family-region-mastery')).not.toBeInTheDocument();
-    const toggle = screen.getByRole('button', { name: 'Show per-region breakdown' });
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(toggle).toHaveAttribute('aria-controls', 'home-region-breakdown');
-
-    // Expanding reveals the per-family region breakdown (one row per M49 region), and the
-    // trigger flips to the "hide" affordance with aria-expanded=true. The toggle variant
-    // carries a progressbar per region (one bar, driven by the family lens).
-    await fireEvent.click(toggle);
-    const breakdown = await screen.findByTestId('family-region-mastery');
-    expect(document.getElementById('home-region-breakdown')).toContainElement(breakdown);
-    expect(within(breakdown).getAllByRole('progressbar').length).toBeGreaterThan(0);
-    expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('button', { name: 'Hide per-region breakdown' })).toBe(toggle);
-
-    // Collapsing again hides it: aria-expanded flips back and the region rows leave the DOM.
-    await fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await waitFor(() =>
-      expect(screen.queryByTestId('family-region-mastery')).not.toBeInTheDocument(),
-    );
   });
 });

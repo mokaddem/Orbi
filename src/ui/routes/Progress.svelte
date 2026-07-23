@@ -457,7 +457,6 @@
           <h3 class="subhead">{$t('progress.mastery.regionsTitle')}</h3>
           <FamilyRegionBreakdown
             regions={mastery.byRegion}
-            variant="stacked"
             onPractise={practiseRegionFamily}
             onChallenge={launchChallenge}
             onInvite={inviteFriend}
