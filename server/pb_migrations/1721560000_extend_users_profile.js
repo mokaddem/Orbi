@@ -23,7 +23,10 @@ migrate(
     const collection = app.findCollectionByNameOrId('users');
 
     collection.fields.add(
-      new TextField({ name: 'displayName', max: 24, required: false }),
+      // `presentable` makes the admin UI show the name (not "N/A") in `users` relation
+      // columns, e.g. the duel `challenger`/`opponent`. New installs only — existing DBs
+      // keep the flag set via the admin UI (editing an applied migration doesn't re-run).
+      new TextField({ name: 'displayName', max: 24, required: false, presentable: true }),
     );
     collection.fields.add(new TextField({ name: 'deviceId', max: 100, required: false }));
     collection.fields.add(new BoolField({ name: 'isAnonymous', required: false }));

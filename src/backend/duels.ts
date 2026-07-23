@@ -111,7 +111,11 @@ export async function sendDuel(
   }
 }
 
-/** Pending duels awaiting MY play (I'm the opponent), newest first. `[]` on any failure. Never throws. */
+/**
+ * Pending duels awaiting MY play (I'm the opponent), newest first. `[]` on any failure. Never throws.
+ * A DECLINED duel — one I set `opponentDismissed` on without playing — is excluded, so declining takes
+ * it out of my inbox (it stays `pending`, so the challenger's outbox can still show it as declined).
+ */
 export async function listInbox(): Promise<DuelRecordView[]> {
   const pb = await getClient();
   if (!pb) return [];
@@ -119,8 +123,14 @@ export async function listInbox(): Promise<DuelRecordView[]> {
   if (!me) return [];
   try {
     const rows = await pb.collection('duels').getFullList({
-      filter: `opponent = "${filterQuote(me)}" && status = "pending"`,
+      filter: `opponent = "${filterQuote(me)}" && status = "pending" && opponentDismissed != true`,
       sort: '-created',
+      // Distinct requestKey per list: the inbox + history refresh CONCURRENTLY
+      // (`runRefresh` Promise.all) and hit the same `duels` endpoint, so the SDK's default
+      // auto-cancellation would abort one of the pair ("Fetch request failed") and it would
+      // silently return []. A unique key stops them cancelling each other while still
+      // letting a newer refresh of THIS list supersede a stale in-flight one.
+      requestKey: 'duels-inbox',
     });
     return rows.map(duelViewFromRecord);
   } catch {
@@ -128,7 +138,12 @@ export async function listInbox(): Promise<DuelRecordView[]> {
   }
 }
 
-/** Pending duels I SENT, awaiting the opponent (I'm the challenger), newest first. Never throws. */
+/**
+ * Pending duels I SENT, awaiting the opponent (I'm the challenger), newest first. Never throws. These
+ * are the challenger's "waiting for them to play" list; one the opponent declined (its
+ * `opponentDismissed` flag) still appears here (still `pending`) so the UI can show it as declined —
+ * until I clear it with my own `challengerDismissed` flag, which drops it from this list.
+ */
 export async function listOutbox(): Promise<DuelRecordView[]> {
   const pb = await getClient();
   if (!pb) return [];
@@ -136,8 +151,9 @@ export async function listOutbox(): Promise<DuelRecordView[]> {
   if (!me) return [];
   try {
     const rows = await pb.collection('duels').getFullList({
-      filter: `challenger = "${filterQuote(me)}" && status = "pending"`,
+      filter: `challenger = "${filterQuote(me)}" && status = "pending" && challengerDismissed != true`,
       sort: '-created',
+      requestKey: 'duels-outbox', // see listInbox — avoid the concurrent auto-cancel collision
     });
     return rows.map(duelViewFromRecord);
   } catch {
@@ -183,6 +199,7 @@ export async function listHistory(): Promise<DuelRecordView[]> {
         `(challenger = "${q}" && challengerDismissed != true)` +
         ` || (opponent = "${q}" && opponentDismissed != true))`,
       sort: '-created',
+      requestKey: 'duels-history', // see listInbox — avoid the concurrent auto-cancel collision
     });
     return rows.map(duelViewFromRecord);
   } catch {

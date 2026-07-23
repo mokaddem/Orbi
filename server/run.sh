@@ -81,6 +81,7 @@ shift || true # drop an explicit leading "serve" so we don't pass it twice
 exec "$BIN" serve \
   --dir "$SCRIPT_DIR/pb_data" \
   --migrationsDir "$SCRIPT_DIR/pb_migrations" \
+  --hooksDir "$SCRIPT_DIR/pb_hooks" \
   --http "${PB_HTTP:-127.0.0.1:8090}" \
   --origins "${PB_ORIGINS:-http://localhost:5180,https://mokaddem.github.io}" \
   "$@"

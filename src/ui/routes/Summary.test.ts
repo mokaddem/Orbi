@@ -215,8 +215,10 @@ describe('Summary route — Challenge a friend (Phase 46)', () => {
     lastSummary.set(duelable({ correct: 9 }));
     render(Summary);
     expect(screen.getByText('You win!')).toBeInTheDocument();
+    // A LINK duel (no staged inbox id) keeps its "send result back" return leg.
     expect(screen.getByRole('button', { name: 'Send result back' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Rematch' })).toBeInTheDocument();
+    // Rematch was removed app-wide (a duel is started from the Session History instead).
+    expect(screen.queryByRole('button', { name: 'Rematch' })).not.toBeInTheDocument();
     // The generic "start a new duel" affordance is replaced by the verdict.
     expect(screen.queryByRole('heading', { name: 'Challenge a friend' })).not.toBeInTheDocument();
   });

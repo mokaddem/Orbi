@@ -1,8 +1,9 @@
 <script lang="ts">
   // Head-to-head duel result (Phase 46) — presentational. Renders the verdict headline, the two
   // scores (viewer always "You" on top), and whichever actions the caller wires up: the challengee's
-  // Summary passes `onSendResult` + `onRematch`; the challenger's `#/duel?r=…` return screen passes
-  // `onRematch` + `onHome`. `feedback` is a transient i18n key (e.g. a "link copied" line).
+  // Summary passes `onSendResult` (link/QR duels only); the challenger's `#/duel?r=…` return screen
+  // passes `onHome`. `feedback` is a transient i18n key (e.g. a "link copied" line). (Rematch was
+  // removed app-wide — a duel is started from the Session History instead.)
   import { t } from '../../i18n';
   import type { DuelScore, DuelType, DuelVerdict } from '../../domain';
   import Icon from './Icon.svelte';
@@ -15,7 +16,6 @@
     theirScore,
     theirName,
     onSendResult,
-    onRematch,
     onHome,
     feedback = null,
   }: {
@@ -26,7 +26,6 @@
     /** The other player's display name; falls back to a generic label when empty. */
     theirName: string;
     onSendResult?: () => void;
-    onRematch?: () => void;
     onHome?: () => void;
     feedback?: string | null;
   } = $props();
@@ -54,18 +53,12 @@
     </div>
   </div>
 
-  {#if onSendResult || onRematch || onHome}
+  {#if onSendResult || onHome}
     <div class="actions">
       {#if onSendResult}
         <button type="button" class="primary" onclick={onSendResult}>
           <Icon name="share" size="1em" />
           {$t('duel.sendResult')}
-        </button>
-      {/if}
-      {#if onRematch}
-        <button type="button" class="secondary" onclick={onRematch}>
-          <Icon name="swords" size="1em" />
-          {$t('duel.rematch')}
         </button>
       {/if}
       {#if onHome}
@@ -75,10 +68,6 @@
         </button>
       {/if}
     </div>
-  {/if}
-
-  {#if onRematch}
-    <p class="hint">{$t('duel.rematchHint')}</p>
   {/if}
 
   <p class="feedback" role="status" aria-live="polite">{feedback ? $t(feedback) : ''}</p>
@@ -184,27 +173,10 @@
     box-shadow: var(--shadow-chunky-press);
   }
 
-  .secondary {
-    background: var(--color-bg);
-    border-color: var(--color-border);
-    color: var(--color-text);
-  }
-
-  .secondary:hover {
-    border-color: var(--color-accent);
-    transform: translateY(-2px);
-  }
-
   .ghost {
     background: transparent;
     border-color: var(--color-border);
     color: var(--color-text);
-  }
-
-  .hint {
-    margin: 0;
-    color: var(--color-muted);
-    font-size: 0.8rem;
   }
 
   .feedback {
@@ -220,8 +192,7 @@
       transition: none;
     }
 
-    .actions .primary:hover,
-    .actions .secondary:hover {
+    .actions .primary:hover {
       transform: none;
     }
   }

@@ -24,10 +24,12 @@ const h = vi.hoisted(() => {
   };
   return {
     inbox: mk<unknown[]>([]),
+    outbox: mk<unknown[]>([]),
     history: mk<unknown[]>([]),
     pendingInboxDuelId: mk<string | null>(null),
     refreshDuels: vi.fn(),
     dismiss: vi.fn(async () => true),
+    decline: vi.fn(async () => true),
     push: vi.fn(),
     gate: { tier: 'account' as 'account' | 'anonymous', configured: true },
   };
@@ -36,10 +38,12 @@ const h = vi.hoisted(() => {
 vi.mock('svelte-spa-router', () => ({ push: h.push }));
 vi.mock('../stores/duels', () => ({
   inbox: h.inbox,
+  outbox: h.outbox,
   history: h.history,
   pendingInboxDuelId: h.pendingInboxDuelId,
   refreshDuels: h.refreshDuels,
   dismiss: h.dismiss,
+  decline: h.decline,
 }));
 vi.mock('../stores/identity', () => ({
   identity: {
@@ -82,18 +86,21 @@ const entry = (over: Partial<DuelEntry> = {}): DuelEntry => ({
   myScore: null,
   theirScore: { primary: 9, tiebreak: 1000 },
   verdict: null,
+  declined: false,
   ...over,
 });
 
 beforeEach(() => {
   setLocale('en');
   h.inbox.set([]);
+  h.outbox.set([]);
   h.history.set([]);
   h.pendingInboxDuelId.set(null);
   h.gate.tier = 'account';
   h.gate.configured = true;
   h.refreshDuels.mockClear();
   h.dismiss.mockClear();
+  h.decline.mockClear();
   h.push.mockClear();
   pendingConfig.set(null);
   pendingDuel.set(null);
@@ -140,6 +147,25 @@ describe('Duels route (Phase 54)', () => {
     expect(get(pendingDuel)?.seed).toBe(0x1234);
     // The row id is staged so the Summary writes the result straight back to it.
     expect(h.pendingInboxDuelId.get()).toBe('d1');
+  });
+
+  it('declines a received challenge from the inbox', async () => {
+    h.inbox.set([entry()]);
+    render(Duels);
+    await fireEvent.click(screen.getByRole('button', { name: 'Decline' }));
+    expect(h.decline).toHaveBeenCalledWith('d1');
+    expect(h.push).not.toHaveBeenCalled(); // declining never launches a run
+  });
+
+  it('shows the outbox: waiting for the opponent, plus challenges they declined', () => {
+    h.outbox.set([
+      entry({ id: 'o1', iAmChallenger: true, otherName: 'Bob', declined: false }),
+      entry({ id: 'o2', iAmChallenger: true, otherName: 'Cara', declined: true }),
+    ]);
+    render(Duels);
+    expect(screen.getByText('Sent challenges')).toBeInTheDocument();
+    expect(screen.getByText('Waiting for Bob')).toBeInTheDocument();
+    expect(screen.getByText('Cara declined')).toBeInTheDocument();
   });
 
   it('renders completed history with a verdict, per-friend W/L, and a dismiss', async () => {

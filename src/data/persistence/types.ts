@@ -38,6 +38,18 @@ export interface SessionRecord {
    */
   seed?: number;
   /**
+   * MC options per question this run used (Phase 54 follow-on) — recorded alongside `seed` so a duel
+   * can be started from history and reproduce the exact distractor sets on the friend's device
+   * (`choices` changes what `buildQuestion` samples). Absent on records written before this was added;
+   * a duel-from-history falls back to the player's current preference for those.
+   */
+  choices?: number;
+  /**
+   * Survival only: the life count the run was played with (Phase 54 follow-on) — so a survival duel
+   * started from history replays under the same end condition. Absent on non-survival records.
+   */
+  lives?: number;
+  /**
    * Targeted-practice runs only: the explicit ISO alpha-2 pool that was drilled (Phase-49 follow-on).
    * Its presence marks a run as a *custom set*, not region/World play — so a targeted Blitz run is
    * kept out of the region/World personal bests. Absent on ordinary region/World runs.

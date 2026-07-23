@@ -27,8 +27,11 @@ const h = vi.hoisted(() => {
     friends: mk<{ userId: string; displayName: string }[]>([]),
     identity: mk<{ tier: string }>({ tier: 'account' }),
     pendingInboxDuelId: mk<string | null>(null),
-    send: vi.fn(async () => 'ok' as const),
-    submit: vi.fn(async () => 'ok' as const),
+    // Typed via the generic (not impl params) so `.mock.calls[0]` is a proper tuple, not `[]`.
+    send: vi.fn<
+      (opponentId: string, code: string, score: DuelScore, opponentName: string) => Promise<'ok'>
+    >(async () => 'ok' as const),
+    submit: vi.fn<(duelId: string, score: DuelScore) => Promise<'ok'>>(async () => 'ok' as const),
     configured: true,
   };
 });
@@ -45,7 +48,13 @@ vi.mock('../stores/duels', () => ({
 import Summary from './Summary.svelte';
 import { lastSummary, lastRunConfig, pendingDuel, play } from '../stores/game';
 import { buildDuelPayload } from '../duel';
-import { encodeDuel, type GameMode, type SessionSummary, type SessionType } from '../../domain';
+import {
+  encodeDuel,
+  type DuelScore,
+  type GameMode,
+  type SessionSummary,
+  type SessionType,
+} from '../../domain';
 import { setLocale } from '../../i18n';
 
 // A duel-able run: seeded, a duel format, ≥ MIN_DUEL_QUESTIONS (10).
@@ -146,7 +155,9 @@ describe('Summary — inbox send flow (Phase 54)', () => {
     // Inbox verdict: the head-to-head shows, but there is NO "send result back" (it's auto-written).
     expect(screen.getByText('You win!')).toBeInTheDocument();
     expect(screen.queryByText('Send result back')).not.toBeInTheDocument();
-    // The id is consumed so a re-render can't resubmit.
-    expect(h.pendingInboxDuelId.get()).toBeNull();
+    // The staged id is NOT consumed on submit — it stays set so the verdict keeps its inbox variant
+    // while Summary is shown; it's cleared when the player leaves (newGame / train). A re-render can't
+    // resubmit (guarded by an internal once-flag), and a re-mount would only resubmit the same score.
+    expect(h.pendingInboxDuelId.get()).toBe('d1');
   });
 });

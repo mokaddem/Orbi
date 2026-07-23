@@ -24,6 +24,7 @@ import {
   sendDuel,
   submitResult,
   listInbox,
+  listOutbox,
   listHistory,
   dismissDuel,
   type DuelRecordView,
@@ -52,13 +53,18 @@ export interface DuelEntry {
   theirScore: DuelScore | null;
   /** My head-to-head verdict when complete, else `null`. */
   verdict: DuelVerdict | null;
+  /** Outbox only: `true` when the opponent DECLINED this still-pending challenge (never played it). */
+  declined: boolean;
 }
 
 const inboxStore = writable<DuelEntry[]>([]);
+const outboxStore = writable<DuelEntry[]>([]);
 const historyStore = writable<DuelEntry[]>([]);
 
 /** Pending duels awaiting MY play (I'm the opponent), newest first. */
 export const inbox: Readable<DuelEntry[]> = { subscribe: inboxStore.subscribe };
+/** Pending duels I SENT (I'm the challenger): "waiting for them" + any they declined. Newest first. */
+export const outbox: Readable<DuelEntry[]> = { subscribe: outboxStore.subscribe };
 /** Completed duels I own, minus the ones I dismissed, newest first. */
 export const history: Readable<DuelEntry[]> = { subscribe: historyStore.subscribe };
 /** Count of pending inbox duels — drives the Home "duels" card badge. */
@@ -101,6 +107,9 @@ function toEntry(view: DuelRecordView, me: string): DuelEntry | null {
     theirScore,
     verdict:
       view.status === 'complete' && myScore && theirScore ? duelVerdict(myScore, theirScore) : null,
+    // A still-pending duel the opponent dismissed = declined (meaningful for the challenger's outbox;
+    // a declined duel is filtered out of the opponent's own inbox server-side).
+    declined: view.status === 'pending' && view.opponentDismissed,
   };
 }
 
@@ -112,25 +121,34 @@ let again = false;
 async function runRefresh(): Promise<void> {
   if (gatedOff()) {
     inboxStore.set([]);
+    outboxStore.set([]);
     historyStore.set([]);
     return;
   }
   const me = await currentUserId();
   if (!me) {
     inboxStore.set([]);
+    outboxStore.set([]);
     historyStore.set([]);
     return;
   }
-  const [inboxRows, historyRows] = await Promise.all([listInbox(), listHistory()]);
+  // All three hit the same `duels` endpoint concurrently — each list has a distinct requestKey so the
+  // SDK's auto-cancellation doesn't abort one of the trio (see `backend/duels.ts`).
+  const [inboxRows, outboxRows, historyRows] = await Promise.all([
+    listInbox(),
+    listOutbox(),
+    listHistory(),
+  ]);
   inboxStore.set(inboxRows.map((r) => toEntry(r, me)).filter((e): e is DuelEntry => e !== null));
+  outboxStore.set(outboxRows.map((r) => toEntry(r, me)).filter((e): e is DuelEntry => e !== null));
   historyStore.set(
     historyRows.map((r) => toEntry(r, me)).filter((e): e is DuelEntry => e !== null),
   );
 }
 
 /**
- * Refresh the inbox + history from the server. No-op (clears both lists) with no backend or an
- * anonymous identity. Coalesced; best-effort; never throws.
+ * Refresh the inbox + outbox + history from the server. No-op (clears all lists) with no backend or
+ * an anonymous identity. Coalesced; best-effort; never throws.
  */
 export function refreshDuels(): Promise<void> {
   if (inFlight) {
@@ -180,8 +198,20 @@ export async function submit(duelId: string, opponentScore: DuelScore): Promise<
   return 'ok';
 }
 
-/** Hide a completed duel from my history (my own per-side flag; never a hard delete). Never throws. */
+/** Hide a completed duel from my history (my own per-side flag; never a hard delete). Never throws.
+ *  Also clears a declined challenge from my outbox when I'm the challenger. */
 export async function dismiss(duelId: string): Promise<boolean> {
+  const ok = await dismissDuel(duelId);
+  if (ok) void refreshDuels();
+  return ok;
+}
+
+/**
+ * Decline a received inbox duel without playing it (I'm the opponent). Sets my per-side dismiss flag
+ * on the still-`pending` row, which takes it out of my inbox while leaving the challenger's outbox to
+ * show it as declined. Same backend op as {@link dismiss}; named for the distinct intent. Never throws.
+ */
+export async function decline(duelId: string): Promise<boolean> {
   const ok = await dismissDuel(duelId);
   if (ok) void refreshDuels();
   return ok;
@@ -190,6 +220,7 @@ export async function dismiss(duelId: string): Promise<boolean> {
 /** Reset store + module state. Test seam only — not used by the app. */
 export function __resetDuelsForTests(): void {
   inboxStore.set([]);
+  outboxStore.set([]);
   historyStore.set([]);
   pendingInboxDuelId.set(null);
   inFlight = null;

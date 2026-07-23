@@ -120,8 +120,11 @@ export function summaryToRecord(
     // Cache the Blitz score (base × streak-combo) so the personal best is a cheap max over
     // history; derivable from `questions`, so only blitz runs carry it (Phase 42).
     ...(summary.type === 'blitz' ? { points: computeBlitzPoints(summary.results) } : {}),
-    // Remember the run's seed so a duel/rematch can reproduce it from history (Phase 46).
+    // Remember the run's seed so a duel can reproduce it from history (Phase 46), plus the option
+    // count (and survival life count) the reproduction needs (Phase 54 follow-on).
     ...(summary.seed !== undefined ? { seed: summary.seed } : {}),
+    ...(summary.choices !== undefined ? { choices: summary.choices } : {}),
+    ...(summary.type === 'survival' && summary.lives !== undefined ? { lives: summary.lives } : {}),
     // A targeted-practice run carries its drilled pool (marks it as a custom set, not region play) and
     // — when launched from a saved set — that set's id, both scoping its Blitz best (Phase-49 follow-on).
     ...(summary.answerPool ? { answerPool: [...summary.answerPool] } : {}),

@@ -12,6 +12,7 @@ import {
 } from '../domain';
 import type { SessionSummary } from '../domain';
 import { getCountries } from '../data';
+import type { SessionRecord } from '../data';
 import type { RunConfig } from './stores/game';
 
 /**
@@ -63,6 +64,41 @@ export function buildDuelPayload(
     challengerName,
     challengerScore: duelScore(type, summary),
   };
+}
+
+/**
+ * Build a {@link DuelPayload} from a persisted {@link SessionRecord} — the basis for starting a duel
+ * from the Session History (Phase 54 follow-on). A record carries everything `buildDuelPayload` reads
+ * (mode / type / scope / seed / per-question `questions` for the score), so this reshapes it into the
+ * minimal {@link SessionSummary} that function needs. `choices` (and survival `lives`) were only added
+ * to records later, so `choicesFallback` (the player's current preference) fills in for older rows.
+ * Returns `null` when the record can't be dueled (not a duel-able format, unseeded). The *gate*
+ * (min questions, not pool-scoped) is applied by the caller, mirroring `buildDuelPayload`.
+ */
+export function buildDuelPayloadFromRecord(
+  record: SessionRecord,
+  challengerName: string,
+  choicesFallback: number,
+  dataVersion: string = duelDataVersion(),
+): DuelPayload | null {
+  const summary: SessionSummary = {
+    mode: record.mode,
+    type: record.type,
+    ...(record.regionFilter ? { regionFilter: record.regionFilter } : {}),
+    total: record.total,
+    correct: record.correct,
+    accuracy: record.total === 0 ? 0 : record.correct / record.total,
+    bestStreak: 0, // unused by the duel build; a record doesn't persist it
+    startedAt: record.startedAt,
+    finishedAt: record.finishedAt,
+    durationMs: record.durationMs,
+    missed: [], // unused by the duel build
+    results: record.questions,
+    choices: record.choices ?? choicesFallback,
+    ...(record.seed !== undefined ? { seed: record.seed } : {}),
+    ...(record.lives !== undefined ? { lives: record.lives } : {}),
+  };
+  return buildDuelPayload(summary, challengerName, dataVersion);
 }
 
 /**

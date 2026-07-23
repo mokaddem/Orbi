@@ -1,10 +1,29 @@
 <script lang="ts">
   import { t, locale, localizedName, localizedRegion } from '../../i18n';
-  import { computeStats, blitzEarnedSeconds, sessionXp, type StatsOverview } from '../../domain';
+  import {
+    computeStats,
+    blitzEarnedSeconds,
+    sessionXp,
+    isDuelType,
+    MIN_DUEL_QUESTIONS,
+    encodeDuel,
+    type StatsOverview,
+  } from '../../domain';
   import { getCountry, type SessionRecord } from '../../data';
   import { formatPercent } from '../format';
-  import { loadSessions, clearHistory, persistent, storageReady } from '../stores/persistence';
+  import {
+    loadSessions,
+    clearHistory,
+    persistent,
+    storageReady,
+    prefs,
+  } from '../stores/persistence';
   import { syncBoard } from '../stores/board';
+  import { friends, type FriendRow } from '../stores/friends';
+  import { identity } from '../stores/identity';
+  import { isBackendConfigured } from '../../backend/client';
+  import { send as sendInboxDuel } from '../stores/duels';
+  import { buildDuelPayloadFromRecord } from '../duel';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import MascotScene from '../components/MascotScene.svelte';
@@ -59,6 +78,63 @@
   const topMissed = $derived(stats ? stats.mostMissed.slice(0, MISSED_LIMIT) : []);
   const recent = $derived([...sessions].reverse().slice(0, RECENT));
 
+  // --- Duel a friend from a past run (Phase 54 follow-on) ------------------------------------------
+  // Needs a configured backend + a real account + at least one friend (the inbox send path, same gate
+  // as the Summary). Each eligible run gets a "Challenge" button; picking a friend rebuilds the seeded
+  // duel from the stored record and drops it in their inbox — no link to pass.
+  const canInboxSend = $derived(
+    isBackendConfigured() && $identity.tier === 'account' && $friends.length > 0,
+  );
+
+  // A run can seed a duel when it's a duel-able format, seeded, long enough, and not a targeted /
+  // training set (its player/SR-derived pool wouldn't reproduce on the friend's device).
+  function canDuel(r: SessionRecord): boolean {
+    return (
+      r.seed !== undefined &&
+      isDuelType(r.type) &&
+      r.total >= MIN_DUEL_QUESTIONS &&
+      !(r.answerPool && r.answerPool.length > 0)
+    );
+  }
+
+  // The run whose friend-picker is open (null = closed), plus a transient send-result message.
+  let challengeRec = $state<SessionRecord | null>(null);
+  let duelSendMsg = $state<string | null>(null);
+  let sendMsgTimer: ReturnType<typeof setTimeout> | null = null;
+
+  async function sendToFriend(friend: FriendRow): Promise<void> {
+    const r = challengeRec;
+    challengeRec = null;
+    if (!r) return;
+    const name = $prefs.playerName ?? '';
+    const payload = buildDuelPayloadFromRecord(r, name, $prefs.choicesPerQuestion);
+    if (!payload) return;
+    const result = await sendInboxDuel(
+      friend.userId,
+      encodeDuel(payload),
+      payload.challengerScore,
+      name,
+    );
+    const who = friend.displayName || $t('board.anon');
+    duelSendMsg =
+      result === 'ok'
+        ? $t('duels.sent', { name: who })
+        : result === 'not-friends'
+          ? $t('duels.notFriends')
+          : $t('duels.sendFailed');
+    if (sendMsgTimer) clearTimeout(sendMsgTimer);
+    sendMsgTimer = setTimeout(() => (duelSendMsg = null), 2600);
+  }
+
+  function onPickerKeydown(e: KeyboardEvent): void {
+    if (e.key === 'Escape') challengeRec = null;
+  }
+
+  // Close only when the backdrop itself is clicked (not a click bubbling up from the dialog).
+  function onBackdrop(e: MouseEvent): void {
+    if (e.target === e.currentTarget) challengeRec = null;
+  }
+
   /** `YYYY-MM-DD` → the short `MM-DD` axis tick. */
   function tick(date: string): string {
     return date.slice(5);
@@ -68,6 +144,8 @@
     return new Date(ts).toLocaleDateString(loc, { month: 'short', day: 'numeric' });
   }
 </script>
+
+<svelte:window onkeydown={onPickerKeydown} />
 
 <section class="history">
   <div class="head">
@@ -148,7 +226,7 @@
       <!-- Recent sessions (also the accessible table-style view of the data) -->
       <div class="panel">
         <h2>{$t('history.recent.title')}</h2>
-        <ul class="recent-list">
+        <ul class="recent-list" class:can-duel={canInboxSend}>
           {#each recent as r (r.id)}
             {@const regionKey = r.regionFilter?.subregion ?? r.regionFilter?.region ?? null}
             {@const xp = sessionXp(r.questions)}
@@ -191,11 +269,54 @@
                 {r.correct}/{r.total}
                 <small>{formatPercent(r.total === 0 ? 0 : r.correct / r.total)}</small>
               </span>
+              {#if canInboxSend}
+                <!-- Reserve the column for every row so scores stay aligned; the button shows only
+                     for a duel-able run (seeded, a duel format, long enough, not a custom set). -->
+                <span class="recent-duel">
+                  {#if canDuel(r)}
+                    <button
+                      type="button"
+                      class="duel-btn"
+                      onclick={() => (challengeRec = r)}
+                      aria-label={$t('duels.challenge')}
+                      title={$t('duels.challenge')}
+                    >
+                      <Icon name="swords" size="1em" />
+                    </button>
+                  {/if}
+                </span>
+              {/if}
             </li>
           {/each}
         </ul>
       </div>
     </div>
+  {/if}
+
+  <!-- Friend picker for a duel-from-history: rebuilds the seeded run from the record and sends it to
+       the chosen friend's inbox. Modal idiom mirrors FriendActionsSheet (Escape / backdrop dismiss). -->
+  {#if challengeRec}
+    <div class="picker-backdrop" role="presentation" onclick={onBackdrop}>
+      <div class="picker" role="dialog" aria-modal="true" aria-label={$t('duels.pickFriend')}>
+        <p class="picker-title">{$t('duels.pickFriend')}</p>
+        <ul class="picker-friends">
+          {#each $friends as f (f.userId)}
+            <li>
+              <button type="button" class="picker-friend" onclick={() => sendToFriend(f)}>
+                {f.displayName || $t('board.anon')}
+              </button>
+            </li>
+          {/each}
+        </ul>
+        <button type="button" class="picker-cancel" onclick={() => (challengeRec = null)}>
+          {$t('common.cancel')}
+        </button>
+      </div>
+    </div>
+  {/if}
+
+  {#if duelSendMsg}
+    <p class="send-msg" role="status" aria-live="polite">{duelSendMsg}</p>
   {/if}
 </section>
 
@@ -513,12 +634,129 @@
     font-weight: 700;
   }
 
+  /* Duel-from-history: the challenge button reserves a 6th column so scores stay aligned across
+     rows (eligible or not). */
+  .recent-list.can-duel li {
+    grid-template-columns: auto auto 1fr auto auto auto;
+  }
+
+  .recent-duel {
+    display: inline-flex;
+    justify-content: flex-end;
+    min-width: 1.9rem;
+  }
+
+  .duel-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 999px;
+    background: var(--color-accent-weak);
+    border: none;
+    color: var(--color-accent-strong);
+    transition: transform 0.12s ease;
+  }
+
+  .duel-btn:hover {
+    transform: translateY(-2px);
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+
+  /* Friend-picker modal (mirrors the app's sheet idiom). */
+  .picker-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .picker {
+    width: 100%;
+    max-width: 22rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+
+  .picker-title {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+
+  .picker-friends {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  .picker-friend {
+    width: 100%;
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+    font-weight: 700;
+  }
+
+  .picker-friend:hover {
+    border-color: var(--color-accent);
+  }
+
+  .picker-cancel {
+    align-self: flex-end;
+    padding: 0.45rem 1rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-muted);
+    font-weight: 600;
+  }
+
+  /* Transient send-result toast. */
+  .send-msg {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    z-index: 95;
+    margin: 0;
+    padding: 0.6rem 1rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-accent);
+    border-radius: 999px;
+    color: var(--color-text);
+    font-weight: 700;
+    box-shadow: var(--shadow-card);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .cta {
+    .cta,
+    .duel-btn {
       transition: none;
     }
 
-    .cta:hover {
+    .cta:hover,
+    .duel-btn:hover {
       transform: none;
     }
   }

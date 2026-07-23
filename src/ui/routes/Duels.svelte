@@ -14,9 +14,11 @@
   import { t, localizedRegion } from '../../i18n';
   import {
     inbox,
+    outbox,
     history,
     refreshDuels,
     dismiss,
+    decline,
     pendingInboxDuelId,
     type DuelEntry,
   } from '../stores/duels';
@@ -80,6 +82,11 @@
     await dismiss(id);
   }
 
+  // Decline a received challenge without playing it (leaves my inbox; the challenger sees it declined).
+  async function onDecline(id: string): Promise<void> {
+    await decline(id);
+  }
+
   // Per-friend W/L tally, derived client-side from the completed history (ties omitted from the count).
   const records = $derived.by(() => {
     const byId: Record<string, { name: string; wins: number; losses: number }> = {};
@@ -134,10 +141,55 @@
                 <span class="beat">{beatLabel(e)}</span>
               </p>
             </div>
-            <button type="button" class="play" onclick={() => play(e)}>
-              <Icon name="swords" size="1em" />
-              {$t('duels.play')}
-            </button>
+            <div class="row-actions">
+              <button type="button" class="decline" onclick={() => onDecline(e.id)}>
+                {$t('duels.decline')}
+              </button>
+              <button type="button" class="play" onclick={() => play(e)}>
+                <Icon name="swords" size="1em" />
+                {$t('duels.play')}
+              </button>
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+
+    <!-- Outbox: challenges I've sent — awaiting the opponent, or ones they declined (dismissable). -->
+    {#if $outbox.length > 0}
+      <h2 class="section-title">
+        <Icon name="clock" size="1em" />
+        {$t('duels.outboxTitle')}
+      </h2>
+      <ul class="list">
+        {#each $outbox as e (e.id)}
+          <li class="row" class:declined={e.declined}>
+            <div class="row-main">
+              <p class="who">
+                {#if e.declined}
+                  {$t('duels.declinedBy', { name: e.otherName || $t('board.anon') })}
+                {:else}
+                  {$t('duels.waitingFor', { name: e.otherName || $t('board.anon') })}
+                {/if}
+              </p>
+              <p class="scope">
+                <span class="scope-ico" aria-hidden="true"><ModeIcon mode={e.payload.mode} /></span>
+                <span>{$t(MODE_LABEL[e.payload.mode] ?? e.payload.mode)}</span>
+                <span class="dot" aria-hidden="true">·</span>
+                <span>{scopeRegion(e.payload)}</span>
+              </p>
+            </div>
+            {#if e.declined}
+              <button
+                type="button"
+                class="dismiss"
+                onclick={() => remove(e.id)}
+                aria-label={$t('duels.dismiss')}
+                title={$t('duels.dismiss')}
+              >
+                <Icon name="close" size="1em" />
+              </button>
+            {/if}
           </li>
         {/each}
       </ul>
@@ -333,6 +385,36 @@
   .play:active {
     transform: translateY(2px);
     box-shadow: var(--shadow-chunky-press);
+  }
+
+  /* Inbox row actions: Decline (quiet, negative) alongside Play. */
+  .row-actions {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .decline {
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 700;
+    background: transparent;
+    border: 2px solid var(--color-border);
+    color: var(--color-muted);
+    transition:
+      border-color 0.12s ease,
+      color 0.12s ease;
+  }
+
+  .decline:hover {
+    border-color: var(--color-wrong);
+    color: var(--color-wrong);
+  }
+
+  /* Outbox: a challenge the opponent declined reads dimmer than a "waiting" one. */
+  .row.declined {
+    opacity: 0.75;
   }
 
   .row-end {

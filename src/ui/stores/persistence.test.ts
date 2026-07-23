@@ -59,6 +59,8 @@ describe('summaryToRecord', () => {
       type: 'fixed',
       total: 2,
       correct: 1,
+      // The option count is persisted so a duel can be started from history (Phase 54 follow-on).
+      choices: 4,
       questions: summary().results,
     });
   });

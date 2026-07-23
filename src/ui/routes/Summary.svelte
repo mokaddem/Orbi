@@ -36,7 +36,6 @@
   import {
     buildDuelPayload,
     buildReturnPayload,
-    duelToRunConfig,
     duelLink,
     shareDuel,
     shareDuelSmart,
@@ -234,6 +233,10 @@
       fixedLength: s.missed.length,
       choices: p.choicesPerQuestion,
     });
+    // A training run is never a duel — drop any staged duel context so the next Summary shows a
+    // normal result, not a stale verdict (the staged id no longer self-clears on submit).
+    pendingDuel.set(null);
+    pendingInboxDuelId.set(null);
     push('/play');
   }
 
@@ -278,16 +281,22 @@
   // staged by the #/duels accept), auto-write MY score back to the server row — no "send result back"
   // link, no lost challenge. `wasInboxResponse` picks the verdict variant (no return-leg / rematch);
   // the challenger sees the outcome in their own history.
+  // Deterministic: a received *inbox* duel is one where a server row id is staged AND this run is the
+  // matching duel response. Derived (not a post-render flag) so the verdict renders in its inbox
+  // variant from the first paint — no "send result" leg flashes, because the result is written
+  // straight back to the row. The staged id is cleared when the player leaves Summary (newGame /
+  // train), so it stays set while this screen is shown; a stale id can't misfire because
+  // `duelResponse` also has to match this run's seed.
+  const wasInboxResponse = $derived(duelResponse !== null && $pendingInboxDuelId !== null);
   let inboxSubmitted = $state(false);
-  let wasInboxResponse = $state(false);
   $effect(() => {
     const r = duelResponse;
     const id = $pendingInboxDuelId;
     if (!r || !id || inboxSubmitted) return;
     inboxSubmitted = true;
-    wasInboxResponse = true;
-    // Best-effort; consume the id so a re-render / cold reload can't resubmit. Local run is unaffected.
-    void submitInboxDuel(id, r.myScore).finally(() => pendingInboxDuelId.set(null));
+    // Best-effort auto-write of MY score to the server row; the challenger sees it in their history.
+    // Idempotent — writing the same score again on a re-mount is harmless.
+    void submitInboxDuel(id, r.myScore);
   });
 
   // "Challenge a friend directly" — the additive send channel (backend + real account + ≥1 friend).
@@ -411,17 +420,6 @@
     else if (outcome === 'failed') flashFeedback('duel.imageFailed');
   }
 
-  // Rematch a received duel: replay the same scope with a *fresh* seed (roles swap — the responder
-  // becomes the challenger), then the generic "Duel a friend" affordance lets them send it on.
-  function duelRematch(): void {
-    const r = duelResponse;
-    if (!r) return;
-    pendingDuel.set(null);
-    pendingInboxDuelId.set(null);
-    pendingConfig.set({ ...duelToRunConfig(r.challenge), seed: undefined });
-    push('/play');
-  }
-
   // A duel embeds the player's name; capture it once (first duel) before the first share, then reuse.
   function onDuelAction(action: DuelShareAction): void {
     const name = $prefs.playerName ?? '';
@@ -484,6 +482,23 @@
     {@const s = $lastSummary}
     {@const regionKey = s.regionFilter?.subregion ?? s.regionFilter?.region ?? null}
     {@const reaction = pickSummaryReaction({ accuracy: s.accuracy, total: s.total })}
+
+    <!-- Duel verdict (Phase 46/54): for a finished *received* duel the head-to-head result IS the
+         headline, so it sits at the very top. A server (inbox) duel auto-wrote the result → verdict
+         only; a link/QR duel keeps its "send result back" leg. Rematch was removed (duel from the
+         Session History instead). -->
+    {#if duelResponse}
+      <DuelVerdictCard
+        verdict={duelResponse.verdict}
+        type={duelResponse.challenge.type}
+        youScore={duelResponse.myScore}
+        theirScore={duelResponse.challenge.challengerScore}
+        theirName={duelResponse.challenge.challengerName}
+        onSendResult={wasInboxResponse ? undefined : () => onDuelAction('return')}
+        feedback={wasInboxResponse ? null : duelFeedback}
+      />
+    {/if}
+
     <p class="meta">
       <span class="meta-ico" aria-hidden="true"><ModeIcon mode={s.mode} /></span>
       <span>{$t(MODE_LABEL[s.mode] ?? s.mode)}</span>
@@ -634,23 +649,11 @@
       </button>
     </div>
 
-    <!-- Duel a friend. A finished *received* duel shows the head-to-head verdict; a Phase-46 LINK duel
-         adds the return leg + rematch, while a Phase-54 INBOX duel needs neither (the result was
-         written straight back to the server row — the challenger sees it in their history). Otherwise a
-         reproducible run offers to start a fresh challenge (link / QR / code, plus — for a connected
-         account with friends — a direct inbox send). The name is captured once on first use. -->
-    {#if duelResponse}
-      <DuelVerdictCard
-        verdict={duelResponse.verdict}
-        type={duelResponse.challenge.type}
-        youScore={duelResponse.myScore}
-        theirScore={duelResponse.challenge.challengerScore}
-        theirName={duelResponse.challenge.challengerName}
-        onSendResult={wasInboxResponse ? undefined : () => onDuelAction('return')}
-        onRematch={wasInboxResponse ? undefined : duelRematch}
-        feedback={wasInboxResponse ? null : duelFeedback}
-      />
-    {:else if duelable}
+    <!-- Duel a friend — the "start a fresh challenge" offer, shown only for a reproducible run that
+         isn't itself a received-duel response (that verdict renders at the top). Link / QR / code is
+         the backend-free path; a connected account with friends also gets a direct inbox send. The
+         name is captured once on first use. -->
+    {#if duelable && !duelResponse}
       <div class="duel-card">
         <div class="duel-head">
           <span class="duel-ico" aria-hidden="true"><Icon name="swords" size={20} /></span>

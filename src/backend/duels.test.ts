@@ -126,8 +126,9 @@ describe('listInbox', () => {
     const inbox = await listInbox();
     expect(inbox).toHaveLength(1);
     expect(pb.getFullList).toHaveBeenCalledWith({
-      filter: 'opponent = "me" && status = "pending"',
+      filter: 'opponent = "me" && status = "pending" && opponentDismissed != true',
       sort: '-created',
+      requestKey: 'duels-inbox',
     });
   });
 
@@ -148,8 +149,9 @@ describe('listOutbox', () => {
     pb.getFullList.mockResolvedValue([]);
     await listOutbox();
     expect(pb.getFullList).toHaveBeenCalledWith({
-      filter: 'challenger = "me" && status = "pending"',
+      filter: 'challenger = "me" && status = "pending" && challengerDismissed != true',
       sort: '-created',
+      requestKey: 'duels-outbox',
     });
   });
 });
@@ -186,6 +188,7 @@ describe('listHistory', () => {
       filter:
         'status = "complete" && ((challenger = "me" && challengerDismissed != true) || (opponent = "me" && opponentDismissed != true))',
       sort: '-created',
+      requestKey: 'duels-history',
     });
   });
 

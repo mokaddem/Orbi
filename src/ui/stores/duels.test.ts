@@ -7,12 +7,14 @@ import type { DuelRecordView } from '../../backend/duels';
 const sendDuel = vi.hoisted(() => vi.fn());
 const submitResult = vi.hoisted(() => vi.fn());
 const listInbox = vi.hoisted(() => vi.fn());
+const listOutbox = vi.hoisted(() => vi.fn());
 const listHistory = vi.hoisted(() => vi.fn());
 const dismissDuel = vi.hoisted(() => vi.fn());
 vi.mock('../../backend/duels', () => ({
   sendDuel,
   submitResult,
   listInbox,
+  listOutbox,
   listHistory,
   dismissDuel,
 }));
@@ -46,12 +48,14 @@ vi.mock('./friends', () => ({
 
 import {
   inbox,
+  outbox,
   history,
   pendingCount,
   refreshDuels,
   send,
   submit,
   dismiss,
+  decline,
   __resetDuelsForTests,
 } from './duels';
 
@@ -93,6 +97,7 @@ beforeEach(() => {
   submitResult.mockResolvedValue(true);
   dismissDuel.mockResolvedValue(true);
   listInbox.mockResolvedValue([]);
+  listOutbox.mockResolvedValue([]);
   listHistory.mockResolvedValue([]);
 });
 
@@ -241,5 +246,41 @@ describe('dismiss', () => {
     dismissDuel.mockResolvedValue(false);
     expect(await dismiss('d1')).toBe(false);
     expect(listHistory).not.toHaveBeenCalled();
+  });
+});
+
+describe('outbox', () => {
+  it('lists pending sent challenges as "waiting" entries (I am the challenger)', async () => {
+    listOutbox.mockResolvedValue([
+      view({ challengerId: 'me', opponentId: 'bob', opponentName: 'Bob' }),
+    ]);
+    await refreshDuels();
+    const entries = get(outbox);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].iAmChallenger).toBe(true);
+    expect(entries[0].otherName).toBe('Bob');
+    expect(entries[0].declined).toBe(false);
+  });
+
+  it('marks an outbox entry declined when the opponent dismissed the still-pending duel', async () => {
+    listOutbox.mockResolvedValue([
+      view({ challengerId: 'me', opponentId: 'bob', opponentName: 'Bob', opponentDismissed: true }),
+    ]);
+    await refreshDuels();
+    expect(get(outbox)[0].declined).toBe(true);
+  });
+});
+
+describe('decline', () => {
+  it('sets my dismiss flag on the received duel and refreshes', async () => {
+    expect(await decline('d1')).toBe(true);
+    expect(dismissDuel).toHaveBeenCalledWith('d1');
+    expect(listInbox).toHaveBeenCalled(); // the refresh ran (declined duel leaves the inbox)
+  });
+
+  it('returns false without refreshing on failure', async () => {
+    dismissDuel.mockResolvedValue(false);
+    expect(await decline('d1')).toBe(false);
+    expect(listInbox).not.toHaveBeenCalled();
   });
 });

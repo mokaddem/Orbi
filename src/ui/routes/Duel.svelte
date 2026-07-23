@@ -50,13 +50,6 @@
   // Rematch from the return screen: the challenger re-issues the same scope with a *fresh* seed
   // (dropped so `play.start` rolls one) and roles swap naturally — they play, then the Summary's
   // "Duel a friend" affordance lets them send the new challenge back.
-  function rematch(p: DuelPayload): void {
-    pendingDuel.set(null);
-    pendingInboxDuelId.set(null);
-    pendingConfig.set({ ...duelToRunConfig(p), seed: undefined });
-    push('/play');
-  }
-
   function home(): void {
     push('/');
   }
@@ -84,7 +77,6 @@
       youScore={payload.challengerScore}
       theirScore={payload.opponentScore}
       theirName={payload.opponentName ?? ''}
-      onRematch={() => rematch(payload)}
       onHome={home}
     />
   {:else if payload}

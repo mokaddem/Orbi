@@ -26,6 +26,7 @@
   import { backendStatus, type BackendStatus } from '../../backend/status';
   import {
     identity,
+    renameTo,
     upgrade,
     signIn,
     signOut,
@@ -267,6 +268,7 @@
       placeholder={$t('duel.namePlaceholder')}
       value={$prefs.playerName ?? ''}
       oninput={(e) => updatePrefs({ playerName: e.currentTarget.value })}
+      onchange={(e) => void renameTo(e.currentTarget.value)}
     />
   </div>
 

@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import type { SessionSummary } from '../domain';
+import type { SessionRecord } from '../data';
 import { decodeDuel, encodeDuel } from '../domain';
 import {
   buildDuelPayload,
+  buildDuelPayloadFromRecord,
   buildReturnPayload,
   duelDataVersion,
   duelLink,
@@ -26,6 +28,24 @@ function summary(over: Partial<SessionSummary> = {}): SessionSummary {
     results: [],
     choices: 4,
     seed: 0x1234abcd,
+    ...over,
+  };
+}
+
+function record(over: Partial<SessionRecord> = {}): SessionRecord {
+  return {
+    id: 's1',
+    startedAt: 1000,
+    finishedAt: 61000,
+    durationMs: 60000,
+    mode: 'flag-to-country',
+    type: 'fixed',
+    regionFilter: { region: 'Europe' },
+    total: 12,
+    correct: 9,
+    seed: 0x1234abcd,
+    choices: 4,
+    questions: [],
     ...over,
   };
 }
@@ -64,6 +84,34 @@ describe('buildDuelPayload', () => {
   it('returns null for a non-duel-able format or an unseeded run', () => {
     expect(buildDuelPayload(summary({ type: 'training' }), 'A', 'v1')).toBeNull();
     expect(buildDuelPayload(summary({ seed: undefined }), 'A', 'v1')).toBeNull();
+  });
+});
+
+describe('buildDuelPayloadFromRecord', () => {
+  it('rebuilds a duel from a stored history record (using the record’s own choices)', () => {
+    const p = buildDuelPayloadFromRecord(record(), 'Sami', 6, 'v1');
+    expect(p).toMatchObject({
+      mode: 'flag-to-country',
+      type: 'fixed',
+      region: 'Europe',
+      length: 12,
+      choices: 4, // from the record, not the fallback
+      seed: 0x1234abcd,
+      challengerName: 'Sami',
+      dataVersion: 'v1',
+    });
+    // fixed score = correct answers.
+    expect(p!.challengerScore.primary).toBe(9);
+  });
+
+  it('falls back to the given choices for a record written before the field existed', () => {
+    const p = buildDuelPayloadFromRecord(record({ choices: undefined }), 'A', 6, 'v1');
+    expect(p!.choices).toBe(6);
+  });
+
+  it('returns null for a non-duel-able or unseeded record', () => {
+    expect(buildDuelPayloadFromRecord(record({ type: 'training' }), 'A', 4, 'v1')).toBeNull();
+    expect(buildDuelPayloadFromRecord(record({ seed: undefined }), 'A', 4, 'v1')).toBeNull();
   });
 });
 
