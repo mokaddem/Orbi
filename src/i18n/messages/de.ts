@@ -68,10 +68,6 @@ const de: typeof en = {
       milestoneTitle: 'Serie von {count} Tagen!',
       milestoneBody: 'Du bist in Fahrt — bleib dran.',
     },
-    mastery: {
-      showRegions: 'Aufschlüsselung nach Region anzeigen',
-      hideRegions: 'Aufschlüsselung nach Region ausblenden',
-    },
   },
   daily: {
     label: 'Tägliche Herausforderung',

@@ -24,31 +24,32 @@ const regions: RegionFamilyMastery[] = [
   },
 ];
 
-describe('FamilyRegionBreakdown', () => {
-  it('shows a visible Mastered / Learning key in the stacked (Progress) variant', () => {
-    // The solid vs striped band was otherwise explained only by title tooltips, which never
-    // appear on touch devices — so the key must render as real text on mobile.
-    render(FamilyRegionBreakdown, { regions, variant: 'stacked' });
-    expect(screen.getByText('Mastered')).toBeInTheDocument();
-    expect(screen.getByText('Learning')).toBeInTheDocument();
+describe('FamilyRegionBreakdown — lens tabs', () => {
+  it('renders the Overall / Map / Flags / Capitals lens tabs', () => {
+    render(FamilyRegionBreakdown, { regions });
+    for (const name of ['Overall', 'Map', 'Flags', 'Capitals']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    }
   });
 
-  it('does not render the key in the toggle (Home) variant', () => {
-    render(FamilyRegionBreakdown, { regions, variant: 'toggle' });
-    // In the toggle variant those words exist only as bar `title` attributes, not as text.
+  it('defaults to the Overall lens — one blended bar per region, no per-family control', () => {
+    render(FamilyRegionBreakdown, { regions });
+    expect(screen.getByRole('button', { name: 'Overall' })).toHaveAttribute('aria-pressed', 'true');
+    // Exactly one progressbar per region, whatever the lens.
+    expect(screen.getAllByRole('progressbar')).toHaveLength(regions.length);
+  });
+
+  it('does not render a Mastered / Learning key (the bands carry only title tooltips)', () => {
+    // Those words exist only as bar `title` attributes, not as visible text — so on touch, where
+    // tooltips never appear, the layout stays clean (matching Home's former glance).
+    render(FamilyRegionBreakdown, { regions });
     expect(screen.queryByText('Mastered')).not.toBeInTheDocument();
     expect(screen.queryByText('Learning')).not.toBeInTheDocument();
   });
-
-  it('localizes the key (FR)', () => {
-    setLocale('fr');
-    render(FamilyRegionBreakdown, { regions, variant: 'stacked' });
-    expect(screen.getByText('Maîtrisé')).toBeInTheDocument();
-    expect(screen.getByText('En cours')).toBeInTheDocument();
-  });
 });
 
-// Grandmaster Run reward (Phase 44): the fully-mastered → prove-it → certified ladder per cell.
+// Grandmaster Run reward (Phase 44): the fully-mastered → prove-it → certified ladder rides the
+// active family lens — so each assertion first selects the family tab it is about.
 describe('FamilyRegionBreakdown — Grandmaster reward', () => {
   // Oceania with Map fully mastered (uncertified), Flags fully mastered (certified), Capitals learning.
   const oceania: RegionFamilyMastery[] = [
@@ -67,57 +68,71 @@ describe('FamilyRegionBreakdown — Grandmaster reward', () => {
     },
   ];
 
-  it('shows "prove it" on a fully-mastered-but-uncertified family, practise on a learning one', async () => {
+  it('shows "prove it" on a fully-mastered-but-uncertified family lens', async () => {
     const onChallenge = vi.fn();
     const onPractise = vi.fn();
     render(FamilyRegionBreakdown, {
       regions: oceania,
-      variant: 'stacked',
       certified: new Set(['flags|Oceania']),
       onChallenge,
       onPractise,
     });
 
     // Map (mastered, uncertified) → a "prove it" launch that fires onChallenge.
+    await fireEvent.click(screen.getByRole('button', { name: 'Map' }));
     const prove = screen.getByRole('button', { name: /Grandmaster Run for Oceania/ });
     await fireEvent.click(prove);
     expect(onChallenge).toHaveBeenCalledWith('Oceania', 'map');
-
-    // Capitals (still learning) → the practise shortcut is still offered.
-    expect(screen.getByRole('button', { name: /Practise/ })).toBeInTheDocument();
   });
 
-  it('gilds a certified family cell (a crown, no launch button) and skips its practise/prove control', () => {
+  it('offers a practise shortcut on a still-learning family lens', async () => {
+    const onPractise = vi.fn();
+    render(FamilyRegionBreakdown, { regions: oceania, onPractise });
+
+    // Capitals (7/14, still learning) → the practise shortcut.
+    await fireEvent.click(screen.getByRole('button', { name: 'Capitals' }));
+    const practise = screen.getByRole('button', { name: /Practise/ });
+    await fireEvent.click(practise);
+    expect(onPractise).toHaveBeenCalledWith('Oceania', 'capitals');
+  });
+
+  it('gilds a certified family lens (a crown, no launch) but launches on an uncertified one', async () => {
     render(FamilyRegionBreakdown, {
       regions: oceania,
-      variant: 'stacked',
       certified: new Set(['flags|Oceania']),
       onChallenge: vi.fn(),
       onPractise: vi.fn(),
     });
-    // The certified (Flags) cell shows the crown marker…
+
+    // Flags (certified) → the crown marker, and no "prove it" launch on this lens.
+    await fireEvent.click(screen.getByRole('button', { name: 'Flags' }));
     expect(screen.getByLabelText('Grandmaster')).toBeInTheDocument();
-    // …and only ONE "prove it" launch exists (Map) — Flags is gilded, not a launch.
+    expect(
+      screen.queryByRole('button', { name: /Grandmaster Run for Oceania/ }),
+    ).not.toBeInTheDocument();
+
+    // Map (uncertified, fully mastered) → exactly one launch.
+    await fireEvent.click(screen.getByRole('button', { name: 'Map' }));
     expect(screen.getAllByRole('button', { name: /Grandmaster Run for Oceania/ })).toHaveLength(1);
   });
 
-  it('tags a fully-certified continent as Grandmaster', () => {
+  it('tags a fully-certified continent as Grandmaster on any lens, with no launches left', () => {
     render(FamilyRegionBreakdown, {
       regions: oceania,
-      variant: 'stacked',
       certified: new Set(['map|Oceania', 'flags|Oceania', 'capitals|Oceania']),
       onChallenge: vi.fn(),
       onPractise: vi.fn(),
     });
-    // Every family certified → the region wears the "Grandmaster" tag, and there are no launches left.
+    // The region-level "Grandmaster" tag shows on the default (Overall) lens — a per-region status.
     expect(screen.getByText('Grandmaster')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /Grandmaster Run for Oceania/ }),
     ).not.toBeInTheDocument();
   });
 
-  it('offers no prove-it launch without onChallenge (backwards-compatible)', () => {
-    render(FamilyRegionBreakdown, { regions: oceania, variant: 'stacked', onPractise: vi.fn() });
+  it('offers no prove-it launch without onChallenge (backwards-compatible)', async () => {
+    render(FamilyRegionBreakdown, { regions: oceania, onPractise: vi.fn() });
+    await fireEvent.click(screen.getByRole('button', { name: 'Map' }));
     expect(
       screen.queryByRole('button', { name: /Grandmaster Run for Oceania/ }),
     ).not.toBeInTheDocument();
@@ -127,14 +142,15 @@ describe('FamilyRegionBreakdown — Grandmaster reward', () => {
     const onChallenge = vi.fn();
     render(FamilyRegionBreakdown, {
       regions: oceania,
-      variant: 'stacked',
       certified: new Set(['flags|Oceania']),
       spent: new Set(['map|Oceania']), // Map is fully mastered, uncertified, but played today
       cooldownText: 'Next attempt in 5h 30m',
       onChallenge,
       onPractise: vi.fn(),
     });
-    // The uncertified-but-spent Map cell reads as the cooldown countdown, not the "prove it" launch.
+
+    // On the Map lens the uncertified-but-spent cell reads as the countdown, not the "prove it" launch.
+    await fireEvent.click(screen.getByRole('button', { name: 'Map' }));
     expect(
       screen.queryByRole('button', { name: /Grandmaster Run for Oceania/ }),
     ).not.toBeInTheDocument();
