@@ -818,7 +818,7 @@ const de: typeof en = {
     cancel: 'Abbrechen',
     settingsTitle: 'Freund-Herausforderungen',
     settingsLabel: 'Dein Name',
-    settingsHelp: 'Wird Freunden gezeigt, die du herausforderst.',
+    settingsHelp: 'Wird Freunden in der Rangliste und in Duellen gezeigt.',
     incomingTitle: '{name} fordert dich heraus!',
     incomingTitleAnon: 'Du wurdest herausgefordert!',
     targetScore: 'Schlage {score}',

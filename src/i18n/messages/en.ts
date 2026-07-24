@@ -821,7 +821,7 @@ const en = {
     cancel: 'Cancel',
     settingsTitle: 'Friend challenges',
     settingsLabel: 'Your name',
-    settingsHelp: 'Shown to friends you challenge.',
+    settingsHelp: 'Shown to friends on the leaderboard and in duels.',
     incomingTitle: '{name} challenges you!',
     incomingTitleAnon: 'You’ve been challenged!',
     targetScore: 'Beat {score}',

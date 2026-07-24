@@ -819,7 +819,7 @@ const fr: typeof en = {
     cancel: 'Annuler',
     settingsTitle: 'Défis entre amis',
     settingsLabel: 'Ton nom',
-    settingsHelp: 'Affiché aux amis que tu défies.',
+    settingsHelp: 'Affiché à tes amis sur le classement et dans les duels.',
     incomingTitle: '{name} te défie !',
     incomingTitleAnon: 'Tu es défié·e !',
     targetScore: 'Bats {score}',
