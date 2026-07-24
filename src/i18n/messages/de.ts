@@ -20,6 +20,7 @@ const de: typeof en = {
     history: 'Verlauf',
     progress: 'Fortschritt',
     duels: 'Duelle',
+    account: 'Konto',
     settings: 'Einstellungen',
     primary: 'Hauptnavigation',
   },
@@ -702,6 +703,8 @@ const de: typeof en = {
     },
     account: {
       title: 'Konto',
+      statusLabel: 'Status',
+      displayName: 'Anzeigename',
       anonNote:
         'Dein Fortschritt wird auf diesem Gerät gespeichert. Erstelle ein Konto, um ihn geräteübergreifend zu synchronisieren — freiwillig.',
       statusAnon: 'Anonym (dieses Gerät)',

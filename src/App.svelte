@@ -130,6 +130,9 @@
       </a>
       <div class="appbar-actions">
         <LanguageSwitcher />
+        <a class="appbar-settings" href="#/account" aria-label={$t('nav.account')}>
+          <Icon name="user" size={20} />
+        </a>
         <a class="appbar-settings" href="#/settings" aria-label={$t('nav.settings')}>
           <Icon name="settings" size={20} />
         </a>

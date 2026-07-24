@@ -24,6 +24,7 @@ const ICONS = {
   play: 'play',
   history: 'chart-column',
   settings: 'settings',
+  user: 'circle-user',
   custom: 'sliders-horizontal',
   train: 'dumbbell',
   // session types

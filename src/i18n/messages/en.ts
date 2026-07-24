@@ -12,6 +12,7 @@ const en = {
     history: 'History',
     progress: 'Progress',
     duels: 'Duels',
+    account: 'Account',
     settings: 'Settings',
     primary: 'Primary navigation',
   },
@@ -710,6 +711,8 @@ const en = {
     },
     account: {
       title: 'Account',
+      statusLabel: 'Status',
+      displayName: 'Display name',
       anonNote:
         'Your progress is saved on this device. Create an account to sync it across devices — it’s optional.',
       statusAnon: 'Anonymous (this device)',

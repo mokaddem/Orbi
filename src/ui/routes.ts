@@ -14,6 +14,7 @@ import History from './routes/History.svelte';
 import Progress from './routes/Progress.svelte';
 import RankLadder from './routes/RankLadder.svelte';
 import Settings from './routes/Settings.svelte';
+import Account from './routes/Account.svelte';
 import Atlas from './routes/Atlas.svelte';
 import AtlasRegion from './routes/AtlasRegion.svelte';
 import AtlasCountry from './routes/AtlasCountry.svelte';
@@ -39,6 +40,7 @@ const routes: RouteDefinition = {
   '/atlas': Atlas,
   '/atlas/region/:region': AtlasRegion,
   '/atlas/country/:iso2': AtlasCountry,
+  '/account': Account,
   '/settings': Settings,
   '*': NotFound,
 };
@@ -63,6 +65,9 @@ export const navLinks: NavLink[] = [
   // subset): the mobile bar is already at its 5-slot max. Nav.svelte gates it to a configured
   // backend + a real account, exactly like the Home DuelsCard, so it never dead-ends at the gate.
   { href: '#/duels', labelKey: 'nav.duels', icon: 'swords' },
+  // Account + Settings are "meta" destinations pinned to the rail foot (see Nav.svelte). Account
+  // is also reachable from the mobile top app-bar; neither is in the mobile bottom bar.
+  { href: '#/account', labelKey: 'nav.account', icon: 'user' },
   { href: '#/settings', labelKey: 'nav.settings', icon: 'settings' },
 ];
 

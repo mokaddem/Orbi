@@ -14,6 +14,7 @@ const fr: typeof en = {
     history: 'Historique',
     progress: 'Progrès',
     duels: 'Duels',
+    account: 'Compte',
     settings: 'Paramètres',
     primary: 'Navigation principale',
   },
@@ -703,6 +704,8 @@ const fr: typeof en = {
     },
     account: {
       title: 'Compte',
+      statusLabel: 'Statut',
+      displayName: 'Nom affiché',
       anonNote:
         'Ta progression est enregistrée sur cet appareil. Crée un compte pour la synchroniser entre tes appareils — c’est facultatif.',
       statusAnon: 'Anonyme (cet appareil)',

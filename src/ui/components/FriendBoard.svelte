@@ -162,8 +162,8 @@
       <div class="board-foot gate">
         <p class="muted">{$t('board.gate.body')}</p>
         <div class="gate-actions">
-          <a class="board-btn" href="#/settings?account=create">{$t('board.gate.cta')}</a>
-          <a class="gate-signin" href="#/settings?account=signin">
+          <a class="board-btn" href="#/account?account=create">{$t('board.gate.cta')}</a>
+          <a class="gate-signin" href="#/account?account=signin">
             {$t('settings.account.signInInstead')}
           </a>
         </div>

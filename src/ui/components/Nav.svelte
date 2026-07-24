@@ -23,12 +23,15 @@
   // backend + a real account (like the Home DuelsCard), so it drops out for anonymous / offline
   // players rather than dead-ending at the connect-a-friend gate.
   const play = navLinks.find((link) => link.primary)!;
+  const account = navLinks.find((link) => link.href === '#/account')!;
   const settings = navLinks.find((link) => link.href === '#/settings')!;
+  // Account + Settings are pinned to the rail foot; keep them out of the main list.
+  const footHrefs = ['#/account', '#/settings'];
   const duelsGated = $derived(!isBackendConfigured() || $identity.tier !== 'account');
   const railMain = $derived(
     navLinks.filter(
       (link) =>
-        !link.primary && link.href !== '#/settings' && !(link.href === '#/duels' && duelsGated),
+        !link.primary && !footHrefs.includes(link.href) && !(link.href === '#/duels' && duelsGated),
     ),
   );
 
@@ -83,6 +86,15 @@
   </ul>
 
   <div class="rail-foot">
+    <a
+      class="rail-item"
+      class:active={isActive(account.href, router.location)}
+      href={account.href}
+      aria-current={isActive(account.href, router.location) ? 'page' : undefined}
+    >
+      <Icon name={account.icon} size={19} />
+      <span>{$t(account.labelKey)}</span>
+    </a>
     <a
       class="rail-item"
       class:active={isActive(settings.href, router.location)}
