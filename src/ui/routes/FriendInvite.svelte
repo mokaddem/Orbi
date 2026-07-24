@@ -15,6 +15,16 @@
   import { storageReady } from '../stores/persistence';
   import MascotScene from '../components/MascotScene.svelte';
 
+  // `previewStatus` lets the duel gallery render a specific state without running the friend-add
+  // side effect (`'broken'` renders the bad-link card). Dev-only seam; production passes nothing.
+  let {
+    previewStatus,
+    previewName,
+  }: {
+    previewStatus?: 'broken' | Status;
+    previewName?: string;
+  } = $props();
+
   const query = $derived(readFriendInviteQuery(router.querystring));
   const decoded = $derived(query ? decodeFriendInvite(query.code) : null);
   const payload = $derived(decoded?.ok ? decoded.payload : null);
@@ -29,6 +39,7 @@
   let acted = false;
 
   $effect(() => {
+    if (previewStatus) return; // gallery preview: never run the real friend-add
     if (!payload || !$storageReady || !settled || acted) return;
     acted = true;
     if (!isBackendConfigured()) {
@@ -54,26 +65,28 @@
     });
   });
 
-  const inviterName = $derived(payload?.name?.trim() ?? '');
+  // The rendered state: forced by the gallery, else 'broken' for a bad code, else the live status.
+  const view = $derived<'broken' | Status>(previewStatus ?? (!payload ? 'broken' : status));
+  const inviterName = $derived(previewStatus ? (previewName ?? '') : (payload?.name?.trim() ?? ''));
   const goBoard = (): void => void push('/progress');
   const goHome = (): void => void push('/');
   const goSettings = (): void => void push('/settings');
 </script>
 
 <section class="invite">
-  {#if !payload}
+  {#if view === 'broken'}
     <div class="card">
       <MascotScene pose="sleepy" size={104} />
       <h1>{$t('friends.invite.brokenTitle')}</h1>
       <p class="muted">{$t('friends.invite.brokenBody')}</p>
       <button type="button" class="btn ghost" onclick={goHome}>{$t('friends.invite.home')}</button>
     </div>
-  {:else if status === 'idle' || status === 'adding'}
+  {:else if view === 'idle' || view === 'adding'}
     <div class="card" role="status" aria-live="polite">
       <MascotScene pose="wave" size={104} />
       <p class="muted">{$t('friends.invite.connecting')}</p>
     </div>
-  {:else if status === 'added'}
+  {:else if view === 'added'}
     <div class="card">
       <MascotScene pose="proud" size={104} />
       <p class="eyebrow">{$t('friends.invite.eyebrow')}</p>
@@ -87,7 +100,7 @@
         {$t('friends.invite.viewBoard')}
       </button>
     </div>
-  {:else if status === 'self'}
+  {:else if view === 'self'}
     <div class="card">
       <MascotScene pose="wave" size={104} />
       <h1>{$t('friends.invite.selfTitle')}</h1>
@@ -96,7 +109,7 @@
         {$t('friends.invite.viewBoard')}
       </button>
     </div>
-  {:else if status === 'no-account'}
+  {:else if view === 'no-account'}
     <div class="card">
       <MascotScene pose="wave" size={104} />
       <p class="eyebrow">
@@ -115,7 +128,7 @@
         </button>
       </div>
     </div>
-  {:else if status === 'no-backend'}
+  {:else if view === 'no-backend'}
     <div class="card">
       <MascotScene pose="sleepy" size={104} />
       <h1>{$t('friends.invite.offlineTitle')}</h1>

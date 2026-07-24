@@ -21,6 +21,7 @@
      highlights and playful spot colour. Never the primary CTA colour (that stays teal). */
   --color-coral: #ff7a59;
   --color-coral-weak: #ffe6df;
+  --color-coral-strong: #e0532f; /* readable-on-white coral: duel "rival" score / heat */
   --color-sun: #ffb020;
   --color-sun-weak: #fff0d2;
   --color-violet: #7b6bd6; /* Phase 35: "Extra" mode family + the Grand Tour badge */

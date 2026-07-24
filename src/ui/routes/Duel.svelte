@@ -27,9 +27,13 @@
     'country-to-industry': 'modes.mainIndustries',
   };
 
+  // `queryOverride` lets the duel gallery mount this screen with a crafted querystring instead of the
+  // live hash (defaults to the router value, so the real route is unaffected). Dev-only seam.
+  let { queryOverride }: { queryOverride?: string } = $props();
+
   // Reactively read + decode the code from the hash query (svelte-spa-router's `router.querystring`
   // updates on navigation). `null` when neither leg is present; a failed decode carries its reason.
-  const query = $derived(readDuelQuery(router.querystring));
+  const query = $derived(readDuelQuery(queryOverride ?? router.querystring));
   const decoded = $derived(query ? decodeDuel(query.code) : null);
   const payload = $derived(decoded?.ok ? decoded.payload : null);
 
@@ -65,12 +69,8 @@
     </div>
   {:else if payload && isReturn && payload.opponentScore}
     <!-- Return leg: the original challenger opens their friend's result. Verdict from the
-         challenger's perspective — their score vs the responder's. -->
-    <h1 class="return-title">
-      {payload.opponentName
-        ? $t('duel.returnTitle', { name: payload.opponentName })
-        : $t('duel.returnTitleAnon')}
-    </h1>
+         challenger's perspective — their score vs the responder's. The head-to-head band names
+         both players, so no separate "{name} took your challenge" title is needed here. -->
     <DuelVerdictCard
       verdict={duelVerdict(payload.challengerScore, payload.opponentScore)}
       type={payload.type}
@@ -152,11 +152,6 @@
     font-size: 1.4rem;
   }
 
-  .return-title {
-    text-align: center;
-    margin-bottom: 0.5rem;
-  }
-
   .muted {
     color: var(--color-muted);
     margin: 0;
@@ -231,7 +226,8 @@
   .primary {
     background: var(--color-accent);
     color: var(--color-accent-contrast);
-    box-shadow: var(--shadow-chunky);
+    /* Rivalry cue: teal fill on a coral chunky drop, matching the "Challenge a friend" CTA. */
+    box-shadow: 0 4px 0 var(--color-coral-strong);
   }
 
   .primary:hover {
@@ -240,7 +236,7 @@
 
   .primary:active {
     transform: translateY(2px);
-    box-shadow: var(--shadow-chunky-press);
+    box-shadow: 0 2px 0 var(--color-coral-strong);
   }
 
   .ghost {

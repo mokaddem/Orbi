@@ -106,7 +106,9 @@ describe('Duel route (Phase 46)', () => {
     const ret = buildReturnPayload(challenge, 'Alex', summary({ correct: 3 }));
     hoisted.query.value = `r=${encodeDuel(ret)}`;
     render(Duel);
-    expect(screen.getByText('Alex took your challenge')).toBeInTheDocument();
+    // The rivalry band names the rival and calls the outcome (the separate "{name} took your
+    // challenge" title was folded into the band).
+    expect(screen.getByText('Alex')).toBeInTheDocument();
     expect(screen.getByText('You win!')).toBeInTheDocument();
   });
 });

@@ -171,10 +171,12 @@ describe('Summary route — Challenge a friend (Phase 46)', () => {
       ...over,
     });
 
-  it('offers a duel for a qualifying run (seeded, ≥ 10 questions, duel-able format)', () => {
+  it('offers a duel for a qualifying run (seeded, ≥ 10 questions, duel-able format)', async () => {
     lastSummary.set(duelable());
     render(Summary);
     expect(screen.getByRole('heading', { name: 'Challenge a friend' })).toBeInTheDocument();
+    // The first view is collapsed to one button; expand it to reveal the share options.
+    await fireEvent.click(screen.getByRole('button', { name: 'Challenge a friend' }));
     expect(screen.getByRole('button', { name: 'Share the challenge' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Show QR' })).toBeInTheDocument();
   });

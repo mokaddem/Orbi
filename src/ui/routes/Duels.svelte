@@ -41,13 +41,28 @@
     'country-to-industry': 'modes.mainIndustries',
   };
 
+  // `preview` lets the duel gallery render the hub from fixtures, bypassing the gate + live stores +
+  // refresh. Dev-only seam; production passes nothing and reads the real `inbox`/`outbox`/`history`.
+  let {
+    preview,
+  }: {
+    preview?: { gated?: boolean; inbox: DuelEntry[]; outbox: DuelEntry[]; history: DuelEntry[] };
+  } = $props();
+
   // Inbox + history require a configured backend AND a real account (inherited from Phase 53).
-  const gated = $derived(!isBackendConfigured() || $identity.tier !== 'account');
+  const gated = $derived(
+    preview ? (preview.gated ?? false) : !isBackendConfigured() || $identity.tier !== 'account',
+  );
+  const inboxItems = $derived(preview ? preview.inbox : $inbox);
+  const outboxItems = $derived(preview ? preview.outbox : $outbox);
+  const historyItems = $derived(preview ? preview.history : $history);
 
   // Refresh on load + focus/online (the App re-probe wiring). No idle polling.
-  onMount(() => void refreshDuels());
+  onMount(() => {
+    if (!preview) void refreshDuels();
+  });
   function refresh(): void {
-    void refreshDuels();
+    if (!preview) void refreshDuels();
   }
 
   function scopeRegion(p: DuelEntry['payload']): string {
@@ -90,7 +105,7 @@
   // Per-friend W/L tally, derived client-side from the completed history (ties omitted from the count).
   const records = $derived.by(() => {
     const byId: Record<string, { name: string; wins: number; losses: number }> = {};
-    for (const e of $history) {
+    for (const e of historyItems) {
       if (!e.verdict) continue;
       const r = (byId[e.otherUserId] ??= {
         name: e.otherName || $t('board.anon'),
@@ -120,11 +135,11 @@
       <Icon name="swords" size="1em" />
       {$t('duels.inboxTitle')}
     </h2>
-    {#if $inbox.length === 0}
+    {#if inboxItems.length === 0}
       <p class="empty">{$t('duels.inboxEmpty')}</p>
     {:else}
       <ul class="list">
-        {#each $inbox as e (e.id)}
+        {#each inboxItems as e (e.id)}
           <li class="row">
             <div class="row-main">
               <p class="who">
@@ -156,13 +171,13 @@
     {/if}
 
     <!-- Outbox: challenges I've sent — awaiting the opponent, or ones they declined (dismissable). -->
-    {#if $outbox.length > 0}
+    {#if outboxItems.length > 0}
       <h2 class="section-title">
         <Icon name="clock" size="1em" />
         {$t('duels.outboxTitle')}
       </h2>
       <ul class="list">
-        {#each $outbox as e (e.id)}
+        {#each outboxItems as e (e.id)}
           <li class="row" class:declined={e.declined}>
             <div class="row-main">
               <p class="who">
@@ -209,11 +224,11 @@
         {/each}
       </div>
     {/if}
-    {#if $history.length === 0}
+    {#if historyItems.length === 0}
       <p class="empty">{$t('duels.historyEmpty')}</p>
     {:else}
       <ul class="list">
-        {#each $history as e (e.id)}
+        {#each historyItems as e (e.id)}
           <li class="row" class:win={e.verdict === 'win'} class:loss={e.verdict === 'loss'}>
             <div class="row-main">
               <p class="who">{$t('duels.vs', { name: e.otherName || $t('board.anon') })}</p>
@@ -349,9 +364,18 @@
 
   .scope-ico {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 1.05rem;
     height: 1.05rem;
     color: var(--color-accent);
+  }
+
+  /* ModeIcon ships at 1.5rem; size it to this box so it sits centred on the mode text (not overflowing
+     its slot and dropping low). */
+  .scope-ico :global(svg) {
+    width: 100%;
+    height: 100%;
   }
 
   .dot {
@@ -374,7 +398,8 @@
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border: 2px solid transparent;
-    box-shadow: var(--shadow-chunky);
+    /* Rivalry cue: teal fill on a coral chunky drop, matching the "Challenge a friend" CTA. */
+    box-shadow: 0 4px 0 var(--color-coral-strong);
     transition: transform 0.12s ease;
   }
 
@@ -384,7 +409,7 @@
 
   .play:active {
     transform: translateY(2px);
-    box-shadow: var(--shadow-chunky-press);
+    box-shadow: 0 2px 0 var(--color-coral-strong);
   }
 
   /* Inbox row actions: Decline (quiet, negative) alongside Play. */

@@ -51,11 +51,14 @@
     send as sendInboxDuel,
     submit as submitInboxDuel,
     pendingInboxDuelId,
+    outbox,
   } from '../stores/duels';
   import { sound } from '../sound';
   import DuelNamePrompt from '../components/DuelNamePrompt.svelte';
   import DuelQrModal from '../components/DuelQrModal.svelte';
   import DuelVerdictCard from '../components/DuelVerdictCard.svelte';
+  import DuelShareCard from '../components/DuelShareCard.svelte';
+  import Toast from '../components/Toast.svelte';
   import Flag from '../components/Flag.svelte';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
@@ -304,13 +307,46 @@
   const canInboxSend = $derived(
     isBackendConfigured() && $identity.tier === 'account' && $friends.length > 0,
   );
-  let friendPickerOpen = $state(false);
+
+  // When direct send isn't available but the backend exists, show the "Send directly" section as a
+  // greyed teaser that nudges the missing step — an account (anonymous) or a friend (no friends yet).
+  // With no backend at all there's nothing to unlock, so it stays hidden (the link path is enough).
+  const directLocked = $derived<'account' | 'friends' | null>(
+    canInboxSend
+      ? null
+      : !isBackendConfigured()
+        ? null
+        : $identity.tier !== 'account'
+          ? 'account'
+          : 'friends',
+  );
+  function unlockDirect(): void {
+    push(directLocked === 'account' ? '/settings' : '/');
+  }
   let duelSendMsg = $state<string | null>(null);
   let sendMsgTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // Friends already challenged with THIS run, so we never send them the same duel twice (a friend
+  // getting spammed with the identical challenge). Two sources: an immediate in-session record (closes
+  // the async-send window), and the server outbox scoped to this run's seed (survives a reload). Both
+  // are seed-scoped so a different run starts fresh.
+  let sentThisRun = $state<{ seed: number; id: string }[]>([]);
+  const challengedIds = $derived.by(() => {
+    const s = $lastSummary;
+    if (!s || s.seed === undefined) return [];
+    const ids: string[] = [];
+    const add = (id: string): void => {
+      if (!ids.includes(id)) ids.push(id);
+    };
+    for (const e of sentThisRun) if (e.seed === s.seed) add(e.id);
+    for (const e of $outbox) if (e.payload.seed === s.seed) add(e.otherUserId);
+    return ids;
+  });
+
   async function sendToFriend(friend: FriendRow): Promise<void> {
     const s = $lastSummary;
-    if (!s) return;
+    if (!s || s.seed === undefined) return;
+    if (challengedIds.includes(friend.userId)) return; // already sent this run — don't duplicate
     const name = $prefs.playerName ?? '';
     const payload = buildDuelPayload(s, name);
     if (!payload) return;
@@ -320,8 +356,8 @@
       payload.challengerScore,
       name,
     );
-    friendPickerOpen = false;
     const who = friend.displayName || $t('board.anon');
+    if (result === 'ok') sentThisRun = [...sentThisRun, { seed: s.seed, id: friend.userId }];
     duelSendMsg =
       result === 'ok'
         ? $t('duels.sent', { name: who })
@@ -654,61 +690,19 @@
          the backend-free path; a connected account with friends also gets a direct inbox send. The
          name is captured once on first use. -->
     {#if duelable && !duelResponse}
-      <div class="duel-card">
-        <div class="duel-head">
-          <span class="duel-ico" aria-hidden="true"><Icon name="swords" size={20} /></span>
-          <h2>{$t('duel.title')}</h2>
-        </div>
-        <p class="duel-sub">{$t('duel.subtitle')}</p>
-        {#if duelPreviewUrl}
-          <img class="duel-preview" src={duelPreviewUrl} alt={$t('duel.title')} />
-        {/if}
-        <button type="button" class="duel-primary" onclick={() => onDuelAction('share')}>
-          <Icon name="share" size="1.15em" />
-          {$t('duel.share')}
-        </button>
-        <div class="duel-fallback">
-          {#if duelPreviewUrl}
-            <button type="button" class="linkish" onclick={() => onDuelAction('image')}>
-              {$t('duel.copyImage')}
-            </button>
-            <span aria-hidden="true">·</span>
-          {/if}
-          <button type="button" class="linkish" onclick={() => onDuelAction('link')}>
-            {$t('duel.copyLink')}
-          </button>
-          <span aria-hidden="true">·</span>
-          <button type="button" class="linkish" onclick={() => onDuelAction('qr')}>
-            {$t('duel.showQr')}
-          </button>
-        </div>
-        {#if canInboxSend}
-          <!-- Additive inbox channel (Phase 54): send the same challenge straight to an accepted
-               friend — no link to pass. The link / QR / code options above stay the backend-free path. -->
-          <div class="duel-send">
-            {#if friendPickerOpen}
-              <p class="duel-send-title">{$t('duels.pickFriend')}</p>
-              <div class="duel-friends">
-                {#each $friends as f (f.userId)}
-                  <button type="button" class="duel-friend" onclick={() => sendToFriend(f)}>
-                    <Icon name="swords" size="0.9em" />
-                    {f.displayName || $t('board.anon')}
-                  </button>
-                {/each}
-              </div>
-            {:else}
-              <button type="button" class="duel-send-btn" onclick={() => (friendPickerOpen = true)}>
-                <Icon name="swords" size="1em" />
-                {$t('duels.sendToFriend')}
-              </button>
-              <p class="duel-send-hint">{$t('duels.sendHint')}</p>
-            {/if}
-          </div>
-        {/if}
-        <p class="duel-feedback" role="status" aria-live="polite">
-          {duelSendMsg ?? (duelFeedback ? $t(duelFeedback) : '')}
-        </p>
-      </div>
+      <DuelShareCard
+        previewUrl={duelPreviewUrl}
+        {canInboxSend}
+        friends={$friends}
+        sentIds={challengedIds}
+        {directLocked}
+        onShare={() => onDuelAction('share')}
+        onCopyImage={() => onDuelAction('image')}
+        onCopyLink={() => onDuelAction('link')}
+        onShowQr={() => onDuelAction('qr')}
+        onPickFriend={sendToFriend}
+        onUnlock={unlockDirect}
+      />
     {/if}
 
     <DuelNamePrompt
@@ -725,6 +719,9 @@
       context={qrView?.context ?? ''}
       onClose={() => (qrOpen = false)}
     />
+
+    <!-- Duel share / send status, moved out of the card into a transient toast (fixed-position). -->
+    <Toast message={duelSendMsg ?? (duelFeedback ? $t(duelFeedback) : '')} />
 
     <!-- New-best burst overlay (Phase 42): fixed-position, so its place in the tree is immaterial;
          `{#key}` mounts a fresh instance so the one-shot animation plays once. -->
@@ -1102,196 +1099,6 @@
   @media (max-width: 560px) {
     .stats {
       grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  /* Duel a friend (Phase 46): a self-contained card with its own share actions + a trust note. */
-  .duel-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 1.1rem 1.25rem;
-    background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-card);
-  }
-
-  .duel-head {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .duel-head h2 {
-    margin: 0;
-    font-size: 1.15rem;
-  }
-
-  .duel-ico {
-    display: inline-flex;
-    color: var(--color-accent);
-  }
-
-  .duel-sub {
-    margin: 0;
-    color: var(--color-muted);
-  }
-
-  /* Live scorecard preview — the thing that gets shared, and directly copy/paste-able on desktop. */
-  .duel-preview {
-    align-self: center;
-    width: 100%;
-    max-width: 280px;
-    aspect-ratio: 1 / 1;
-    border-radius: 18px;
-    border: 2px solid var(--color-border);
-    box-shadow: var(--shadow-card);
-  }
-
-  /* One prominent primary action — the "super easy to share" path. */
-  .duel-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.2rem;
-    padding: 0.8rem 1.4rem;
-    border-radius: 999px;
-    font-weight: 800;
-    font-size: 1.05rem;
-    border: 2px solid transparent;
-    background: var(--color-accent);
-    color: var(--color-accent-contrast);
-    box-shadow: var(--shadow-chunky);
-    transition:
-      transform 0.12s ease,
-      box-shadow 0.12s ease;
-  }
-
-  .duel-primary:hover {
-    transform: translateY(-2px);
-  }
-
-  .duel-primary:active {
-    transform: translateY(2px);
-    box-shadow: var(--shadow-chunky-press);
-  }
-
-  /* Quiet fallbacks for desktop / manual sending. */
-  .duel-fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    color: var(--color-muted);
-    font-size: 0.9rem;
-  }
-
-  .linkish {
-    background: none;
-    border: none;
-    padding: 0.2rem 0.1rem;
-    color: var(--color-muted);
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-  }
-
-  .linkish:hover {
-    color: var(--color-accent-strong);
-  }
-
-  .duel-send {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding-top: 0.75rem;
-    border-top: 1px dashed var(--color-border);
-  }
-
-  .duel-send-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.55rem 1.3rem;
-    border-radius: 999px;
-    font-weight: 700;
-    background: var(--color-bg);
-    border: 2px solid var(--color-border);
-    color: var(--color-text);
-    transition: border-color 0.12s ease;
-  }
-
-  .duel-send-btn:hover {
-    border-color: var(--color-accent);
-  }
-
-  .duel-send-hint {
-    margin: 0;
-    color: var(--color-muted);
-    font-size: 0.8rem;
-    text-align: center;
-  }
-
-  .duel-send-title {
-    margin: 0;
-    font-weight: 700;
-    font-size: 0.95rem;
-  }
-
-  .duel-friends {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .duel-friend {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 1rem;
-    border-radius: 999px;
-    font-weight: 600;
-    background: var(--color-accent);
-    color: var(--color-accent-contrast);
-    border: 2px solid transparent;
-    box-shadow: var(--shadow-chunky);
-    transition: transform 0.12s ease;
-  }
-
-  .duel-friend:hover {
-    transform: translateY(-2px);
-  }
-
-  .duel-friend:active {
-    transform: translateY(2px);
-    box-shadow: var(--shadow-chunky-press);
-  }
-
-  .duel-feedback {
-    margin: 0;
-    min-height: 1.2em;
-    color: var(--color-correct);
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .duel-primary,
-    .duel-friend,
-    .duel-send-btn {
-      transition: none;
-    }
-
-    .duel-primary:hover,
-    .duel-friend:hover {
-      transform: none;
     }
   }
 </style>

@@ -11,9 +11,16 @@
   import { isBackendConfigured } from '../../backend/client';
   import Icon from './Icon.svelte';
 
-  const shown = $derived(isBackendConfigured() && $identity.tier === 'account');
+  // `preview` lets the duel gallery force the card visible with a chosen pending count, bypassing the
+  // backend + account gate (and the live store / refresh). Dev-only seam; production passes nothing.
+  let { preview }: { preview?: { pending: number } } = $props();
 
-  onMount(() => void refreshDuels());
+  const shown = $derived(preview ? true : isBackendConfigured() && $identity.tier === 'account');
+  const count = $derived(preview ? preview.pending : $pendingCount);
+
+  onMount(() => {
+    if (!preview) void refreshDuels();
+  });
 
   function open(): void {
     push('/duels');
@@ -27,27 +34,38 @@
       <span class="title">{$t('duels.cardTitle')}</span>
       <span class="sub">{$t('duels.cardSubtitle')}</span>
     </span>
-    {#if $pendingCount > 0}
-      <span class="badge">{$pendingCount}</span>
+    {#if count > 0}
+      <span class="badge">{count}</span>
     {/if}
   </button>
 {/if}
 
 <style>
   .duels-card {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.85rem;
     width: 100%;
     text-align: left;
-    padding: 0.9rem 1.05rem;
+    padding: 0.9rem 1.05rem 0.9rem 1.2rem;
     background: var(--color-surface);
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
+    overflow: hidden;
     transition:
       transform 0.12s ease,
       border-color 0.12s ease;
+  }
+
+  /* Teal→coral edge rail — the two-sided "versus" cue, echoed by the split crest + coral badge. */
+  .duels-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    background: linear-gradient(180deg, var(--color-accent) 0 45%, var(--color-coral) 55% 100%);
   }
 
   .duels-card:hover {
@@ -63,8 +81,8 @@
     height: 2.4rem;
     flex: none;
     border-radius: 999px;
-    background: var(--color-accent-soft, var(--color-bg));
-    color: var(--color-accent);
+    color: #fff;
+    background: linear-gradient(135deg, var(--color-accent) 0 50%, var(--color-coral) 50% 100%);
   }
 
   .text {
@@ -94,11 +112,12 @@
     height: 1.6rem;
     padding: 0 0.4rem;
     border-radius: 999px;
-    background: var(--color-wrong);
-    color: var(--color-accent-contrast);
+    background: var(--color-coral);
+    color: #fff;
     font-weight: 800;
     font-size: 0.85rem;
     font-variant-numeric: tabular-nums;
+    box-shadow: 0 3px 0 var(--color-coral-strong);
   }
 
   @media (prefers-reduced-motion: reduce) {

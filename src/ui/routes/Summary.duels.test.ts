@@ -27,6 +27,7 @@ const h = vi.hoisted(() => {
     friends: mk<{ userId: string; displayName: string }[]>([]),
     identity: mk<{ tier: string }>({ tier: 'account' }),
     pendingInboxDuelId: mk<string | null>(null),
+    outbox: mk<unknown[]>([]),
     // Typed via the generic (not impl params) so `.mock.calls[0]` is a proper tuple, not `[]`.
     send: vi.fn<
       (opponentId: string, code: string, score: DuelScore, opponentName: string) => Promise<'ok'>
@@ -43,6 +44,7 @@ vi.mock('../stores/duels', () => ({
   send: h.send,
   submit: h.submit,
   pendingInboxDuelId: h.pendingInboxDuelId,
+  outbox: h.outbox,
 }));
 
 import Summary from './Summary.svelte';
@@ -87,6 +89,7 @@ beforeEach(() => {
   h.friends.set([]);
   h.identity.set({ tier: 'account' });
   h.pendingInboxDuelId.set(null);
+  h.outbox.set([]);
   h.configured = true;
   h.send.mockClear();
   h.submit.mockClear();
@@ -100,35 +103,44 @@ afterEach(() => {
 });
 
 describe('Summary — inbox send flow (Phase 54)', () => {
-  it('offers "Challenge a friend directly" only with an account + at least one friend', async () => {
+  it('shows a real friend list with ≥1 friend, else a locked "add a friend" teaser', async () => {
     lastSummary.set(summary());
     h.friends.set([]);
     const { unmount } = render(Summary);
-    // No friends yet → only the Phase-46 link path is offered.
-    expect(screen.queryByText('Challenge a friend directly')).not.toBeInTheDocument();
+    // The card is collapsed to one button; expand it to reveal the options.
+    await fireEvent.click(screen.getByRole('button', { name: 'Challenge a friend' }));
+    // Account but no friends → the section shows, locked, nudging you to add a friend.
+    expect(screen.getByText('Send directly')).toBeInTheDocument();
+    expect(screen.getByText('Add a friend')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Bob/ })).not.toBeInTheDocument();
     expect(screen.getByText('Copy link')).toBeInTheDocument();
     unmount();
 
     h.friends.set([{ userId: 'fr1', displayName: 'Bob' }]);
     render(Summary);
-    expect(screen.getByText('Challenge a friend directly')).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole('button', { name: 'Challenge a friend' }));
+    expect(screen.getByText('Send directly')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Bob/ })).toBeInTheDocument();
   });
 
-  it('hides the direct-send option for an anonymous identity (link path stays)', () => {
+  it('shows a locked "create an account" teaser for an anonymous identity (link path stays)', async () => {
     lastSummary.set(summary());
     h.friends.set([{ userId: 'fr1', displayName: 'Bob' }]);
     h.identity.set({ tier: 'anonymous' });
     render(Summary);
-    expect(screen.queryByText('Challenge a friend directly')).not.toBeInTheDocument();
+    await fireEvent.click(screen.getByRole('button', { name: 'Challenge a friend' }));
+    expect(screen.getByText('Send directly')).toBeInTheDocument();
+    expect(screen.getByText('Create account')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Bob/ })).not.toBeInTheDocument();
     expect(screen.getByText('Copy link')).toBeInTheDocument(); // link duel unaffected
   });
 
-  it('picking a friend sends the encoded challenge and confirms', async () => {
+  it('picking a friend sends the challenge, confirms via toast, and blocks a duplicate send', async () => {
     lastSummary.set(summary());
     h.friends.set([{ userId: 'fr1', displayName: 'Bob' }]);
     render(Summary);
 
-    await fireEvent.click(screen.getByText('Challenge a friend directly'));
+    await fireEvent.click(screen.getByRole('button', { name: 'Challenge a friend' }));
     await fireEvent.click(screen.getByRole('button', { name: /Bob/ }));
 
     expect(h.send).toHaveBeenCalledTimes(1);
@@ -137,6 +149,11 @@ describe('Summary — inbox send flow (Phase 54)', () => {
     expect(score).toEqual({ primary: 8, tiebreak: 60000 }); // duelScore('fixed', summary)
     expect(typeof code).toBe('string');
     await waitFor(() => expect(screen.getByText('Challenge sent to Bob!')).toBeInTheDocument());
+
+    // Bob is now marked "Sent": the row is no longer a challenge button, so it can't be re-sent.
+    await waitFor(() => expect(screen.getByText('Sent')).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: /Bob/ })).not.toBeInTheDocument();
+    expect(h.send).toHaveBeenCalledTimes(1);
   });
 
   it('auto-submits my score to the row on finishing a received inbox duel (no return-link step)', async () => {
