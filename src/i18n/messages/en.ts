@@ -11,6 +11,7 @@ const en = {
     atlas: 'Atlas',
     history: 'History',
     progress: 'Progress',
+    duels: 'Duels',
     settings: 'Settings',
     primary: 'Primary navigation',
   },

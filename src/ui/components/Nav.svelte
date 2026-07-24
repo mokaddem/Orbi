@@ -3,6 +3,8 @@
   import { t } from '../../i18n';
   import { navLinks, bottomTabs } from '../routes';
   import { play as playStore, playFabAction } from '../stores/game';
+  import { identity } from '../stores/identity';
+  import { isBackendConfigured } from '../../backend/client';
   import Icon from './Icon.svelte';
   import Mascot from './Mascot.svelte';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
@@ -17,10 +19,18 @@
   }
 
   // Rail composition: Play is a prominent button of its own, Settings is pinned to the foot, and
-  // the remaining destinations flow between them.
+  // the remaining destinations flow between them. Duels is rail-only and gated to a configured
+  // backend + a real account (like the Home DuelsCard), so it drops out for anonymous / offline
+  // players rather than dead-ending at the connect-a-friend gate.
   const play = navLinks.find((link) => link.primary)!;
-  const railMain = navLinks.filter((link) => !link.primary && link.href !== '#/settings');
   const settings = navLinks.find((link) => link.href === '#/settings')!;
+  const duelsGated = $derived(!isBackendConfigured() || $identity.tier !== 'account');
+  const railMain = $derived(
+    navLinks.filter(
+      (link) =>
+        !link.primary && link.href !== '#/settings' && !(link.href === '#/duels' && duelsGated),
+    ),
+  );
 
   // Eager FAB (Phase 43): on the Play setup screen (mobile), the raised Play FAB stands in for
   // the removed in-page "Start" button — it pulses and, on press, launches the game with the

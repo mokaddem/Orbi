@@ -19,6 +19,7 @@ const de: typeof en = {
     atlas: 'Atlas',
     history: 'Verlauf',
     progress: 'Fortschritt',
+    duels: 'Duelle',
     settings: 'Einstellungen',
     primary: 'Hauptnavigation',
   },

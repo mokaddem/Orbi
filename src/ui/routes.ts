@@ -63,6 +63,10 @@ export const navLinks: NavLink[] = [
   { href: '#/atlas', labelKey: 'nav.atlas', icon: 'map' },
   { href: '#/history', labelKey: 'nav.history', icon: 'history' },
   { href: '#/progress', labelKey: 'nav.progress', icon: 'trophy' },
+  // Duels is a DESKTOP-RAIL-ONLY destination (kept out of `bottomTabs`, which is an explicit
+  // subset): the mobile bar is already at its 5-slot max. Nav.svelte gates it to a configured
+  // backend + a real account, exactly like the Home DuelsCard, so it never dead-ends at the gate.
+  { href: '#/duels', labelKey: 'nav.duels', icon: 'swords' },
   { href: '#/settings', labelKey: 'nav.settings', icon: 'settings' },
 ];
 

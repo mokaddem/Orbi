@@ -13,6 +13,7 @@ const fr: typeof en = {
     atlas: 'Atlas',
     history: 'Historique',
     progress: 'Progrès',
+    duels: 'Duels',
     settings: 'Paramètres',
     primary: 'Navigation principale',
   },
