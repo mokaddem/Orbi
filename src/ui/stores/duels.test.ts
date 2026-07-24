@@ -84,6 +84,7 @@ const view = (over: Partial<DuelRecordView> = {}): DuelRecordView => ({
   opponentName: 'MyName',
   challengerDismissed: false,
   opponentDismissed: false,
+  created: '2024-07-21 12:00:00.000Z',
   ...over,
 });
 

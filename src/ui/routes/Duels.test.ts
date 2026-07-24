@@ -87,6 +87,7 @@ const entry = (over: Partial<DuelEntry> = {}): DuelEntry => ({
   theirScore: { primary: 9, tiebreak: 1000 },
   verdict: null,
   declined: false,
+  created: '2024-07-21T12:00:00.000Z',
   ...over,
 });
 
@@ -120,20 +121,25 @@ describe('Duels route (Phase 54)', () => {
     ).toBeInTheDocument();
   });
 
-  it('refreshes on mount and shows empty states when there are no duels', () => {
+  it('refreshes on mount and shows empty states when there are no duels', async () => {
     render(Duels);
     expect(h.refreshDuels).toHaveBeenCalled();
+    // Hero (always visible) + the default Scoreboard tab both show their empty states.
     expect(
       screen.getByText('No challenges waiting. Finish a game to send one!'),
     ).toBeInTheDocument();
+    expect(screen.getByText('Play a duel to start a rivalry.')).toBeInTheDocument();
+    // History lives behind its own tab.
+    await fireEvent.click(screen.getByRole('tab', { name: 'History' }));
     expect(screen.getByText('No finished duels yet.')).toBeInTheDocument();
   });
 
   it('renders a pending inbox duel and launches the identical seeded run on Play', async () => {
     h.inbox.set([entry()]);
     render(Duels);
-    expect(screen.getByText('Sami challenges you')).toBeInTheDocument();
-    expect(screen.getByText('Beat 9')).toBeInTheDocument();
+    expect(screen.getByText('Sami')).toBeInTheDocument();
+    expect(screen.getByText('challenges you')).toBeInTheDocument();
+    expect(screen.getByText('Beat')).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole('button', { name: 'Play' }));
 
@@ -157,18 +163,20 @@ describe('Duels route (Phase 54)', () => {
     expect(h.push).not.toHaveBeenCalled(); // declining never launches a run
   });
 
-  it('shows the outbox: waiting for the opponent, plus challenges they declined', () => {
+  it('reveals the outbox under the Sent tab: the opponent name + a declined tag', async () => {
     h.outbox.set([
       entry({ id: 'o1', iAmChallenger: true, otherName: 'Bob', declined: false }),
       entry({ id: 'o2', iAmChallenger: true, otherName: 'Cara', declined: true }),
     ]);
     render(Duels);
-    expect(screen.getByText('Sent challenges')).toBeInTheDocument();
-    expect(screen.getByText('Waiting for Bob')).toBeInTheDocument();
-    expect(screen.getByText('Cara declined')).toBeInTheDocument();
+    // The Sent tab carries a pending count; the outbox mounts only once it's active.
+    await fireEvent.click(screen.getByRole('tab', { name: /Sent/ }));
+    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(screen.getByText('Cara')).toBeInTheDocument();
+    expect(screen.getByText('declined')).toBeInTheDocument();
   });
 
-  it('renders completed history with a verdict, per-friend W/L, and a dismiss', async () => {
+  it('shows the rivalry scoreboard by default and the completed duel under History', async () => {
     h.history.set([
       entry({
         id: 'h1',
@@ -182,9 +190,14 @@ describe('Duels route (Phase 54)', () => {
       }),
     ]);
     render(Duels);
+    // Default tab = Scoreboard: the per-friend rivalry (one win → 100% over 1 duel).
+    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(screen.getByText('100% win rate · 1 duel')).toBeInTheDocument();
+
+    // History tab: the completed duel with its verdict + a dismiss.
+    await fireEvent.click(screen.getByRole('tab', { name: 'History' }));
     expect(screen.getByText('vs Bob')).toBeInTheDocument();
     expect(screen.getByText('Won')).toBeInTheDocument();
-    expect(screen.getByText('Bob · 1W · 0L')).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole('button', { name: 'Remove from history' }));
     expect(h.dismiss).toHaveBeenCalledWith('h1');

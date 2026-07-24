@@ -36,6 +36,8 @@ export interface DuelRecordView {
   opponentName: string;
   challengerDismissed: boolean;
   opponentDismissed: boolean;
+  /** PocketBase autodate — when the duel was created. Drives the outbox "sent Xago" + expiry pill. */
+  created: string;
 }
 
 /** Clamp to a non-negative integer — the server score fields are `min: 0, onlyInt` (the `stats`
@@ -75,6 +77,7 @@ export function duelViewFromRecord(record: RecordModel): DuelRecordView {
     opponentName: str(record.opponentName),
     challengerDismissed: bool(record.challengerDismissed),
     opponentDismissed: bool(record.opponentDismissed),
+    created: str(record.created),
   };
 }
 

@@ -55,6 +55,8 @@ export interface DuelEntry {
   verdict: DuelVerdict | null;
   /** Outbox only: `true` when the opponent DECLINED this still-pending challenge (never played it). */
   declined: boolean;
+  /** Raw PocketBase autodate string — parsed by the Sent tab for "sent Xago" + the expiry pill. */
+  created: string;
 }
 
 const inboxStore = writable<DuelEntry[]>([]);
@@ -110,6 +112,7 @@ function toEntry(view: DuelRecordView, me: string): DuelEntry | null {
     // A still-pending duel the opponent dismissed = declined (meaningful for the challenger's outbox;
     // a declined duel is filtered out of the opponent's own inbox server-side).
     declined: view.status === 'pending' && view.opponentDismissed,
+    created: view.created,
   };
 }
 

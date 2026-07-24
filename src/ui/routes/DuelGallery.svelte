@@ -35,6 +35,12 @@
   const noop = (): void => {};
   const dv = duelDataVersion();
 
+  // Relative `created` timestamps for the outbox specimens, so the "sent Xago" + 7-day expiry pills
+  // render real states (waiting / soon / expired) in the gallery.
+  const HOUR = 60 * 60 * 1000;
+  const DAY = 24 * HOUR;
+  const isoAgo = (ms: number): string => new Date(Date.now() - ms).toISOString();
+
   function score(primary: number, tiebreak = 74210): DuelScore {
     return { primary, tiebreak };
   }
@@ -76,6 +82,7 @@
       theirScore: null,
       verdict: null,
       declined: false,
+      created: isoAgo(HOUR),
       ...o,
     };
   }
@@ -108,6 +115,17 @@
       otherName: 'Priya',
       payload: mk({ mode: 'country-to-capital', region: 'Asia' }),
       myScore: score(8),
+      created: isoAgo(2 * HOUR), // waiting — expires in ~7d
+    }),
+    entry({
+      id: 'o3',
+      status: 'pending',
+      iAmChallenger: true,
+      otherUserId: 'u-noor',
+      otherName: 'Noor',
+      payload: mk({ mode: 'flag-to-country', region: 'Africa' }),
+      myScore: score(10),
+      created: isoAgo(7 * DAY - 22 * HOUR), // soon — expires in 22h (amber)
     }),
     entry({
       id: 'o2',
@@ -118,6 +136,17 @@
       payload: mk({ region: 'Americas' }),
       myScore: score(9),
       declined: true,
+      created: isoAgo(DAY),
+    }),
+    entry({
+      id: 'o4',
+      status: 'pending',
+      iAmChallenger: true,
+      otherUserId: 'u-lars',
+      otherName: 'Lars',
+      payload: mk({ mode: 'map-highlight', region: 'Europe' }),
+      myScore: score(7),
+      created: isoAgo(8 * DAY), // expired (display-only)
     }),
   ];
 
