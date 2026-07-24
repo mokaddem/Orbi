@@ -40,22 +40,24 @@ describe('duelAge', () => {
 
 describe('duelExpiry', () => {
   it('reports days remaining when over 24h are left', () => {
-    // Sent 1 day ago against a 7-day window → ~6 days left.
-    expect(duelExpiry(NOW - DAY, NOW)).toEqual({ state: 'ok', days: 6 });
+    // expiresAt 6 days out → 6 days left.
+    expect(duelExpiry(NOW + 6 * DAY, NOW)).toEqual({ state: 'ok', days: 6 });
+  });
+
+  it('rounds a fresh 7-day invite up to 7 days', () => {
+    expect(duelExpiry(NOW + DUEL_EXPIRY_MS - 2 * HOUR, NOW)).toEqual({ state: 'ok', days: 7 });
   });
 
   it('warms to "soon" (hours) under 24h remaining', () => {
-    const created = NOW - (DUEL_EXPIRY_MS - 22 * HOUR); // 22h left
-    expect(duelExpiry(created, NOW)).toEqual({ state: 'soon', hours: 22 });
+    expect(duelExpiry(NOW + 22 * HOUR, NOW)).toEqual({ state: 'soon', hours: 22 });
   });
 
-  it('marks a past-window challenge expired', () => {
-    expect(duelExpiry(NOW - 8 * DAY, NOW)).toEqual({ state: 'expired' });
-    expect(duelExpiry(NOW - DUEL_EXPIRY_MS, NOW)).toEqual({ state: 'expired' });
+  it('marks a past-expiry challenge expired', () => {
+    expect(duelExpiry(NOW - HOUR, NOW)).toEqual({ state: 'expired' });
+    expect(duelExpiry(NOW, NOW)).toEqual({ state: 'expired' });
   });
 
   it('never shows 0h while still alive', () => {
-    const created = NOW - (DUEL_EXPIRY_MS - 20 * MIN); // 20 min left
-    expect(duelExpiry(created, NOW)).toEqual({ state: 'soon', hours: 1 });
+    expect(duelExpiry(NOW + 20 * MIN, NOW)).toEqual({ state: 'soon', hours: 1 });
   });
 });

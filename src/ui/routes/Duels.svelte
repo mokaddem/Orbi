@@ -32,7 +32,7 @@
     type DuelEntry,
   } from '../stores/duels';
   import { duelToRunConfig } from '../duel';
-  import { parseCreated, duelAge, duelExpiry, type DuelExpiry } from '../duelTime';
+  import { parseCreated, duelAge, duelExpiry, DUEL_EXPIRY_MS, type DuelExpiry } from '../duelTime';
   import { pendingConfig, pendingDuel } from '../stores/game';
   import { identity } from '../stores/identity';
   import { isBackendConfigured } from '../../backend/client';
@@ -131,10 +131,13 @@
     }
   }
 
-  /** The 7-day display-only expiry state for a pending outbox row, or `null` if the date is missing. */
+  /** Expiry state for a pending outbox row: the server-stamped `expiresAt`, falling back to
+   *  `created + 7d` for any pre-TTL row that has no stamp. `null` if neither date is parseable. */
   function expiryOf(e: DuelEntry): DuelExpiry | null {
-    const ms = parseCreated(e.created);
-    return ms === null ? null : duelExpiry(ms, Date.now());
+    const stamped = parseCreated(e.expiresAt);
+    const created = parseCreated(e.created);
+    const endMs = stamped ?? (created === null ? null : created + DUEL_EXPIRY_MS);
+    return endMs === null ? null : duelExpiry(endMs, Date.now());
   }
 
   // Accept a received inbox duel → the identical seeded round (the Phase-46 accept path + the row id).

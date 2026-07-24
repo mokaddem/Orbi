@@ -88,6 +88,7 @@ const entry = (over: Partial<DuelEntry> = {}): DuelEntry => ({
   verdict: null,
   declined: false,
   created: '2024-07-21T12:00:00.000Z',
+  expiresAt: '2024-07-28T12:00:00.000Z',
   ...over,
 });
 

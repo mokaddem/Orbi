@@ -1,10 +1,12 @@
 // Duel timing helpers (duels-hub redesign) — pure, framework-free, unit-tested. They power the Sent
-// tab's "sent 2h ago" relative age and the 7-day expiry pill on pending outbox challenges.
+// tab's "sent 2h ago" relative age and the expiry pill on pending outbox challenges.
 //
-// Expiry is DISPLAY-ONLY for now: the server still accepts a result on an "expired" duel. Enforcing it
-// server-side (reject accepting an expired duel + a cleanup path) is a deliberately deferred follow-up.
+// The invite lifetime is now server-owned: PocketBase stamps `expiresAt = created + 7d` on create
+// (pb_hooks/duel_expiry.pb.js) and drops expired invites from the opponent's inbox. `duelExpiry` takes
+// that absolute `expiresAt`; `DUEL_EXPIRY_MS` remains the client-side fallback for any pre-TTL row that
+// has no stamp yet (compute `created + DUEL_EXPIRY_MS`).
 
-/** A pending sent challenge is shown as expiring 7 days after it was created. Display-only window. */
+/** The invite lifetime — kept in sync with the server hook. Used as the fallback for pre-TTL rows. */
 export const DUEL_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
 const MINUTE = 60_000;
@@ -38,18 +40,14 @@ export function duelAge(createdMs: number, nowMs: number): DuelAge {
   return { unit: 'day', n: Math.floor(elapsed / DAY) };
 }
 
-/** Remaining life of a pending challenge against a fixed window (default 7 days). Display-only. */
+/** Remaining life of a pending challenge, from its absolute expiry instant (`expiresAt`). */
 export type DuelExpiry =
   | { state: 'expired' }
   | { state: 'soon'; hours: number } // < 24h left — the pill warms to amber
   | { state: 'ok'; days: number }; // >= 24h left
 
-export function duelExpiry(
-  createdMs: number,
-  nowMs: number,
-  windowMs: number = DUEL_EXPIRY_MS,
-): DuelExpiry {
-  const remaining = createdMs + windowMs - nowMs;
+export function duelExpiry(expiresAtMs: number, nowMs: number): DuelExpiry {
+  const remaining = expiresAtMs - nowMs;
   if (remaining <= 0) return { state: 'expired' };
   if (remaining < DAY) return { state: 'soon', hours: Math.max(1, Math.ceil(remaining / HOUR)) };
   return { state: 'ok', days: Math.ceil(remaining / DAY) };

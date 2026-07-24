@@ -36,8 +36,10 @@ export interface DuelRecordView {
   opponentName: string;
   challengerDismissed: boolean;
   opponentDismissed: boolean;
-  /** PocketBase autodate — when the duel was created. Drives the outbox "sent Xago" + expiry pill. */
+  /** PocketBase autodate — when the duel was created. Drives the outbox "sent Xago". */
   created: string;
+  /** Server-stamped invite lifetime (created + 7d). Empty on pre-TTL rows (treated as no expiry). */
+  expiresAt: string;
 }
 
 /** Clamp to a non-negative integer — the server score fields are `min: 0, onlyInt` (the `stats`
@@ -78,6 +80,7 @@ export function duelViewFromRecord(record: RecordModel): DuelRecordView {
     challengerDismissed: bool(record.challengerDismissed),
     opponentDismissed: bool(record.opponentDismissed),
     created: str(record.created),
+    expiresAt: str(record.expiresAt),
   };
 }
 
@@ -126,7 +129,10 @@ export async function listInbox(): Promise<DuelRecordView[]> {
   if (!me) return [];
   try {
     const rows = await pb.collection('duels').getFullList({
-      filter: `opponent = "${filterQuote(me)}" && status = "pending" && opponentDismissed != true`,
+      // The expiry guard drops invites past their TTL server-side (an expired challenge disappears
+      // from the inbox); `expiresAt = ""` keeps pre-TTL rows (no stamp) visible rather than hiding
+      // legitimate in-flight duels. The sender still sees expired ones in their outbox.
+      filter: `opponent = "${filterQuote(me)}" && status = "pending" && opponentDismissed != true && (expiresAt = "" || expiresAt > @now)`,
       sort: '-created',
       // Distinct requestKey per list: the inbox + history refresh CONCURRENTLY
       // (`runRefresh` Promise.all) and hit the same `duels` endpoint, so the SDK's default

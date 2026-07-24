@@ -126,7 +126,8 @@ describe('listInbox', () => {
     const inbox = await listInbox();
     expect(inbox).toHaveLength(1);
     expect(pb.getFullList).toHaveBeenCalledWith({
-      filter: 'opponent = "me" && status = "pending" && opponentDismissed != true',
+      filter:
+        'opponent = "me" && status = "pending" && opponentDismissed != true && (expiresAt = "" || expiresAt > @now)',
       sort: '-created',
       requestKey: 'duels-inbox',
     });
