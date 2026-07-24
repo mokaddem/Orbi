@@ -184,6 +184,10 @@ Browser (PWA, https) → Cloudflare edge (TLS) → [outbound tunnel] → cloudfl
   tunnel config, then run it as a service. Bake that stable HTTPS origin into the
   Pages build's `VITE_PB_URL` **and** add it to `--origins` (CORS).
 
+> **Step-by-step runbook:** [`server/CLOUDFLARE.md`](./CLOUDFLARE.md) — install →
+> quick-tunnel smoke test → named-tunnel production → hardening, with the exact
+> `VITE_PB_URL` / `--origins` / loopback wiring for this repo.
+
 ### Option B — process supervision on the laptop
 
 Pick whichever you already run. Both give auto-restart on crash/boot.
