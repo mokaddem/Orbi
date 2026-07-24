@@ -46,7 +46,6 @@ const de: typeof en = {
   home: {
     title: 'Orbi',
     tagline: 'Lerne die Geografie der Welt mit Karten, Flaggen und mehr.',
-    demo: 'Hi, ich bin Orbi — bereit, die Welt zu erkunden?',
     play: 'Los geht’s',
     playCustom: 'Oder starte ein eigenes Spiel',
     train: 'Meine Fehler üben',

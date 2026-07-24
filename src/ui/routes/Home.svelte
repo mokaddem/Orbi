@@ -37,7 +37,6 @@
     pendingChallenge,
   } from '../stores/challenge';
   import { sound } from '../sound';
-  import Demo from '../components/Demo.svelte';
   import Icon from '../components/Icon.svelte';
   import Mascot from '../components/Mascot.svelte';
   import NextUpCard from '../components/NextUpCard.svelte';
@@ -225,8 +224,6 @@
     </div>
   {/if}
 
-  <Demo />
-
   {#if hasReviews && regionReviews}
     <ReviewByRegion reviews={regionReviews} {plan} />
   {:else if recs && recs.length}
@@ -313,6 +310,14 @@
 {/if}
 
 <style>
+  /* One column, one rhythm: every panel is a direct child spaced by a single gap, so nothing
+     touches and the spacing is uniform top-to-bottom. Children therefore set no own margins. */
+  .home {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   /* Hero header: the globe mascot greets beside the title. It's decorative spot art (the
      mascot is aria-hidden), so the heading text still carries the screen. */
   .home-header {
@@ -345,7 +350,6 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.6rem;
-    margin: 0.25rem 0 0;
   }
 
   .top-stats .streak-cell {
@@ -386,7 +390,6 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-top: 0.6rem;
     padding: 0.6rem 1rem;
     background: var(--color-accent-weak);
     border: 2px solid var(--color-accent);
@@ -414,7 +417,6 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-top: 0.6rem;
     padding: 0.6rem 1rem;
     background: var(--color-accent-weak);
     border: 2px solid var(--color-accent);
@@ -454,7 +456,6 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-top: 1rem;
   }
 
   .home-grid .daily-row,
@@ -546,17 +547,11 @@
     }
   }
 
-  /* The ceremonial Grandmaster invitation sits below the daily + mastery glance, as its own row. */
-  .invite-row {
-    margin-top: 1rem;
-  }
-
   /* "All caught up" status: relaxed globe on a soft accent tint. */
   .caught-up {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-top: 1rem;
     padding: 0.6rem 1rem;
     background: var(--color-accent-weak);
     border-radius: var(--radius);
@@ -569,7 +564,6 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.25rem 1.25rem;
-    margin-top: 0.25rem;
   }
 
   .play-link {
